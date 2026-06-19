@@ -1,0 +1,28 @@
+import QtQuick 6.10
+import QtQuick.Layouts 6.10
+import qs.services
+
+Item {
+    id: root
+
+    implicitWidth: clockLabel.implicitWidth + 16
+    implicitHeight: 28
+
+    Text {
+        id: clockLabel
+        anchors.centerIn: parent
+        text: Qt.formatDateTime(new Date(), "hh:mm AP")
+        color: Pywal.color5
+        font.pixelSize: 11
+        font.bold: true
+        font.family: "JetBrainsMono Nerd Font"
+    }
+
+    Timer {
+        interval: 1000
+        running: true
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: clockLabel.text = Qt.formatDateTime(new Date(), "hh:mm AP")
+    }
+}

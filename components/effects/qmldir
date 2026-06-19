@@ -1,0 +1,2 @@
+module effects
+singleton Material3Anim 1.0 Material3Anim.qml
