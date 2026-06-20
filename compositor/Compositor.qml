@@ -1,5 +1,6 @@
 pragma Singleton
 
+import Quickshell
 import QtQuick 6.10
 import "." // Import the local compositor directory
 
@@ -61,16 +62,7 @@ Item {
             desktopSession.toLowerCase().includes("niri")) {
             return "niri";
         }
-        
-        // Fallback detection by checking if hyprctl exists
-        var proc = Quickshell.Process();
-        var result = proc.execute(["which", "hyprctl"]);
-        if (result.exitCode === 0) {
-            return "hyprland";
-        }
-        
-        // Could add similar check for niri here
-        
+
         return "hyprland"; // Default fallback
     }
 }
