@@ -1,0 +1,69 @@
+// Niri configuration file
+// This is a minimal working config for launching quickshell
+
+input {
+    keyboard {
+        repeat-delay 600
+        repeat-rate 25
+    }
+}
+
+output {
+    prefer-no-simple-framing true
+}
+
+startup {
+    // Launch essential services when Niri starts
+    quickshell spawn-after-ready "quickshell"
+    awww-daemon spawn-after-ready "awww-daemon"
+    wal spawn-after-ready "wal -R -n"
+    swaync spawn-after-ready "swaync"
+    mpd-mpris spawn-after-ready "mpd-mpris"
+    kdeconnect-indicator spawn-after-ready "kdeconnect-indicator"
+}
+
+bindings {
+    // Basic window management bindings
+    // Super + Return to open terminal (adjust to your terminal emulator)
+    bind {
+        mod [Super]
+        action Spawn
+        program "foot"
+    }
+
+    // Super + Q to close window
+    bind {
+        mod [Super]
+        keysym Q
+        action CloseWindow
+    }
+
+    // Super + Shift + E to exit
+    bind {
+        mod [Super, Shift]
+        keysym E
+        action Exit
+    }
+
+    // Workspace switching
+    bind {
+        mod [Super]
+        keysym 1
+        action FocusWorkspace 0
+    }
+    bind {
+        mod [Super]
+        keysym 2
+        action FocusWorkspace 1
+    }
+    bind {
+        mod [Super]
+        keysym 3
+        action FocusWorkspace 2
+    }
+    bind {
+        mod [Super]
+        keysym 4
+        action FocusWorkspace 3
+    }
+}

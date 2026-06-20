@@ -217,7 +217,7 @@ ShellRoot {
         root.walApplying = true
         applyWallProc.command = ["bash", "-c",
             "awww img '" + wallpaper.path + "' --transition-type any --transition-duration 2 & " +
-            root.homePath + "/.config/skwd-wall/after-wall.sh '" + wallpaper.path + "'"
+            root.homePath + "/.config/quickshell/scripts/after-wall.sh '" + wallpaper.path + "'"
         ]
         applyWallProc.running = true
     }
