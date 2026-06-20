@@ -4,13 +4,13 @@ import QtQuick
 Scope {
     id: root
     
-    required property var pywal
+    required property var matugen
     
     VolumeOSD {
-        pywal: root.pywal
+        matugen: root.matugen
     }
     
     BrightnessOSD {
-        pywal: root.pywal
+        matugen: root.matugen
     }
 }

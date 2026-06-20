@@ -10,7 +10,7 @@ import "../../components/effects"
 PanelWindow {
     id: root
 
-    required property var pywal
+    required property var matugen
     property bool showing: false
 
     // Use VolumeMonitor for reliable OSD triggering (reads from /tmp/volume_osd)
@@ -76,10 +76,8 @@ PanelWindow {
         radius: 16
         
         color: Qt.rgba(
-            pywal?.background?.r ?? 0.1,
-            pywal?.background?.g ?? 0.1,
-            pywal?.background?.b ?? 0.1,
-            0.4
+            // Using default values as fallback until matugen colors are loaded
+            0.1, 0.1, 0.1, 0.4
         )
         border.width: 1
         border.color: Qt.rgba(1, 1, 1, 0.06)
@@ -112,7 +110,7 @@ PanelWindow {
             Text {
                 text: root.currentMuted ? "󰖁" : (root.currentVolume > 66 ? "󰕾" : (root.currentVolume > 33 ? "󰖀" : "󰕿"))
                 font.family: "Material Design Icons"
-                color: root.currentMuted ? Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.5) : pywal.primary
+                color: root.currentMuted ? Qt.rgba(0.8, 0.8, 0.8, 0.5) : Qt.rgba(0.2, 0.6, 1.0, 1.0) // Default colors
                 font.pixelSize: 20
             }
             
@@ -121,13 +119,13 @@ PanelWindow {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 6
                 radius: 3
-                color: Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.15)
+                color: Qt.rgba(0.8, 0.8, 0.8, 0.15) // Default color
                 
                 Rectangle {
                     width: parent.width * (root.currentVolume / 100)
                     height: parent.height
                     radius: 3
-                    color: root.currentMuted ? Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.4) : pywal.primary
+                    color: root.currentMuted ? Qt.rgba(0.8, 0.8, 0.8, 0.4) : Qt.rgba(0.2, 0.6, 1.0, 1.0) // Default color
                     
                     Behavior on width {
                         NumberAnimation { 
@@ -145,7 +143,7 @@ PanelWindow {
             // Text
             Text {
                 text: root.currentVolume + "%"
-                color: pywal.foreground
+                color: Qt.rgba(0.9, 0.9, 0.9, 1.0) // Default color
                 font.family: "Inter"
                 font.pixelSize: 13
                 font.weight: Font.DemiBold
