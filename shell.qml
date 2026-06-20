@@ -14,7 +14,7 @@ ShellRoot {
 
     // Initialize services immediately
     readonly property var notifs: QsServices.Notifs
-    readonly property var pywal: QsServices.Pywal
+    readonly property var matugen: QsServices.Matugen
     readonly property var audio: QsServices.Audio
     readonly property var brightness: QsServices.Brightness
 
@@ -60,7 +60,7 @@ ShellRoot {
         }
     }
 
-    // === Colors IPC Handler (for after-wall.sh) ===
+    // === Colors IPC Handler (for matugen) ===
     IpcHandler {
         target: "colors"
 
@@ -128,7 +128,7 @@ ShellRoot {
 
     // OSD overlays (volume and brightness)
     Wrapper {
-        pywal: root.pywal
+        matugen: root.matugen
     }
 
     // Music Panel
@@ -217,7 +217,7 @@ ShellRoot {
         root.walApplying = true
         applyWallProc.command = ["bash", "-c",
             "awww img '" + wallpaper.path + "' --transition-type any --transition-duration 2 & " +
-            root.homePath + "/.config/quickshell/scripts/after-wall.sh '" + wallpaper.path + "'"
+            "matugen image '" + wallpaper.path + "' -c '" + root.configPath + "/dist/matugen/config.toml'"
         ]
         applyWallProc.running = true
     }
@@ -379,7 +379,7 @@ ShellRoot {
         id: ipcColorLoadProc
         command: ["bash", "-c", "echo reload"]
         onExited: {
-            root.pywal.reload()
+            root.matugen.reload()
         }
     }
 

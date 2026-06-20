@@ -11,7 +11,7 @@ import "../../components/effects"
 PanelWindow {
     id: root
 
-    required property var pywal
+    required property var matugen
     property bool showing: false
 
     // Direct brightness reading with faster polling
@@ -114,10 +114,8 @@ PanelWindow {
         radius: 16
         
         color: Qt.rgba(
-            pywal?.background?.r ?? 0.1,
-            pywal?.background?.g ?? 0.1,
-            pywal?.background?.b ?? 0.1,
-            0.4
+            // Using default values as fallback until matugen colors are loaded
+            0.1, 0.1, 0.1, 0.4
         )
         border.width: 1
         border.color: Qt.rgba(1, 1, 1, 0.06)
@@ -149,7 +147,7 @@ PanelWindow {
             Text {
                 text: root.currentBrightness > 66 ? "󰃠" : (root.currentBrightness > 33 ? "󰃟" : "󰃞")
                 font.family: "Material Design Icons"
-                color: pywal.primary
+                color: Qt.rgba(0.2, 0.6, 1.0, 1.0) // Default color
                 font.pixelSize: 20
             }
             
@@ -158,13 +156,13 @@ PanelWindow {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 6
                 radius: 3
-                color: Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.15)
+                color: Qt.rgba(0.8, 0.8, 0.8, 0.15) // Default color
                 
                 Rectangle {
                     width: parent.width * (root.currentBrightness / 100)
                     height: parent.height
                     radius: 3
-                    color: pywal.primary
+                    color: Qt.rgba(0.2, 0.6, 1.0, 1.0) // Default color
                     
                     Behavior on width {
                         NumberAnimation { 
@@ -178,7 +176,7 @@ PanelWindow {
             // Text
             Text {
                 text: root.currentBrightness + "%"
-                color: pywal.foreground
+                color: Qt.rgba(0.9, 0.9, 0.9, 1.0) // Default color
                 font.family: "Inter"
                 font.pixelSize: 13
                 font.weight: Font.DemiBold
