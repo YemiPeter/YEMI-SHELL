@@ -69,6 +69,30 @@ ShellRoot {
         }
     }
 
+    // === Settings IPC Handler ===
+    IpcHandler {
+        target: "settings"
+
+        property var settingsWindow: null
+
+        function toggle(): void {
+            if (!settingsWindow) {
+                // Dynamically load the settings window
+                var component = Qt.createComponent("modules/settings/SettingsWindow.qml");
+                if (component.status === Component.Ready) {
+                    settingsWindow = component.createObject(root);
+                } else {
+                    console.error("❌ Failed to load SettingsWindow:", component.errorString());
+                    return;
+                }
+            }
+            
+            if (settingsWindow) {
+                settingsWindow.toggle();
+            }
+        }
+    }
+
     // Direct NotificationServer to ensure it starts
     NotificationServer {
         id: notificationServer
