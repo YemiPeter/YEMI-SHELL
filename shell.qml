@@ -5,12 +5,16 @@
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Notifications
+import qs.compositor
 import QtQuick 6.10
 import "services" as QsServices
 import "modules/osd"
 
 ShellRoot {
     id: root
+
+    // Compositor integration
+    readonly property var compositor: Compositor
 
     // Initialize services immediately
     readonly property var notifs: QsServices.Notifs

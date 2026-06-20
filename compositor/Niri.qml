@@ -1,5 +1,5 @@
 import Quickshell
-import Quickshell.Ipc
+import Quickshell.Io
 import QtQuick 6.10
 
 Item {
@@ -7,7 +7,7 @@ Item {
     
     property bool enabled: false
     
-    // Placeholder properties - will be implemented with Niri IPC
+    // Properties that will be updated via Niri IPC
     readonly property var toplevels: enabled ? _niriState.toplevels : []
     readonly property var workspaces: enabled ? _niriState.workspaces : []
     readonly property var monitors: enabled ? _niriState.monitors : []
@@ -28,15 +28,68 @@ Item {
         property var focusedWorkspace: null
         property var focusedMonitor: null
         
-        // These would be populated by calling niri msg commands
+        // These will be populated by calling niri msg commands
+    }
+    
+    // Temporary processes for workspace and window updates
+    Process {
+        id: workspaceProc
+        property string output: ""
+        command: ["niri", "msg", "--json", "workspaces"]
+        running: false
+
+        stdout: SplitParser {
+            splitMarker: ""
+            onRead: function(data) {
+                workspaceProc.output += data;
+            }
+        }
+
+        onExited: code => {
+            if (code === 0)
+                root.parseWorkspaces(output);
+            else
+                console.warn("Failed to query niri workspaces");
+        }
+    }
+    
+    Process {
+        id: windowProc
+        property string output: ""
+        command: ["niri", "msg", "--json", "windows"]
+        running: false
+
+        stdout: SplitParser {
+            splitMarker: ""
+            onRead: function(data) {
+                windowProc.output += data;
+            }
+        }
+
+        onExited: code => {
+            if (code === 0)
+                root.parseWindows(output);
+            else
+                console.warn("Failed to query niri windows");
+        }
+    }
+
+    Process {
+        id: dispatchProc
+        running: false
     }
     
     function dispatch(request: string): void {
-        if (enabled) {
-            // Execute niri msg command with the request
-            var proc = Quickshell.Process();
-            proc.execute(["niri", "msg", "--socket-path", "/run/user/1000/niri/ipc", "socket", request]);
+        if (!enabled || dispatchProc.running)
+            return;
+
+        var parts = request.trim().split(/\s+/);
+        if (parts[0] === "workspace" && parts.length > 1) {
+            dispatchProc.command = ["niri", "msg", "action", "focus-workspace", parts[1]];
+        } else {
+            dispatchProc.command = ["niri", "msg", "action"].concat(parts);
         }
+        dispatchProc.running = true;
     }
     
     function monitorFor(screen: var): var {
@@ -69,22 +122,84 @@ Item {
         interval: 500
         running: enabled
         repeat: true
-        onTriggered: {
-            if (enabled) {
-                updateNiriState();
-            }
-        }
+        triggeredOnStart: true
+        onTriggered: updateNiriState()
     }
     
     function updateNiriState(): void {
         if (!enabled) return;
         
-        // This would call various niri msg commands to get current state
-        // Example: niri msg --socket-path /run/user/1000/niri/ipc socket workspaces
-        // For now, this is a placeholder - full implementation would require
-        // calling niri msg commands and parsing their JSON output
+        // Update workspaces
+        updateWorkspaces();
+        
+        // Update windows (toplevels)
+        updateWindows();
     }
     
-    // Connections to listen for Niri events
-    // This would require setting up a listener for Niri's event system if available
+    function updateWorkspaces(): void {
+        if (!enabled || workspaceProc.running) return;
+
+        workspaceProc.output = "";
+        workspaceProc.running = true;
+    }
+    
+    function updateWindows(): void {
+        if (!enabled || windowProc.running) return;
+
+        windowProc.output = "";
+        windowProc.running = true;
+    }
+
+    function parseWorkspaces(output: string): void {
+        try {
+            var workspaceData = JSON.parse(output.trim());
+
+            // Convert array to object keyed by workspace ID for easier lookup
+            var newWorkspaces = {};
+            var newFocusedWorkspace = null;
+
+            for (var i = 0; i < workspaceData.length; i++) {
+                var ws = workspaceData[i];
+                newWorkspaces[ws.id] = ws;
+
+                // Identify the focused workspace
+                if (ws.is_focused) {
+                    newFocusedWorkspace = ws;
+                }
+            }
+
+            _niriState.workspaces = newWorkspaces;
+            _niriState.focusedWorkspace = newFocusedWorkspace;
+        } catch (e) {
+            console.warn("Failed to parse workspace data:", e);
+        }
+    }
+
+    function parseWindows(output: string): void {
+        try {
+            var windowData = JSON.parse(output.trim());
+
+            // Convert array to object keyed by window ID for easier lookup
+            var newToplevels = {};
+            var newActiveToplevel = null;
+
+            for (var i = 0; i < windowData.length; i++) {
+                var win = windowData[i];
+                newToplevels[win.id] = win;
+
+                // Identify the active/focused window
+                if (win.is_focused) {
+                    newActiveToplevel = win;
+                }
+            }
+
+            _niriState.toplevels = newToplevels;
+            _niriState.activeToplevel = newActiveToplevel;
+        } catch (e) {
+            console.warn("Failed to parse window data:", e);
+        }
+    }
+    
+    // Connections to listen for Niri events if available
+    // Note: Niri may not have real-time event notifications, so polling approach is used
 }
