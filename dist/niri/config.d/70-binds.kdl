@@ -34,46 +34,65 @@ binds {
     // ═══════════════════════════════════════════════════════════════════════
 
     // Alt-Tab window switcher (iNiR's animated switcher).
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Alt+Tab { spawn "inir" "altSwitcher" "next"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Alt+Shift+Tab { spawn "inir" "altSwitcher" "previous"; }
 
     // Crosshair overlay toggle.
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Super+G { spawn "inir" "overlay" "toggle"; }
 
     // iNiR app launcher / overview.
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Mod+Space repeat=false { spawn "inir" "overview" "toggle"; }
 
     // Clipboard history overlay.
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Mod+V { spawn "inir" "clipboard" "toggle"; }
 
     // Lock screen.
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Mod+Alt+L allow-when-locked=true { spawn "inir" "lock" "activate"; }
     // Re-focus the lock surface (workaround when input feels dead after suspend/resume).
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Mod+Ctrl+Shift+L allow-when-locked=true { spawn "inir" "lock" "focus"; }
 
     // Region selector: screenshot / OCR / Google Lens search.
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Mod+Shift+S { spawn "inir" "region" "screenshot"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Mod+Shift+X { spawn "inir" "region" "ocr"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Mod+Shift+A { spawn "inir" "region" "search"; }
     // Unified snip menu (pick action/scope from the in-overlay toolbar).
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Ctrl+Shift+S { spawn "inir" "region" "menu"; }
 
     // Wallpaper picker, settings, cheatsheet, panel family switch.
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Ctrl+Alt+T { spawn "inir" "wallpaperSelector" "toggle"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Mod+Comma { spawn "inir" "settings"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Mod+Slash { spawn "inir" "cheatsheet" "toggle"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Mod+Shift+W { spawn "inir" "panelFamily" "cycle"; }
 
     // Session / power dialog.
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Mod+Shift+Q { spawn "inir" "session" "toggle"; }
 
     // ═══════════════════════════════════════════════════════════════════════
     // App launchers
     // ═══════════════════════════════════════════════════════════════════════
 
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Mod+T { spawn "inir" "terminal"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Mod+Return { spawn "inir" "terminal"; }
     Super+E { spawn "nautilus"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Super+W { spawn "inir" "browser"; }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -81,6 +100,7 @@ binds {
     // ═══════════════════════════════════════════════════════════════════════
 
     // Close window (iNiR's close with confirmation dialog for unsaved work).
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Mod+Q repeat=false { spawn "inir" "close-window"; }
 
     // Maximize column (fills screen width, keeps gaps/bar).
@@ -106,6 +126,7 @@ binds {
     Mod+R { switch-preset-column-width; }
 
     // Screen recording — region select with audio.
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Mod+Shift+R { spawn "inir" "region" "recordWithSound"; }
 
     // Reset window height to default.
@@ -247,27 +268,44 @@ binds {
     // ═══════════════════════════════════════════════════════════════════════
 
     // Volume (routed through iNiR for OSD + EasyEffects-aware sink resolution).
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     XF86AudioRaiseVolume allow-when-locked=true { spawn "inir" "audio" "volumeUp"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     XF86AudioLowerVolume allow-when-locked=true { spawn "inir" "audio" "volumeDown"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     XF86AudioMute        allow-when-locked=true { spawn "inir" "audio" "mute"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     XF86AudioMicMute     allow-when-locked=true { spawn "inir" "audio" "micMute"; }
 
     // Brightness.
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     XF86MonBrightnessUp   allow-when-locked=true { spawn "inir" "brightness" "increment"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     XF86MonBrightnessDown allow-when-locked=true { spawn "inir" "brightness" "decrement"; }
 
     // Media playback (MPRIS — works with any player: Spotify, Firefox, mpv…).
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     XF86AudioPlay  { spawn "inir" "mpris" "playPause"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     XF86AudioPause { spawn "inir" "mpris" "playPause"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     XF86AudioNext  { spawn "inir" "mpris" "next"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     XF86AudioPrev  { spawn "inir" "mpris" "previous"; }
 
     // Keyboard shortcuts for media (when no media keys are available).
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Ctrl+Mod+Space { spawn "inir" "mpris" "playPause"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Mod+Alt+N      { spawn "inir" "mpris" "next"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Mod+Alt+P      { spawn "inir" "mpris" "previous"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Mod+Shift+M    { spawn "inir" "audio" "mute"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Mod+Shift+P    { spawn "inir" "mpris" "playPause"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Mod+Shift+N    { spawn "inir" "mpris" "next"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Mod+Shift+B    { spawn "inir" "mpris" "previous"; }
 }
