@@ -2,7 +2,7 @@ import Quickshell
 import QtQuick 6.10
 import QtQuick.Layouts 6.10
 import "../../../config" as QsConfig
-import "../../../services" as QsServices
+import "../../../compositor" as QsCompositor
 
 // Clean workspace container - no outer pill
 Item {
@@ -11,10 +11,9 @@ Item {
     property var screen
     
     readonly property var config: QsConfig.Config
-    readonly property var pywal: QsServices.Pywal
-    readonly property var hypr: QsServices.Hypr
-    readonly property int activeWsId: hypr.activeWsId
-    readonly property var occupied: hypr.getOccupiedWorkspaces()
+    readonly property var compositor: QsCompositor.Compositor
+    readonly property int activeWsId: compositor.activeWsId
+    readonly property var occupied: compositor.getOccupiedWorkspaces()
     
     implicitWidth: layout.implicitWidth
     implicitHeight: config.bar.height - config.bar.padding * 2
@@ -40,8 +39,8 @@ Item {
                     item.isActive = Qt.binding(() => root.activeWsId === (index + 1))
                     item.isOccupied = Qt.binding(() => root.occupied[index + 1] ?? false)
                     item.clicked.connect(function() {
-                        if (root.hypr.activeWsId !== item.workspaceId) {
-                            root.hypr.dispatch(`workspace ${item.workspaceId}`)
+                        if (root.compositor.activeWsId !== item.workspaceId) {
+                            root.compositor.dispatch(`workspace ${item.workspaceId}`)
                         }
                     })
                 }
