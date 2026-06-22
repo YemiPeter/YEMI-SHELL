@@ -1,13 +1,12 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // 70 — Key bindings
 // ─────────────────────────────────────────────────────────────────────────────
-// Docs: https://niri-wm.github.io/niri/Configuration:-Key-Bindings
-//
+
 // "Mod" = Super on bare metal, Alt inside a nested Niri window.
 // Use `wev` to discover XKB key names.
 // Most actions here can also be triggered via `niri msg action <name>`.
 //
-// iNiR binds route through the `inir` launcher which talks to Quickshell
+// Once  iNiR binds But Now Modify For YEMI-SHELL route through the `YEMI-SHELL` launcher which talks to Quickshell
 // via IPC. Niri-native actions (focus, move, resize…) go directly to Niri.
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -17,7 +16,7 @@ binds {
     // Session & compositor
     // ═══════════════════════════════════════════════════════════════════════
 
-    // Niri's built-in overview (zoomed-out workspace view).
+    // YEMI-SHELL built-in overview (zoomed-out workspace view).
     Mod+Tab repeat=false { toggle-overview; }
 
     // Quit Niri (shows confirmation dialog).
@@ -30,70 +29,70 @@ binds {
     Mod+Shift+O { power-off-monitors; }
 
     // ═══════════════════════════════════════════════════════════════════════
-    // iNiR shell overlays & tools
+    // YEMI-SHELL overlays & tools
     // ═══════════════════════════════════════════════════════════════════════
 
-    // Alt-Tab window switcher (iNiR's animated switcher).
+    // Alt-Tab window switcher (YEMI-SHELL's animated switcher).
     // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
-    Alt+Tab { spawn "inir" "altSwitcher" "next"; }
+    Alt+Tab { spawn "/home/yemi/.config/quickshell/shell" "altSwitcher" "next"; }
     // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
-    Alt+Shift+Tab { spawn "inir" "altSwitcher" "previous"; }
+    Alt+Shift+Tab { spawn "/home/yemi/.config/quickshell/shell" "altSwitcher" "previous"; }
 
     // Crosshair overlay toggle.
-    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
-    Super+G { spawn "inir" "overlay" "toggle"; }
+    // Call Yemi's custom shell script for crosshair overlay
+    Super+G { spawn "/home/yemi/.config/quickshell/shell" "overlay" "toggle"; }
 
     // iNiR app launcher / overview.
-    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
-    Mod+Space repeat=false { spawn "inir" "overview" "toggle"; }
+    // Call Yemi's custom shell script for overview
+    Mod+Space repeat=false { spawn "/home/yemi/.config/quickshell/shell" "overview" "toggle"; }
 
     // Clipboard history overlay.
-    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
-    Mod+V { spawn "inir" "clipboard" "toggle"; }
+    // Call Yemi's custom shell script for clipboard
+    Mod+V { spawn "/home/yemi/.config/quickshell/shell" "clipboard" "toggle"; }
 
     // Lock screen.
-    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
-    Mod+Alt+L allow-when-locked=true { spawn "inir" "lock" "activate"; }
+    // Call Yemi's custom shell script for lock screen
+    Mod+Alt+L allow-when-locked=true { spawn "/home/yemi/.config/quickshell/shell" "lock" "activate"; }
     // Re-focus the lock surface (workaround when input feels dead after suspend/resume).
-    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
-    Mod+Ctrl+Shift+L allow-when-locked=true { spawn "inir" "lock" "focus"; }
+    // Call Yemi's custom shell script for lock focus
+    Mod+Ctrl+Shift+L allow-when-locked=true { spawn "/home/yemi/.config/quickshell/shell" "lock" "focus"; }
 
     // Region selector: screenshot / OCR / Google Lens search.
-    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
-    Mod+Shift+S { spawn "inir" "region" "screenshot"; }
-    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
-    Mod+Shift+X { spawn "inir" "region" "ocr"; }
-    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
-    Mod+Shift+A { spawn "inir" "region" "search"; }
+    // Call Yemi's custom shell script for region selection
+    Mod+Shift+S { spawn "/home/yemi/.config/quickshell/shell" "region" "screenshot"; }
+    // Call Yemi's custom shell script for OCR
+    Mod+Shift+X { spawn "/home/yemi/.config/quickshell/shell" "region" "ocr"; }
+    // Call Yemi's custom shell script for search
+    Mod+Shift+A { spawn "/home/yemi/.config/quickshell/shell" "region" "search"; }
     // Unified snip menu (pick action/scope from the in-overlay toolbar).
-    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
-    Ctrl+Shift+S { spawn "inir" "region" "menu"; }
+    // Call Yemi's custom shell script for region menu
+    Ctrl+Shift+S { spawn "/home/yemi/.config/quickshell/shell" "region" "menu"; }
 
     // Wallpaper picker, settings, cheatsheet, panel family switch.
-    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
-    Ctrl+Alt+T { spawn "inir" "wallpaperSelector" "toggle"; }
-    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
-    Mod+Comma { spawn "inir" "settings"; }
-    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
-    Mod+Slash { spawn "inir" "cheatsheet" "toggle"; }
-    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
-    Mod+Shift+W { spawn "inir" "panelFamily" "cycle"; }
+    // Call Yemi's custom shell script for wallpaper selector
+    Ctrl+Alt+T { spawn "/home/yemi/.config/quickshell/shell" "wallpaperSelector" "toggle"; }
+    // Call Yemi's custom shell script for settings
+    Mod+Comma { spawn "/home/yemi/.config/quickshell/shell" "settings"; }
+    // Call Yemi's custom shell script for cheatsheet
+    Mod+Slash { spawn "/home/yemi/.config/quickshell/shell" "cheatsheet" "toggle"; }
+    // Call Yemi's custom shell script for panel family
+    Mod+Shift+W { spawn "/home/yemi/.config/quickshell/shell" "panelFamily" "cycle"; }
 
     // Session / power dialog.
-    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
-    Mod+Shift+Q { spawn "inir" "session" "toggle"; }
+    // Call Yemi's custom shell script for session
+    Mod+Shift+Q { spawn "/home/yemi/.config/quickshell/shell" "session" "toggle"; }
 
     // ═══════════════════════════════════════════════════════════════════════
     // App launchers
     // ═══════════════════════════════════════════════════════════════════════
 
-    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
-    Mod+T { spawn "inir" "terminal"; }
-    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
-    Mod+Return { spawn "inir" "terminal"; }
+    // Call Yemi's custom shell script for terminal
+    Mod+T { spawn "/home/yemi/.config/quickshell/shell" "terminal"; }
+    // Call Yemi's custom shell script for terminal
+    Mod+Return { spawn "/home/yemi/.config/quickshell/shell" "terminal"; }
     Super+E { spawn "nautilus"; }
-    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
-    Super+W { spawn "inir" "browser"; }
+    // Call Yemi's custom shell script for browser
+    Super+W { spawn "/home/yemi/.config/quickshell/shell" "browser"; }
 
     // ═══════════════════════════════════════════════════════════════════════
     // Window management

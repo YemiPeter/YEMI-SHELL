@@ -60,24 +60,6 @@ Scope {
         }
     }
 
-    // Launcher window (Harman's LauncherPanel)
-    Loader {
-        id: launcherLoader
-        source: "../launcher/LauncherPanel.qml"
-        asynchronous: true
-
-        property var launcher: item
-
-        onStatusChanged: {
-            if (status === Loader.Error) {
-                console.error("🚀 [BarWrapper] Launcher failed to load!")
-            }
-            if (status === Loader.Ready) {
-                console.log("🚀 [BarWrapper] Launcher loaded successfully")
-            }
-        }
-    }
-    
     Variants {
         model: Quickshell.screens
 
@@ -111,9 +93,6 @@ Scope {
                         item.volumePopup = Qt.binding(() => volumePopupLoader.item)
                         item.brightnessPopup = Qt.binding(() => brightnessPopupLoader.item)
                         item.controlCenter = Qt.binding(() => controlCenterLoader.item)
-                        item.launcher = Qt.binding(() => launcherLoader.item)
-                        item.toggleLauncher = Qt.binding(() => root.toggleLauncher)
-                        item.launcherVisible = Qt.binding(() => root.launcherVisible)
                     }
                 }
             }

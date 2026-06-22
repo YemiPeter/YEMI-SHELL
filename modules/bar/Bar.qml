@@ -18,9 +18,6 @@ Item {
     property var volumePopup
     property var brightnessPopup
     property var controlCenter
-    property var launcher
-    property var toggleLauncher: null
-    property bool launcherVisible: false
     
     readonly property var config: QsConfig.Config
     readonly property var appearance: QsConfig.AppearanceConfig
@@ -41,72 +38,13 @@ Item {
         anchors.bottomMargin: 1
         
         // ═══════════════════════════════════════════════════════════════
-        // LEFT MODULE - Launcher + Workspaces in a Row
+        // LEFT MODULE - Workspaces
         // ═══════════════════════════════════════════════════════════════
         Row {
             id: leftPills
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
             spacing: 8
-
-            // Launcher pill
-            Rectangle {
-                id: launcherModule
-                height: 28
-                width: 36
-                radius: 14
-                color: Qt.rgba(pywal.background.r, pywal.background.g, pywal.background.b, 0.7)
-                border.width: 1
-                border.color: Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.10)
-
-                // Top highlight
-                Rectangle {
-                    anchors.top: parent.top
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.margins: 1
-                    height: parent.height / 2
-                    radius: parent.radius - 1
-
-                    gradient: Gradient {
-                        GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, 0.04) }
-                        GradientStop { position: 1.0; color: "transparent" }
-                    }
-                }
-
-                Text {
-                    anchors.centerIn: parent
-                    text: "󰣇"
-                    font.family: "JetBrainsMono Nerd Font Mono"
-                    font.pixelSize: 18
-                    color: launcherMouse.containsMouse || launcherVisible
-                           ? pywal.primary
-                           : pywal.foreground
-
-                    Behavior on color {
-                        ColorAnimation { duration: 150 }
-                    }
-
-                    scale: launcherMouse.pressed ? 0.85 : (launcherMouse.containsMouse ? 1.05 : 1.0)
-
-                    Behavior on scale {
-                        NumberAnimation { duration: 80 }
-                    }
-                }
-
-                MouseArea {
-                    id: launcherMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-
-                    onClicked: {
-                        if (launcher) {
-                            toggleLauncher()
-                        }
-                    }
-                }
-            }
 
             // Workspaces pill
             Rectangle {
