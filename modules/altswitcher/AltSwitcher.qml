@@ -1,4 +1,18 @@
-  // TODO(yemi): add your own imports here
+// STATUS (parked, not abandoned):
+// - Logic ported from iNiR, GlobalStates/waffle dead code removed — done
+// - Compositor.dispatch() wiring for focus/close — verified working
+// - Bad "Quickshell.Services" import — removed, confirmed unused
+// - Config not imported — harmless, falls back to defaults
+// - Connections.onToplevelsChanged — signal mismatch, list won't auto-refresh (low priority)
+// - REAL BLOCKER: root is `Scope`, which has no visual surface at all.
+//   Needs converting to PanelWindow, mirroring modules/osd/Wrapper.qml's setup.
+//   That's the actual next step when this gets picked back up.
+// Last checked: 2025-07
+
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
+import Quickshell
 
 Scope {
     id: root
@@ -12,7 +26,7 @@ Scope {
     readonly property bool altMonochromeIcons: altSwitcherOptions.monochromeIcons ?? false
     readonly property bool altEnableAnimation: altSwitcherOptions.enableAnimation ?? true
     readonly property int altAnimationDurationMs: altSwitcherOptions.animationDurationMs ?? 200
-    readonly property bool altUseMostRecentFirst: altSwitcherOptions.useMostRecentFirst ?? true
+    readonly property bool altUseMostRecent: altSwitcherOptions.useMostRecentFirst ?? true
     readonly property bool altEnableBlurGlass: altSwitcherOptions.enableBlurGlass ?? true
     readonly property real altBackgroundOpacity: altSwitcherOptions.backgroundOpacity ?? 0.9
     readonly property real altBlurAmount: altSwitcherOptions.blurAmount ?? 0.4
@@ -27,7 +41,6 @@ Scope {
     property bool altSwitcherOpen: false
 
     property bool animationsEnabled: root.effectiveEnableAnimation
-    property bool panelVisible: false
     property real panelRightMargin: -panelWidth
     // Snapshot actual de ventanas ordenadas que se usa mientras el panel está abierto
     property var itemSnapshot: []
@@ -38,8 +51,8 @@ Scope {
     property bool useM3Layout: root.altUseM3Layout
     property bool centerPanel: root.altPanelAlignment === "center"
     property bool compactStyle: root.altCompactStyle && !root.listStyle && !root.skewStyle
-    property bool listStyle: root.altPreset === "list"
-    property bool skewStyle: root.altPreset === "skew"
+    property bool listStyle: altPreset === "list"
+    property bool skewStyle: altPreset === "skew"
     property bool showOverviewWhileSwitching: root.altShowOverviewWhileSwitching
     property bool overviewOpenedByAltSwitcher: false
     // Pre-warm flag para evitar lag en primera apertura
@@ -514,115 +527,185 @@ Scope {
         }
     }
 
-    IpcHandler {
-        target: "altSwitcher"
+    // Minimal visual layer - a plain box showing window titles with selected item highlighted
+    Rectangle {
+        id: altSwitcherPanel
+        width: root.panelWidth
+        height: Math.min(400, parent.height - 100)  // Max height to fit on screen
+        x: root.centerPanel ? (parent.width - width) / 2 : parent.width + root.panelRightMargin
+        y: (parent.height - height) / 2
+        color: "#2d2d2d"
+        opacity: root.altBackgroundOpacity
+        radius: 12
+        border.color: "#444"
+        border.width: 1
+        visible: altSwitcherOpen && !root.effectiveNoVisualUi && !root.skewStyle
 
-        function open(): void {
-            if (root.skewStyle) {
-                root.openSkewSwitcher()
-                return
-            }
-            ensureOpen()
-            autoHideTimer.restart()
+        // Semi-transparent background overlay
+        Rectangle {
+            anchors.fill: parent.parent
+            color: "#000000"
+            opacity: 0.5 * (root.altScrimDim / 100)
+            visible: altSwitcherOpen && !root.effectiveNoVisualUi && !root.skewStyle
+            z: -1  // Behind the panel
         }
 
-        function close(): void {
-            altSwitcherOpen = false
-        }
-
-        function toggle(): void {
-            if (root.skewStyle) {
-                if (altSwitcherOpen)
-                    altSwitcherOpen = false
-                else
-                    root.openSkewSwitcher()
-                return
+        ListView {
+            id: listView
+            anchors.fill: parent
+            anchors.margins: 10
+            model: root.itemSnapshot
+            currentIndex: 0  // Default to first item
+            
+            delegate: Rectangle {
+                width: listView.width - 20
+                height: 40
+                color: index === listView.currentIndex ? "#4a90e2" : "transparent"
+                radius: 6
+                
+                Text {
+                    anchors.centerIn: parent
+                    text: modelData.title || modelData.appName || "Unknown Window"
+                    color: index === listView.currentIndex ? "#ffffff" : "#cccccc"
+                    font.pixelSize: 14
+                    elide: Text.ElideRight
+                }
+                
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        listView.currentIndex = index
+                        root.activateCurrent()
+                        root.altSwitcherOpen = false
+                    }
+                }
             }
-            altSwitcherOpen = !altSwitcherOpen
+            
+            highlight: Rectangle {
+                color: "#4a90e2"
+                radius: 6
+            }
+            
+            focus: true
+        }
+        
+        // Auto-hide timer
+        Timer {
+            id: autoHideTimer
+            interval: root.altAutoHideDelayMs
+            onTriggered: {
+                if (root.altSwitcherOpen && !root.effectiveNoVisualUi) {
+                    root.altSwitcherOpen = false
+                }
+            }
+        }
+        
+        // Slide animations
+        SequentialAnimation {
+            id: slideInAnim
+            PropertyAction { target: root; property: "panelRightMargin"; value: 0 }
+        }
+        
+        SequentialAnimation {
+            id: slideOutAnim
+            PropertyAction { target: root; property: "panelRightMargin"; value: -root.panelWidth }
+            onFinished: {
+                root.panelVisible = false
+            }
+        }
+        
+        // Timer for skew card visibility
+        Timer {
+            id: skewCardShowTimer
+            interval: 100
+            onTriggered: {
+                root.skewCardVisible = true
+            }
+        }
+    }
+
+    // Public API — called from shell.qml's IpcHandler via altSwitcherLoader.item
+    function toggle(): void {
+        if (root.skewStyle) {
             if (altSwitcherOpen)
-                autoHideTimer.restart()
-        }
-
-        function next(): void {
-            if (root.effectiveNoVisualUi) {
-                autoHideTimer.stop()
                 altSwitcherOpen = false
-
-                const len = root.noUiSnapshot?.length ?? 0
-                if (!root.quickSwitchDone || len === 0) {
-                    root.rebuildNoUiSnapshotSync()  // Use sync version for immediate response
-                }
-
-                const newLen = root.noUiSnapshot?.length ?? 0
-                if (newLen === 0)
-                    return
-
-                if (!root.quickSwitchDone) {
-                    root.quickSwitchDone = true
-                    root.noUiIndex = newLen > 1 ? 1 : 0
-                } else {
-                    root.noUiIndex = (root.noUiIndex + 1) % newLen
-                }
-
-                root.focusNoUiIndex()
-                quickSwitchResetTimer.restart()
-                return
-            }
-
-            if (root.skewStyle) {
-                if (!altSwitcherOpen) {
-                    root.openSkewSwitcher()
-                    return
-                }
-                nextItem()
-                return
-            }
-
-            ensureOpen()
-            nextItem()
-            activateCurrent()
-            autoHideTimer.restart()
+            else
+                root.openSkewSwitcher()
+            return
         }
-
-        function previous(): void {
-            if (root.effectiveNoVisualUi) {
-                autoHideTimer.stop()
-                altSwitcherOpen = false
-
-                const len = root.noUiSnapshot?.length ?? 0
-                if (!root.quickSwitchDone || len === 0) {
-                    root.rebuildNoUiSnapshotSync()  // Use sync version for immediate response
-                }
-
-                const newLen = root.noUiSnapshot?.length ?? 0
-                if (newLen === 0)
-                    return
-
-                if (!root.quickSwitchDone) {
-                    root.quickSwitchDone = true
-                    root.noUiIndex = newLen > 1 ? (newLen - 1) : 0
-                } else {
-                    root.noUiIndex = (root.noUiIndex - 1 + newLen) % newLen
-                }
-
-                root.focusNoUiIndex()
-                quickSwitchResetTimer.restart()
-                return
-            }
-
-            if (root.skewStyle) {
-                if (!altSwitcherOpen) {
-                    root.openSkewSwitcher()
-                    return
-                }
-                previousItem()
-                return
-            }
-
-            ensureOpen()
-            previousItem()
-            activateCurrent()
+        altSwitcherOpen = !altSwitcherOpen
+        if (altSwitcherOpen)
             autoHideTimer.restart()
+    }
+
+    function open(): void {
+        if (root.skewStyle) {
+            root.openSkewSwitcher()
+            return
         }
+        ensureOpen()
+        autoHideTimer.restart()
+    }
+
+    function close(): void {
+        altSwitcherOpen = false
+    }
+
+    function next(): void {
+        if (root.effectiveNoVisualUi) {
+            autoHideTimer.stop()
+            altSwitcherOpen = false
+            const len = root.noUiSnapshot?.length ?? 0
+            if (!root.quickSwitchDone || len === 0)
+                root.rebuildNoUiSnapshotSync()
+            const newLen = root.noUiSnapshot?.length ?? 0
+            if (newLen === 0) return
+            if (!root.quickSwitchDone) {
+                root.quickSwitchDone = true
+                root.noUiIndex = newLen > 1 ? 1 : 0
+            } else {
+                root.noUiIndex = (root.noUiIndex + 1) % newLen
+            }
+            root.focusNoUiIndex()
+            quickSwitchResetTimer.restart()
+            return
+        }
+        if (root.skewStyle) {
+            if (!altSwitcherOpen) { root.openSkewSwitcher(); return }
+            nextItem(); return
+        }
+        ensureOpen()
+        nextItem()
+        activateCurrent()
+        autoHideTimer.restart()
+    }
+
+    function previous(): void {
+        if (root.effectiveNoVisualUi) {
+            autoHideTimer.stop()
+            altSwitcherOpen = false
+            const len = root.noUiSnapshot?.length ?? 0
+            if (!root.quickSwitchDone || len === 0)
+                root.rebuildNoUiSnapshotSync()
+            const newLen = root.noUiSnapshot?.length ?? 0
+            if (newLen === 0) return
+            if (!root.quickSwitchDone) {
+                root.quickSwitchDone = true
+                root.noUiIndex = newLen > 1 ? (newLen - 1) : 0
+            } else {
+                root.noUiIndex = (root.noUiIndex - 1 + newLen) % newLen
+            }
+            root.focusNoUiIndex()
+            quickSwitchResetTimer.restart()
+            return
+        }
+        if (root.skewStyle) {
+            if (!altSwitcherOpen) { root.openSkewSwitcher(); return }
+            previousItem(); return
+        }
+        ensureOpen()
+        previousItem()
+        activateCurrent()
+        autoHideTimer.restart()
     }
 }

@@ -14,8 +14,7 @@
 //   70  Key bindings (iNiR shell + window management)
 //   80  Layer rules (backdrop surfaces for iNiR panels)
 //   90  Your personal overrides (never touched by updates)
-//
-// Docs: https://niri-wm.github.io/niri/Configuration:-Introduction
+
 // KDL format: https://kdl.dev
 // ─────────────────────────────────────────────────────────────────────────────
 

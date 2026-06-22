@@ -22,33 +22,9 @@ ShellRoot {
     readonly property var audio: QsServices.Audio
     readonly property var brightness: QsServices.Brightness
 
-    // === Launcher IPC Handler (for Hyprland keybinds) ===
-    IpcHandler {
-        target: "launcher"
-
-        function toggle(): void {
-            if (root.launcherVisible && root.activeTab === 0) {
-                root.launcherVisible = false
-            } else {
-                root.activeTab = 0
-                root.launcherVisible = true
-            }
-        }
-    }
-
     // === Wallpaper IPC Handler ===
     IpcHandler {
         target: "wallpaper"
-
-        function toggle(): void {
-            if (root.launcherVisible && root.activeTab === 1) {
-                root.launcherVisible = false
-            } else {
-                root.activeTab = 1
-                if (!root.wallsLoaded) root.loadWallpapers()
-                root.launcherVisible = true
-            }
-        }
 
         function random(): void {
             randomWallProc.running = true
@@ -70,6 +46,31 @@ ShellRoot {
 
         function reload(): void {
             if (!ipcColorLoadProc.running) ipcColorLoadProc.running = true
+        }
+    }
+
+    // === AltSwitcher IPC Handler ===
+    IpcHandler {
+        target: "altSwitcher"
+
+        function toggle(): void {
+            if (altSwitcherLoader.item) altSwitcherLoader.item.toggle()
+        }
+
+        function open(): void {
+            if (altSwitcherLoader.item) altSwitcherLoader.item.open()
+        }
+
+        function close(): void {
+            if (altSwitcherLoader.item) altSwitcherLoader.item.close()
+        }
+
+        function next(): void {
+            if (altSwitcherLoader.item) altSwitcherLoader.item.next()
+        }
+
+        function previous(): void {
+            if (altSwitcherLoader.item) altSwitcherLoader.item.previous()
         }
     }
 
@@ -141,6 +142,14 @@ ShellRoot {
         source: "modules/music/MusicPanel.qml"
     }
 
+    // Alt+Tab window switcher (temporarily disabled — Scope has no visual surface)
+    // Next step: convert to PanelWindow, see modules/altswitcher/AltSwitcher.qml header for full status
+    // Loader {
+    //     id: altSwitcherLoader
+    //     source: "modules/altswitcher/AltSwitcher.qml"
+    // }
+    Item { id: altSwitcherLoader; property var item: null }
+
     // === Path Properties ===
     property string homePath: Quickshell.env("HOME")
     property string configPath: homePath + "/.config/quickshell"
@@ -152,35 +161,6 @@ ShellRoot {
     property bool musicVisible: false
     property int savedGifIndex: 0
     function toggleMusic() { musicVisible = !musicVisible }
-
-    // === Launcher State Properties ===
-    property bool launcherVisible: false
-    property int activeTab: 0
-    property string searchTerm: ""
-    property var appList: []
-    property var appUsage: ({})
-    property var filteredApps: {
-        var source = appList
-        var usage = appUsage
-        if (searchTerm !== "") {
-            var result = []
-            for (var i = 0; i < source.length; i++) {
-                var entry = source[i]
-                if (entry.name.toLowerCase().includes(searchTerm) || entry.exec.toLowerCase().includes(searchTerm)) {
-                    result.push(entry)
-                }
-            }
-            source = result
-        }
-        var sorted = source.slice().sort(function(a, b) {
-            var countA = usage[a.name] || 0
-            var countB = usage[b.name] || 0
-            if (countB !== countA) return countB - countA
-            return a.name.localeCompare(b.name)
-        })
-        return sorted
-    }
-    property int selectedIndex: 0
     property string wallSearchTerm: ""
     property var wallpaperList: []
     property var filteredWallpapers: {
@@ -200,22 +180,6 @@ ShellRoot {
     property bool walApplying: false
     property var wallpaperHashes: ({})
 
-    // === Launcher Functions ===
-    function toggleLauncher() { launcherVisible = !launcherVisible }
-
-    function launchApp(app) {
-        launchProc.command = ["bash", "-c", app.exec + " &"]
-        launchProc.running = true
-        var usage = appUsage
-        var updated = {}
-        for (var key in usage) updated[key] = usage[key]
-        updated[app.name] = (updated[app.name] || 0) + 1
-        appUsage = updated
-        saveUsageProc.command = ["bash", "-c", "echo '" + JSON.stringify(updated) + "' > '" + root.configPath + "/app_usage.json'"]
-        saveUsageProc.running = true
-        root.launcherVisible = false
-    }
-
     function applyWallpaper(wallpaper) {
         root.currentWallpaper = wallpaper.path
         root.walApplying = true
@@ -233,49 +197,8 @@ ShellRoot {
         if (!wallpaperListProc.running) wallpaperListProc.running = true
     }
 
-    // === Launcher Processes ===
+    // === Processes ===
     Process { id: launchProc }
-
-    Process {
-        id: loadUsageProc
-        command: ["bash", "-c", "cat '" + root.configPath + "/app_usage.json' 2>/dev/null || echo '{}'"]
-        stdout: SplitParser {
-            splitMarker: ""
-            onRead: data => {
-                try { root.appUsage = JSON.parse(data.trim()) } catch(e) { root.appUsage = {} }
-            }
-        }
-    }
-
-    Process { id: saveUsageProc }
-
-    Process {
-        id: appListProc
-        command: ["bash", "-c",
-            "for f in /usr/share/applications/*.desktop " + root.homePath + "/.local/share/applications/*.desktop; do " +
-            "  [ -f \"$f\" ] || continue; " +
-            "  grep -qi '^NoDisplay=true' \"$f\" && continue; " +
-            "  grep -qi '^Hidden=true' \"$f\" && continue; " +
-            "  name=$(grep -m1 '^Name=' \"$f\" | cut -d= -f2-); " +
-            "  exec=$(grep -m1 '^Exec=' \"$f\" | cut -d= -f2- | sed 's/ %[fFuUdDnNickvm]//g'); " +
-            "  icon=$(grep -m1 '^Icon=' \"$f\" | cut -d= -f2-); " +
-            "  [ -z \"$name\" ] && continue; " +
-            "  [ -z \"$exec\" ] && continue; " +
-            "  printf '%s\\t%s\\t%s\\n' \"$name\" \"$exec\" \"$icon\"; " +
-            "done | sort -f -t$'\\t' -k1,1 | awk -F'\\t' '!seen[$1]++'"
-        ]
-        stdout: SplitParser {
-            onRead: data => {
-                var line = data.trim()
-                if (line.length === 0) return
-                var parts = line.split("\t")
-                if (parts.length < 2) return
-                var current = root.appList.slice()
-                current.push({ name: parts[0], exec: parts[1], icon: parts.length > 2 ? parts[2] : "" })
-                root.appList = current
-            }
-        }
-    }
 
     Process {
         id: thumbDirProc
@@ -394,7 +317,6 @@ ShellRoot {
             "touch '" + root.configPath + "/app_usage.json'"
         ]
         onExited: {
-            if (!appListProc.running) appListProc.running = true
             if (!currentWallProc.running) currentWallProc.running = true
             if (!loadSavedGifIndexProc.running) loadSavedGifIndexProc.running = true
             thumbDirProc.running = true
