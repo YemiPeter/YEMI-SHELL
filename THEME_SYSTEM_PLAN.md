@@ -99,6 +99,16 @@ Build a full matugen-driven theme system that supersedes Pywal. The matugen outp
 - Shell color scheme
 - UI component styling
 
+## Important Migration Considerations
+
+> ### ⚠️ CRITICAL RULE — DO NOT REVERT PYWAL DISABLING
+>
+> During migration from Pywal to Matugen, when Pywal/Matugen are disabled in services/qmldir (task P1.5.5), the bar will appear visually broken (pywal.* references resolve to undefined because Pywal is no longer a singleton). This is EXPECTED behavior. The fix comes in the rewrite task (P1.7), NOT by reverting the disable step.
+>
+> **If tempted to "fix" the visible breakage by uncommenting the Pywal/Matugen lines in services/qmldir, STOP.** That is the wrong fix and defeats the migration. Continue with the change list building (P1.6) and reference rewrite (P1.7). The bar will be restored when P1.7 completes.
+>
+> **Only revert Pywal/Matugen disabling if explicitly instructed by the user.**
+
 ## Companion Files
 
 The following files will be created in `singletons/`:
