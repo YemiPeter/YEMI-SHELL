@@ -4,6 +4,10 @@
 
 This document outlines the planned architecture for the theme system in QuickShell, based on analysis of existing skills and the Ricelin reference implementation.
 
+## Scope
+
+The theme system implements full dynamic theming from day 1, not a static palette approach. Matugen runs on every wallpaper change to generate color schemes. The `singletons/Dyn.qml` component reads the matugen output JSON and exposes color properties. The `singletons/Theme.qml` component references `Dyn` for runtime values while providing light and dark palette defaults in Theme.qml (so the system works even before matugen runs), with live values coming from Dyn.
+
 ## Analysis Sources
 
 ### Skills from .kilo/agents
@@ -36,57 +40,53 @@ This document outlines the planned architecture for the theme system in QuickShe
 singletons/Theme.qml
 ├── imports: QtQuick, Qt.labs.platform (for file dialogs)
 ├── properties: 
-│   ├── primaryColor: string (from Dyn.qml)
+│   ├── primaryColor: string
 │   ├── secondaryColor: string
 │   ├── backgroundColor: string
 │   ├── textColor: string
 │   ├── wallpaperSource: url
-│   └── isLightMode: bool (default: false)
+│   └── isLightMode: bool
 ├── methods:
-│   └── applyTheme(): void (calls matugen and updates system)
+│   ├── applyTheme(): void (calls matugen and updates system)
+│   └── loadWallpaper(): void (selects wallpaper via dialog)
 └── signals:
     └── themeChanged()
+
+singletons/Dyn.qml
+├── imports: QtQuick
+├── properties: 
+│   ├── primaryColor: string (from matugen output)
+│   ├── secondaryColor: string
+│   ├── backgroundColor: string
+│   ├── textColor: string
+│   └── wallpaperSource: url
+└── methods:
+    └── updateFromMatugen(): void (parses matugen JSON and updates properties)
 ```
 
-### Scope: Full Dynamic Theming from Day 1
-- Matugen runs on every wallpaper change
-- `singletons/Dyn.qml` reads the matugen output JSON and exposes colors
-- `singletons/Theme.qml` references `Dyn` for runtime values
-- Light and dark palette DEFAULTS exist in Theme.qml (so it works even if
-  matugen hasn't run yet), but the live values come from Dyn
+### Key Features
 
-### Property Naming (Canonical)
-- `primaryColor`
-- `secondaryColor`
-- `backgroundColor`
-- `textColor`
-- `wallpaperSource`
+1. **Full Dynamic Theming**:
+    - Matugen runs on every wallpaper change to generate fresh color schemes
+    - `singletons/Dyn.qml` reads matugen output JSON and exposes color properties
+    - `singletons/Theme.qml` references `Dyn` for runtime values while providing light/dark palette fallbacks
+    - System works immediately with fallback colors, then updates dynamically when matugen provides new values
 
-## Key Features
+2. **Light Mode Support**:
+    - `isLightMode` boolean property on Theme.qml (default: false for dark mode)
+    - Toggled via state file (`state/theme-mode` containing "light" or "dark")
+    - Theme.qml exposes both light and dark palettes; active palette depends on `isLightMode`
+    - Companion script `scripts/toggle-theme-mode.sh` flips the state file to switch modes
 
-1. **Matugen Integration**: 
-   - Calls matugen when wallpaper changes
-   - Generates consistent color schemes across the system
+3. **Compositor Abstraction Support**:
+    - Handles both Niri and Hyprland theming
+    - Different output commands based on active compositor
+    - Consistent theme API regardless of backend
 
-2. **Compositor Abstraction Support**:
-   - Handles both Niri and Hyprland theming
-   - Different output commands based on active compositor
-   - Consistent theme API regardless of backend
-
-3. **QML Best Practices Compliance**:
-   - Follows singleton guidelines from qt-qml.md
-   - Proper property declarations and signal usage
-   - Accessible via standard QML import mechanism
-
-## Light Mode Support
-- `isLightMode` is a bool property on Theme.qml
-- Default value: `false` (dark mood)
-- Toggled by a state file (suggest `state/theme-mode`, format `"light"` or `"dark"`)
-- Theme.qml exposes BOTH light and dark palettes; the active one depends on `isLightMode`
-- Add a `scripts/toggle-theme-mode.sh` script that flips the state file
-
-## Version Control
-All changes are committed to git; agents commit after each task; commit messages should be scoped (`feat(theme): ...`, `refactor: ...`).
+4. **QML Best Practices Compliance**:
+    - Follows singleton guidelines from qt-qml.md
+    - Proper property declarations and signal usage
+    - Accessible via standard QML import mechanism
 
 ## Migration Path
 
@@ -100,10 +100,17 @@ Build a full matugen-driven theme system that supersedes Pywal. The matugen outp
 - UI component styling
 
 ## Companion Files
-What gets created in `singletons/`:
-- `qmldir` — registers Theme and Dyn
-- `Theme.qml` — main theme singleton, exposes the 5 properties + isLightMode
-- `Dyn.qml` — reads matugen output, exposes the 5 properties
+
+The following files will be created in `singletons/`:
+- `qmldir` — registers Theme and Dyn components
+- `Theme.qml` — main theme singleton exposing the 5 properties + isLightMode
+- `Dyn.qml` — reads matugen output JSON and exposes the 5 properties
+
+(Note: Walls.qml from earlier considerations is out of scope for Phase 1 and will be deferred.)
+
+## Version Control
+
+All changes to the theme system are committed to git after each implementation task. Commit messages should be scoped to the theme subsystem using conventions like `feat(theme): ...` for new features and `refactor(theme): ...` for structural improvements.
 
 ## Implementation Steps
 
