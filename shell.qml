@@ -8,6 +8,7 @@ import Quickshell.Services.Notifications
 import qs.compositor
 import QtQuick 6.10
 import "services" as QsServices
+import "singletons" as QsSingletons
 import "modules/osd"
 
 ShellRoot {
@@ -82,7 +83,6 @@ ShellRoot {
 
         function toggle(): void {
             if (!settingsWindow) {
-                // Dynamically load the settings window
                 var component = Qt.createComponent("modules/settings/SettingsWindow.qml");
                 if (component.status === Component.Ready) {
                     settingsWindow = component.createObject(root);
@@ -97,6 +97,49 @@ ShellRoot {
             }
         }
     }
+
+    // === Launcher IPC Handler ===
+    IpcHandler {
+        target: "launcher"
+
+        function show(mon) {
+            if (!launcherLoader.item) {
+                console.warn("🚀 [Launcher IPC] show() — loader item is null");
+                return;
+            }
+            console.log("🚀 [Launcher IPC] show() — loader present, mon:", mon);
+            launcherLoader.item.targetMonitor = mon || "";
+            launcherLoader.item.shown = true;
+            console.log("🚀 [Launcher IPC] show() — loader.shown set to", launcherLoader.item.shown);
+        }
+
+        function hide() {
+            if (!launcherLoader.item) {
+                console.warn("🚀 [Launcher IPC] hide() — loader item is null");
+                return;
+            }
+            console.log("🚀 [Launcher IPC] hide() — setting shown to false");
+            launcherLoader.item.shown = false;
+        }
+
+        function toggle(mon) {
+            if (!launcherLoader.item) {
+                console.warn("🚀 [Launcher IPC] toggle() — loader item is null");
+                return;
+            }
+            console.log("🚀 [Launcher IPC] toggle() — current shown:", launcherLoader.item.shown, "mon:", mon);
+            if (launcherLoader.item.shown) {
+                launcherLoader.item.shown = false;
+                console.log("🚀 [Launcher IPC] toggle() — set shown to false");
+            } else {
+                launcherLoader.item.targetMonitor = mon || "";
+                launcherLoader.item.shown = true;
+                console.log("🚀 [Launcher IPC] toggle() — set shown to true, targetMonitor:", launcherLoader.item.targetMonitor);
+            }
+        }
+    }
+
+    // Direct NotificationServer to ensure it starts
 
     // Direct NotificationServer to ensure it starts
     NotificationServer {
@@ -129,6 +172,12 @@ ShellRoot {
     Loader {
         id: notificationPopupsLoader
         source: "modules/bar/components/NotificationPopups.qml"
+    }
+
+    // Launcher
+    Loader {
+        id: launcherLoader
+        source: "modules/launcher/LauncherWindow.qml"
     }
 
     // OSD overlays (volume and brightness)
