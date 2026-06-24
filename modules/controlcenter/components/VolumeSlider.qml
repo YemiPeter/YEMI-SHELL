@@ -10,14 +10,14 @@ Rectangle {
     id: root
 
     required property var audio
-    property var pywal
+    
 
-    readonly property var volumeMonitor: QsServices.VolumeMonitor
+    readonly property var volumeMonitor: VolumeMonitor
     readonly property bool isMuted: volumeMonitor.muted
 
-    readonly property color surfaceColor: pywal ? Qt.lighter(pywal.background, 1.25) : "#2a2a3a"
-    readonly property color textColor: pywal ? pywal.foreground : "#e6e6e6"
-    readonly property color accentColor: pywal ? pywal.primary : "#a6e3a1"
+    readonly property color surfaceColor: Qt.lighter(Qt.rgba(0.12,0.12,0.14,1), 1.25)
+    readonly property color textColor: "#e6e6e6"
+    readonly property color accentColor: "#a6e3a1"
 
     Layout.fillWidth: true
     Layout.preferredHeight: 48

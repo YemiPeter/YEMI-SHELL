@@ -3,6 +3,7 @@ import QtQuick.Layouts 6.10
 import Quickshell
 import Quickshell.Bluetooth
 import "../../../services" as QsServices
+import "../../../singletons" as QsSingletons
 
 // Clean Bluetooth indicator - No shadows, proper alignment
 Item {
@@ -11,7 +12,6 @@ Item {
     property var barWindow
     property var bluetoothPopup
     
-    readonly property var pywal: QsServices.Pywal
     readonly property bool isHovered: mouseArea.containsMouse
     readonly property var adapter: Bluetooth.defaultAdapter
     readonly property var connectedDevices: Bluetooth.devices.values.filter(d => d.connected)
@@ -43,10 +43,10 @@ Item {
             font.pixelSize: 14
 
             color: {
-                if (!isEnabled) return Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.3)
-                if (isHovered) return pywal.primary
-                if (hasConnection) return Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.8)
-                return Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.5)
+                if (!isEnabled) return Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.3)
+                if (isHovered) return QsSingletons.Theme.onGlow
+                if (hasConnection) return Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.8)
+                return Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.5)
             }
             
             Behavior on color { ColorAnimation { duration: 150 } }
@@ -74,9 +74,9 @@ Item {
             elide: Text.ElideRight
             
             color: {
-                if (!isEnabled || !hasConnection) return Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.4)
-                if (isHovered) return pywal.foreground
-                return Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.75)
+                if (!isEnabled || !hasConnection) return Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.4)
+                if (isHovered) return QsSingletons.Theme.cream
+                return Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.75)
             }
             
             Behavior on color { ColorAnimation { duration: 150 } }

@@ -3,6 +3,7 @@ pragma Singleton
 import Quickshell
 import QtQuick 6.10
 import "../services" as QsServices
+import "../singletons" as QsSingletons
 
 Singleton {
     // Directly expose appearance properties from Config
@@ -32,57 +33,57 @@ Singleton {
     // 5c — Effects enabled flag
     readonly property bool effectsEnabled: true
 
-    // 5d — Semantic color tokens from Pywal
+    // 5d — Semantic color tokens from Theme singleton
     readonly property var colors: ({
-        colPrimary: QsServices.Pywal.primary,
-        colOnPrimary: QsServices.Pywal.onPrimary ?? Qt.rgba(0, 0, 0, 0.9),
-        colSecondary: QsServices.Pywal.secondary,
-        colSecondaryContainer: QsServices.Pywal.secondaryContainer ?? Qt.darker(QsServices.Pywal.secondary, 1.3),
-        colTertiary: QsServices.Pywal.tertiary ?? QsServices.Pywal.primary,
-        colError: QsServices.Pywal.error ?? "#f38ba8",
-        colSuccess: QsServices.Pywal.success ?? "#a6e3a1",
+        colPrimary: QsSingletons.Theme.onGlow,
+        colOnPrimary: Qt.rgba(0, 0, 0, 0.9),
+        colSecondary: QsSingletons.Theme.verm,
+        colSecondaryContainer: Qt.darker(QsSingletons.Theme.verm, 1.3),
+        colTertiary: QsSingletons.Theme.verm,
+        colError: QsSingletons.Theme.vermBurn,
+        colSuccess: "#a6e3a1",
         colBackgroundSurfaceContainer: Qt.rgba(
-            QsServices.Pywal.background.r,
-            QsServices.Pywal.background.g,
-            QsServices.Pywal.background.b, 0.55
+            QsSingletons.Theme.cardBot.r,
+            QsSingletons.Theme.cardBot.g,
+            QsSingletons.Theme.cardBot.b, 0.55
         ),
-        colLayer0: QsServices.Pywal.background,
-        colLayer1: Qt.lighter(QsServices.Pywal.background, 1.15),
-        colLayer2: Qt.lighter(QsServices.Pywal.background, 1.25),
-        colLayer0Base: QsServices.Pywal.background,
-        colLayer1Base: Qt.lighter(QsServices.Pywal.background, 1.15),
+        colLayer0: QsSingletons.Theme.cardBot,
+        colLayer1: Qt.lighter(QsSingletons.Theme.cardBot, 1.15),
+        colLayer2: Qt.lighter(QsSingletons.Theme.cardBot, 1.25),
+        colLayer0Base: QsSingletons.Theme.cardBot,
+        colLayer1Base: Qt.lighter(QsSingletons.Theme.cardBot, 1.15),
         colSubtext: Qt.rgba(
-            QsServices.Pywal.foreground.r,
-            QsServices.Pywal.foreground.g,
-            QsServices.Pywal.foreground.b, 0.7
+            QsSingletons.Theme.cream.r,
+            QsSingletons.Theme.cream.g,
+            QsSingletons.Theme.cream.b, 0.7
         ),
-        colOnLayer1: QsServices.Pywal.foreground,
+        colOnLayer1: QsSingletons.Theme.cream,
         colOutlineVariant: Qt.rgba(
-            QsServices.Pywal.foreground.r,
-            QsServices.Pywal.foreground.g,
-            QsServices.Pywal.foreground.b, 0.08
+            QsSingletons.Theme.cream.r,
+            QsSingletons.Theme.cream.g,
+            QsSingletons.Theme.cream.b, 0.08
         ),
         colLayer0Border: Qt.rgba(
-            QsServices.Pywal.foreground.r,
-            QsServices.Pywal.foreground.g,
-            QsServices.Pywal.foreground.b, 0.08
+            QsSingletons.Theme.cream.r,
+            QsSingletons.Theme.cream.g,
+            QsSingletons.Theme.cream.b, 0.08
         ),
         colLayer1Border: Qt.rgba(
-            QsServices.Pywal.foreground.r,
-            QsServices.Pywal.foreground.g,
-            QsServices.Pywal.foreground.b, 0.12
+            QsSingletons.Theme.cream.r,
+            QsSingletons.Theme.cream.g,
+            QsSingletons.Theme.cream.b, 0.12
         ),
         colScrim: Qt.rgba(0, 0, 0, 0.32),
         colLayer2Hover: Qt.rgba(
-            QsServices.Pywal.foreground.r,
-            QsServices.Pywal.foreground.g,
-            QsServices.Pywal.foreground.b, 0.08
+            QsSingletons.Theme.cream.r,
+            QsSingletons.Theme.cream.g,
+            QsSingletons.Theme.cream.b, 0.08
         ),
         colLayer1Hover: Qt.rgba(
-            QsServices.Pywal.foreground.r,
-            QsServices.Pywal.foreground.g,
-            QsServices.Pywal.foreground.b, 0.12
+            QsSingletons.Theme.cream.r,
+            QsSingletons.Theme.cream.g,
+            QsSingletons.Theme.cream.b, 0.12
         ),
-        colPrimaryHover: Qt.lighter(QsServices.Pywal.primary, 1.15)
+        colPrimaryHover: Qt.lighter(QsSingletons.Theme.onGlow, 1.15)
     })
 }

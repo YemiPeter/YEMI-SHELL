@@ -5,6 +5,7 @@ import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
 import "../../../services" as QsServices
+import "../../../singletons" as QsSingletons
 
 // Material 3 Expressive Volume Popup
 PanelWindow {
@@ -12,18 +13,17 @@ PanelWindow {
     
     property bool shouldShow: false
     property bool isHovered: false
-    readonly property var pywal: QsServices.Pywal
     readonly property var audio: QsServices.Audio
     
     // Material 3 colors
     readonly property color m3Surface: Qt.rgba(
-        pywal.background.r,
-        pywal.background.g,
-        pywal.background.b,
+        QsSingletons.Theme.cardBot.r,
+        QsSingletons.Theme.cardBot.g,
+        QsSingletons.Theme.cardBot.b,
         1.0
     )
-    readonly property color m3Primary: pywal.color4 ?? "#a6e3a1"
-    readonly property color m3OnSurface: pywal.foreground
+    readonly property color m3Primary: QsSingletons.Theme.verm ?? "#a6e3a1"
+    readonly property color m3OnSurface: QsSingletons.Theme.cream
     
     screen: Quickshell.screens[0]
     
@@ -150,7 +150,7 @@ PanelWindow {
             font.family: "JetBrainsMono Nerd Font"
             font.pixelSize: 14
             font.weight: Font.DemiBold
-            color: pywal.foreground
+            color: QsSingletons.Theme.cream
         }
         
         // Output volume
@@ -166,14 +166,14 @@ PanelWindow {
                     text: audio.muted ? "󰖁" : "󰕾"
                     font.family: "Material Design Icons"
                     font.pixelSize: 20
-                    color: pywal.foreground
+                    color: QsSingletons.Theme.cream
                 }
                 
                 Text {
                     text: "Output"
                     font.family: "JetBrainsMono Nerd Font"
                     font.pixelSize: 12
-                    color: Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.7)
+                    color: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.7)
                 }
                 
                 Item { Layout.fillWidth: true }
@@ -183,7 +183,7 @@ PanelWindow {
                     font.family: "JetBrainsMono Nerd Font"
                     font.pixelSize: 12
                     font.weight: Font.Medium
-                    color: pywal.foreground
+                    color: QsSingletons.Theme.cream
                 }
                 
                 // Mute toggle
@@ -191,7 +191,7 @@ PanelWindow {
                     width: 28
                     height: 28
                     radius: 6
-                    color: audio.muted ? pywal.color1 : Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.1)
+                    color: audio.muted ? QsSingletons.Theme.vermBurn : Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.1)
                     
                     Behavior on color {
                         ColorAnimation { duration: 200; easing.type: Easing.OutCubic }
@@ -202,7 +202,7 @@ PanelWindow {
                         text: audio.muted ? "󰝟" : "󰝚"
                         font.family: "Material Design Icons"
                         font.pixelSize: 14
-                        color: pywal.foreground
+                        color: QsSingletons.Theme.cream
                     }
                     
                     MouseArea {
@@ -233,12 +233,12 @@ PanelWindow {
                     width: volumeSlider.availableWidth
                     height: implicitHeight
                     radius: 3
-                    color: Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.1)
+                    color: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.1)
                     
                     Rectangle {
                         width: volumeSlider.visualPosition * parent.width
                         height: parent.height
-                        color: pywal.color2
+                        color: QsSingletons.Theme.onGlow
                         radius: 3
                         
                         Behavior on width {
@@ -253,8 +253,8 @@ PanelWindow {
                     implicitWidth: 18
                     implicitHeight: 18
                     radius: 9
-                    color: pywal.foreground
-                    border.color: pywal.color2
+                    color: QsSingletons.Theme.cream
+                    border.color: QsSingletons.Theme.onGlow
                     border.width: 2
                     
                     Behavior on x {
@@ -277,14 +277,14 @@ PanelWindow {
                     text: audio.sourceMuted ? "󰍭" : "󰍬"
                     font.family: "Material Design Icons"
                     font.pixelSize: 20
-                    color: pywal.foreground
+                    color: QsSingletons.Theme.cream
                 }
                 
                 Text {
                     text: "Input"
                     font.family: "JetBrainsMono Nerd Font"
                     font.pixelSize: 12
-                    color: Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.7)
+                    color: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.7)
                 }
                 
                 Item { Layout.fillWidth: true }
@@ -294,7 +294,7 @@ PanelWindow {
                     font.family: "JetBrainsMono Nerd Font"
                     font.pixelSize: 12
                     font.weight: Font.Medium
-                    color: pywal.foreground
+                    color: QsSingletons.Theme.cream
                 }
                 
                 // Mute toggle
@@ -302,7 +302,7 @@ PanelWindow {
                     width: 28
                     height: 28
                     radius: 6
-                    color: audio.sourceMuted ? pywal.color1 : Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.1)
+                    color: audio.sourceMuted ? QsSingletons.Theme.vermBurn : Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.1)
                     
                     Behavior on color {
                         ColorAnimation { duration: 200; easing.type: Easing.OutCubic }
@@ -313,7 +313,7 @@ PanelWindow {
                         text: audio.sourceMuted ? "󰝟" : "󰝚"
                         font.family: "Material Design Icons"
                         font.pixelSize: 14
-                        color: pywal.foreground
+                        color: QsSingletons.Theme.cream
                     }
                     
                     MouseArea {
@@ -344,12 +344,12 @@ PanelWindow {
                     width: inputSlider.availableWidth
                     height: implicitHeight
                     radius: 3
-                    color: Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.1)
+                    color: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.1)
                     
                     Rectangle {
                         width: inputSlider.visualPosition * parent.width
                         height: parent.height
-                        color: pywal.color3
+                        color: QsSingletons.Theme.verm
                         radius: 3
                         
                         Behavior on width {
@@ -364,8 +364,8 @@ PanelWindow {
                     implicitWidth: 18
                     implicitHeight: 18
                     radius: 9
-                    color: pywal.foreground
-                    border.color: pywal.color3
+                    color: QsSingletons.Theme.cream
+                    border.color: QsSingletons.Theme.verm
                     border.width: 2
                     
                     Behavior on x {

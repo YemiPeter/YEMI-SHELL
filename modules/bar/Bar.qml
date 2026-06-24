@@ -6,6 +6,7 @@ import "components" as BarComponents
 import "../../components/effects"
 import "../../config" as QsConfig
 import "../../services" as QsServices
+import "../../singletons" as QsSingletons
 
 Item {
     id: root
@@ -21,7 +22,10 @@ Item {
     
     readonly property var config: QsConfig.Config
     readonly property var appearance: QsConfig.AppearanceConfig
-    readonly property var pywal: QsServices.Pywal
+    
+    readonly property color pillBg: Qt.rgba(QsSingletons.Theme.cardBot.r, QsSingletons.Theme.cardBot.g, QsSingletons.Theme.cardBot.b, 0.7)
+    readonly property color pillBorder: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.10)
+    readonly property color pillSeparator: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.15)
     
     // ═══════════════════════════════════════════════════════════════════════
     // MINIMAL AESTHETIC BAR
@@ -52,9 +56,9 @@ Item {
                 height: 28
                 width: leftContent.implicitWidth + 16
                 radius: 14
-                color: Qt.rgba(pywal.background.r, pywal.background.g, pywal.background.b, 0.7)
+                color: pillBg
                 border.width: 1
-                border.color: Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.10)
+                border.color: pillBorder
 
                 Behavior on width {
                     NumberAnimation { duration: 350; easing.bezierCurve: [0.34, 1.56, 0.64, 1] }
@@ -109,10 +113,10 @@ Item {
             width: clockLoader.implicitWidth + 20
 
             radius: 14
-            color: Qt.rgba(pywal.background.r, pywal.background.g, pywal.background.b, 0.7)
+            color: pillBg
 
             border.width: 1
-            border.color: Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.10)
+            border.color: pillBorder
 
             // Top highlight
             Rectangle {
@@ -152,9 +156,9 @@ Item {
                 height: 28
                 width: connectivityContent.implicitWidth + 16
                 radius: 14
-                color: Qt.rgba(pywal.background.r, pywal.background.g, pywal.background.b, 0.7)
+                color: pillBg
                 border.width: 1
-                border.color: Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.10)
+                border.color: pillBorder
 
                 Behavior on width {
                     NumberAnimation { duration: 250; easing.type: Easing.OutCubic }
@@ -208,7 +212,7 @@ Item {
                         width: 1
                         height: 12
                         radius: 0.5
-                        color: Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.15)
+                        color: pillSeparator
                     }
                     
                     Loader {
@@ -242,9 +246,9 @@ Item {
                 height: 28
                 width: audioContent.implicitWidth + 16
                 radius: 14
-                color: Qt.rgba(pywal.background.r, pywal.background.g, pywal.background.b, 0.7)
+                color: pillBg
                 border.width: 1
-                border.color: Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.10)
+                border.color: pillBorder
 
                 Behavior on width {
                     NumberAnimation { duration: 250; easing.type: Easing.OutCubic }
@@ -298,7 +302,7 @@ Item {
                         width: 1
                         height: 12
                         radius: 0.5
-                        color: Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.15)
+                        color: pillSeparator
                     }
                     
                     Loader {
@@ -332,9 +336,9 @@ Item {
                 height: 28
                 width: powerContent.implicitWidth + 16
                 radius: 14
-                color: Qt.rgba(pywal.background.r, pywal.background.g, pywal.background.b, 0.7)
+                color: pillBg
                 border.width: 1
-                border.color: Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.10)
+                border.color: pillBorder
 
                 Behavior on width {
                     NumberAnimation { duration: 250; easing.type: Easing.OutCubic }
@@ -374,7 +378,7 @@ Item {
                         width: 1
                         height: 12
                         radius: 0.5
-                        color: Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.15)
+                        color: pillSeparator
                         visible: statusIndicatorsLoader.item?.hasActiveIndicators ?? false
                     }
                     
@@ -392,7 +396,7 @@ Item {
                         width: 1
                         height: 12
                         radius: 0.5
-                        color: Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.15)
+                        color: pillSeparator
                     }
                     
                     // Control Center Toggle
@@ -435,10 +439,10 @@ Item {
             width: mediaPlayerLoader.implicitWidth + 16
 
             radius: 14
-            color: Qt.rgba(pywal.background.r, pywal.background.g, pywal.background.b, 0.7)
+            color: pillBg
 
             border.width: 1
-            border.color: Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.10)
+            border.color: pillBorder
 
             clip: true
             

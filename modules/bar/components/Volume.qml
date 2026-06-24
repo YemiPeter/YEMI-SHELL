@@ -3,6 +3,7 @@ import QtQuick.Layouts 6.10
 import Quickshell
 import Quickshell.Io
 import "../../../services" as QsServices
+import "../../../singletons" as QsSingletons
 import "../../../components/effects"
 
 // Volume indicator with number - no popup
@@ -12,7 +13,6 @@ Item {
     property var barWindow
     property var volumePopup  // Kept for compatibility but not used
     
-    readonly property var pywal: QsServices.Pywal
     readonly property var audio: QsServices.Audio
     readonly property var volumeMonitor: QsServices.VolumeMonitor
     readonly property bool isHovered: mouseArea.containsMouse
@@ -42,9 +42,9 @@ Item {
             font.pixelSize: 14
 
             color: {
-                if (isMuted) return Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.35)
-                if (isHovered) return pywal.primary
-                return pywal.foreground
+                if (isMuted) return Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.35)
+                if (isHovered) return QsSingletons.Theme.onGlow
+                return QsSingletons.Theme.cream
             }
             
             Behavior on color {
@@ -67,8 +67,8 @@ Item {
             font.weight: Font.Medium
             
             color: {
-                if (isMuted) return Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.35)
-                return Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.7)
+                if (isMuted) return Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.35)
+                return Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.7)
             }
             
             Behavior on color {

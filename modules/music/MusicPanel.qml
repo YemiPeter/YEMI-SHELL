@@ -149,7 +149,7 @@ PanelWindow {
             Rectangle {
                 width: 400
                 height: 180
-                color: Qt.rgba(root.pywal.background.r, root.pywal.background.g, root.pywal.background.b, 0.7)
+                color: Qt.rgba(root.cardBot.r, root.cardBot.g, root.cardBot.b, 0.7)
                 radius: 15
                 clip: true
 
@@ -165,7 +165,7 @@ PanelWindow {
 
                         Text {
                             text: musicPanel.trackTitle || "Nothing is playing"
-                            color: root.pywal.primary
+                            color: root.onGlow
                             font.pixelSize: 15
                             font.bold: true
                             font.family: "JetBrainsMono Nerd Font"
@@ -175,7 +175,7 @@ PanelWindow {
 
                         Text {
                             text: musicPanel.trackArtist || ""
-                            color: root.pywal.foreground
+                            color: root.cream
                             font.pixelSize: 12
                             font.family: "JetBrainsMono Nerd Font"
                             opacity: 0.7
@@ -193,7 +193,7 @@ PanelWindow {
 
                             Text {
                                 text: musicPanel.formatTime(musicPanel.position)
-                                color: root.pywal.color8
+                                color: root.onGlow
                                 font.pixelSize: 10
                                 font.family: "JetBrainsMono Nerd Font"
                             }
@@ -208,7 +208,7 @@ PanelWindow {
                                     width: musicPanel.length > 0 ? parent.width * (musicPanel.position / musicPanel.length) : 0
                                     height: parent.height
                                     radius: 2
-                                    color: root.pywal.primary
+                                    color: root.onGlow
                                 }
 
                                 MouseArea {
@@ -226,7 +226,7 @@ PanelWindow {
 
                             Text {
                                 text: musicPanel.formatTime(musicPanel.length)
-                                color: root.pywal.color8
+                                color: root.onGlow
                                 font.pixelSize: 10
                                 font.family: "JetBrainsMono Nerd Font"
                             }
@@ -246,7 +246,7 @@ PanelWindow {
                                 Text {
                                     anchors.centerIn: parent
                                     text: "󰒮"
-                                    color: root.pywal.foreground
+                                    color: root.cream
                                     font.pixelSize: 16
                                     font.family: "JetBrainsMono Nerd Font"
                                 }
@@ -264,12 +264,12 @@ PanelWindow {
                                 width: 40
                                 height: 40
                                 radius: 20
-                                color: root.pywal.primary
+                                color: root.onGlow
 
                                 Text {
                                     anchors.centerIn: parent
                                     text: musicPanel.playerStatus === "Playing" ? "󰏤" : "󰐊"
-                                    color: root.pywal.background
+                                    color: root.cardBot
                                     font.pixelSize: 18
                                     font.family: "JetBrainsMono Nerd Font"
                                 }
@@ -290,7 +290,7 @@ PanelWindow {
                                 Text {
                                     anchors.centerIn: parent
                                     text: "󰒭"
-                                    color: root.pywal.foreground
+                                    color: root.cream
                                     font.pixelSize: 16
                                     font.family: "JetBrainsMono Nerd Font"
                                 }
@@ -351,7 +351,7 @@ PanelWindow {
                             Text {
                                 anchors.centerIn: parent
                                 text: "󰏫"
-                                color: root.pywal.foreground
+                                color: root.cream
                                 font.pixelSize: 12
                                 font.family: "JetBrainsMono Nerd Font"
                             }
@@ -388,7 +388,7 @@ PanelWindow {
                 height: 260
                 anchors.horizontalCenter: parent.horizontalCenter
                 radius: 14
-                color: Qt.rgba(root.pywal.background.r, root.pywal.background.g, root.pywal.background.b, 0.85)
+                color: Qt.rgba(root.cardBot.r, root.cardBot.g, root.cardBot.b, 0.85)
                 border.color: Qt.rgba(1,1,1,0.1)
                 border.width: 1
                 visible: musicPanel.gifSelectorOpen
@@ -414,7 +414,7 @@ PanelWindow {
 
                         Text {
                             text: "Select Animation"
-                            color: root.pywal.primary
+                            color: root.onGlow
                             font.pixelSize: 12
                             font.bold: true
                             font.family: "JetBrainsMono Nerd Font"
@@ -424,7 +424,7 @@ PanelWindow {
                         Text {
                             visible: musicPanel.gifFiles.length > 0
                             text: (musicPanel.previewGifIndex + 1) + " / " + musicPanel.gifFiles.length
-                            color: root.pywal.color8
+                            color: root.onGlow
                             font.pixelSize: 10
                             font.family: "JetBrainsMono Nerd Font"
                             opacity: 0.6
@@ -436,13 +436,13 @@ PanelWindow {
                             width: 20
                             height: 20
                             radius: 10
-                            color: dropCloseMa.containsMouse ? Qt.rgba(root.pywal.color1.r, root.pywal.color1.g, root.pywal.color1.b, 0.5) : Qt.rgba(1,1,1,0.08)
+                            color: dropCloseMa.containsMouse ? Qt.rgba(root.vermBurn.r, root.vermBurn.g, root.vermBurn.b, 0.5) : Qt.rgba(1,1,1,0.08)
                             Behavior on color { ColorAnimation { duration: 150 } }
 
                             Text {
                                 anchors.centerIn: parent
                                 text: "󰅖"
-                                color: dropCloseMa.containsMouse ? root.pywal.color1 : root.pywal.foreground
+                                color: dropCloseMa.containsMouse ? root.vermBurn : root.cream
                                 font.pixelSize: 10
                                 font.family: "JetBrainsMono Nerd Font"
                                 Behavior on color { ColorAnimation { duration: 150 } }
@@ -504,7 +504,7 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 visible: musicPanel.gifFiles.length === 0 && musicPanel.gifsLoaded
                                 text: "No gifs found"
-                                color: root.pywal.color8
+                                color: root.onGlow
                                 font.pixelSize: 11
                                 font.family: "JetBrainsMono Nerd Font"
                                 opacity: 0.5
@@ -514,7 +514,7 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 visible: !musicPanel.gifsLoaded && musicPanel.gifSelectorOpen
                                 text: "Loading..."
-                                color: root.pywal.color8
+                                color: root.onGlow
                                 font.pixelSize: 11
                                 font.family: "JetBrainsMono Nerd Font"
                                 opacity: 0.5
@@ -534,7 +534,7 @@ PanelWindow {
                                     id: nameLabel
                                     anchors.centerIn: parent
                                     text: (musicPanel.gifFiles.length > 0 && musicPanel.previewGifIndex < musicPanel.gifFiles.length) ? musicPanel.gifFileName(musicPanel.gifFiles[musicPanel.previewGifIndex]) : ""
-                                    color: root.pywal.foreground
+                                    color: root.cream
                                     font.pixelSize: 9
                                     font.family: "JetBrainsMono Nerd Font"
                                     opacity: 0.9
@@ -552,8 +552,8 @@ PanelWindow {
                             Layout.preferredWidth: 36
                             Layout.preferredHeight: 32
                             radius: 8
-                            color: prevGifMa.containsMouse ? Qt.rgba(root.pywal.primary.r, root.pywal.primary.g, root.pywal.primary.b, 0.25) : Qt.rgba(1,1,1,0.08)
-                            border.color: prevGifMa.containsMouse ? Qt.rgba(root.pywal.primary.r, root.pywal.primary.g, root.pywal.primary.b, 0.4) : Qt.rgba(1,1,1,0.05)
+                            color: prevGifMa.containsMouse ? Qt.rgba(root.onGlow.r, root.onGlow.g, root.onGlow.b, 0.25) : Qt.rgba(1,1,1,0.08)
+                            border.color: prevGifMa.containsMouse ? Qt.rgba(root.onGlow.r, root.onGlow.g, root.onGlow.b, 0.4) : Qt.rgba(1,1,1,0.05)
                             border.width: 1
                             opacity: musicPanel.gifFiles.length > 1 ? 1.0 : 0.3
                             Behavior on color { ColorAnimation { duration: 150 } }
@@ -562,7 +562,7 @@ PanelWindow {
                             Text {
                                 anchors.centerIn: parent
                                 text: "󰅁"
-                                color: prevGifMa.containsMouse ? root.pywal.primary : root.pywal.foreground
+                                color: prevGifMa.containsMouse ? root.onGlow : root.cream
                                 font.pixelSize: 16
                                 font.family: "JetBrainsMono Nerd Font"
                                 Behavior on color { ColorAnimation { duration: 150 } }
@@ -582,8 +582,8 @@ PanelWindow {
                             Layout.preferredWidth: 36
                             Layout.preferredHeight: 32
                             radius: 8
-                            color: nextGifMa.containsMouse ? Qt.rgba(root.pywal.primary.r, root.pywal.primary.g, root.pywal.primary.b, 0.25) : Qt.rgba(1,1,1,0.08)
-                            border.color: nextGifMa.containsMouse ? Qt.rgba(root.pywal.primary.r, root.pywal.primary.g, root.pywal.primary.b, 0.4) : Qt.rgba(1,1,1,0.05)
+                            color: nextGifMa.containsMouse ? Qt.rgba(root.onGlow.r, root.onGlow.g, root.onGlow.b, 0.25) : Qt.rgba(1,1,1,0.08)
+                            border.color: nextGifMa.containsMouse ? Qt.rgba(root.onGlow.r, root.onGlow.g, root.onGlow.b, 0.4) : Qt.rgba(1,1,1,0.05)
                             border.width: 1
                             opacity: musicPanel.gifFiles.length > 1 ? 1.0 : 0.3
                             Behavior on color { ColorAnimation { duration: 150 } }
@@ -592,7 +592,7 @@ PanelWindow {
                             Text {
                                 anchors.centerIn: parent
                                 text: "󰅂"
-                                color: nextGifMa.containsMouse ? root.pywal.primary : root.pywal.foreground
+                                color: nextGifMa.containsMouse ? root.onGlow : root.cream
                                 font.pixelSize: 16
                                 font.family: "JetBrainsMono Nerd Font"
                                 Behavior on color { ColorAnimation { duration: 150 } }
@@ -617,12 +617,12 @@ PanelWindow {
                             color: {
                                 if (musicPanel.isApplyingGif) return Qt.rgba(1,1,1,0.03)
                                 if (musicPanel.previewGifIndex === musicPanel.currentGifIndex) return Qt.rgba(1,1,1,0.05)
-                                return applyGifMa.pressed ? root.pywal.primary : applyGifMa.containsMouse ? Qt.rgba(root.pywal.primary.r, root.pywal.primary.g, root.pywal.primary.b, 0.35) : Qt.rgba(root.pywal.primary.r, root.pywal.primary.g, root.pywal.primary.b, 0.18)
+                                return applyGifMa.pressed ? root.onGlow : applyGifMa.containsMouse ? Qt.rgba(root.onGlow.r, root.onGlow.g, root.onGlow.b, 0.35) : Qt.rgba(root.onGlow.r, root.onGlow.g, root.onGlow.b, 0.18)
                             }
                             border.color: {
                                 if (musicPanel.isApplyingGif) return Qt.rgba(1,1,1,0.05)
                                 if (musicPanel.previewGifIndex === musicPanel.currentGifIndex) return Qt.rgba(1,1,1,0.08)
-                                return applyGifMa.containsMouse ? root.pywal.primary : Qt.rgba(root.pywal.primary.r, root.pywal.primary.g, root.pywal.primary.b, 0.4)
+                                return applyGifMa.containsMouse ? root.onGlow : Qt.rgba(root.onGlow.r, root.onGlow.g, root.onGlow.b, 0.4)
                             }
                             border.width: 1
                             Behavior on color { ColorAnimation { duration: 150 } }
@@ -636,9 +636,9 @@ PanelWindow {
                                     return "󰸞 Apply"
                                 }
                                 color: {
-                                    if (musicPanel.isApplyingGif) return Qt.rgba(root.pywal.foreground.r, root.pywal.foreground.g, root.pywal.foreground.b, 0.4)
-                                    if (musicPanel.previewGifIndex === musicPanel.currentGifIndex) return Qt.rgba(root.pywal.foreground.r, root.pywal.foreground.g, root.pywal.foreground.b, 0.3)
-                                    return applyGifMa.pressed ? root.pywal.background : root.pywal.primary
+                                    if (musicPanel.isApplyingGif) return Qt.rgba(root.cream.r, root.cream.g, root.cream.b, 0.4)
+                                    if (musicPanel.previewGifIndex === musicPanel.currentGifIndex) return Qt.rgba(root.cream.r, root.cream.g, root.cream.b, 0.3)
+                                    return applyGifMa.pressed ? root.cardBot : root.onGlow
                                 }
                                 font.pixelSize: 11
                                 font.bold: true
@@ -670,7 +670,7 @@ PanelWindow {
 
                             Text {
                                 text: "←→ nav"
-                                color: root.pywal.color8
+                                color: root.onGlow
                                 font.pixelSize: 9
                                 font.family: "JetBrainsMono Nerd Font"
                                 opacity: 0.6
@@ -678,7 +678,7 @@ PanelWindow {
                             Item { Layout.fillWidth: true }
                             Text {
                                 text: "↵ apply"
-                                color: root.pywal.color8
+                                color: root.onGlow
                                 font.pixelSize: 9
                                 font.family: "JetBrainsMono Nerd Font"
                                 opacity: 0.6
@@ -686,7 +686,7 @@ PanelWindow {
                             Item { Layout.fillWidth: true }
                             Text {
                                 text: "esc close"
-                                color: root.pywal.color8
+                                color: root.onGlow
                                 font.pixelSize: 9
                                 font.family: "JetBrainsMono Nerd Font"
                                 opacity: 0.6

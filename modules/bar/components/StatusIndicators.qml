@@ -2,13 +2,13 @@ import QtQuick 6.10
 import QtQuick.Layouts 6.10
 import QtQuick.Controls 6.10
 import "../../../services" as QsServices
+import "../../../singletons" as QsSingletons
 import "../../../config" as QsConfig
 
 // Status Indicators - Caffeine and DND dots in the bar
 Item {
     id: root
     
-    readonly property var pywal: QsServices.Pywal
     readonly property var idleInhibitor: QsServices.IdleInhibitor
     readonly property var notifs: QsServices.Notifs
     
@@ -40,7 +40,7 @@ Item {
             width: caffeineActive ? 22 : 0
             height: 22
             radius: 11
-            color: Qt.rgba(pywal.primary.r, pywal.primary.g, pywal.primary.b, 0.2)
+            color: Qt.rgba(QsSingletons.Theme.onGlow.r, QsSingletons.Theme.onGlow.g, QsSingletons.Theme.onGlow.b, 0.2)
             visible: caffeineActive
             
             Behavior on width {
@@ -52,7 +52,7 @@ Item {
                 text: "󰛊"  // Coffee icon
                 font.family: "Material Design Icons"
                 font.pixelSize: 12
-                color: pywal.primary
+                color: QsSingletons.Theme.onGlow
             }
             
             // Subtle pulse animation when active

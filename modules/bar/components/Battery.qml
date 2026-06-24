@@ -3,6 +3,7 @@ import QtQuick.Layouts 6.10
 import Quickshell
 import Quickshell.Services.UPower
 import "../../../services" as QsServices
+import "../../../singletons" as QsSingletons
 import "../../../components/effects"
 
 // Samsung-style animated battery - Matches the reference image
@@ -14,7 +15,6 @@ Item {
     
     readonly property var battery: UPower.displayDevice
     readonly property var powerProfiles: QsServices.PowerProfiles
-    readonly property var pywal: QsServices.Pywal
     readonly property real percentage: battery?.percentage ?? 0
     readonly property int batteryLevel: Math.round(percentage * 100)
     readonly property bool isCharging: battery?.state === UPowerDevice.Charging
@@ -54,8 +54,8 @@ Item {
     readonly property color normalColor: {
         if (isCritical) return "#ef4444"
         if (isLow) return "#f59e0b"
-        if (batteryLevel >= 60) return Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.7)
-        return Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.6)
+        if (batteryLevel >= 60) return Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.7)
+        return Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.6)
     }
     
     readonly property color chargingColor: "#2dd4bf"  // Teal/cyan like the reference

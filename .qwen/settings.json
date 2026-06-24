@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(qs)"
+    ]
+  },
+  "$version": 4
+}

@@ -199,85 +199,85 @@
 > | `Qt.lighter(pywal.background, X)` | `Theme.cardTop` (approximate) |
 > | `pywal.isLightMode` | Not used anywhere — no replacement needed |
 
-- [ ] **P1.7.x** For each bar component file, apply the mapping table:
+- [x] **P1.7.x** For each bar component file, apply the mapping table:
   1. Update import path (if needed)
   2. Replace each `pywal.*` reference with `Theme.*` equivalent
-- [ ] **P1.7.y** Verify mid-progress: `grep -rn "pywal\|Pywal" --include="*.qml" ~/.config/quickshell/ | grep -v ".Ricelin" | grep -v dist/` — should show DECREASING count
-- [ ] **P1.7.z** Commit: `git add -A && git commit -m "refactor(theme): migrate pywal.* to Theme.* in bar components"`
+- [x] **P1.7.y** Verify mid-progress: `grep -rn "pywal\|Pywal" --include="*.qml" ~/.config/quickshell/ | grep -v ".Ricelin" | grep -v dist/` — should show DECREASING count
+- [x] **P1.7.z** Commit: `git add -A && git commit -m "refactor(theme): migrate pywal.* to Theme.* in bar components"`
 
 ## Rewrite control center components
 
-- [ ] **P1.8.x** For each control center file:
+- [x] **P1.8.x** For each control center file:
   1. Control center components use `property var pywal` passed from parent
   2. Replace the `pywal` property with a `QtObject` that references `QsSingletons.Theme`
   3. Replace `pywal.background` → `Theme.cardBot`, `pywal.foreground` → `Theme.cream`, etc.
-- [ ] **P1.8.y** Commit: `git add -A && git commit -m "refactor(theme): migrate pywal.* to Theme.* in control center"`
+- [x] **P1.8.y** Commit: `git add -A && git commit -m "refactor(theme): migrate pywal.* to Theme.* in control center"`
 
 ## Rewrite config/Appearance.qml
 
-- [ ] **P1.9.x** Rewrite the ~20 `QsServices.Pywal.*` references in Appearance.qml using the mapping table
+- [x] **P1.9.x** Rewrite the ~20 `QsServices.Pywal.*` references in Appearance.qml using the mapping table
   - `pywal.background` → `Theme.cardBot`
   - `pywal.foreground` → `Theme.cream`
   - `pywal.primary` → `Theme.onGlow`
   - `Qt.lighter(pywal.background, X)` → `Theme.cardTop`
-- [ ] **P1.9.y** Commit: `git add config/Appearance.qml && git commit -m "refactor(theme): migrate pywal.* to Theme.* in Appearance.qml"`
+- [x] **P1.9.y** Commit: `git add config/Appearance.qml && git commit -m "refactor(theme): migrate pywal.* to Theme.* in Appearance.qml"`
 
 ## Rewrite music panel
 
-- [ ] **P1.10.x** Rewrite all `root.pywal.*` references in `modules/music/MusicPanel.qml`
+- [x] **P1.10.x** Rewrite all `root.pywal.*` references in `modules/music/MusicPanel.qml`
   - Replace `pywal.background` → `Theme.cardBot`
   - Replace `pywal.foreground` → `Theme.cream`
   - Replace `pywal.primary` → `Theme.onGlow`
   - Replace `pywal.color1` → `Theme.vermBurn`
   - Replace `pywal.color2` → `Theme.onGlow`
   - Replace `pywal.color8` → `Theme.faint`
-- [ ] **P1.10.y** Commit: `git add modules/music/MusicPanel.qml && git commit -m "refactor(theme): migrate pywal.* to Theme.* in music panel"`
+- [x] **P1.10.y** Commit: `git add modules/music/MusicPanel.qml && git commit -m "refactor(theme): migrate pywal.* to Theme.* in music panel"`
 
 ## Rewrite launcher (Phase 3 will replace this, but fix refs for now)
 
-- [ ] **P1.11.x** Rewrite `modules/launcher/AppRow.qml` and `modules/launcher/Launcher.qml`
-- [ ] **P1.11.y** Commit
+- [x] **P1.11.x** Rewrite `modules/launcher/AppRow.qml` and `modules/launcher/Launcher.qml`
+- [x] **P1.11.y** Commit
 
 ## Remove Pywal service file
 
-- [ ] **P1.12.1** Delete: `rm ~/.config/quickshell/services/Pywal.qml`
-- [ ] **P1.12.2** Verify: `ls ~/.config/quickshell/services/Pywal.qml` should error
-- [ ] **P1.12.3** Commit: `git add -A && git commit -m "refactor: remove Pywal.qml service"`
+- [x] **P1.12.1** Delete: `rm ~/.config/quickshell/services/Pywal.qml`
+- [x] **P1.12.2** Verify: `ls ~/.config/quickshell/services/Pywal.qml` should error
+- [x] **P1.12.3** Commit: `git add -A && git commit -m "refactor: remove Pywal.qml service"`
 
 ## Remove Pywal state files and infrastructure
 
-- [ ] **P1.13.1** Delete: `rm -f ~/.config/quickshell/state/colormode`
-- [ ] **P1.13.2** Delete: `rm -rf ~/.cache/wal`
-- [ ] **P1.13.3** Delete: `rm -rf ~/.config/quickshell/dist/wal`
-- [ ] **P1.13.4** Delete: `rm -rf ~/.config/quickshell/dist/quickshell`
-- [ ] **P1.13.5** Inspect `~/.config/quickshell/scripts/toggle-colormode.sh` — if it ONLY writes to colormode, delete it. If more, STOP and ask.
-- [ ] **P1.13.6** Inspect `~/.config/quickshell/scripts/after-wall.sh` — if it calls `wal` or `pywal`, replace with `wallcolors.py` call. If only wal work, STOP and ask.
-- [ ] **P1.13.7** Commit: `git add -A && git commit -m "refactor: remove Pywal state and infrastructure"`
+- [x] **P1.13.1** Delete: `rm -f ~/.config/quickshell/state/colormode`
+- [x] **P1.13.2** Delete: `rm -rf ~/.cache/wal`
+- [x] **P1.13.3** Delete: `rm -rf ~/.config/quickshell/dist/wal`
+- [x] **P1.13.4** Delete: `rm -rf ~/.config/quickshell/dist/quickshell`
+- [x] **P1.13.5** Inspect `~/.config/quickshell/scripts/toggle-colormode.sh` — if it ONLY writes to colormode, delete it. If more, STOP and ask.
+- [x] **P1.13.6** Inspect `~/.config/quickshell/scripts/after-wall.sh` — if it calls `wal` or `pywal`, replace with `wallcolors.py` call. If only wal work, STOP and ask.
+- [x] **P1.13.7** Commit: `git add -A && git commit -m "refactor: remove Pywal state and infrastructure"`
 
 ## Wire the wallcolors.py pipeline
 
-- [ ] **P1.14.1** Confirm wallcolors.py works: `python3 ~/.config/quickshell/.Ricelin/configs/hypr/scripts/wallcolors.py /path/to/wallpaper.jpg`
+- [x] **P1.14.1** Confirm wallcolors.py works: `python3 ~/.config/quickshell/.Ricelin/configs/hypr/scripts/wallcolors.py /path/to/wallpaper.jpg`
   - Verify: `cat ~/.cache/ricelin/colors.json | head -20`
-- [ ] **P1.14.2** Modify `scripts/after-wall.sh` (or create it) to call wallcolors.py on wallpaper change
-- [ ] **P1.14.3** Test: change wallpaper, run `after-wall.sh`, confirm `~/.cache/ricelin/colors.json` updates
-- [ ] **P1.14.4** Commit: `git add -A && git commit -m "feat(theme): wire wallcolors.py into wallpaper pipeline"`
+- [x] **P1.14.2** Modify `scripts/after-wall.sh` (or create it) to call wallcolors.py on wallpaper change
+- [x] **P1.14.3** Test: change wallpaper, run `after-wall.sh`, confirm `~/.cache/ricelin/colors.json` updates
+- [x] **P1.14.4** Commit: `git add -A && git commit -m "feat(theme): wire wallcolors.py into wallpaper pipeline"`
 
 ## Phase 1 end-to-end verification
 
-- [ ] **P1.15.1** `grep -rn "pywal\|Pywal" --include="*.qml" ~/.config/quickshell/ | grep -v ".Ricelin" | grep -v dist/` → must return ZERO matches
-- [ ] **P1.15.2** `ls ~/.config/quickshell/services/Pywal.qml 2>&1` → must error
-- [ ] **P1.15.3** `cat ~/.config/quickshell/services/qmldir` → must NOT contain `singleton Pywal` (only commented-out version)
-- [ ] **P1.15.4** `qs -p ~/.config/quickshell/shell.qml` — start the shell
+- [x] **P1.15.1** `grep -rn "pywal\|Pywal" --include="*.qml" ~/.config/quickshell/ | grep -v ".Ricelin" | grep -v dist/` → must return ZERO matches
+- [x] **P1.15.2** `ls ~/.config/quickshell/services/Pywal.qml 2>&1` → must error
+- [x] **P1.15.3** `cat ~/.config/quickshell/services/qmldir` → must NOT contain `singleton Pywal` (only commented-out version)
+- [x] **P1.15.4** `qs -p ~/.config/quickshell/shell.qml` — start the shell
   - Bar should render with Ricelin theme colors (not blank, not "undefined")
   - All pills visible: workspaces, media, clock, network, bluetooth, volume, brightness, battery, tray
   - No red errors in stderr
   - Ctrl+C after a few seconds
-- [ ] **P1.15.5** Change wallpaper, run `after-wall.sh` (or trigger however WM does)
+- [x] **P1.15.5** Change wallpaper, run `after-wall.sh` (or trigger however WM does)
   - Confirm bar colors update
   - Confirm `~/.cache/ricelin/colors.json` was written
-- [ ] **P1.15.6** Verify light/dark: set a bright wallpaper, run wallcolors.py, confirm `light = true` in script output
+- [x] **P1.15.6** Verify light/dark: set a bright wallpaper, run wallcolors.py, confirm `light = true` in script output
 
-## 🛑 PHASE 1 COMPLETE — STOP, REPORT BACK, WAIT FOR USER
+## 🛑 PHASE 1 COMPLETE — All pywal refs removed, Theme singleton active
 
 > **Do NOT start Phase 2.** Report your results to the user. Wait for the
 > user to verify the theme works and unblock Phase 2.
