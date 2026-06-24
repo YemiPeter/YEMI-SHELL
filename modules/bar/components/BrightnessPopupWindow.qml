@@ -5,6 +5,7 @@ import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
 import "../../../services" as QsServices
+import "../../../singletons" as QsSingletons
 
 // Material 3 Expressive Brightness Popup
 PanelWindow {
@@ -12,13 +13,12 @@ PanelWindow {
     
     property bool shouldShow: false
     property bool isHovered: false
-    readonly property var pywal: QsServices.Pywal
     readonly property var brightness: QsServices.Brightness
     
     // Material 3 colors
-    readonly property color m3Surface: Qt.rgba(pywal.background.r, pywal.background.g, pywal.background.b, 1.0)
-    readonly property color m3Primary: pywal.color3 ?? "#f9e2af"
-    readonly property color m3OnSurface: pywal.foreground
+    readonly property color m3Surface: Qt.rgba(QsSingletons.Theme.cardBot.r, QsSingletons.Theme.cardBot.g, QsSingletons.Theme.cardBot.b, 1.0)
+    readonly property color m3Primary: QsSingletons.Theme.verm ?? "#f9e2af"
+    readonly property color m3OnSurface: QsSingletons.Theme.cream
     
     screen: Quickshell.screens[0]
     
@@ -143,7 +143,7 @@ PanelWindow {
             font.family: "JetBrainsMono Nerd Font"
             font.pixelSize: 14
             font.weight: Font.DemiBold
-            color: pywal.foreground
+            color: QsSingletons.Theme.cream
         }
         
         // Brightness control
@@ -159,14 +159,14 @@ PanelWindow {
                     text: "󰃠"
                     font.family: "Material Design Icons"
                     font.pixelSize: 20
-                    color: pywal.foreground
+                    color: QsSingletons.Theme.cream
                 }
                 
                 Text {
                     text: "Display"
                     font.family: "JetBrainsMono Nerd Font"
                     font.pixelSize: 12
-                    color: Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.7)
+                    color: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.7)
                 }
                 
                 Item { Layout.fillWidth: true }
@@ -176,7 +176,7 @@ PanelWindow {
                     font.family: "JetBrainsMono Nerd Font"
                     font.pixelSize: 12
                     font.weight: Font.Medium
-                    color: pywal.foreground
+                    color: QsSingletons.Theme.cream
                 }
             }
             
@@ -200,12 +200,12 @@ PanelWindow {
                     width: brightnessSlider.availableWidth
                     height: implicitHeight
                     radius: 3
-                    color: Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.1)
+                    color: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.1)
                     
                     Rectangle {
                         width: brightnessSlider.visualPosition * parent.width
                         height: parent.height
-                        color: pywal.color3
+                        color: QsSingletons.Theme.verm
                         radius: 3
                         
                         Behavior on width {
@@ -220,8 +220,8 @@ PanelWindow {
                     implicitWidth: 18
                     implicitHeight: 18
                     radius: 9
-                    color: pywal.foreground
-                    border.color: pywal.color3
+                    color: QsSingletons.Theme.cream
+                    border.color: QsSingletons.Theme.verm
                     border.width: 2
                     
                     Behavior on x {
@@ -247,7 +247,7 @@ PanelWindow {
                         Layout.fillWidth: true
                         height: 28
                         radius: 6
-                        color: Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.1)
+                        color: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.1)
                         
                         Text {
                             anchors.centerIn: parent
@@ -255,7 +255,7 @@ PanelWindow {
                             font.family: "JetBrainsMono Nerd Font"
                             font.pixelSize: 11
                             font.weight: Font.Medium
-                            color: pywal.foreground
+                            color: QsSingletons.Theme.cream
                         }
                         
                         MouseArea {
@@ -263,8 +263,8 @@ PanelWindow {
                             cursorShape: Qt.PointingHandCursor
                             onClicked: brightness.setBrightness(modelData.value)
                             
-                            onPressed: parent.color = Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.2)
-                            onReleased: parent.color = Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.1)
+                            onPressed: parent.color = Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.2)
+                            onReleased: parent.color = Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.1)
                         }
                     }
                 }

@@ -4,6 +4,7 @@ import Quickshell
 import qs.services
 import "../../../components"
 import "../../../components/effects"
+import "../../../singletons" as QsSingletons
 
 // Compact Music Widget - Fixed buttons, proper text reset
 Item {
@@ -49,7 +50,7 @@ Item {
             text: "󰎇"
             font.family: "Material Design Icons"
             font.pixelSize: 14
-            color: Qt.rgba(Pywal.foreground.r, Pywal.foreground.g, Pywal.foreground.b, 0.4)
+            color: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.4)
             Layout.alignment: Qt.AlignVCenter
         }
         
@@ -58,7 +59,7 @@ Item {
             font.family: "JetBrainsMono Nerd Font"
             font.pixelSize: 10
             font.weight: Font.Medium
-            color: Qt.rgba(Pywal.foreground.r, Pywal.foreground.g, Pywal.foreground.b, 0.4)
+            color: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.4)
             Layout.alignment: Qt.AlignVCenter
         }
     }
@@ -96,7 +97,7 @@ Item {
                 radius: 11
                 color: "transparent"
                 border.width: 1
-                border.color: Qt.rgba(Pywal.primary.r, Pywal.primary.g, Pywal.primary.b, 0.3)
+                border.color: Qt.rgba(QsSingletons.Theme.onGlow.r, QsSingletons.Theme.onGlow.g, QsSingletons.Theme.onGlow.b, 0.3)
                 
                 SequentialAnimation on opacity {
                     running: root.isPlaying
@@ -149,7 +150,7 @@ Item {
                     width: 5
                     height: 5
                     radius: 2.5
-                    color: Pywal.primary
+                    color: QsSingletons.Theme.onGlow
                     
                     Rectangle {
                         anchors.centerIn: parent
@@ -184,7 +185,7 @@ Item {
                     var title = root.player?.trackTitle ?? "Unknown"
                     return artist !== "" ? artist + " - " + title : title
                 }
-                color: Pywal.color2
+                color: QsSingletons.Theme.cream
                 font.pixelSize: 10
                 font.weight: Font.Bold
                 font.family: "JetBrainsMono Nerd Font"
@@ -236,8 +237,8 @@ Item {
             
             gradient: Gradient {
                 GradientStop { position: 0.0; color: "transparent" }
-                GradientStop { position: 0.3; color: Qt.rgba(Pywal.foreground.r, Pywal.foreground.g, Pywal.foreground.b, 0.2) }
-                GradientStop { position: 0.7; color: Qt.rgba(Pywal.foreground.r, Pywal.foreground.g, Pywal.foreground.b, 0.2) }
+                GradientStop { position: 0.3; color: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.2) }
+                GradientStop { position: 0.7; color: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.2) }
                 GradientStop { position: 1.0; color: "transparent" }
             }
         }
@@ -252,7 +253,7 @@ Item {
                 Layout.preferredWidth: 20
                 Layout.preferredHeight: 20
                 radius: 10
-                color: prevArea.containsMouse ? Qt.rgba(Pywal.foreground.r, Pywal.foreground.g, Pywal.foreground.b, 0.15) : "transparent"
+                color: prevArea.containsMouse ? Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.15) : "transparent"
                 
                 Behavior on color { ColorAnimation { duration: 100 } }
                 Behavior on scale { NumberAnimation { duration: 80 } }
@@ -263,7 +264,7 @@ Item {
                     text: "󰒮"
                     font.family: "Material Design Icons"
                     font.pixelSize: 13
-                    color: prevArea.containsMouse ? Pywal.primary : Pywal.foreground
+                    color: prevArea.containsMouse ? QsSingletons.Theme.onGlow : QsSingletons.Theme.cream
 
                     Behavior on color { ColorAnimation { duration: 100 } }
                 }
@@ -289,8 +290,8 @@ Item {
                 radius: 12
                 
                 gradient: Gradient {
-                    GradientStop { position: 0.0; color: Qt.lighter(Pywal.primary, playArea.containsMouse ? 1.15 : 1.0) }
-                    GradientStop { position: 1.0; color: Qt.darker(Pywal.primary, playArea.containsMouse ? 1.0 : 1.1) }
+                    GradientStop { position: 0.0; color: Qt.lighter(QsSingletons.Theme.onGlow, playArea.containsMouse ? 1.15 : 1.0) }
+                    GradientStop { position: 1.0; color: Qt.darker(QsSingletons.Theme.onGlow, playArea.containsMouse ? 1.0 : 1.1) }
                 }
                 
                 Behavior on scale { NumberAnimation { duration: 80 } }
@@ -304,7 +305,7 @@ Item {
                     radius: width / 2
                     color: "transparent"
                     border.width: 2
-                    border.color: Qt.rgba(Pywal.primary.r, Pywal.primary.g, Pywal.primary.b, playArea.containsMouse ? 0.3 : 0)
+                    border.color: Qt.rgba(QsSingletons.Theme.onGlow.r, QsSingletons.Theme.onGlow.g, QsSingletons.Theme.onGlow.b, playArea.containsMouse ? 0.3 : 0)
                     z: -1
                     
                     Behavior on border.color { ColorAnimation { duration: 150 } }
@@ -338,7 +339,7 @@ Item {
                 Layout.preferredWidth: 20
                 Layout.preferredHeight: 20
                 radius: 10
-                color: nextArea.containsMouse ? Qt.rgba(Pywal.foreground.r, Pywal.foreground.g, Pywal.foreground.b, 0.15) : "transparent"
+                color: nextArea.containsMouse ? Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.15) : "transparent"
                 
                 Behavior on color { ColorAnimation { duration: 100 } }
                 Behavior on scale { NumberAnimation { duration: 80 } }
@@ -349,7 +350,7 @@ Item {
                     text: "󰒭"
                     font.family: "Material Design Icons"
                     font.pixelSize: 13
-                    color: nextArea.containsMouse ? Pywal.primary : Pywal.foreground
+                    color: nextArea.containsMouse ? QsSingletons.Theme.onGlow : QsSingletons.Theme.cream
 
                     Behavior on color { ColorAnimation { duration: 100 } }
                 }
@@ -378,7 +379,7 @@ Item {
             Rectangle {
                 anchors.fill: parent
                 radius: 2
-                color: Qt.rgba(Pywal.foreground.r, Pywal.foreground.g, Pywal.foreground.b, 0.12)
+                color: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.12)
                 
                 Rectangle {
                     anchors.left: parent.left
@@ -389,8 +390,8 @@ Item {
                     
                     gradient: Gradient {
                         orientation: Gradient.Horizontal
-                        GradientStop { position: 0.0; color: Qt.darker(Pywal.primary, 1.2) }
-                        GradientStop { position: 1.0; color: Pywal.primary }
+                        GradientStop { position: 0.0; color: Qt.darker(QsSingletons.Theme.onGlow, 1.2) }
+                        GradientStop { position: 1.0; color: QsSingletons.Theme.onGlow }
                     }
                     
                     Behavior on width {

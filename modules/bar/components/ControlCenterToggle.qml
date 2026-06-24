@@ -2,6 +2,7 @@ import QtQuick 6.10
 import QtQuick.Layouts 6.10
 import Quickshell
 import "../../../services" as QsServices
+import "../../../singletons" as QsSingletons
 import "../../../components/effects"
 
 Item {
@@ -9,7 +10,6 @@ Item {
     
     property var controlCenter
     
-    readonly property var pywal: QsServices.Pywal
     readonly property bool isActive: controlCenter?.shouldShow ?? false
     readonly property bool isHovered: toggleMouse.containsMouse
     
@@ -39,9 +39,9 @@ Item {
         font.pixelSize: 18
 
         color: {
-            if (isActive) return pywal.primary
-            if (isHovered) return pywal.primary
-            return pywal.foreground
+            if (isActive) return QsSingletons.Theme.onGlow
+            if (isHovered) return QsSingletons.Theme.onGlow
+            return QsSingletons.Theme.cream
         }
         
         Behavior on color {
@@ -85,7 +85,7 @@ Item {
         radius: 8
         color: "transparent"
         border.width: 1.5
-        border.color: Qt.rgba(pywal.primary.r, pywal.primary.g, pywal.primary.b, 0.3)
+        border.color: Qt.rgba(QsSingletons.Theme.onGlow.r, QsSingletons.Theme.onGlow.g, QsSingletons.Theme.onGlow.b, 0.3)
         
         // Gentle pulse when active
         SequentialAnimation on opacity {

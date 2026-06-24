@@ -13,9 +13,10 @@
 3. [High Severity Bugs](#3-high-severity-bugs)
 4. [Medium Severity Bugs](#4-medium-severity-bugs)
 5. [Minor Issues](#5-minor-issues)
-6. [Keybind Bugs](#6-keybind-bugs)
-7. [Orphan Artifacts](#7-orphan-artifacts)
-8. [Prioritized Fix List](#8-prioritized-fix-list)
+6. [Newly Discovered Critical Issues](#6-newly-discovered-critical-issues)
+7. [Keybind Bugs](#7-keybind-bugs)
+8. [Orphan Artifacts](#8-orphan-artifacts)
+9. [Prioritized Fix List](#9-prioritized-fix-list)
 
 ---
 
@@ -384,7 +385,129 @@ Contains old copies of `shell.qml`, `Bar.qml`, `LauncherPanel.qml`, `Dashboard.q
 
 ---
 
-## 6. Keybind Bugs
+## 6. Newly Discovered Critical Issues
+
+Additional critical issues identified through comprehensive codebase analysis:
+
+### BUG-021 — Unsafe `Loader.item` Access Without Status Guards
+
+**Files:** `shell.qml`
+**Category:** A (Runtime Error Risk)
+**Lines:** Multiple locations throughout the file
+
+The code repeatedly accesses `loader.item` without checking if `loader.status === Loader.Ready`. With `asynchronous: true`, `Loader.item` is `null` until the component is fully loaded, causing potential TypeError exceptions.
+
+**Examples:**
+- Lines ~70, 75, 84, 88, 92, 96, 100 in IPC handlers
+- Lines ~148, 153, 158, 164, 169, 174, 179 for various loaders
+
+**Fix:** Always guard with `if (loader.status === Loader.Ready && loader.item)` or use optional chaining (`loader.item?.property`).
+
+---
+
+### BUG-022 — Qt.createComponent with String URL
+
+**File:** `shell.qml`
+**Category:** B (Tooling & Type Safety)
+**Line:** ~132
+
+Using `Qt.createComponent("modules/settings/SettingsWindow.qml")` loses tooling support and type checking. This approach is discouraged in favor of inline Component definitions.
+
+**Fix:** Use inline Component definition or ensure proper error handling.
+
+---
+
+### BUG-023 — Heavy Use of `property var` Instead of Typed Properties
+
+**Files:** `shell.qml`, `Bar.qml`, `Launcher.qml`
+**Category:** Performance & Compilation
+**Lines:** Multiple property declarations
+
+Using `property var` instead of typed properties (`property string`, `property int`, `property color`, etc.) prevents `qmlsc` compilation to C++, eliminates meta-object overhead, and blocks type checking.
+
+**Examples:**
+- `shell.qml`: `property var compositor`, `property var notifs`, `property var matugen`, etc.
+- `Bar.qml`: `property var screen`, `property var barWindow`, etc.
+
+**Fix:** Replace `property var` with appropriate typed properties.
+
+---
+
+### BUG-024 — Improper Use of `clip: true`
+
+**Files:** `Bar.qml`, `Launcher.qml`, `AppRow.qml`
+**Category:** Performance
+**Lines:** Multiple components
+
+Using `clip: true` forces Qt to create a separate scene graph batch (scissor/stencil), which is expensive. Clipping should only be used when content genuinely overflows and must be masked.
+
+**Examples:**
+- `Bar.qml` frame rectangle and mediaModule
+- `Launcher.qml` frame rectangle
+
+**Fix:** Remove `clip: true` unless visually necessary.
+
+---
+
+### BUG-025 — Security Risk: External Command Injection
+
+**File:** `shell.qml`
+**Category:** Security
+**Lines:** ~226 and other Process commands
+
+Constructing bash commands with string interpolation poses potential command injection risks if user-controlled inputs (like wallpaper paths) contain special characters.
+
+**Example:**
+```qml
+applyWallProc.command = ["bash", "-c",
+    "awww img '" + wallpaper.path + "' --transition-type any --transition-duration 2 & " +
+    "matugen image '" + wallpaper.path + "' -c '" + root.configPath + "/dist/matugen/config.toml'"
+]
+```
+
+**Fix:** Sanitize inputs or use safer alternatives to prevent command injection.
+
+---
+
+### BUG-026 — Expensive Expressions in Property Bindings
+
+**File:** `shell.qml`
+**Category:** Performance
+**Line:** ~204-212
+
+Complex computations in reactive bindings like the `filteredWallpapers` property that performs array filtering and iteration on every change.
+
+**Example:**
+```qml
+property var filteredWallpapers: {
+    if (wallSearchTerm === "") return wallpaperList
+    var result = []
+    for (var i = 0; i < wallpaperList.length; i++) {
+        if (wallpaperList[i].name.toLowerCase().includes(wallSearchTerm)) {
+            result.push(wallpaperList[i])
+        }
+    }
+    return result
+}
+```
+
+**Fix:** Cache expensive computations or use more efficient approaches.
+
+---
+
+### BUG-027 — Use of `var` Instead of `let/const`
+
+**Files:** Throughout all QML files
+**Category:** JavaScript Quality
+**Lines:** Multiple function declarations
+
+Using outdated `var` declarations instead of modern `let/const` which have block scope and better optimization potential.
+
+**Fix:** Replace `var` with `let` or `const` as appropriate.
+
+---
+
+## 7. Keybind Bugs
 
 ### Hyprland — `dist/hypr/hyprland.conf`
 
@@ -407,7 +530,7 @@ Contains old copies of `shell.qml`, `Bar.qml`, `LauncherPanel.qml`, `Dashboard.q
 
 ---
 
-## 7. Orphan Artifacts
+## 8. Orphan Artifacts
 
 ### `QuickShellKeybinds.conf`
 
@@ -417,29 +540,35 @@ Root-level file claiming to be "Auto-generated by Quickshell". Nothing generates
 
 ---
 
-## 8. Prioritized Fix List
+## 9. Prioritized Fix List
 
 ### Immediate (blocking other work)
 
 1. **BUG-001 + BUG-002** — Convert `AltSwitcher` root to `PanelWindow`, restore `Loader` in `shell.qml`
 2. **BUG-007** — Fix `Matugen.applyWallpaper()` or remove the stub
 3. **BUG-008 + BUG-009** — Fix `Screenshot.qml` stdout reading and wl-copy call
-4. **BUG-016 (Niri keybinds)** — Replace `spawn "inir"` calls with `qs ipc call` equivalents
+4. **BUG-021** — Add proper guards for all `Loader.item` accesses
+5. **BUG-025** — Address security risks in command construction
 
 ### Before next feature work
 
-5. **BUG-003** — Add `Config` import to `AltSwitcher.qml`
-6. **BUG-004** — Move Timer/Animation objects out of the non-rendering Rectangle
-7. **BUG-005 + BUG-006 + BUG-010 + BUG-011** — Remaining `AltSwitcher` property bugs
-8. **BUG-015** — Fix 4 undefined Pywal color properties in `ControlCenterWindow`
-9. **BUG-013** — Remove dead `Qt5Compat.GraphicalEffects` import from `LauncherPanel`
+6. **BUG-003** — Add `Config` import to `AltSwitcher.qml`
+7. **BUG-004** — Move Timer/Animation objects out of the non-rendering Rectangle
+8. **BUG-005 + BUG-006 + BUG-010 + BUG-011** — Remaining `AltSwitcher` property bugs
+9. **BUG-015** — Fix 4 undefined Pywal color properties in `ControlCenterWindow`
+10. **BUG-013** — Remove dead `Qt5Compat.GraphicalEffects` import from `LauncherPanel`
+11. **BUG-023** — Replace `property var` with typed properties where possible
+12. **BUG-026** — Optimize expensive property bindings
 
 ### Cleanup
 
-10. **BUG-014** — Fix dangling `components` import in `MediaPlayer`
-11. **BUG-016** — Remove duplicate Bluetooth polling from `Network.qml`
-12. **BUG-017** — Verify cross-module relative import in `Appearance.qml`
-13. **BUG-012** — Implement or replace `Matugen.reload()`
-14. **BUG-018 + BUG-019** — Clean up `SettingsWindow` imports and root type
-15. **BUG-020** — Delete `dist/quickshell/` stale snapshot
-16. Delete `QuickShellKeybinds.conf`
+13. **BUG-014** — Fix dangling `components` import in `MediaPlayer`
+14. **BUG-016** — Remove duplicate Bluetooth polling from `Network.qml`
+15. **BUG-017** — Verify cross-module relative import in `Appearance.qml`
+16. **BUG-012** — Implement or replace `Matugen.reload()`
+17. **BUG-018 + BUG-019** — Clean up `SettingsWindow` imports and root type
+18. **BUG-020** — Delete `dist/quickshell/` stale snapshot
+19. **BUG-022** — Improve component creation approach
+20. **BUG-024** — Optimize clip usage
+21. **BUG-027** — Update JavaScript variable declarations
+22. Delete `QuickShellKeybinds.conf`

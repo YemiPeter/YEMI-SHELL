@@ -18,7 +18,7 @@ QtObject {
         property bool enableSwitchAnimation: true
         property int animationDuration: 200
         
-        // Pywal-based colors
+        // Theme-based colors
         property string activeColor: "#BE5052"
         property string occupiedColor: "#9A847D"
         property string emptyColor: "#a3a0a1"

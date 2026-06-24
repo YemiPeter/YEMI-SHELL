@@ -1,6 +1,6 @@
 import QtQuick 6.10
 import QtQuick.Layouts 6.10
-import qs.services
+import "../../../singletons" as QsSingletons
 
 Item {
     id: root
@@ -12,7 +12,7 @@ Item {
         id: clockLabel
         anchors.centerIn: parent
         text: Qt.formatDateTime(new Date(), "hh:mm AP")
-        color: Pywal.color5
+        color: QsSingletons.Theme.dim
         font.pixelSize: 11
         font.bold: true
         font.family: "JetBrainsMono Nerd Font"

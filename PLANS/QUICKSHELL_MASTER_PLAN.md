@@ -14,7 +14,7 @@ launcher integrated with wallpaper-driven theming via Matugen.
 
 The shell currently has a working top bar, music panel, control center,
 notification popups, OSD overlays, and a slide-in app launcher. The color
-system runs on Pywal.
+system runs on the Theme singleton (matugen-driven via wallcolors.py).
 
 ---
 
@@ -23,8 +23,8 @@ system runs on Pywal.
 | Component | Status | Action |
 |---|---|---|
 | Top bar | Working (with known bugs) | Keep, theme-update in Phase 1 |
-| Pywal (`services/Pywal.qml`) | Active | **Remove in Phase 1** |
-| Matugen (`services/Matugen.qml`) | Stub | **Remove in Phase 1** |
+| Pywal (`services/Pywal.qml`) | Removed | Done in Phase 1 |
+| Matugen (`services/Matugen.qml`) | Stub | Remove in Phase 1 |
 | Slide-in launcher (`modules/launcher/LauncherPanel.qml`) | Working | **Replace in Phase 3** |
 | Music panel | Working | Keep |
 | Control center | Working (4 undefined color props) | Fix during theme migration |

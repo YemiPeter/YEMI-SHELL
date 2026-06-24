@@ -2,6 +2,7 @@ import QtQuick 6.10
 import QtQuick.Layouts 6.10
 import Quickshell
 import "../../../services" as QsServices
+import "../../../singletons" as QsSingletons
 import "../../../components/effects"
 
 // Brightness indicator with number - no popup
@@ -11,7 +12,6 @@ Item {
     property var barWindow
     property var brightnessPopup  // Kept for compatibility but not used
     
-    readonly property var pywal: QsServices.Pywal
     readonly property var brightness: QsServices.Brightness
     readonly property bool isHovered: mouseArea.containsMouse
     readonly property int percentage: brightness.percentage
@@ -39,9 +39,9 @@ Item {
             font.pixelSize: 14
 
             color: {
-                if (isHovered) return pywal.primary
-                if (percentage >= 75) return Qt.rgba(pywal.warning.r, pywal.warning.g, pywal.warning.b, 0.85)
-                return pywal.foreground
+                if (isHovered) return QsSingletons.Theme.onGlow
+                if (percentage >= 75) return Qt.rgba(QsSingletons.Theme.verm.r, QsSingletons.Theme.verm.g, QsSingletons.Theme.verm.b, 0.85)
+                return QsSingletons.Theme.cream
             }
             
             Behavior on color {
@@ -63,7 +63,7 @@ Item {
             font.pixelSize: 10
             font.weight: Font.Medium
             
-            color: Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.7)
+            color: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.7)
             
             Behavior on color {
                 ColorAnimation { duration: 150 }
