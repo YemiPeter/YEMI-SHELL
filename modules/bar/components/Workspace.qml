@@ -1,7 +1,7 @@
 import Quickshell
 import QtQuick 6.10
 import "../../../config" as QsConfig
-import "../../../services" as QsServices
+import "../../../singletons" as QsSingletons
 import "../../../components/effects"
 
 // Modern fluid workspace indicator
@@ -15,7 +15,6 @@ Rectangle {
     signal clicked()
     
     readonly property var config: QsConfig.Config
-    readonly property var pywal: QsServices.Pywal
     
     // Dynamic sizing with fluid animation
     implicitWidth: {
@@ -30,9 +29,9 @@ Rectangle {
     
     // Beautiful gradient-based colors
     color: {
-        if (isActive) return pywal.primary
-        if (isOccupied) return Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.5)
-        return Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.2)
+        if (isActive) return QsSingletons.Theme.onGlow
+        if (isOccupied) return Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.5)
+        return Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.2)
     }
     
     border.width: 0
@@ -101,7 +100,7 @@ Rectangle {
         radius: (height) / 2
         color: "transparent"
         border.width: 2
-        border.color: Qt.rgba(pywal.primary.r, pywal.primary.g, pywal.primary.b, 0.15)
+        border.color: Qt.rgba(QsSingletons.Theme.onGlow.r, QsSingletons.Theme.onGlow.g, QsSingletons.Theme.onGlow.b, 0.15)
         
         SequentialAnimation on opacity {
             running: isActive

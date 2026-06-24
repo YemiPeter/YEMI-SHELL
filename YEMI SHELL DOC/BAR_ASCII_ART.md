@@ -6,8 +6,8 @@ The QuickShell top bar features a clean, aesthetically pleasing design with a fl
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  [.launcher.] [workspaces..] [media.....................] [conn] [audio] [pow] │
-│  │    󰣇    │ │ 1 │ 2 │ 3 │ │ [No media]                │ │📶│ │🔊│ │🔋│ │
+│  [workspaces..] [media.....................] [conn] [audio] [pow] │
+│  │ 1 │ 2 │ 3 │ │ [No media]                │ │📶│ │🔊│ │🔋│ │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -15,15 +15,14 @@ The QuickShell top bar features a clean, aesthetically pleasing design with a fl
 
 ### Left Side
 ```
-┌─────────────┬──────────────────────┐
-│  Launcher   │     Workspaces       │
-│             │                      │
-│   [ 󰣇 ]    │  [ 1 ][ 2 ][ 3 ]    │
-│             │                      │
-└─────────────┴──────────────────────┘
+┌──────────────────────┐
+│     Workspaces       │
+│                      │
+│  [ 1 ][ 2 ][ 3 ]   │
+│                      │
+└──────────────────────┘
 ```
 
-- **Launcher Pill**: Small pill with the application launcher icon (󰣇)
 - **Workspaces Pill**: Shows active workspaces with rounded indicators
 
 ### Center Area
@@ -68,12 +67,12 @@ The bar features:
 ## Component Structure
 
 ```
-[Launcher] [Workspaces] [Media Player] [Connectivity] [Audio] [Power Management]
-     │           │           │               │          │          │
-     ▼           ▼           ▼               ▼          ▼          ▼
-  Clickable   Workspace   Media Info    Network/    Volume/   Battery/Status/
-  Icon        Indicators  Display       Bluetooth   Bright-   Control Center/
-                                          Indicators  ness      System Tray
+[Workspaces] [Media Player] [Connectivity] [Audio] [Power Management]
+     │           │               │          │          │
+     ▼           ▼               ▼          ▼          ▼
+Workspace   Media Info    Network/    Volume/   Battery/Status/
+Indicators  Display       Bluetooth   Bright-   Control Center/
+            Indicators    Indicators  ness      System Tray
 ```
 
 The bar uses a modern, minimal aesthetic with smooth animations and transitions that respect the user's pywal color scheme for a cohesive desktop experience.

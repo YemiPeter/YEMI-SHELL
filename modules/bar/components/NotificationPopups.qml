@@ -4,31 +4,31 @@ import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
 import "../../../services" as QsServices
+import "../../../singletons" as QsSingletons
 import "../../../config" as QsConfig
 
 // Material 3 Expressive notification popup window - Enhanced with Gestures
 PanelWindow {
     id: root
     
-    readonly property var pywal: QsServices.Pywal
     readonly property var notifs: QsServices.Notifs
     readonly property var logger: QsServices.Logger
     readonly property var config: QsConfig.Config
     
     // Aesthetic subtle color scheme
     readonly property color m3Surface: Qt.rgba(
-        (pywal?.background ?? Qt.rgba(0.12, 0.12, 0.14, 1)).r,
-        (pywal?.background ?? Qt.rgba(0.12, 0.12, 0.14, 1)).g,
-        (pywal?.background ?? Qt.rgba(0.12, 0.12, 0.14, 1)).b,
+        QsSingletons.Theme.cardBot.r,
+        QsSingletons.Theme.cardBot.g,
+        QsSingletons.Theme.cardBot.b,
         0.95
     )
-    readonly property color m3SurfaceContainer: Qt.lighter(pywal?.background ?? "#1e1e24", 1.08)
-    readonly property color m3SurfaceContainerHigh: Qt.lighter(pywal?.background ?? "#1e1e24", 1.18)
-    readonly property color m3Primary: pywal?.primary ?? "#a6e3a1"
-    readonly property color m3OnSurface: pywal?.foreground ?? "#e8e8e8"
-    readonly property color m3OnSurfaceVariant: Qt.rgba(m3OnSurface.r, m3OnSurface.g, m3OnSurface.b, 0.55)
-    readonly property color m3Error: pywal?.color1 ?? "#f38ba8"
-    readonly property color m3Warning: pywal?.color3 ?? "#f9e2af"
+    readonly property color m3SurfaceContainer: QsSingletons.Theme.cardTop
+    readonly property color m3SurfaceContainerHigh: Qt.lighter(QsSingletons.Theme.cardBot, 1.18)
+    readonly property color m3Primary: QsSingletons.Theme.onGlow
+    readonly property color m3OnSurface: QsSingletons.Theme.cream
+    readonly property color m3OnSurfaceVariant: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.55)
+    readonly property color m3Error: QsSingletons.Theme.vermBurn
+    readonly property color m3Warning: QsSingletons.Theme.verm
     readonly property color m3Border: Qt.rgba(m3OnSurface.r, m3OnSurface.g, m3OnSurface.b, 0.04)
     readonly property color m3Accent: Qt.rgba(m3Primary.r, m3Primary.g, m3Primary.b, 0.12)
     

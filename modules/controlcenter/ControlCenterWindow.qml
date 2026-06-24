@@ -6,6 +6,7 @@ import Quickshell.Wayland
 import Quickshell.Io
 import Quickshell.Bluetooth
 import "../../services" as QsServices
+import "../../singletons" as QsSingletons
 import "../../config" as QsConfig
 import "../../components/effects"
 import "components"
@@ -16,7 +17,6 @@ PanelWindow {
     // Services
     readonly property var logger: QsServices.Logger
     readonly property var config: QsConfig.Config
-    readonly property var pywal: QsServices.Pywal
     readonly property var network: QsServices.Network
     readonly property var bluetooth: QsServices.Bluetooth
     readonly property var audio: QsServices.Audio
@@ -49,15 +49,15 @@ PanelWindow {
     }
     
     // Solid UI Color Tokens - Professional dark theme
-    readonly property color cSurface: pywal.background
-    readonly property color cSurfaceContainer: Qt.lighter(pywal.background, 1.15)
-    readonly property color cSurfaceContainerHigh: Qt.lighter(pywal.background, 1.25)
-    readonly property color cBorder: Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.08)
-    readonly property color cPrimary: pywal.primary
-    readonly property color cSecondary: pywal.secondary
-    readonly property color cOnSurface: pywal.foreground
-    readonly property color cOnSurfaceVariant: Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.7)
-    readonly property color cOnSurfaceDim: Qt.rgba(pywal.foreground.r, pywal.foreground.g, pywal.foreground.b, 0.5)
+    readonly property color cSurface: QsSingletons.Theme.cardBot
+    readonly property color cSurfaceContainer: QsSingletons.Theme.cardTop
+    readonly property color cSurfaceContainerHigh: Qt.lighter(QsSingletons.Theme.cardBot, 1.25)
+    readonly property color cBorder: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.08)
+    readonly property color cPrimary: QsSingletons.Theme.onGlow
+    readonly property color cSecondary: QsSingletons.Theme.verm
+    readonly property color cOnSurface: QsSingletons.Theme.cream
+    readonly property color cOnSurfaceVariant: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.7)
+    readonly property color cOnSurfaceDim: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.5)
     
     screen: Quickshell.screens[0]
     
@@ -336,7 +336,7 @@ PanelWindow {
                                 label: "Do Not Disturb"
                                 subLabel: root.notifs.dnd ? "On" : "Off"
                                 active: root.notifs.dnd
-                                activeColor: pywal.warning
+                                activeColor: QsSingletons.Theme.verm
                                 surfaceColor: Qt.rgba(root.cSurfaceContainerHigh.r, root.cSurfaceContainerHigh.g, root.cSurfaceContainerHigh.b, 0.75)
                                 textColor: root.cOnSurface
                                 onClicked: root.notifs.toggleDnd()
@@ -354,7 +354,7 @@ PanelWindow {
                                 label: "Caffeine"
                                 subLabel: root.idleInhibitor.inhibited ? "Active" : "Off"
                                 active: root.idleInhibitor.inhibited
-                                activeColor: pywal.info
+                                activeColor: QsSingletons.Theme.onGlow
                                 surfaceColor: Qt.rgba(root.cSurfaceContainerHigh.r, root.cSurfaceContainerHigh.g, root.cSurfaceContainerHigh.b, 0.75)
                                 textColor: root.cOnSurface
                                 onClicked: root.idleInhibitor.inhibited = !root.idleInhibitor.inhibited
@@ -378,7 +378,7 @@ PanelWindow {
                                 label: "Night Light"
                                 subLabel: root.hyprsunset.enabled ? "On" : "Off"
                                 active: root.hyprsunset.enabled
-                                activeColor: pywal.warning
+                                activeColor: QsSingletons.Theme.verm
                                 surfaceColor: Qt.rgba(root.cSurfaceContainerHigh.r, root.cSurfaceContainerHigh.g, root.cSurfaceContainerHigh.b, 0.75)
                                 textColor: root.cOnSurface
                                 onClicked: {
@@ -393,7 +393,7 @@ PanelWindow {
                                 label: "Power Mode"
                                 subLabel: root.powerProfiles.getProfileLabel(root.powerProfiles.activeProfile)
                                 active: root.powerProfiles.activeProfile === "performance"
-                                activeColor: pywal.error
+                                activeColor: QsSingletons.Theme.vermBurn
                                 surfaceColor: Qt.rgba(root.cSurfaceContainerHigh.r, root.cSurfaceContainerHigh.g, root.cSurfaceContainerHigh.b, 0.75)
                                 textColor: root.cOnSurface
                                 onClicked: {
@@ -420,13 +420,11 @@ PanelWindow {
                             VolumeSlider {
                                 Layout.fillWidth: true
                                 audio: root.audio
-                                pywal: root.pywal
                             }
                             
                             BrightnessSlider {
                                 Layout.fillWidth: true
                                 brightness: root.brightness
-                                pywal: root.pywal
                             }
                         }
                         
@@ -441,14 +439,13 @@ PanelWindow {
                         SystemStats {
                             Layout.fillWidth: true
                             systemUsage: root.systemUsage
-                            pywal: root.pywal
                         }
                         
                         // Media Card
                         MediaCard {
                             Layout.fillWidth: true
                             mpris: root.mpris
-                            pywal: root.pywal
+                            
                         }
                         
                         // Notifications
@@ -456,7 +453,7 @@ PanelWindow {
                             Layout.fillWidth: true
                             Layout.preferredHeight: Math.min(260, Math.max(80, root.height - 600))
                             notifs: root.notifs
-                            pywal: root.pywal
+                            
                         }
                         
                         // Bottom padding

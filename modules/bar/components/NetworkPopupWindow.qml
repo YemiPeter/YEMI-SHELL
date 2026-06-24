@@ -6,13 +6,13 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
 import "../../../services" as QsServices
+import "../../../singletons" as QsSingletons
 
 // Solid Network Popup - Matching Control Center style
 PanelWindow {
     id: popupWindow
     
     property bool shouldShow: false
-    readonly property var pywal: QsServices.Pywal
     readonly property var network: QsServices.Network
     readonly property var sortedNetworks: [...network.networks].sort((a, b) => {
         if (a.active !== b.active) return b.active - a.active
@@ -20,13 +20,13 @@ PanelWindow {
     })
     
     // Solid colors like Control Center
-    readonly property color cSurface: pywal.background
-    readonly property color cSurfaceContainer: Qt.lighter(pywal.background, 1.15)
-    readonly property color cPrimary: pywal.primary
-    readonly property color cText: pywal.foreground
-    readonly property color cSubText: Qt.rgba(cText.r, cText.g, cText.b, 0.6)
-    readonly property color cBorder: Qt.rgba(cText.r, cText.g, cText.b, 0.08)
-    readonly property color cHover: Qt.rgba(cText.r, cText.g, cText.b, 0.06)
+    readonly property color cSurface: QsSingletons.Theme.cardBot
+    readonly property color cSurfaceContainer: QsSingletons.Theme.cardTop
+    readonly property color cPrimary: QsSingletons.Theme.onGlow
+    readonly property color cText: QsSingletons.Theme.cream
+    readonly property color cSubText: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.6)
+    readonly property color cBorder: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.08)
+    readonly property color cHover: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.06)
     
     // Settings launcher
     Process {

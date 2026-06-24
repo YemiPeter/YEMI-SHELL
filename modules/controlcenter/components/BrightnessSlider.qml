@@ -2,23 +2,20 @@ import QtQuick 6.10
 import QtQuick.Layouts 6.10
 import QtQuick.Controls 6.10
 import Quickshell
-import "../../../components/effects"
+import "../../../../components/effects"
 
 Rectangle {
     id: root
 
     required property var brightness
-    property var pywal
 
     property bool userSeeking: false
 
-    // Current brightness value
     readonly property int currentBrightness: brightness ? Math.round((brightness.percentage ?? 0)) : 0
     
-    // Solid color tokens
-    readonly property color surfaceColor: pywal ? Qt.lighter(pywal.background, 1.25) : "#2a2a3a"
-    readonly property color textColor: pywal ? pywal.foreground : "#e6e6e6"
-    readonly property color accentColor: pywal ? pywal.warning : "#fab387"  // Warm color for brightness
+    readonly property color surfaceColor: "#2a2a3a"
+    readonly property color textColor: "#e6e6e6"
+    readonly property color accentColor: "#fab387"
     
     Layout.fillWidth: true
     Layout.preferredHeight: 48
@@ -43,7 +40,6 @@ Rectangle {
         anchors.fill: parent
         spacing: 0
         
-        // Icon
         Rectangle {
             id: iconBtn
             Layout.preferredWidth: 48
@@ -75,7 +71,6 @@ Rectangle {
             }
         }
         
-        // Slider
         Slider {
             id: slider
             Layout.fillWidth: true
@@ -104,7 +99,6 @@ Rectangle {
                 radius: 24
                 color: "transparent"
                 
-                // Progress fill
                 Rectangle {
                     width: slider.visualPosition * parent.width
                     height: parent.height
@@ -126,7 +120,6 @@ Rectangle {
             }
         }
         
-        // Percentage Text
         Text {
             Layout.rightMargin: 16
             Layout.preferredWidth: 40
