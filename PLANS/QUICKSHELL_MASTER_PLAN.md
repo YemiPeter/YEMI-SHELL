@@ -1,181 +1,201 @@
-# QuickShell Project — Master Plan
-
-> **Read this first.** Every agent working on this project must read this
-> document and `QUICKSHELL_CHECKLIST.md` before doing any work. They define
-> the project, the goal, the strategy, and the rules.
+# QuickShell Master Plan
+**Shell by Yemi** — Custom Wayland shell built on QuickShell, supporting Hyprland & Niri.
 
 ---
 
-## 1. What is this project?
+## 🎯 Project Identity & Philosophy
 
-A custom Quickshell desktop shell for Hyprland (Niri secondary) at
-`~/.config/quickshell/`. End goal: a clean, Ricelin-inspired overlay
-launcher integrated with wallpaper-driven theming via Matugen.
+This is **Shell by Yemi** — a personal desktop shell project. It borrows concepts and components from multiple upstream sources (including `.Ricelin/`, `.iNiR/`, and others), but it is **its own project** with its own evolution path. We are not "Ricelin-inspired" or a fork; we are building a shell that works for Yemi's workflow.
 
-The shell currently has a working top bar, music panel, control center,
-notification popups, OSD overlays, and a slide-in app launcher. The color
-system runs on the Theme singleton (matugen-driven via wallcolors.py).
+**Core Philosophy:**
+- **Yemi does the thinking, agents do the mechanical work**
+- **PLAN FIRST, ALWAYS** — No code changes without agreed architecture
+- **Understandability over cleverness** — Yemi must be able to read and understand every change
+- **Backend correctness > frontend polish** — This is a shell, not a UI showcase
+- **Traceable changes** — Every edit must have a clear "why"
 
----
-
-## 2. Current state (project start)
-
-| Component | Status | Action |
-|---|---|---|
-| Top bar | Working (with known bugs) | Keep, theme-update in Phase 1 |
-| Pywal (`services/Pywal.qml`) | Removed | Done in Phase 1 |
-| Matugen (`services/Matugen.qml`) | Stub | Remove in Phase 1 |
-| Slide-in launcher (`modules/launcher/LauncherPanel.qml`) | Working | **Replace in Phase 3** |
-| Music panel | Working | Keep |
-| Control center | Working (4 undefined color props) | Fix during theme migration |
-| Notification popups | Working | Keep |
-| OSD overlays | Working | Keep |
-| AltSwitcher | Broken (8 bugs, never loaded) | Remove in Phase 2 |
-| SettingsWindow | Placeholder stub | Remove in Phase 2 |
-| `dist/quickshell/` | Stale snapshot | Delete in Phase 2 |
-| `QuickShellKeybinds.conf` | Orphan | Delete in Phase 2 |
+**Reference Guidelines:**
+- `.lingma/rules/` — QML/Qt best practices and review checklists
+- `.kilo/agents/` — Agent workflow and clean implementation guidelines
+- `.kiro/steering/` — Technical direction and architecture principles
 
 ---
 
-## 3. Strategy — 4 phases, sequential
+---
 
-| Phase | Name | Outcome |
-|---|---|---|
-| 1 | **Theme System** | Matugen-driven theme with light/dark, replaces Pywal. Bar still works. |
-| 2 | **Broken-stuff Cleanup** | Remove the broken (AltSwitcher, Settings, dead imports). Keep bar functional. |
-| 3 | **Standalone Overlay Launcher** | Ricelin's `launcher/` (overlay) ported in. Owns `launcher` IPC. Replaces slide-in. |
-| 4 (future) | **Pill-surface Launcher** | Ricelin's `pill/Launcher.qml` ported in. Needs morph animation system. |
+## 🗺️ Roadmap Overview
 
-Phases are strictly sequential. Do not start Phase N+1 until Phase N is
-verified and committed.
+| Phase | Goal | Status |
+|-------|------|--------|
+| **Phase 0** | Theme System Foundation | ✅ **DONE** |
+| **Phase 1** | Stability Pass (Room Making) | ⏳ **NEXT** |
+| **Phase 2** | Overlay Launcher Port | ⏳ PENDING |
+| **Phase 3** | Cleanup & Polish | ⏳ PENDING |
 
 ---
 
-## 4. Decisions made (locked in)
+---
 
-| Decision | Choice | Notes |
-|---|---|---|
-| Theme.qml location | `singletons/Theme.qml` | Matches Ricelin's Singletons/ structure |
-| Theme scope | Full dynamic from day 1 | Matugen output is source of truth |
-| Property names (canonical) | Ricelin-style: `onGlow`, `verm`, `cream`, `cardBot`, `cardTop`, `border`, `bright`, `dim`, etc. | ~44 properties; matches Ricelin's actual Theme.qml |
-| Color pipeline | wallcolors.py → `~/.cache/ricelin/colors.json` → Dyn.qml (JsonAdapter) → Theme.qml | Follows Ricelin exactly; not matugen-direct |
-| Light mode | Determined by wallcolors.py (`mean_l >= 0.40` in script), not by state file toggle |
-| Singletons module | `singletons/` with Theme, Dyn, Flags | Flags is a new small singleton (paletteMode, uiFont) |
-| Version control | All changes git-tracked | Commit after each task |
-| Dyn singleton approach | `JsonAdapter` declarative binding, not manual `JSON.parse` | Ported verbatim from Ricelin |
-| New launcher location | Loaded by main `shell.qml` | Single process, not separate `ShellRoot` |
-| New launcher IPC | Replaces existing `launcher` IPC | Clean break; old `LauncherPanel.qml` deleted in Phase 3 |
-| Pill launcher | Future (Phase 4) | Needs PillSurface/Theme/Flags/Motion singletons + morph animation system |
+## ✅ Phase 0: Theme System Foundation
+**Status: COMPLETE**
+
+The Matugen-based theme system is fully implemented and working:
+- `singletons/Theme.qml` — Central theme singleton
+- `config/ThemeConfig.qml` — Theme configuration
+- `services/Matugen.qml` — Matugen integration service
+- Color modes (light/dark) via `state/colormode`
+- GIF themes via `state/gif-index`
+
+**No changes needed here.** This is the stable foundation.
 
 ---
 
-## 5. Rules for ALL agents
+---
 
-1. **Read MASTER_PLAN.md + CHECKLIST.md first.** Every time, before any work.
-2. **Git everything.** Commit after each task with a scoped message.
-3. **One task at a time.** Don't move on until current task is verified +
-   committed.
-4. **Don't deviate from the checklist.** If you need to do something not in
-   the checklist, STOP and ask the user.
-5. **Ask if uncertain.** Use the "STOP and ask" conditions listed in the
-   checklist. When in doubt, ask.
-6. **No scope creep.** Don't refactor unrelated code. Don't "improve" things
-   not on the list. Don't remove code not in the task.
-7. **Verify before reporting done.** Use the verification commands listed in
-   the checklist. Paste the output in your report.
-8. **Report back** with: what you did, what you verified, what you didn't
-   touch, any anomalies, and a final `DONE` or `BLOCKED: <reason>`.
-9. **Don't revert Phase 1 work to fix visible breakage.** When Pywal/
-   Matugen are disabled in qmldir (task P1.5.5), the bar will look broken
-   until the rewrite task (P1.7) finishes. This is expected. Reverting
-   breaks the migration. Continue with the next task instead.
+## ⏳ Phase 1: Stability Pass (The "Room Making" Phase)
+**Status: NEXT PRIORITY**
+
+Before adding new features, we must create a stable base. The current codebase has broken services, stale files, and runtime errors that make development painful.
+
+### 🎯 Goal
+Create a clean, error-free environment where we can work without constant crashes or console spam.
+
+### 📋 Tasks
+
+#### 1A. Runtime Error Audit
+- [ ] Run the shell and capture all runtime errors
+- [ ] Categorize errors: easy fixes vs. hard/unplanned vs. upstream issues
+- [ ] Document findings in `YEMI SHELL DOC/BUG_REPORT.md`
+
+#### 1B. Fix Easy Bugs (The "Low-Hanging Fruit")
+Bugs that are simple, localized fixes that don't require architectural changes:
+
+- [ ] **BUG-014: MediaPlayer.qml** — Remove dangling `import "../services/Players.qml"` (service doesn't exist)
+- [ ] **BUG-013: Network.qml** — Remove dangling `import "../services/Network.qml"` (circular import)
+- [ ] **BUG-007: Battery.qml** — Remove `import "../services/PowerProfiles.qml"` if service is unused
+- [ ] **BUG-011: Bar.qml** — Fix any broken imports in the bar components
+- [ ] **BUG-012: OSD components** — Verify all OSD imports are valid
+
+#### 1C. Comment Out Hard/Unplanned Services
+Services that throw errors but aren't critical for basic shell operation:
+
+- [ ] Comment out problematic services in `shell.qml`:
+  - `services/PowerProfiles.qml` (if it depends on missing `powerprofiles-daemon`)
+  - `services/IdleInhibitor.qml` (if it errors on startup)
+  - Any other service that crashes but isn't needed for core functionality
+- [ ] Document each commented service with a `TODO:` comment explaining why and what's needed to re-enable
+
+#### 1D. Clean Up Dead Files & Stale Services
+Remove files that are:
+- Duplicates
+- From old versions
+- Empty or placeholder
+- In the wrong location
+
+- [ ] Delete `dist/quickshell/` if it exists (stale build artifacts)
+- [ ] Delete `modules/bar/BarWrapper.qml` if it's a broken wrapper (check if it's actually used)
+- [ ] Review and remove any other stale files in active code paths
+
+**⚠️ IMPORTANT:** Only touch files in the main project directories. **NEVER** modify anything in dot directories (`.Ricelin/`, `.iNiR/`, `.kilo/`, `.kiro/`, `.lingma/`). These are READ-ONLY reference directories.
 
 ---
 
-## 6. STOP and ask conditions (universal)
+---
 
-An agent MUST stop and ask the user before proceeding if any of these are
-true:
+## ⏳ Phase 2: Overlay Launcher Port
+**Status: PENDING (Blocks: Phase 1 completion)**
 
-- A file mentioned in the checklist doesn't exist
-- A file exists that isn't in the checklist (might be relevant to the task)
-- A property is referenced in code that isn't in the canonical property list
-- A reference pattern doesn't match the mapping table in the checklist
-- The agent is about to touch a file not in the task list
-- The agent is about to delete code that isn't explicitly marked for removal
-- The task list contradicts the actual code in the project
-- The agent's work would break a working component (bar, music, control
-  center, notifications, OSD)
-- A git operation fails (conflict, missing remote, etc.)
-- The agent encounters an error it doesn't know how to resolve
-- The shell looks broken after a Phase 1 task (bar invisible, colors
-  undefined) — DO NOT revert. This is expected mid-migration. Continue
-  with the next task. Only revert if the user explicitly says so.
+The current `modules/launcher/` is a **badly copied, non-functional version** of Ricelin's launcher. It needs to be completely replaced.
 
-When in doubt: ask. It's faster than recovering from a mistake.
+### 🎯 Goal
+Port Ricelin's overlay launcher into our shell, properly integrated.
+
+### 📋 Tasks
+
+#### 2A. Remove Bad Copy
+- [ ] Delete entire `modules/launcher/` directory (AppRow.qml, Launcher.qml, LauncherWindow.qml, qmldir, lib/)
+
+#### 2B. Fresh Copy from Source
+- [ ] Copy from `.Ricelin/configs/quickshell/launcher/`:
+  - `AppRow.qml`
+  - `Launcher.qml`
+  - `shell.qml` (Ricelin's shell integration)
+  - `lib/fuzzy.js`
+
+#### 2C. Adapt to Our Architecture
+- [ ] Update imports to match our project structure
+- [ ] Integrate with our `singletons/Theme.qml`
+- [ ] Integrate with our `config/Config.qml`
+- [ ] Wire into `shell.qml` (main shell file)
+- [ ] Wire into `modules/bar/` (bar integration)
+
+#### 2D. Test
+- [ ] Verify launcher opens/closes correctly
+- [ ] Verify app launching works
+- [ ] Verify search/fuzzy matching works
+- [ ] Verify theme integration works
 
 ---
 
-## 7. What NOT to do
+---
 
-- Don't touch `.Ricelin/` — read-only reference
-- Don't delete the entire `dist/` directory — only the wal/ subfolder in
-  Phase 1, the quickshell/ subfolder in Phase 2
-- Don't modify data services (Audio, Brightness, Network, Bluetooth, Notifs,
-  Players, IdleInhibitor, Logger, VolumeMonitor, SystemUsage, PowerProfiles,
-  Hyprsunset) — only color services
-- Don't change Ricelin's palette colors — use them as-is
-- Don't start Phase N+1 before Phase N is verified
-- Don't commit to git with vague messages like "updates" or "fix" — be scoped
-- Don't run `qs -p` in a way that blocks (use `Ctrl+C` after a few seconds)
-- Don't assume; verify
+## ⏳ Phase 3: Cleanup & Polish
+**Status: PENDING (Blocks: Phase 2 completion)**
+
+### 📋 Tasks
+- [ ] Review all remaining TODOs and FIXMEs
+- [ ] Clean up any remaining console warnings
+- [ ] Standardize code formatting
+- [ ] Add documentation for new systems
+- [ ] Final testing pass
 
 ---
 
-## 8. Reference files
+---
+
+## 🚨 Critical Rules (Non-Negotiable)
+
+1. **PLAN FIRST** — No code changes without Yemi's explicit approval on the plan
+2. **Dot Directories Are READ-ONLY** — Never modify `.Ricelin/`, `.iNiR/`, `.kilo/`, `.kiro/`, `.lingma/`
+3. **Mechanical Work Only** — Agents implement agreed plans, don't decide architecture
+4. **Traceable Changes** — Every edit must have a clear reason Yemi can understand
+5. **No Frontend Polish at Expense of Backend** — Functionality first, aesthetics second
+6. **No Fluff** — Direct communication, no padding, no restating
+
+---
+
+---
+
+## 📚 Reference Documents
 
 | Document | Purpose |
-|---|---|
-| `PLANS/MASTER_PLAN.md` (this file) | Project context, rules, decisions |
-| `PLANS/CHECKLIST.md` | Step-by-step tasks with verification |
-| `PLANS/theme-system-architecture.md` | The technical design for the theme system |
-| `YEMI SHELL DOC/BUG_REPORT.md` | The 20 known bugs in the current project |
-| `YEMI SHELL DOC/PROJECT_REFERENCE.md` | Module/architecture reference |
-| `~/.config/quickshell/.Ricelin/` | Ricelin source — read-only reference for ports |
+|----------|---------|
+| `PLANS/QUICKSHELL_CHECKLIST.md` | Detailed task checklist |
+| `PLANS/THEME_SYSTEM_PLAN.md` | Theme system architecture |
+| `YEMI SHELL DOC/README.md` | Project reference |
+| `YEMI SHELL DOC/BAR_AUDIT.md` | Bar component audit |
+| `YEMI SHELL DOC/BUG_REPORT.md` | Runtime errors and bugs |
+| `.lingma/rules/YemiWorkingRules.md` | Agent working rules |
+| `.lingma/rules/qt-qml-review.md` | QML code review checklist |
+| `.kilo/agents/` | Agent workflow guidelines |
+| `.kiro/steering/tech.md` | Technical direction |
 
 ---
 
-## 9. Phases overview
-
-### Phase 1 — Theme System (full dynamic with matugen)
-Replace Pywal with a Matugen-driven theme. Create `singletons/Theme.qml`
-and `singletons/Dyn.qml`. Static defaults for light/dark, dynamic values
-from matugen. Update all `pywal.*` references to `theme.*`. Remove Pywal
-infrastructure.
-
-### Phase 2 — Broken-stuff Cleanup
-Remove AltSwitcher (8 bugs, never loaded), SettingsWindow (placeholder),
-Matugen service (already removed in Phase 1), `dist/quickshell/`, and
-`QuickShellKeybinds.conf`. Fix BUG-013 and BUG-014. Keep bar functional.
-
-### Phase 3 — Standalone Overlay Launcher
-Port Ricelin's `launcher/` (Launcher.qml + AppRow.qml + shell.qml + fuzzy.js)
-into the project. Wire as a Loader in main `shell.qml`. Replace the
-existing `launcher` IPC. Delete the old slide-in `LauncherPanel.qml`. Bar's
-launcher button calls the new IPC.
-
-### Phase 4 (future) — Pill-surface Launcher
-Port Ricelin's `pill/Launcher.qml` into the pill system. Requires porting
-`PillSurface.qml`, `Theme.qml` (already in Phase 1), `Flags.qml`,
-`Motion.qml` singletons. Build a morph animation system. This is a separate
-large task and is not part of the current cycle.
-
 ---
 
-## 10. Working mode with the user
+## 🎯 Next Step
 
-- The user reviews each task's output
-- The user verifies with the checklist
-- The user unblocks the next task
-- The user may adjust the plan as new questions come up
-- The agents are tools — the user is the decision-maker
+**Phase 1: Stability Pass is the immediate priority.**
+
+The next concrete step is to:
+1. Run the shell and capture runtime errors
+2. Fix the easy bugs (BUG-014, BUG-013, etc.)
+3. Comment out hard/unplanned services
+4. Clean up dead files
+
+This will create a stable base for the launcher port in Phase 2.
+
+**The next step is: Execute Phase 1 - Stability Pass (Runtime Error Audit first).**
+
+---

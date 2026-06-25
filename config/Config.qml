@@ -6,16 +6,6 @@ Singleton {
     readonly property BarConfig bar: BarConfig {}
     readonly property AppearanceConfig appearance: AppearanceConfig {}
     
-    // Control Center configuration
-    readonly property var controlCenter: ({
-        width: 700,
-        maxHeight: 1000,
-        padding: 16,
-        spacing: 12,
-        margin: 4,
-        cornerRadius: 24
-    })
-    
     // Notification configuration
     readonly property var notifications: ({
         popupWidth: 340,
