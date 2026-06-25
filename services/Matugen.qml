@@ -21,7 +21,7 @@ Singleton {
         var proc = Quickshell.Process();
         var matugenConfigPath = Quickshell.env("HOME") + "/.config/quickshell/dist/matugen/config.toml";
         var cmd = ["matugen", "image", imagePath, "-c", matugenConfigPath];
-        
+
         proc.execute(cmd);
         console.log("🎨 [Matugen] Generating colors for:", imagePath);
     }
