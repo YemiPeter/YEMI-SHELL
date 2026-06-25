@@ -5,6 +5,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick.Effects
+import "../../singletons" as QsTheme
 
 PanelWindow {
     id: musicPanel
@@ -149,7 +150,7 @@ PanelWindow {
             Rectangle {
                 width: 400
                 height: 180
-                color: Qt.rgba(root.cardBot.r, root.cardBot.g, root.cardBot.b, 0.7)
+                color: Qt.rgba(QsTheme.Theme.cardBot.r, QsTheme.Theme.cardBot.g, QsTheme.Theme.cardBot.b, 0.7)
                 radius: 15
                 clip: true
 
@@ -165,7 +166,7 @@ PanelWindow {
 
                         Text {
                             text: musicPanel.trackTitle || "Nothing is playing"
-                            color: root.onGlow
+                            color: QsTheme.Theme.onGlow
                             font.pixelSize: 15
                             font.bold: true
                             font.family: "JetBrainsMono Nerd Font"
@@ -175,7 +176,7 @@ PanelWindow {
 
                         Text {
                             text: musicPanel.trackArtist || ""
-                            color: root.cream
+                            color: QsTheme.Theme.cream
                             font.pixelSize: 12
                             font.family: "JetBrainsMono Nerd Font"
                             opacity: 0.7
@@ -193,7 +194,7 @@ PanelWindow {
 
                             Text {
                                 text: musicPanel.formatTime(musicPanel.position)
-                                color: root.onGlow
+                                color: QsTheme.Theme.onGlow
                                 font.pixelSize: 10
                                 font.family: "JetBrainsMono Nerd Font"
                             }
@@ -208,7 +209,7 @@ PanelWindow {
                                     width: musicPanel.length > 0 ? parent.width * (musicPanel.position / musicPanel.length) : 0
                                     height: parent.height
                                     radius: 2
-                                    color: root.onGlow
+                                    color: QsTheme.Theme.onGlow
                                 }
 
                                 MouseArea {
@@ -226,7 +227,7 @@ PanelWindow {
 
                             Text {
                                 text: musicPanel.formatTime(musicPanel.length)
-                                color: root.onGlow
+                                color: QsTheme.Theme.onGlow
                                 font.pixelSize: 10
                                 font.family: "JetBrainsMono Nerd Font"
                             }
@@ -246,7 +247,7 @@ PanelWindow {
                                 Text {
                                     anchors.centerIn: parent
                                     text: "󰒮"
-                                    color: root.cream
+                                    color: QsTheme.Theme.cream
                                     font.pixelSize: 16
                                     font.family: "JetBrainsMono Nerd Font"
                                 }
@@ -264,12 +265,12 @@ PanelWindow {
                                 width: 40
                                 height: 40
                                 radius: 20
-                                color: root.onGlow
+                                color: QsTheme.Theme.onGlow
 
                                 Text {
                                     anchors.centerIn: parent
                                     text: musicPanel.playerStatus === "Playing" ? "󰏤" : "󰐊"
-                                    color: root.cardBot
+                                    color: QsTheme.Theme.cardBot
                                     font.pixelSize: 18
                                     font.family: "JetBrainsMono Nerd Font"
                                 }
@@ -290,7 +291,7 @@ PanelWindow {
                                 Text {
                                     anchors.centerIn: parent
                                     text: "󰒭"
-                                    color: root.cream
+                                    color: QsTheme.Theme.cream
                                     font.pixelSize: 16
                                     font.family: "JetBrainsMono Nerd Font"
                                 }
@@ -351,7 +352,7 @@ PanelWindow {
                             Text {
                                 anchors.centerIn: parent
                                 text: "󰏫"
-                                color: root.cream
+                                color: QsTheme.Theme.cream
                                 font.pixelSize: 12
                                 font.family: "JetBrainsMono Nerd Font"
                             }
@@ -388,7 +389,7 @@ PanelWindow {
                 height: 260
                 anchors.horizontalCenter: parent.horizontalCenter
                 radius: 14
-                color: Qt.rgba(root.cardBot.r, root.cardBot.g, root.cardBot.b, 0.85)
+                color: Qt.rgba(QsTheme.Theme.cardBot.r, QsTheme.Theme.cardBot.g, QsTheme.Theme.cardBot.b, 0.85)
                 border.color: Qt.rgba(1,1,1,0.1)
                 border.width: 1
                 visible: musicPanel.gifSelectorOpen
@@ -414,7 +415,7 @@ PanelWindow {
 
                         Text {
                             text: "Select Animation"
-                            color: root.onGlow
+                            color: QsTheme.Theme.onGlow
                             font.pixelSize: 12
                             font.bold: true
                             font.family: "JetBrainsMono Nerd Font"
@@ -424,7 +425,7 @@ PanelWindow {
                         Text {
                             visible: musicPanel.gifFiles.length > 0
                             text: (musicPanel.previewGifIndex + 1) + " / " + musicPanel.gifFiles.length
-                            color: root.onGlow
+                            color: QsTheme.Theme.onGlow
                             font.pixelSize: 10
                             font.family: "JetBrainsMono Nerd Font"
                             opacity: 0.6
@@ -436,13 +437,13 @@ PanelWindow {
                             width: 20
                             height: 20
                             radius: 10
-                            color: dropCloseMa.containsMouse ? Qt.rgba(root.vermBurn.r, root.vermBurn.g, root.vermBurn.b, 0.5) : Qt.rgba(1,1,1,0.08)
+                            color: dropCloseMa.containsMouse ? Qt.rgba(QsTheme.Theme.vermBurn.r, QsTheme.Theme.vermBurn.g, QsTheme.Theme.vermBurn.b, 0.5) : Qt.rgba(1,1,1,0.08)
                             Behavior on color { ColorAnimation { duration: 150 } }
 
                             Text {
                                 anchors.centerIn: parent
                                 text: "󰅖"
-                                color: dropCloseMa.containsMouse ? root.vermBurn : root.cream
+                                color: dropCloseMa.containsMouse ? QsTheme.Theme.vermBurn : QsTheme.Theme.cream
                                 font.pixelSize: 10
                                 font.family: "JetBrainsMono Nerd Font"
                                 Behavior on color { ColorAnimation { duration: 150 } }
@@ -504,7 +505,7 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 visible: musicPanel.gifFiles.length === 0 && musicPanel.gifsLoaded
                                 text: "No gifs found"
-                                color: root.onGlow
+                                color: QsTheme.Theme.onGlow
                                 font.pixelSize: 11
                                 font.family: "JetBrainsMono Nerd Font"
                                 opacity: 0.5
@@ -514,7 +515,7 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 visible: !musicPanel.gifsLoaded && musicPanel.gifSelectorOpen
                                 text: "Loading..."
-                                color: root.onGlow
+                                color: QsTheme.Theme.onGlow
                                 font.pixelSize: 11
                                 font.family: "JetBrainsMono Nerd Font"
                                 opacity: 0.5
@@ -534,7 +535,7 @@ PanelWindow {
                                     id: nameLabel
                                     anchors.centerIn: parent
                                     text: (musicPanel.gifFiles.length > 0 && musicPanel.previewGifIndex < musicPanel.gifFiles.length) ? musicPanel.gifFileName(musicPanel.gifFiles[musicPanel.previewGifIndex]) : ""
-                                    color: root.cream
+                                    color: QsTheme.Theme.cream
                                     font.pixelSize: 9
                                     font.family: "JetBrainsMono Nerd Font"
                                     opacity: 0.9
@@ -552,8 +553,8 @@ PanelWindow {
                             Layout.preferredWidth: 36
                             Layout.preferredHeight: 32
                             radius: 8
-                            color: prevGifMa.containsMouse ? Qt.rgba(root.onGlow.r, root.onGlow.g, root.onGlow.b, 0.25) : Qt.rgba(1,1,1,0.08)
-                            border.color: prevGifMa.containsMouse ? Qt.rgba(root.onGlow.r, root.onGlow.g, root.onGlow.b, 0.4) : Qt.rgba(1,1,1,0.05)
+                            color: prevGifMa.containsMouse ? Qt.rgba(QsTheme.Theme.onGlow.r, QsTheme.Theme.onGlow.g, QsTheme.Theme.onGlow.b, 0.25) : Qt.rgba(1,1,1,0.08)
+                            border.color: prevGifMa.containsMouse ? Qt.rgba(QsTheme.Theme.onGlow.r, QsTheme.Theme.onGlow.g, QsTheme.Theme.onGlow.b, 0.4) : Qt.rgba(1,1,1,0.05)
                             border.width: 1
                             opacity: musicPanel.gifFiles.length > 1 ? 1.0 : 0.3
                             Behavior on color { ColorAnimation { duration: 150 } }
@@ -562,7 +563,7 @@ PanelWindow {
                             Text {
                                 anchors.centerIn: parent
                                 text: "󰅁"
-                                color: prevGifMa.containsMouse ? root.onGlow : root.cream
+                                color: prevGifMa.containsMouse ? QsTheme.Theme.onGlow : QsTheme.Theme.cream
                                 font.pixelSize: 16
                                 font.family: "JetBrainsMono Nerd Font"
                                 Behavior on color { ColorAnimation { duration: 150 } }
@@ -582,8 +583,8 @@ PanelWindow {
                             Layout.preferredWidth: 36
                             Layout.preferredHeight: 32
                             radius: 8
-                            color: nextGifMa.containsMouse ? Qt.rgba(root.onGlow.r, root.onGlow.g, root.onGlow.b, 0.25) : Qt.rgba(1,1,1,0.08)
-                            border.color: nextGifMa.containsMouse ? Qt.rgba(root.onGlow.r, root.onGlow.g, root.onGlow.b, 0.4) : Qt.rgba(1,1,1,0.05)
+                            color: nextGifMa.containsMouse ? Qt.rgba(QsTheme.Theme.onGlow.r, QsTheme.Theme.onGlow.g, QsTheme.Theme.onGlow.b, 0.25) : Qt.rgba(1,1,1,0.08)
+                            border.color: nextGifMa.containsMouse ? Qt.rgba(QsTheme.Theme.onGlow.r, QsTheme.Theme.onGlow.g, QsTheme.Theme.onGlow.b, 0.4) : Qt.rgba(1,1,1,0.05)
                             border.width: 1
                             opacity: musicPanel.gifFiles.length > 1 ? 1.0 : 0.3
                             Behavior on color { ColorAnimation { duration: 150 } }
@@ -592,7 +593,7 @@ PanelWindow {
                             Text {
                                 anchors.centerIn: parent
                                 text: "󰅂"
-                                color: nextGifMa.containsMouse ? root.onGlow : root.cream
+                                color: nextGifMa.containsMouse ? QsTheme.Theme.onGlow : QsTheme.Theme.cream
                                 font.pixelSize: 16
                                 font.family: "JetBrainsMono Nerd Font"
                                 Behavior on color { ColorAnimation { duration: 150 } }
@@ -617,12 +618,12 @@ PanelWindow {
                             color: {
                                 if (musicPanel.isApplyingGif) return Qt.rgba(1,1,1,0.03)
                                 if (musicPanel.previewGifIndex === musicPanel.currentGifIndex) return Qt.rgba(1,1,1,0.05)
-                                return applyGifMa.pressed ? root.onGlow : applyGifMa.containsMouse ? Qt.rgba(root.onGlow.r, root.onGlow.g, root.onGlow.b, 0.35) : Qt.rgba(root.onGlow.r, root.onGlow.g, root.onGlow.b, 0.18)
+                                return applyGifMa.pressed ? QsTheme.Theme.onGlow : applyGifMa.containsMouse ? Qt.rgba(QsTheme.Theme.onGlow.r, QsTheme.Theme.onGlow.g, QsTheme.Theme.onGlow.b, 0.35) : Qt.rgba(QsTheme.Theme.onGlow.r, QsTheme.Theme.onGlow.g, QsTheme.Theme.onGlow.b, 0.18)
                             }
                             border.color: {
                                 if (musicPanel.isApplyingGif) return Qt.rgba(1,1,1,0.05)
                                 if (musicPanel.previewGifIndex === musicPanel.currentGifIndex) return Qt.rgba(1,1,1,0.08)
-                                return applyGifMa.containsMouse ? root.onGlow : Qt.rgba(root.onGlow.r, root.onGlow.g, root.onGlow.b, 0.4)
+                                return applyGifMa.containsMouse ? QsTheme.Theme.onGlow : Qt.rgba(QsTheme.Theme.onGlow.r, QsTheme.Theme.onGlow.g, QsTheme.Theme.onGlow.b, 0.4)
                             }
                             border.width: 1
                             Behavior on color { ColorAnimation { duration: 150 } }
@@ -636,9 +637,9 @@ PanelWindow {
                                     return "󰸞 Apply"
                                 }
                                 color: {
-                                    if (musicPanel.isApplyingGif) return Qt.rgba(root.cream.r, root.cream.g, root.cream.b, 0.4)
-                                    if (musicPanel.previewGifIndex === musicPanel.currentGifIndex) return Qt.rgba(root.cream.r, root.cream.g, root.cream.b, 0.3)
-                                    return applyGifMa.pressed ? root.cardBot : root.onGlow
+                                    if (musicPanel.isApplyingGif) return Qt.rgba(QsTheme.Theme.cream.r, QsTheme.Theme.cream.g, QsTheme.Theme.cream.b, 0.4)
+                                    if (musicPanel.previewGifIndex === musicPanel.currentGifIndex) return Qt.rgba(QsTheme.Theme.cream.r, QsTheme.Theme.cream.g, QsTheme.Theme.cream.b, 0.3)
+                                    return applyGifMa.pressed ? QsTheme.Theme.cardBot : QsTheme.Theme.onGlow
                                 }
                                 font.pixelSize: 11
                                 font.bold: true
@@ -670,7 +671,7 @@ PanelWindow {
 
                             Text {
                                 text: "←→ nav"
-                                color: root.onGlow
+                                color: QsTheme.Theme.onGlow
                                 font.pixelSize: 9
                                 font.family: "JetBrainsMono Nerd Font"
                                 opacity: 0.6
@@ -678,7 +679,7 @@ PanelWindow {
                             Item { Layout.fillWidth: true }
                             Text {
                                 text: "↵ apply"
-                                color: root.onGlow
+                                color: QsTheme.Theme.onGlow
                                 font.pixelSize: 9
                                 font.family: "JetBrainsMono Nerd Font"
                                 opacity: 0.6
@@ -686,7 +687,7 @@ PanelWindow {
                             Item { Layout.fillWidth: true }
                             Text {
                                 text: "esc close"
-                                color: root.onGlow
+                                color: QsTheme.Theme.onGlow
                                 font.pixelSize: 9
                                 font.family: "JetBrainsMono Nerd Font"
                                 opacity: 0.6

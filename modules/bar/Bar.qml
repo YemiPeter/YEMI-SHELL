@@ -18,7 +18,6 @@ Item {
     property var networkPopup
     property var volumePopup
     property var brightnessPopup
-    property var controlCenter
     
     readonly property var config: QsConfig.Config
     readonly property var appearance: QsConfig.AppearanceConfig
@@ -330,7 +329,7 @@ Item {
                 }
             }
             
-            // ═══ PILL 3: Battery + Control Center + Tray ═══
+            // ═══ PILL 3: Battery + Tray ═══
             Rectangle {
                 id: powerPill
                 height: 28
@@ -399,21 +398,6 @@ Item {
                         color: pillSeparator
                     }
                     
-                    // Control Center Toggle
-                    Loader {
-                        id: controlCenterLoader
-                        anchors.verticalCenter: parent.verticalCenter
-                        asynchronous: true
-                        source: "components/ControlCenterToggle.qml"
-                        
-                        Binding {
-                            target: controlCenterLoader.item
-                            property: "controlCenter"
-                            value: root.controlCenter
-                            when: controlCenterLoader.status === Loader.Ready && root.controlCenter !== undefined
-                            restoreMode: Binding.RestoreBinding
-                        }
-                    }
                     
                     // System Tray (only if has items)
                     Loader {
