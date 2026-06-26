@@ -4,8 +4,10 @@
 
 The Theme.qml file in Ricelin is located at:
 ```
-.Ricelin/configs/quickshell/pill/Singletons/Theme.qml
+singletons/Theme.qml
 ```
+
+Original source: `.Ricelin/configs/quickshell/pill/Singletons/Theme.qml`
 
 ## Theme System Structure
 
@@ -26,26 +28,135 @@ The theme system in Ricelin consists of:
    - Coordinates with external scripts for wallpaper transitions
    - Manages wallpaper state and thumbnails
 
-## Launcher Overlay Location
+## The "Pill" Concept
 
-The launcher overlay in Ricelin is located at:
+The **pill** is the central UI paradigm of Ricelin: a morphing, pill-shaped bar that dynamically transforms into various functional surfaces. It is not merely a launcher — it is the entire shell interface.
+
+### What is the pill?
+
+The pill is a floating, rounded bar rendered via layer-shell (`WlrLayershell`) that sits at the top-center of each monitor. It has two states:
+
+- **Collapsed (rest)**: A compact pill showing system status indicators (workspaces, clock, connectivity, audio, power, media)
+- **Expanded (surface open)**: The pill morphs outward to reveal a full functional surface — launcher, media controls, calendar, wallpaper picker, mixer, settings, etc.
+
+The pill never moves windows and is never re-parented; it grows in place, so every surface expands out of the rest pill instead of popping up as a separate panel.
+
+### Pill surfaces
+
+Each functional area is a "surface" that the pill morphs into. Surfaces extend `PillSurface.qml` and are shown/hidden with animated opacity tied to the morph progress. Current surfaces include:
+
+| Surface | File | Purpose |
+|---------|------|---------|
+| Launcher | `pill/Launcher.qml` | App search and launch with fuzzy matching |
+| Media | `pill/Media.qml` | Now playing / media controls |
+| Calendar | `pill/Calendar.qml` | Calendar view |
+| Wallpaper | `pill/Wallpaper.qml` | Wallpaper picker with filmstrip |
+| Mixer | `pill/Mixer.qml` | Audio and brightness controls |
+| Settings | `pill/Settings.qml` | Shell settings categories |
+| Power | `pill/Power.qml` | Power / session controls |
+| Recorder | `pill/Recorder.qml` | Screen recording controls |
+| Clipboard | `pill/Clipboard.qml` | Clipboard history |
+| Keybinds | `pill/Keybinds.qml` | Keybind viewer |
+| Workspaces | `pill/Workspaces.qml` | Workspace management |
+| Updates | `pill/Updates.qml` | System update status |
+| Sysmon | `pill/SysmonSurface.qml` | System monitoring |
+| Toast | `pill/Toast.qml` | Notification toasts |
+| Osd | `pill/Osd.qml` | On-screen display |
+| Tray | `pill/Tray.qml` | System tray |
+
+### Pill architecture files
+
+| File | Purpose |
+|------|---------|
+| `pill/shell.qml` | Main pill shell — layer-shell windows, IPC, input routing |
+| `pill/Pill.qml` | The pill component itself — geometry, morphing, hover, pin |
+| `pill/PillSurface.qml` | Base class for all morph surfaces |
+| `pill/SearchField.qml` | Reusable search input with kanji glyph support |
+| `pill/Ame.qml` | Flame accent animation system |
+| `pill/Input.qml` | Input routing helpers |
+| `pill/Link.qml` | Link/connection helpers |
+| `pill/Tooltip.qml` | Hint bubbles for pill controls |
+
+### Pill singletons
+
+| File | Purpose |
+|------|---------|
+| `pill/Singletons/Theme.qml` | Color properties (remapped → `singletons/Theme.qml`) |
+| `pill/Singletons/Dyn.qml` | Dynamic wallpaper-derived palette |
+| `pill/Singletons/Flags.qml` | Session flags (DND, keep-awake, UI prefs) |
+| `pill/Singletons/Motion.qml` | Animation timing and easing |
+| `pill/Singletons/Battery.qml` | Laptop battery state |
+| `pill/Singletons/Cliphist.qml` | Clipboard history |
+| `pill/Singletons/Devices.qml` | Device management |
+| `pill/Singletons/Events.qml` | Event handling |
+| `pill/Singletons/Notifs.qml` | Notification management |
+| `pill/Singletons/ScreenRec.qml` | Screen recorder backend |
+| `pill/Singletons/Sysmon.qml` | System monitoring |
+| `pill/Singletons/Walls.qml` | Wallpaper management |
+| `pill/Singletons/Weather.qml` | Live weather data |
+| `pill/Singletons/Workspacerules.qml` | Workspace rules from hyprctl |
+
+## Pill Launcher (Pill-Surface Launcher)
+
+The **pill launcher** is the app-launcher surface that lives inside the pill system. It is distinct from the standalone overlay launcher in `modules/launcher/`.
+
+### Pill-surface launcher files (in `.Ricelin/configs/quickshell/pill/`)
+
+| File | Purpose |
+|------|---------|
+| `pill/Launcher.qml` | Launcher surface — search field over ranked app list, drawn as a pill surface. Extends `PillSurface`. Uses fuzzy matching + usage-based ranking. |
+| `pill/SearchField.qml` | Search input with kanji glyph, placeholder, counter, horizontal nav support |
+| `pill/PillSurface.qml` | Base morph-surface class that `Launcher.qml` extends |
+
+### How the pill launcher works
+
+1. User clicks the launcher button on the collapsed pill (or uses a keybind)
+2. The pill morphs open, revealing the `Launcher.qml` surface
+3. A `SearchField.qml` appears at the top with a text input
+4. Desktop entries are ranked by fuzzy match score + prior launch frequency (from `~/.local/state/ricelin/launcher-usage.json`)
+5. User navigates with arrow keys or mouse, presses Enter to launch
+6. Pressing Escape or clicking outside dismisses the surface and the pill collapses back
+
+### Dependencies for the pill launcher
+
+- `Singletons/Theme.qml` — colors, fonts
+- `Singletons/Flags.qml` — session flags (glyph display, etc.)
+- `Singletons/Motion.qml` — animation timing
+- `lib/fuzzy.js` — fuzzy search algorithm
+- `PillSurface.qml` — base surface class
+- `Pill.qml` — the pill host that manages surface open/close
+
+### Current project status
+
+The pill-surface launcher (`pill/Launcher.qml`) has **not yet been ported** to the current project. It is planned as a future phase (Phase 4) that depends on:
+1. Porting `PillSurface.qml`, `Theme.qml`, `Flags.qml`, `Motion.qml` singletons
+2. Building a morph animation system for the bar pills
+3. Integrating the launcher as a surface that the pill morphs into
+
+The current `modules/launcher/` directory contains a **standalone overlay launcher** (not the pill-surface launcher). It uses `ShellRoot` with an overlay window and IPC handlers (`show`, `hide`, `toggle`).
+
+## Launcher Overlay Location (Standalone)
+
+The standalone launcher overlay in the current project is located at:
 ```
-.Ricelin/configs/quickshell/launcher/
+modules/launcher/
 ```
 
-## Launcher Structure
+## Launcher Structure (Standalone)
 
-The launcher system consists of:
+The standalone launcher system consists of:
 
-1. **shell.qml** - The main launcher shell that creates the overlay window
+1. **LauncherWindow.qml** - The main launcher shell that creates the overlay window
    - Uses `ShellRoot` to create an overlay window
    - Implements IPC handlers for showing/hiding the launcher
    - Manages app usage statistics and fuzzy search
-
-2. **Launcher.qml** - The main launcher UI component
+   
+   > **Note:** The original Ricelin source names this file `shell.qml`. It is renamed to `LauncherWindow.qml` in the ported version to align with the project's `*Window.qml` naming convention for all overlay/popup windows, eliminate ambiguity with the root `shell.qml` entry point, and accurately reflect that the file's role is to manage a `PanelWindow` rather than act as a shell.
+   
+   2. **Launcher.qml** - The main launcher UI component
    - Provides the visual interface for app launching
    - Contains search field, app list, and selection handling
-   - Uses AppRow delegates for individual app entries
+   - Uses hardcoded colors (not yet integrated with Theme singleton)
 
 3. **AppRow.qml** - Individual app entry display component
    - Shows app icons, names, and descriptions
@@ -61,12 +172,19 @@ The launcher system consists of:
 - Real-time theme updates when wallpaper changes
 - Material You-inspired color extraction
 
-### Launcher
+### Launcher (Standalone)
 - Overlay window positioned on top of other windows
 - Fuzzy search for applications
 - Usage-based app ordering
 - Keyboard navigation support
 - Transparent background with custom styling
+
+### Pill (Ricelin reference)
+- Morphing pill-shaped bar that transforms into surfaces
+- Layer-shell based, per-monitor rendering
+- Hover-to-expand, pin, and keyboard navigation
+- Flame accent animation (Ame) on surface transitions
+- Shared singletons for theme, flags, motion across all surfaces
 
 ## Integration Points
 
@@ -79,3 +197,10 @@ The launcher integrates with:
 - IPC system for show/hide commands
 - Desktop entries for application discovery
 - File system for usage statistics persistence
+
+The pill launcher additionally integrates with:
+- `Pill.qml` host for morph open/close lifecycle
+- `PillSurface.qml` base class for surface rendering
+- `Ame.qml` for flame accent animations
+- `Motion.qml` for morph animation timing
+
