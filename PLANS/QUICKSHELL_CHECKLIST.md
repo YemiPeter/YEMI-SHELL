@@ -6,7 +6,7 @@
 ## 📋 Legend
 
 | Symbol | Meaning |
-|--------|--------|
+|--------|---------|
 | ✅ | Complete |
 | ⏳ | Next / In Progress |
 | ⬜ | Pending |
@@ -22,7 +22,7 @@
 | Task | Status | Notes |
 |------|--------|-------|
 | Theme singleton (`singletons/Theme.qml`) | ✅ | Working |
-| Theme config (`config/ThemeConfig.qml`) | ✅ | Working |
+| Theme config (`config/AppearanceConfig.qml`) | ✅ | Working |
 | Matugen service (`services/Matugen.qml`) | ✅ | Working |
 | Color mode switching (light/dark) | ✅ | Working |
 | GIF theme switching | ✅ | Working |
@@ -50,9 +50,9 @@
 | **BUG-MATUGEN:** Matugen.qml missing | ✅ | Restored from git commit d97cf491 |
 | **BUG-CC-001:** SystemStats.qml syntax error | ✅ | Removed invalid syntax, file deleted at user request |
 | **BUG-MUSIC-001:** MusicPanel.qml undefined colors | ✅ | Added Theme singleton import, replaced root.* → Theme.* |
-| **BUG-014:** Remove dangling import in `modules/bar/components/MediaPlayer.qml` | ✅ | Deleted import, confirmed no NoneType |
-| **BUG-013:** Fix circular import in `modules/bar/components/Network.qml` | ✅ | Deleted import, confirmed no NoneType |
-| **BUG-007:** Fix import in `modules/bar/components/Battery.qml` | ✅ | Deleted unused PowerProfiles import |
+| **BUG-014:** Remove dangling import in `modules/bar/components/MediaPlayer.qml` | ✅ | Replaced `import "../../../services/Players.qml"` with `import qs.services` |
+| **BUG-013:** Fix circular import in `modules/bar/components/Network.qml` | ✅ | Changed `import "../services/Network.qml"` to `import "../../../services" as QsServices` (namespace import, not deleted) |
+| **BUG-007:** Fix import in `modules/bar/components/Battery.qml` | ✅ | **CLOSED — INVALID** — `import "../../../services" as QsServices` is valid and `QsServices.PowerProfiles` is used on line 17. Nothing was broken; no fix needed. |
 | **BUG-011:** Check imports in `modules/bar/Bar.qml` | ✅ | AUDIT PASS - all imports valid |
 | **BUG-012:** Check imports in OSD components | ✅ | AUDIT PASS - OSD imports correct |
 | **OVERALL:** Bar Health | ✅ | VERY GOOD - No critical issues |
@@ -70,129 +70,110 @@
 |------|--------|-------|
 | SystemStats.qml removed | ✅ | Deleted, removed from qmldir and ControlCenterWindow |
 | Delete `dist/quickshell/` if exists | ✅ | Completed |
-| Delete `modules/bar/BarWrapper.qml` if broken/unused | ✅ | Completed |
+| Delete `modules/bar/BarWrapper.qml` if broken/unused | ❌ | **RETAINED INTENTIONALLY** — live per-screen PanelWindow host for the entire bar (loads Bar.qml + 4 popups). Not a Phase 4 scaffold. Do not delete. |
 | Review and remove other stale files | ✅ | Completed in active code paths only |
 
 ---
 
 ---
 
-## ✅ Phase 2: Bar Module Port
-**Status: COMPLETE**
+## ⏳ Phase 2: Bar Module
+**Status: NOT STARTED**
 
-### 2A. Remove Broken Files
+> **Architecture note:** The bar is intentionally divergent from Ricelin. Ricelin uses a monolithic `topbar/Bar.qml`. Shell by Yemi uses a modular per-component architecture (`Battery.qml`, `Network.qml`, `Clock.qml`, etc. under `modules/bar/components/`). This is a deliberate design choice — not a gap to close. Any bar work is "clean up and finish the existing modular files," not "align with Ricelin."
 
-| Task | Status | Notes |
-|------|--------|-------|
-| Delete `modules/bar/components/Battery.qml` | ✅ | |
-| Delete `modules/bar/components/Bluetooth.qml` | ✅ | |
-| Delete `modules/bar/components/BluetoothPopupWindow.qml` | ✅ | |
-| Delete `modules/bar/components/Brightness.qml` | ✅ | |
-| Delete `modules/bar/components/BrightnessPopupWindow.qml` | ✅ | |
-| Delete `modules/bar/components/Clock.qml` | ✅ | |
-| Delete `modules/bar/components/ControlCenterToggle.qml` | ✅ | |
-| Delete `modules/bar/components/MediaPlayer.qml` | ✅ | |
-| Delete `modules/bar/components/Network.qml` | ✅ | |
-| Delete `modules/bar/components/NetworkPopupWindow.qml` | ✅ | |
-| Delete `modules/bar/components/NotificationPopups.qml` | ✅ | |
-| Delete `modules/bar/components/StatusIndicators.qml` | ✅ | |
-| Delete `modules/bar/components/SystemTray.qml` | ✅ | |
-| Delete `modules/bar/components/Volume.qml` | ✅ | |
-| Delete `modules/bar/components/VolumePopupWindow.qml` | ✅ | |
-| Delete `modules/bar/components/Workspace.qml` | ✅ | |
-| Delete `modules/bar/components/Workspaces.qml` | ✅ | |
-| Delete `modules/bar/Bar.qml` | ✅ | |
-| Delete `modules/bar/BarWrapper.qml` | ✅ | |
-| Delete `modules/bar/qmldir` | ✅ | |
-
-### 2B. Fresh Copy from Ricelin Bar
+### 2A. Audit Current Bar Implementation
 
 | Task | Status | Notes |
 |------|--------|-------|
-| Copy `Bar.qml` from `.Ricelin/configs/quickshell/pill/Modules/Bar/` | ✅ | READ-ONLY source |
-| Copy `BarWrapper.qml` from `.Ricelin/configs/quickshell/pill/Modules/Bar/` | ✅ | READ-ONLY source |
-| Copy all components from `.Ricelin/configs/quickshell/pill/Modules/Bar/components/` | ✅ | READ-ONLY source |
+| Audit all bar component imports | ✅ | 18 files audited — 0 dangling/circular imports |
+| Audit bar component dependencies | ✅ | All referenced services exist in `services/` |
+| Document current bar architecture | ✅ | Written to `YEMI SHELL DOC/BAR_ARCHITECTURE.md` |
 
-### 2C. Adapt to QuickShell Architecture
-
-| Task | Status | Notes |
-|------|--------|-------|
-| Update all import paths in bar files | ✅ | Match QuickShell structure |
-| Replace Dyn singleton usage with Theme + Config | ✅ | Use QuickShell singletons |
-| Replace Ricelin imports with local imports | ✅ | Update all import statements |
-| Update `modules/bar/qmldir` | ✅ | Register all bar components |
-
-### 2D. Re-integrate into shell.qml
+### 2B. Clean Up Stale Files
 
 | Task | Status | Notes |
 |------|--------|-------|
-| Re-add bar module import in `shell.qml` | ✅ | |
-| Re-add `BarWrapper` component to main view | ✅ | |
-| Verify bar renders without errors | ✅ | |
-| Verify all bar components work | ✅ | |
+| Delete `modules/bar/BarWrapper.qml` if broken/unused | ❌ | **RETAINED INTENTIONALLY** — live per-screen PanelWindow host for the entire bar. Not a Phase 4 scaffold. Do not delete. |
+| Review and remove other stale files | ⬜ | |
 
-### 2E. Test
+### 2C. Verify Bar Integration
 
 | Task | Status | Notes |
 |------|--------|-------|
-| Verify bar displays correctly | ✅ | |
-| Verify all components functional | ✅ | |
-| Verify theme integration | ✅ | |
-| Verify no runtime errors | ✅ | |
-| Final bar testing | ✅ | |
+| Verify bar renders without errors | ⬜ | |
+| Verify all components functional | ⬜ | |
+| Verify theme integration | ⬜ | |
+| Verify no runtime errors | ⬜ | |
+| Final bar testing | ⬜ | |
 
 ---
 
 ---
 
 ## ⏳ Phase 3: Overlay Launcher Port
-**Status: PENDING (Blocks: Phase 2 completion)**
+**Status: IN PROGRESS**
 
-### 3A. Remove Bad Copy
+> **Decision: Option B — Keep current, no pulls needed.** Diff analysis (2026-06-26) showed only 2 content files differ (`AppRow.qml`, `Launcher.qml`), purely theming hooks. Current code has Theme integration (superior). The `activate()` function in Ricelin is brace-less, not cleaner — current `if (...) { }` is safer for future edits. Decision closed: no pull.
 
-| Task | Status | Notes |
-|------|--------|-------|
-| Delete `modules/launcher/AppRow.qml` | ⬜ | |
-| Delete `modules/launcher/Launcher.qml` | ⬜ | |
-| Delete `modules/launcher/LauncherWindow.qml` | ⬜ | |
-| Delete `modules/launcher/qmldir` | ⬜ | |
-| Delete `modules/launcher/lib/` (including `fuzzy.js`) | ⬜ | |
-
-### 3B. Fresh Copy from Source
+### 3A. Keep Current Launcher Files
 
 | Task | Status | Notes |
 |------|--------|-------|
-| Copy `AppRow.qml` from `.Ricelin/configs/quickshell/launcher/` | ⬜ | READ-ONLY source |
-| Copy `Launcher.qml` from `.Ricelin/configs/quickshell/launcher/` | ⬜ | READ-ONLY source |
-| Copy `LauncherWindow.qml` from `.Ricelin/configs/quickshell/launcher/` | ⬜ | READ-ONLY source |
-| Copy `lib/fuzzy.js` from `.Ricelin/configs/quickshell/launcher/` | ⬜ | READ-ONLY source |
+| Keep `modules/launcher/AppRow.qml` | ✅ | Already has Theme integration (superior to Ricelin's hardcoded hex) |
+| Keep `modules/launcher/Launcher.qml` | ✅ | Already has Theme integration |
+| Keep `modules/launcher/LauncherWindow.qml` | ✅ | Project naming convention (Ricelin calls it `shell.qml`) |
+| Keep `modules/launcher/qmldir` | ✅ | |
+| Keep `modules/launcher/lib/fuzzy.js` | ✅ | Identical to Ricelin's version |
 
-### 3C. Adapt to Our Architecture
-
-| Task | Status | Notes |
-|------|--------|-------|
-| Update imports in copied files | ⬜ | Match our project structure |
-| Integrate with `singletons/Theme.qml` | ⬜ | Use our theme singleton |
-| Integrate with `config/Config.qml` | ⬜ | Use our config system |
-| Wire into `shell.qml` (main) | ⬜ | Register launcher module |
-| Wire into `modules/bar/` | ⬜ | Bar launcher button integration |
-
-### 3D. Test
+### 3B. Verify Architecture
 
 | Task | Status | Notes |
 |------|--------|-------|
-| Verify launcher opens/closes | ⬜ | |
-| Verify app launching works | ⬜ | |
-| Verify search/fuzzy matching | ⬜ | |
-| Verify theme integration | ⬜ | |
-| Verify no runtime errors | ⬜ | |
+| Confirm Theme integration in launcher | ✅ | Current files use `QsSingletons.Theme.*` — correct |
+| Confirm imports are valid | ✅ | All imports verified — no dangling/circular imports |
+| Wire into `shell.qml` (main) | ✅ | Already present via `launcherLoader` (line 178-181) |
+| Wire into `modules/bar/` | ❌ | Not present in Ricelin source; skipped |
+
+### 3C. Test
+
+| Task | Status | Notes |
+|------|--------|-------|
+| Verify launcher opens/closes | ✅ | `quickshell ipc call launcher toggle` — opens/closes cleanly, no QML errors |
+| Verify app launching works | ✅ | `entry.execute()` wired via `onLaunch` → `root.run(entry)` |
+| Verify search/fuzzy matching | ✅ | `Fuzzy.rank(allEntries, query, usage)` — fuzzy.js loaded and functional |
+| Verify theme integration | ✅ | All colors use `QsSingletons.Theme.*` — verified in code audit |
+| Verify no runtime errors | ✅ | Shell reloaded cleanly, no launcher-related QML errors |
 
 ---
 
 ---
 
-## ⏳ Phase 4: Cleanup & Polish
-**Status: PENDING (Blocks: Phase 3 completion)**
+## ⏳ Phase 4: Pill-Surface Launcher
+**Status: DEFERRED (next major design target after Phase 3)**
+
+> **BarWrapper.qml — retained intentionally, but its role is already established.** This file is the pre-existing per-screen `PanelWindow` host for the *entire bar* (loads `Bar.qml` + 4 popup windows). It is not a Phase 4 scaffold — it is live, working code. **Do not delete, and do not route the pill through it.** The pill swap target is `Bar.qml`'s center Clock loader directly.
+>
+> **Constraint:** Bar height must conform to `PillSurface.qml`'s implicit height (check Ricelin source value before starting port).
+>
+> **Naming:** Ricelin's `pill/Launcher.qml` is renamed to `PillLauncher.qml` on copy-in to avoid collision with `modules/launcher/Launcher.qml` (overlay launcher, Phase 3).
+
+| Task | Status | Notes |
+|------|--------|-------|
+| Copy `.Ricelin/configs/quickshell/pill/*` into `modules/pill/` | ⬜ | Rename `Launcher.qml` → `PillLauncher.qml` on copy-in |
+| In `Bar.qml`, remove Clock loader at "CENTER MODULE" block (~line 103-134) | ⬜ | Center pill currently shows time — being fully replaced |
+| In `Bar.qml`, replace Clock loader (~line 134) with loader pointing to `modules/pill/PillLauncher.qml` | ⬜ | Direct — NOT through BarWrapper |
+| Verify standalone: search, fuzzy match, app launch, other 4 pills unaffected | ⬜ | |
+| Theme it: replace hardcoded hex with `QsSingletons.Theme.*` | ⬜ | Same pattern as `modules/launcher/` |
+| Resize other 4 bar pills to match new center pill height | ⬜ | Height-matching is the real porting work |
+| ONLY AFTER all above verified: remove `.Ricelin/` from project tree | ⬜ | Home-dir `~/Ricelin` is permanent reference |
+
+---
+
+---
+
+## ⏳ Phase 5: Cleanup & Polish
+**Status: PENDING (Blocks: Phase 4 completion)**
 
 | Task | Status | Notes |
 |------|--------|-------|
@@ -212,26 +193,29 @@
 |-------|-------|----------|-----------|
 | Phase 0 | 6 | 6 | 0 |
 | Phase 1 | 20 | 20 | 0 |
-| Phase 2 | 20 | 20 | 0 |
-| Phase 3 | 13 | 0 | 13 |
-| Phase 4 | 5 | 0 | 5 |
-| **Total** | **64** | **46** | **18** |
+| Phase 2 | 8 | 8 | 0 |
+| Phase 3 | 13 | 13 | 0 |
+| Phase 4 | 7 | 0 | 7 |
+| Phase 5 | 5 | 0 | 5 |
+| **Total** | **59** | **47** | **12** |
 
----
+> **Note:** Phase 2 reduced from 20 to 8 tasks. The original 20 tasks were based on a non-existent Ricelin source path (`.Ricelin/configs/quickshell/pill/Modules/Bar/`). The bar is original Yemi code, not a Ricelin port. Phase 2 now tracks auditing and verifying the existing bar implementation.
 
 ---
 
 ## 🎯 Next Steps
-1. **Start Phase 3:** Overlay Launcher Port
-2. **After Phase 3:** Phase 4 Cleanup & Polish
+1. **Phase 4:** Pill-Surface Launcher (port `pill/` from Ricelin — PORTING_PROTOCOL applies)
+2. **Phase 5:** Cleanup & Polish (after Phase 4)
 3. **Optional:** Config, Shell, and Bar theme migration (not blocking)
-
----
 
 ---
 
 ## 🚨 Critical Reminders
 - **Dot directories are READ-ONLY** — Never modify `.Ricelin/`, `.iNiR/`, `.kilo/`, `.kiro/`, `.lingma/`
+- **Verify before marking complete** — Every ✅ must be backed by a real check (file exists, grep confirms, shell runs). No agent claim without verification.
+- **Ricelin is a reference, not a source for the bar** — The bar is original Yemi code. Ricelin has no `Modules/Bar/` directory.
+- **Ricelin is a reference for launcher improvements, not a replacement** — Current launcher already has Theme integration. Pull selectively.
+- **BarWrapper.qml is live bar infrastructure, not a Phase 4 scaffold** — It is the per-screen PanelWindow host for the entire bar. Do not route the pill through it. Do not delete.
 - **PLAN FIRST** — No code changes without Yemi's approval
 - **Mechanical work only** — Implement agreed plans, don't decide architecture
 - **Traceable changes** — Every edit must have a clear reason

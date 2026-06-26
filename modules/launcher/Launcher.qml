@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import Quickshell
-import "../../services" as QsServices
+import "../../singletons" as QsSingletons
 
 Item {
     id: box
@@ -9,7 +9,6 @@ Item {
     property var entries: []
     property int total: 0
     property int selectedIndex: 0
-    
 
     signal launch(var entry)
     signal quit()
@@ -17,13 +16,13 @@ Item {
     width: 540
     implicitHeight: frame.implicitHeight
 
-    readonly property color bgTop: Qt.rgba(cardBot.r, cardBot.g, cardBot.b, 0.97)
-    readonly property color bgBot: Qt.rgba(cardBot.r, cardBot.g, cardBot.b, 0.97)
-    readonly property color hair: Qt.rgba(cream.r, cream.g, cream.b, 0.10)
-    readonly property color verm: onGlow
-    readonly property color cream: cream
-    readonly property color dim: Qt.rgba(cream.r, cream.g, cream.b, 0.50)
-    readonly property color dim2: Qt.rgba(cream.r, cream.g, cream.b, 0.35)
+    readonly property color bgTop: Qt.rgba(QsSingletons.Theme.cardTop.r, QsSingletons.Theme.cardTop.g, QsSingletons.Theme.cardTop.b, 0.97)
+    readonly property color bgBot: Qt.rgba(QsSingletons.Theme.cardBot.r, QsSingletons.Theme.cardBot.g, QsSingletons.Theme.cardBot.b, 0.97)
+    readonly property color hair: QsSingletons.Theme.hair
+    readonly property color verm: QsSingletons.Theme.verm
+    readonly property color cream: QsSingletons.Theme.cream
+    readonly property color dim: QsSingletons.Theme.dim
+    readonly property color dim2: QsSingletons.Theme.dim
 
     function moveSelection(delta) {
         if (entries.length === 0) return;
@@ -35,8 +34,9 @@ Item {
     }
 
     function activate() {
-        if (entries.length > 0 && selectedIndex >= 0 && selectedIndex < entries.length)
+        if (entries.length > 0 && selectedIndex >= 0 && selectedIndex < entries.length) {
             box.launch(entries[selectedIndex]);
+        }
     }
 
     Rectangle {
@@ -81,7 +81,7 @@ Item {
                 anchors.rightMargin: 13
                 background: null
                 color: box.cream
-                font.family: "Inter"
+                font.family: QsSingletons.Theme.font
                 font.pixelSize: 16
                 placeholderText: "Search"
                 placeholderTextColor: box.dim
@@ -107,7 +107,7 @@ Item {
                 anchors.rightMargin: 21
                 text: box.entries.length + " / " + box.total
                 color: box.dim2
-                font.family: "Inter"
+                font.family: QsSingletons.Theme.font
                 font.pixelSize: 11
             }
         }

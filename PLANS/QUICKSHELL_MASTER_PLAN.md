@@ -28,9 +28,10 @@ This is **Shell by Yemi** — a personal desktop shell project. It borrows conce
 | Phase | Goal | Status |
 |-------|------|--------|
 | **Phase 0** | Theme System Foundation | ✅ **DONE** |
-| **Phase 1** | Stability Pass (Room Making) | ⏳ **NEXT** |
-| **Phase 2** | Overlay Launcher Port | ⏳ PENDING |
-| **Phase 3** | Cleanup & Polish | ⏳ PENDING |
+| **Phase 1** | Stability Pass (Room Making) | ✅ **DONE** |
+| **Phase 2** | Bar Module (Audit & Verify) | ✅ **DONE** |
+| **Phase 3** | Overlay Launcher Port | ✅ **DONE** |
+| **Phase 4** | Pill-Surface Launcher | ⬜ **NEXT** |
 
 ---
 
@@ -41,7 +42,7 @@ This is **Shell by Yemi** — a personal desktop shell project. It borrows conce
 
 The Matugen-based theme system is fully implemented and working:
 - `singletons/Theme.qml` — Central theme singleton
-- `config/ThemeConfig.qml` — Theme configuration
+- `config/AppearanceConfig.qml` — Theme configuration
 - `services/Matugen.qml` — Matugen integration service
 - Color modes (light/dark) via `state/colormode`
 - GIF themes via `state/gif-index`
@@ -102,34 +103,60 @@ Remove files that are:
 
 ---
 
-## ⏳ Phase 2: Overlay Launcher Port
-**Status: PENDING (Blocks: Phase 1 completion)**
+## ⏳ Phase 2: Bar Module (Audit & Verify)
+**Status: NOT STARTED**
 
-The current `modules/launcher/` is a **badly copied, non-functional version** of Ricelin's launcher. It needs to be completely replaced.
+> **Note:** The bar components in `modules/bar/` are original Yemi code, not copied from Ricelin. Ricelin has no `Modules/Bar/` directory. This phase tracks auditing and verifying the existing bar implementation.
 
 ### 🎯 Goal
-Port Ricelin's overlay launcher into our shell, properly integrated.
+Audit the current bar implementation, clean up stale files, and verify the bar is fully functional.
 
 ### 📋 Tasks
 
-#### 2A. Remove Bad Copy
-- [ ] Delete entire `modules/launcher/` directory (AppRow.qml, Launcher.qml, LauncherWindow.qml, qmldir, lib/)
+#### 2A. Audit Current Bar Implementation
+- [ ] Audit all bar component imports (verify no dangling/circular imports)
+- [ ] Audit bar component dependencies (confirm all referenced services exist)
+- [ ] Document current bar architecture (map component hierarchy and data flow)
 
-#### 2B. Fresh Copy from Source
-- [ ] Copy from `.Ricelin/configs/quickshell/launcher/`:
-  - `AppRow.qml`
-  - `Launcher.qml`
-  - `shell.qml` (Ricelin's shell integration)
-  - `lib/fuzzy.js`
+#### 2B. Clean Up Stale Files
+- [ ] Delete `modules/bar/BarWrapper.qml` if broken/unused
+- [ ] Review and remove any other stale files
 
-#### 2C. Adapt to Our Architecture
-- [ ] Update imports to match our project structure
-- [ ] Integrate with our `singletons/Theme.qml`
-- [ ] Integrate with our `config/Config.qml`
-- [ ] Wire into `shell.qml` (main shell file)
-- [ ] Wire into `modules/bar/` (bar integration)
+#### 2C. Verify Bar Integration
+- [ ] Verify bar renders without errors
+- [ ] Verify all components functional
+- [ ] Verify theme integration
+- [ ] Verify no runtime errors
+- [ ] Final bar testing
 
-#### 2D. Test
+---
+
+---
+
+## ✅ Phase 3: Overlay Launcher Port
+**Status: COMPLETE**
+
+> **Decision: Option B — Keep current, no pulls needed.** Diff analysis (2026-06-26) showed only 2 content files differ (`AppRow.qml`, `Launcher.qml`), purely theming hooks. Current code has Theme integration (superior). The `activate()` function in Ricelin is brace-less, not cleaner — current `if (...) { }` is safer for future edits. Decision closed: no pull.
+
+### 🎯 Goal
+Finish and verify the existing launcher implementation. No Ricelin pulls needed.
+
+### 📋 Tasks
+
+#### 3A. Keep Current Launcher Files
+- [x] `modules/launcher/AppRow.qml` — already has Theme integration (superior to Ricelin's hardcoded hex)
+- [x] `modules/launcher/Launcher.qml` — already has Theme integration
+- [x] `modules/launcher/LauncherWindow.qml` — project naming convention (Ricelin calls it `shell.qml`)
+- [x] `modules/launcher/qmldir` — present and correct
+- [x] `modules/launcher/lib/fuzzy.js` — identical to Ricelin's version
+
+#### 3B. Verify Architecture
+- [x] Theme integration confirmed — current files use `QsSingletons.Theme.*`
+- [ ] Verify no dangling/circular imports
+- [x] Wired into `shell.qml` (main) — already present via `launcherLoader`
+- [ ] Wire into `modules/bar/` — not present in Ricelin source; skipped
+
+#### 3C. Test
 - [ ] Verify launcher opens/closes correctly
 - [ ] Verify app launching works
 - [ ] Verify search/fuzzy matching works
@@ -137,10 +164,28 @@ Port Ricelin's overlay launcher into our shell, properly integrated.
 
 ---
 
+## ⏳ Phase 4: Pill-Surface Launcher (Future)
+**Status: DEFERRED**
+
+> **BarWrapper.qml — retained intentionally, but its role is already established.** This file is the pre-existing per-screen `PanelWindow` host for the *entire bar* (it loads `Bar.qml` + 4 popup windows). It is not a Phase 4 scaffold — it is live, working code. **Do not delete, and do not route the pill through it.** The pill swap target is `Bar.qml`'s center Clock loader directly.
+>
+> **Constraint for Phase 4:** Bar height must conform to `PillSurface.qml`'s implicit height (check Ricelin source value before starting port).
+>
+> **Naming:** Ricelin's `pill/Launcher.qml` is renamed to `PillLauncher.qml` on copy-in to avoid collision with `modules/launcher/Launcher.qml` (overlay launcher, Phase 3).
+
+### 📋 Tasks
+- [ ] Copy `.Ricelin/configs/quickshell/pill/*` into `modules/pill/` (rename `Launcher.qml` → `PillLauncher.qml`)
+- [ ] In `Bar.qml`, remove Clock loader at "CENTER MODULE" block (~line 103-134)
+- [ ] In `Bar.qml`, replace Clock loader (~line 134) with loader pointing to `modules/pill/PillLauncher.qml` (direct — NOT through BarWrapper)
+- [ ] Verify standalone: search, fuzzy match, app launch, other 4 pills unaffected
+- [ ] Theme it: replace hardcoded hex with `QsSingletons.Theme.*` (same pattern as `modules/launcher/`)
+- [ ] Resize other 4 bar pills to match new center pill height
+- [ ] ONLY AFTER all above verified: remove `.Ricelin/` from project tree (`~/Ricelin` is permanent reference)
+
 ---
 
-## ⏳ Phase 3: Cleanup & Polish
-**Status: PENDING (Blocks: Phase 2 completion)**
+## ⏳ Phase 5: Cleanup & Polish
+**Status: PENDING (Blocks: Phase 4 completion)**
 
 ### 📋 Tasks
 - [ ] Review all remaining TODOs and FIXMEs
@@ -184,18 +229,24 @@ Port Ricelin's overlay launcher into our shell, properly integrated.
 
 ---
 
-## 🎯 Next Step
+## 🎯 Next Steps
 
-**Phase 1: Stability Pass is the immediate priority.**
+1. **Phase 2:** Audit current bar implementation (imports, dependencies, architecture)
+2. **Phase 3:** Overlay Launcher Port (source exists at `.Ricelin/configs/quickshell/launcher/`)
+3. **After Phase 3:** Phase 4 Pill-Surface Launcher
+4. **After Phase 4:** Phase 5 Cleanup & Polish
+5. **Optional:** Config, Shell, and Bar theme migration (not blocking)
 
-The next concrete step is to:
-1. Run the shell and capture runtime errors
-2. Fix the easy bugs (BUG-014, BUG-013, etc.)
-3. Comment out hard/unplanned services
-4. Clean up dead files
+---
 
-This will create a stable base for the launcher port in Phase 2.
+## 🚨 Critical Rules (Non-Negotiable)
 
-**The next step is: Execute Phase 1 - Stability Pass (Runtime Error Audit first).**
+1. **PLAN FIRST** — No code changes without Yemi's explicit approval on the plan
+2. **Dot Directories Are READ-ONLY** — Never modify `.Ricelin/`, `.iNiR/`, `.kilo/`, `.kiro/`, `.lingma/`
+3. **Mechanical Work Only** — Agents implement agreed plans, don't decide architecture
+4. **Traceable Changes** — Every edit must have a clear reason Yemi can understand
+5. **No Frontend Polish at Expense of Backend** — Functionality first, aesthetics second
+6. **No Fluff** — Direct communication, no padding, no restating
+7. **Verify before marking complete** — Every ✅ must be backed by a real check. No agent claim without verification.
 
 ---

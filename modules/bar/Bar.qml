@@ -2,7 +2,7 @@ import Quickshell
 import QtQuick 6.10
 import QtQuick.Layouts 6.10
 import QtQuick.Effects
-import "components" as BarComponents
+// import "components" as BarComponents  // dead import — components loaded via Loader, never referenced
 import "../../components/effects"
 import "../../config" as QsConfig
 import "../../services" as QsServices
