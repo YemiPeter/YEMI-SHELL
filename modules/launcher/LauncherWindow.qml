@@ -2,9 +2,10 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
+import Quickshell.Hyprland
 import "lib/fuzzy.js" as Fuzzy
 
-Item {
+ShellRoot {
     id: root
 
     property string query: ""
@@ -12,9 +13,23 @@ Item {
     property bool shown: false
     property string targetMonitor: ""
 
+    IpcHandler {
+        target: "launcher"
+        function show(mon: string): void {
+            root.targetMonitor = mon;
+            root.shown = true;
+        }
+        function hide(): void { root.shown = false; }
+        function toggle(mon: string): void {
+            if (root.shown) { root.shown = false; return; }
+            root.targetMonitor = mon;
+            root.shown = true;
+        }
+    }
+
     FileView {
         id: usageStore
-        path: (Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")) + "/yemi/launcher-usage.json"
+        path: (Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")) + "/quickshell/launcher-usage.json"
         blockLoading: true
         atomicWrites: true
         printErrors: false
@@ -31,18 +46,14 @@ Item {
 
     readonly property var allEntries: {
         var src = DesktopEntries.applications.values;
-        console.log("🔎 [Launcher] DesktopEntries count:", src.length);
         var out = [];
         for (var i = 0; i < src.length; i++)
             if (src[i] && !src[i].noDisplay) out.push(src[i]);
-        console.log("🔎 [Launcher] Filtered entries count:", out.length);
         return out;
     }
 
     readonly property int totalCount: allEntries.length
     readonly property var results: Fuzzy.rank(allEntries, query, usage)
-
-    Component.onCompleted: console.log("[Launcher] Initial results count:", results.length)
 
     function run(entry) {
         if (entry) {
@@ -63,7 +74,8 @@ Item {
             id: win
             required property var modelData
             screen: modelData
-            visible: root.shown && (root.targetMonitor === "" || root.targetMonitor === modelData.name)
+            visible: root.shown && root.targetMonitor === modelData.name
+
             color: "transparent"
             exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: WlrLayer.Overlay
@@ -93,7 +105,6 @@ Item {
                 function onQueryChanged() {
                     root.query = launcher.query;
                     launcher.selectedIndex = 0;
-                    console.log("[Launcher] Query changed to:", root.query, "— result count:", root.results.length);
                 }
             }
 
