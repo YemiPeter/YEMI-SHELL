@@ -100,42 +100,42 @@ ShellRoot {
 
     // === Launcher IPC Handler ===
     IpcHandler {
-        target: "launcher"
-
-        function show(mon) {
-            if (!launcherLoader.item) {
-                console.warn("🚀 [Launcher IPC] show() — loader item is null");
-                return;
-            }
-            console.log("🚀 [Launcher IPC] show() — loader present, mon:", mon);
+      target: "launcher"
+    
+      function show(mon) {
+        if (!launcherLoader.item) {
+          console.warn("🚀 [Launcher IPC] show() — loader item is null");
+          return;
+        }
+        console.log("🚀 [Launcher IPC] show() — loader present, mon:", mon);
+        launcherLoader.item.targetMonitor = mon || "";
+        launcherLoader.item.shown = true;
+        console.log("🚀 [Launcher IPC] show() — loader.shown set to", launcherLoader.item.shown);
+      }
+    
+      function hide() {
+        if (!launcherLoader.item) {
+          console.warn("🚀 [Launcher IPC] hide() — loader item is null");
+          return;
+        }
+        console.log("🚀 [Launcher IPC] hide() — setting shown to false");
+        launcherLoader.item.shown = false;
+      }
+    
+      function toggle(mon) {
+          if (!launcherLoader.item) {
+            console.warn("🚀 [Launcher IPC] toggle() — loader item is null");
+            return;
+          }
+          console.log("🚀 [Launcher IPC] toggle() — current shown:", launcherLoader.item.shown, "mon:", mon);
+          if (launcherLoader.item.shown) {
+            launcherLoader.item.shown = false;
+            console.log("🚀 [Launcher IPC] toggle() — set shown to false");
+          } else {
             launcherLoader.item.targetMonitor = mon || "";
             launcherLoader.item.shown = true;
-            console.log("🚀 [Launcher IPC] show() — loader.shown set to", launcherLoader.item.shown);
-        }
-
-        function hide() {
-            if (!launcherLoader.item) {
-                console.warn("🚀 [Launcher IPC] hide() — loader item is null");
-                return;
-            }
-            console.log("🚀 [Launcher IPC] hide() — setting shown to false");
-            launcherLoader.item.shown = false;
-        }
-
-        function toggle(mon) {
-            if (!launcherLoader.item) {
-                console.warn("🚀 [Launcher IPC] toggle() — loader item is null");
-                return;
-            }
-            console.log("🚀 [Launcher IPC] toggle() — current shown:", launcherLoader.item.shown, "mon:", mon);
-            if (launcherLoader.item.shown) {
-                launcherLoader.item.shown = false;
-                console.log("🚀 [Launcher IPC] toggle() — set shown to false");
-            } else {
-                launcherLoader.item.targetMonitor = mon || "";
-                launcherLoader.item.shown = true;
-                console.log("🚀 [Launcher IPC] toggle() — set shown to true, targetMonitor:", launcherLoader.item.targetMonitor);
-            }
+            console.log("🚀 [Launcher IPC] toggle() — set shown to true, targetMonitor:", launcherLoader.item.targetMonitor);
+          }
         }
     }
 

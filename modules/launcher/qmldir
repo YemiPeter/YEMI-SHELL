@@ -1,4 +1,3 @@
-module Launcher
-LauncherWindow 1.0 LauncherWindow.qml
-Launcher 1.0 Launcher.qml
 AppRow 1.0 AppRow.qml
+Launcher 1.0 Launcher.qml
+LauncherWindow 1.0 LauncherWindow.qml

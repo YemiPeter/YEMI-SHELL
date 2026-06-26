@@ -1,22 +1,21 @@
 import QtQuick
 import Quickshell
-import "../../services" as QsServices
+import "../../singletons" as QsSingletons
 
 Item {
     id: row
 
     required property var entry
     property bool selected: false
-    
 
     signal activated()
     signal entered()
 
     implicitHeight: 50
 
-    readonly property color cream: cream
-    readonly property color white: cream
-    readonly property color dim2: Qt.rgba(cream.r, cream.g, cream.b, 0.35)
+    readonly property color cream: QsSingletons.Theme.cream
+    readonly property color white: QsSingletons.Theme.bright
+    readonly property color dim2: QsSingletons.Theme.dim
 
     readonly property string secondary: {
         if (entry.genericName && entry.genericName.length > 0) return entry.genericName;
@@ -31,8 +30,8 @@ Item {
         anchors.fill: parent
         radius: 14
         gradient: Gradient {
-            GradientStop { position: 0.0; color: Qt.hsla(onGlow.hslHue, onGlow.hslSaturation, Math.min(onGlow.hslLightness * 1.1, 0.55), 1.0) }
-            GradientStop { position: 1.0; color: onGlow }
+            GradientStop { position: 0.0; color: QsSingletons.Theme.verm }
+            GradientStop { position: 1.0; color: QsSingletons.Theme.vermDeep }
         }
         visible: row.selected
     }
@@ -76,7 +75,7 @@ Item {
             anchors.leftMargin: 12
             text: row.entry.name
             color: row.selected ? row.white : row.cream
-            font.family: "Inter"
+            font.family: QsSingletons.Theme.font
             font.pixelSize: 15
             font.weight: row.selected ? Font.DemiBold : Font.Normal
             elide: Text.ElideRight
@@ -89,7 +88,7 @@ Item {
             anchors.right: parent.right
             text: "↵"
             color: row.white
-            font.family: "Inter"
+            font.family: QsSingletons.Theme.font
             font.pixelSize: 13
             visible: row.selected
             width: visible ? implicitWidth + 7 : 0
@@ -101,8 +100,8 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             anchors.right: enter.left
             text: row.secondary
-            color: row.selected ? Qt.rgba(cream.r, cream.g, cream.b, 0.72) : row.dim2
-            font.family: "Inter"
+            color: row.selected ? Qt.rgba(QsSingletons.Theme.bright.r, QsSingletons.Theme.bright.g, QsSingletons.Theme.bright.b, 0.72) : row.dim2
+            font.family: QsSingletons.Theme.font
             font.pixelSize: 12
             horizontalAlignment: Text.AlignRight
         }
