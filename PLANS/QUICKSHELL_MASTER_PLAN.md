@@ -167,7 +167,7 @@ Before adding new features, we created a clean, error-free environment.
 
 #### 4B. Cleanup Pass (✅ COMPLETE — 7/7 done, 1 deferred)
 
-> **Pill visually matches Ricelin.** Intentional differences: blur layer removed (Yemi preference), margins set to `mTop: 12` / `mBottom: 8` for better spacing. Bar height `60` to prevent bottom clipping.
+> **Pill visually matches Ricelin.** Margins are now `mTop: 0` / `mBottom: 0` (Ricelin value). The only intentional deviation is the blur layer removal (Yemi preference). Bar height `60` to prevent bottom clipping.
 
 | # | Task | Detail | Status | Verification |
 |---|------|--------|--------|-------------|
