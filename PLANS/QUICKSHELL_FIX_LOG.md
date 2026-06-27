@@ -32,10 +32,7 @@
 
 ### Final Match Confirmation
 
-Pill visually matches Ricelin with intentional deviations:
-- Blur layer removed (Yemi preference)
-- Margins: `mTop: 12` / `mBottom: 8` for better spacing
-- Bar height: `60` to prevent bottom clipping
+Pill visually matches Ricelin. Margins are now `0` (Ricelin value). The only intentional deviation is the blur layer removal (Yemi preference).
 
 ### Status
 
