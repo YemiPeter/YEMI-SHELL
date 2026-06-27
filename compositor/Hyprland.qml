@@ -7,6 +7,10 @@ Item {
     
     property bool enabled: false
     
+    // Forward raw Hyprland events so Compositor can re-emit them
+    // without consumers needing to import Quickshell.Hyprland.
+    signal rawEvent(var event)
+    
     // Only activate when enabled
     readonly property var toplevels: enabled ? Hyprland.toplevels : []
     readonly property var workspaces: enabled ? Hyprland.workspaces : []
@@ -58,6 +62,9 @@ Item {
         
         function onRawEvent(event: var): void {
             if (!enabled) return;
+            
+            // Forward to Compositor layer
+            root.rawEvent(event);
             
             const n = event.name;
             if (n.endsWith("v2"))

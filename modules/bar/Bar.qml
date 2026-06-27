@@ -2,11 +2,12 @@ import Quickshell
 import QtQuick 6.10
 import QtQuick.Layouts 6.10
 import QtQuick.Effects
-// import "components" as BarComponents  // dead import — components loaded via Loader, never referenced
+// import "components" as BarComponents // dead import — components loaded via Loader, never referenced
 import "../../components/effects"
 import "../../config" as QsConfig
 import "../../services" as QsServices
 import "../../singletons" as QsSingletons
+import "../pill" as Pill
 
 Item {
     id: root
@@ -100,38 +101,28 @@ Item {
         }
 
         // ═══════════════════════════════════════════════════════════════
-        // CENTER MODULE - Clock (Focal Point)
+        // CENTER MODULE - Pill (Morphing Launcher)
         // ═══════════════════════════════════════════════════════════════
-        Rectangle {
+        Item {
             id: centerModule
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter
-            height: 28
-            width: clockLoader.implicitWidth + 20
-            radius: 14
-            color: pillBg
-            border.width: 1
-            border.color: pillBorder
-
-            // Top highlight
-            Rectangle {
-                anchors.top: parent.top
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.margins: 1
-                height: parent.height / 2
-                radius: parent.radius - 1
-                gradient: Gradient {
-                    GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, 0.04) }
-                    GradientStop { position: 1.0; color: "transparent" }
+        
+            // Hover detection for the pill
+            HoverHandler {
+                id: pillHover
+                onHoveredChanged: {
+                    if (pill && pill.hovered !== hovered)
+                        pill.hovered = hovered;
                 }
             }
-
-            Loader {
-                id: clockLoader
-                anchors.centerIn: parent
-                asynchronous: true
-                source: "components/Clock.qml"
+        
+            Pill.Pill {
+                id: pill
+                screenName: root.screen?.name || ""
+                barWindow: root.barWindow
+                surface: ""
+                s: 1
             }
         }
 
