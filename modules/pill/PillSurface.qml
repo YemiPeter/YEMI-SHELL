@@ -16,10 +16,10 @@ Item {
     property bool open: false
     property real morphCloseness: 1
 
-    property real mTop: 12
+    property real mTop: 0
     property real mLeft: 0
     property real mRight: 0
-    property real mBottom: 8
+    property real mBottom: 0
 
     signal requestClose()
     signal requestSurface(string name)
