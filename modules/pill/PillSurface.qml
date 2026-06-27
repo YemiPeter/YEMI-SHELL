@@ -19,7 +19,7 @@ Item {
     property real mTop: 12
     property real mLeft: 0
     property real mRight: 0
-    property real mBottom: 12
+    property real mBottom: 8
 
     signal requestClose()
     signal requestSurface(string name)

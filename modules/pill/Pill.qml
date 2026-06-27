@@ -551,13 +551,13 @@ Item {
             GradientStop { position: 1.0; color: Qt.alpha(Theme.cardBot, Flags.pillOpacity) }
         }
 
-        layer.enabled: true
-        layer.effect: MultiEffect {
-            shadowEnabled: true
-            shadowColor: Qt.rgba(0, 0, 0, Theme.shadowOpacity)
-            shadowBlur: 0.7
-            shadowVerticalOffset: 3 * pill.s
-        }
+        layer.enabled: false
+        // layer.effect: MultiEffect {
+        //     shadowEnabled: true
+        //     shadowColor: Qt.rgba(0, 0, 0, Theme.shadowOpacity)
+        //     shadowBlur: 0.7
+        //     shadowVerticalOffset: 3 * pill.s
+        // }
 
         Rectangle {
             anchors.top: parent.top
