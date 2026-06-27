@@ -104,9 +104,11 @@ Item {
         // CENTER MODULE - Pill (Morphing Launcher)
         // ═══════════════════════════════════════════════════════════════
         Item {
-            id: centerModule
+            id: centerContainer
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter
+            width: pill ? pill.implicitWidth : 0
+            height: pill ? pill.implicitHeight : 0
         
             // Hover detection for the pill
             HoverHandler {
@@ -123,6 +125,7 @@ Item {
                 barWindow: root.barWindow
                 surface: ""
                 s: 1
+                anchors.centerIn: parent
             }
         }
 
