@@ -14,14 +14,20 @@ Item {
     readonly property var impl: runningCompositor === "hyprland" ? hyprlandImpl : (runningCompositor === "niri" ? niriImpl : null)
     
     // Implementation instances
-    Hyprland { 
+    Hyprland {
         id: hyprlandImpl
         enabled: runningCompositor === "hyprland"
     }
     
-    Niri { 
+    Niri {
         id: niriImpl
         enabled: runningCompositor === "niri"
+    }
+    
+    // Forward raw events from the active backend
+    Connections {
+        target: hyprlandImpl
+        function onRawEvent(event) { root.rawEvent(event) }
     }
     
     // Interface properties - these should be implemented by both backends
@@ -33,6 +39,11 @@ Item {
     readonly property var focusedWorkspace: impl?.focusedWorkspace ?? null
     readonly property var focusedMonitor: impl?.focusedMonitor ?? null
     readonly property int activeWsId: impl?.activeWsId ?? 1
+    
+    // Forward raw compositor events so consumers (e.g. Workspacerules) can
+    // react to specific event names without importing Quickshell.Hyprland.
+    // Null/empty when the compositor backend doesn't emit raw events.
+    signal rawEvent(var event)
     
     // Interface functions
     function dispatch(request: string): void {
