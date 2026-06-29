@@ -58,44 +58,58 @@ Item {
         "music": { d: "M9 18V5l12-2v13 M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0z M21 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0z", fill: false },
         "play": { d: "M7 5l12 7-12 7z", fill: true },
         "pause": { d: "M8 5h3v14H8z M13 5h3v14h-3z", fill: true },
-        "skip-back": { d: "M6 5v14 M6 19l-4-4 4-4 M18 5v14 M18 19l4-4-4-4", fill: false },
-        "skip-forward": { d: "M6 5v14 M6 19l-4-4 4-4 M18 5v14 M18 19l4-4-4-4", fill: false },
-        "chevron-left": { d: "M15 18l-6-6 6-6", fill: false },
-        "chevron-right": { d: "M9 18l6-6-6-6", fill: false },
-        "chevron-up": { d: "M18 15l-6-6-6 6", fill: false },
-        "chevron-down": { d: "M6 9l6 6 6-6", fill: false },
-        "clock": { d: "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z M12 6v6l4 2", fill: false },
-        "inbox": { d: "M22 12h-6l-2 3h-4l-2-3H2l2.5 9h19L22 12z M2 12l2-6h16l2 6", fill: false },
-        "cog": { d: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z", fill: false },
-        "video": { d: "M23 7l-7 5 7 5V7z M1 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H1a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z", fill: false },
-        "image": { d: "M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z M8.5 10a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z M21 15l-5-5L5 21", fill: false },
-        "folder": { d: "M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z", fill: false },
-        "trash": { d: "M3 6h18 M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2 M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6", fill: false },
-        "copy": { d: "M8 4v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7.72a2 2 0 0 0-.59-1.42l-3.58-3.58A2 2 0 0 0 14.28 2H10a2 2 0 0 0-2 2z M16 2v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h4", fill: false },
-        "settings": { d: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z", fill: false }
+        "next": { d: "M6 5l9 7-9 7z M16 5h2v14h-2z", fill: true },
+        "prev": { d: "M18 5l-9 7 9 7z M6 5h2v14H6z", fill: true },
+        "play-s": { d: "M8 5.5l10.5 6.5L8 18.5z", fill: false },
+        "pause-s": { d: "M9 5.5v13 M15 5.5v13", fill: false },
+        "next-s": { d: "M7 5.5l9 6.5-9 6.5z M17 5.5v13", fill: false },
+        "prev-s": { d: "M17 5.5l-9 6.5 9 6.5z M7 5.5v13", fill: false },
+        "dnd": { d: "M6 16V11a6 6 0 0 1 9.3-5M18 11v5M4 16h16M10.5 20a1.8 1.8 0 0 0 3 0M3 3l18 18", fill: false },
+        "awake": { d: "M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z", fill: false },
+        "chevron-left": { d: "M14 6l-6 6 6 6", fill: false },
+        "chevron-right": { d: "M10 6l6 6-6 6", fill: false },
+        "chevron-down": { d: "M6 10l6 6 6-6", fill: false },
+        "chevron-up": { d: "M6 14l6-6 6 6", fill: false },
+        "close": { d: "M6 6l12 12 M18 6l-12 12", fill: false },
+        "return": { d: "M20 6v6a3 3 0 0 1-3 3H5 M9 11l-4 4 4 4", fill: false },
+        "wifi": { d: "M4 9.5C9 4.8 15 4.8 20 9.5 M7 13c3-2.8 7-2.8 10 0 M11 16.8a1.4 1.4 0 1 0 2 0a1.4 1.4 0 1 0-2 0", fill: false },
+        "ethernet": { d: "M5 5h14a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5H5a1.5 1.5 0 0 1-1.5-1.5v-8A1.5 1.5 0 0 1 5 5z M8 19h8 M12 16v3 M8 8.5v3.5 M12 8.5v3.5 M16 8.5v3.5", fill: false },
+        "bluetooth": { d: "M12 2.8v18.4 M12 2.8l5.2 4.6-10.4 9 M12 21.2l5.2-4.6-10.4-9", fill: false },
+        "inbox": { d: "M6 16v-5a6 6 0 0 1 12 0v5 M4 16h16 M10.5 20a1.8 1.8 0 0 0 3 0", fill: false },
+        "bolt": { d: "M13 2 4 13.5h6.5L11 22l9-11.5h-6.5z", fill: false },
+        "hotspot": { d: "M12 12a1.3 1.3 0 1 0 0.01 0 M8.8 8.5A5 5 0 0 0 8.8 15.5 M15.2 8.5A5 5 0 0 1 15.2 15.5 M6 6A9 9 0 0 0 6 18 M18 6A9 9 0 0 1 18 18", fill: false },
+        "cog": { d: "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z", fill: false },
+        "clock": { d: "M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18z M12 7v5l3.5 2", fill: false },
+        "cursor": { d: "M5 3l6 16 2-6 6-2L5 3z", fill: false },
+        "video": { d: "M3 7.5a1.5 1.5 0 0 1 1.5-1.5h9A1.5 1.5 0 0 1 15 7.5v9A1.5 1.5 0 0 1 13.5 18h-9A1.5 1.5 0 0 1 3 16.5z M15 10l6-3v10l-6-3z", fill: false },
+        "record": { d: "M12 4a8 8 0 1 0 0 16a8 8 0 1 0 0-16z", fill: true }
     })
 
-    readonly property var glyph: glyphs[name] || glyphs["circle"]
-
-    implicitWidth: 24 * u
-    implicitHeight: 24 * u
+    readonly property var g: glyphs[name] !== undefined ? glyphs[name] : ({ d: "", fill: false })
 
     Shape {
-        id: shape
+        id: glyph
+
         width: 24
         height: 24
         scale: root.u
         transformOrigin: Item.TopLeft
+        x: glyph.boundingRect.width > 0
+           ? root.width / 2 - (glyph.boundingRect.x + glyph.boundingRect.width / 2) * root.u
+           : (root.width - 24 * root.u) / 2
+        y: glyph.boundingRect.height > 0
+           ? root.height / 2 - (glyph.boundingRect.y + glyph.boundingRect.height / 2) * root.u
+           : (root.height - 24 * root.u) / 2
         antialiasing: true
         preferredRendererType: Shape.CurveRenderer
 
         ShapePath {
-            strokeColor: root.glyph.fill ? "transparent" : root.color
-            fillColor: root.glyph.fill ? Qt.alpha(root.color, root.fillProgress) : "transparent"
-            strokeWidth: (root.stroke / root.u)
+            strokeColor: root.g.fill ? "transparent" : root.color
+            fillColor: root.g.fill ? root.color : "transparent"
+            strokeWidth: root.stroke
             capStyle: ShapePath.RoundCap
             joinStyle: ShapePath.RoundJoin
-            PathSvg { path: root.glyph.d }
+            PathSvg { path: root.g.d }
         }
     }
 }

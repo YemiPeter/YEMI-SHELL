@@ -58,46 +58,41 @@ Item {
             fillColor: "transparent"
             strokeWidth: (2 / root.u) * root.s
             capStyle: ShapePath.RoundCap
-            PathSvg { path: "M5.17 9.17 A7 7 0 0 1 18.83 9.17" }
+            PathSvg { path: "M6.34 10.34 A8 8 0 0 1 17.66 10.34" }
         }
         ShapePath {
             strokeColor: root.litCount >= 3 ? Theme.iconDim : root.offColor
             fillColor: "transparent"
             strokeWidth: (2 / root.u) * root.s
             capStyle: ShapePath.RoundCap
-            PathSvg { path: "M1.17 5.17 A10 10 0 0 1 22.83 5.17" }
+            PathSvg { path: "M3.5 7.5 A12 12 0 0 1 20.5 7.5" }
         }
-
-        // Dot at center
-        Rectangle {
-            x: 11 * root.u - 1.5 * root.s
-            y: 13 * root.u - 1.5 * root.s
-            width: 3 * root.s
-            height: 3 * root.s
-            radius: width / 2
-            color: root.on ? Theme.iconDim : root.offColor
+        ShapePath {
+            strokeColor: "transparent"
+            fillColor: root.litCount >= 1 ? Theme.iconDim : root.offColor
+            PathSvg { path: "M12 14.1 A1.5 1.5 0 0 1 12 17.1 A1.5 1.5 0 0 1 12 14.1z" }
         }
     }
 
-    // Off-state slash
     Shape {
         id: slash
+
         width: 24
         height: 24
         scale: root.u
         transformOrigin: Item.TopLeft
         x: root.glyphX
         y: root.glyphY
+        visible: !root.on
         antialiasing: true
         preferredRendererType: Shape.CurveRenderer
-        visible: !root.on
 
         ShapePath {
-            strokeColor: Theme.verm
-            strokeWidth: (2.5 / root.u) * root.s
+            strokeColor: Theme.faint
+            fillColor: "transparent"
+            strokeWidth: (1.7 / root.u) * root.s
             capStyle: ShapePath.RoundCap
-            PathLine { x: 3; y: 21 }
-            PathLine { x: 21; y: 3 }
+            PathSvg { path: "M4 3 L20 19" }
         }
     }
 }

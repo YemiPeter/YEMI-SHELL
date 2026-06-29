@@ -23,7 +23,6 @@ Item {
     property real mBottom: 0
 
     signal requestClose()
-    signal requestSurface(string name)
 
     /**
      * Ame anchor. Each surface declares the flame's form and dock point (in

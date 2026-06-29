@@ -2,79 +2,153 @@ import QtQuick
 import "Singletons"
 
 /**
- * Vertical fader for the mixer. Drag up/down to adjust volume.
+ * Vertical filament fader. A thin matte thread with a rising fill and a flat
+ * tick marker. Dim at rest; saturates and reveals its readout when focused.
+ * Hover targeting is owned by the parent surface, which maps pointer position
+ * to a fader column and drives `focused`. No knob, no glow. Value is 0..1.
  */
 Item {
     id: root
 
     property real s: 1
+    property string icon: ""
     property real value: 0.5
-    property string label: ""
+    property string valueLabel: ""
+    property string subLabel: ""
     property bool focused: false
 
-    implicitHeight: 140 * s
-    implicitWidth: 48 * s
+    signal moved(real v)
+    signal committed(real v)
 
-    Rectangle {
-        anchors.fill: parent
-        radius: 8 * root.s
-        color: root.focused ? Qt.alpha(Theme.cream, 0.05) : "transparent"
-        Behavior on color { ColorAnimation { duration: Motion.fast } }
+    readonly property bool lit: focused
+
+    readonly property real trackH: 86 * s
+
+    /**
+     * Live tick centre in this fader's coordinates. tick.y and root.width are
+     * voided because mapToItem creates no QML dependency on the source item's
+     * transform; without them the binding snapshots the tick where it first
+     * rendered and the bead docks at a stale height after a value change and a
+     * stale x after the mixer resizes.
+     */
+    readonly property point tickCenter: {
+        void tick.y;
+        void root.width;
+        return tick.mapToItem(root, tick.width / 2, tick.height / 2);
     }
 
-    Column {
-        anchors.centerIn: parent
-        spacing: 4 * root.s
+    implicitWidth: 54 * s
+    implicitHeight: trackH + (subLabel.length ? 52 : 44) * s
 
-        Text {
-            text: root.label
-            color: Theme.subtle
-            font.family: Theme.font
-            font.pixelSize: 10 * root.s
-        }
+    /**
+     * Nudge the value by a signed percentage (e.g. +1 / -1), clamped to 0..100%,
+     * emitting `moved` and `committed` so live hardware updates on each step.
+     */
+    function step(deltaPct) {
+        const v = Math.max(0, Math.min(1, root.value + deltaPct / 100));
+        root.moved(v);
+        root.committed(v);
+    }
 
-        Item {
-            width: 24 * root.s
-            height: 100 * root.s
+    Item {
+        id: trackArea
+        anchors.top: parent.top
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: 22 * root.s
+        height: root.trackH
+
+        Rectangle {
+            id: thread
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: 2 * root.s
+            height: parent.height
+            radius: width / 2
+            color: Theme.threadBg
 
             Rectangle {
-                anchors.centerIn: parent
-                width: 4 * root.s
-                height: parent.height
-                radius: 2 * root.s
-                color: Qt.alpha(Theme.cream, 0.15)
-            }
-
-            Rectangle {
-                anchors.horizontalCenter: parent.horizontalCenter
+                id: fill
                 anchors.bottom: parent.bottom
-                width: 4 * root.s
-                height: parent.height * root.value
-                radius: 2 * root.s
-                color: Theme.flameGlow
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                cursorShape: Qt.PointingHandCursor
-                onPositionChanged: (mouse) => {
-                    root.value = 1 - Math.max(0, Math.min(1, mouse.y / height));
-                    root.valueChanged(root.value);
+                anchors.left: parent.left
+                anchors.right: parent.right
+                height: parent.height * Math.max(0, Math.min(1, root.value))
+                radius: parent.radius
+                gradient: Gradient {
+                    GradientStop { position: 0.0; color: root.lit ? Theme.vermLit : Theme.vermDim }
+                    GradientStop { position: 1.0; color: root.lit ? Theme.vermBurn : Theme.vermDimDeep }
                 }
-                onClicked: (mouse) => {
-                    root.value = 1 - Math.max(0, Math.min(1, mouse.y / height));
-                    root.valueChanged(root.value);
-                }
+                Behavior on height { enabled: !dragArea.pressed; NumberAnimation { duration: Motion.fast } }
             }
         }
 
-        Text {
-            text: Math.round(root.value * 100) + "%"
-            color: Theme.cream
-            font.family: Theme.font
-            font.pixelSize: 11 * root.s
-            font.weight: Font.DemiBold
-            font.features: { "tnum": 1 }
+        Rectangle {
+            id: tick
+            anchors.horizontalCenter: parent.horizontalCenter
+            y: Math.max(0, Math.min(root.trackH - height,
+                (1 - Math.max(0, Math.min(1, root.value))) * root.trackH - height / 2))
+            width: 11 * root.s
+            height: 2.5 * root.s
+            radius: 2 * root.s
+            color: Theme.tickRest
+            opacity: root.focused ? 0 : 1
+            Behavior on opacity { NumberAnimation { duration: Motion.fast } }
+            Behavior on y { enabled: !dragArea.pressed; NumberAnimation { duration: Motion.fast } }
         }
+
+        MouseArea {
+            id: dragArea
+            anchors.fill: parent
+            anchors.margins: -10 * root.s
+            preventStealing: true
+            function setFromY(my) {
+                const v = 1 - Math.max(0, Math.min(1, (my - 10 * root.s) / root.trackH));
+                root.moved(v);
+            }
+            onPressed: (e) => setFromY(e.y)
+            onPositionChanged: (e) => { if (pressed) setFromY(e.y); }
+            onReleased: root.committed(root.value)
+        }
+    }
+
+    Text {
+        id: readout
+        anchors.top: trackArea.bottom
+        anchors.topMargin: 7 * root.s
+        anchors.horizontalCenter: parent.horizontalCenter
+        text: root.valueLabel
+        color: root.lit ? Theme.cream : Theme.dim
+        opacity: root.lit ? 1 : 0
+        font.family: Theme.font
+        font.pixelSize: 9 * root.s
+        font.weight: Font.DemiBold
+        Behavior on opacity { NumberAnimation { duration: Motion.fast } }
+    }
+
+    Item {
+        id: iconBox
+        anchors.top: readout.bottom
+        anchors.topMargin: 3 * root.s
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: 18 * root.s
+        height: 18 * root.s
+
+        GlyphIcon {
+            anchors.fill: parent
+            name: root.icon
+            color: root.lit ? Theme.cream : Theme.iconDim
+            stroke: 1.7
+        }
+    }
+
+    Text {
+        visible: root.subLabel.length > 0
+        anchors.top: iconBox.bottom
+        anchors.topMargin: 1 * root.s
+        anchors.horizontalCenter: parent.horizontalCenter
+        text: root.subLabel
+        color: root.lit ? Theme.subtle : Theme.faint
+        font.family: Theme.font
+        font.pixelSize: 7 * root.s
+        font.weight: Font.DemiBold
+        font.letterSpacing: 0.6 * root.s
     }
 }

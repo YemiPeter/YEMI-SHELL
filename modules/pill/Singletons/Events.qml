@@ -5,7 +5,7 @@ import Quickshell.Io
 
 /**
  * Local calendar events, persisted as a plain JSON array beside the session
- * flags (~/.local/state/quickshell/events.json). The in-memory `events` is the
+ * flags (~/.local/state/ricelin/events.json). The in-memory `events` is the
  * source of truth: add/remove mutate it and write the file, which is read back
  * only at startup. The file is deliberately NOT watched — re-reading our own
  * write races the FileView's cached text and dropped the just-added event (it
@@ -28,8 +28,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    // ADAPTED: ricelin → quickshell
-    readonly property string stateDir: (Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")) + "/quickshell"
+    readonly property string stateDir: (Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")) + "/ricelin"
 
     property var events: []
     property int nextId: 1
@@ -54,37 +53,83 @@ Singleton {
         var maxId = 0;
         for (var i = 0; i < arr.length; i++) {
             var n = Number(arr[i].id);
-            if (n > maxId) maxId = n;
+            if (n > maxId)
+                maxId = n;
         }
         root.nextId = maxId + 1;
         root.events = arr;
     }
 
-    function filePath() { return stateDir + "/events.json"; }
+    function persist() {
+        file.setText(JSON.stringify(root.events));
+    }
 
-    function add(date, endDate, time, endTime, text) {
-        var ev = { id: String(nextId), date: date, endDate: endDate || "", time: time || "", endTime: endTime || "", text: text };
-        events.push(ev);
-        nextId++;
-        writeEvents();
+    /** Last day an event covers: its endDate, or its start when single-day. */
+    function lastDay(e) {
+        return e.endDate && e.endDate.length > 0 ? e.endDate : e.date;
+    }
+
+    function covers(e, dateStr) {
+        return dateStr >= e.date && dateStr <= root.lastDay(e);
+    }
+
+    /** Events covering `dateStr`, sorted by start time; an empty time sorts first. */
+    function forDate(dateStr) {
+        var out = root.events.filter(function (e) { return root.covers(e, dateStr); });
+        out.sort(function (a, b) {
+            var at = a.time || "";
+            var bt = b.time || "";
+            if (at === bt)
+                return 0;
+            if (at === "")
+                return -1;
+            if (bt === "")
+                return 1;
+            return at < bt ? -1 : 1;
+        });
+        return out;
+    }
+
+    function hasEvents(dateStr) {
+        for (var i = 0; i < root.events.length; i++) {
+            if (root.covers(root.events[i], dateStr))
+                return true;
+        }
+        return false;
+    }
+
+    /** Append an event and persist; reassigns `events` so bindings refresh. */
+    function add(dateStr, endDate, time, endTime, text) {
+        var next = root.events.slice();
+        next.push({
+            id: root.nextId,
+            date: dateStr,
+            endDate: endDate || "",
+            time: time || "",
+            endTime: endTime || "",
+            text: text || ""
+        });
+        root.nextId += 1;
+        root.events = next;
+        root.persist();
     }
 
     function remove(id) {
-        for (var i = events.length - 1; i >= 0; i--)
-            if (events[i].id === String(id)) events.splice(i, 1);
-        writeEvents();
-    }
-
-    function writeEvents() {
-        file.setText(JSON.stringify(events));
-    }
-
-    FileView {
-        id: file
-        path: root.filePath()
-        blockLoading: true
-        printErrors: false
+        root.events = root.events.filter(function (e) { return e.id !== id; });
+        root.persist();
     }
 
     Component.onCompleted: reloadEvents()
+
+    FileView {
+        id: file
+        path: root.stateDir + "/events.json"
+        blockLoading: true
+        printErrors: false
+
+        onLoadFailed: function (error) {
+            if (error === FileViewError.FileNotFound)
+                file.setText("[]");
+        }
+    }
 }

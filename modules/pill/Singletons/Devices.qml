@@ -17,8 +17,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    // ADAPTED: ricelin → quickshell
-    readonly property string stateFile: (Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")) + "/quickshell/nvibrant-value"
+    readonly property string stateFile: (Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")) + "/ricelin/nvibrant-value"
 
     property int vibrance: 40
 
@@ -59,30 +58,72 @@ Singleton {
 
     function applyVibrance(pct) {
         var raw = Math.round(Math.max(0, Math.min(100, pct)) * 1023 / 100);
-        // nvibrant CLI: nvibrant set <value>
-        Quickshell.execDetached(["nvibrant", "set", String(raw)]);
+        Quickshell.execDetached(["nvibrant", String(raw), "0", String(raw)]);
     }
 
     function saveVibrance(pct) {
-        vibState.setText(String(Math.round(pct)));
+        Quickshell.execDetached(["sh", "-c",
+            'mkdir -p "$(dirname "$1")" && printf "%s\n" "$2" > "$1"',
+            "_", root.stateFile, String(Math.round(pct))]);
     }
 
-    function detectBacklight() {
-        blProc.running = true;
+    function detect() {
+        ddcDetect.running = true;
+        blDetect.running = true;
     }
 
+    function setBrightness(bus, pct) {
+        Quickshell.execDetached(["timeout", "3", "ddcutil", "setvcp", "10",
+            String(pct), "--bus", bus, "--noverify"]);
+    }
+
+    /**
+     * Sets the internal laptop backlight to `pct` percent via brightnessctl.
+     * No-op effect on machines without /sys/class/backlight (brightnessctl
+     * simply finds no device), and inert when brightnessctl is absent.
+     */
     function setBacklight(pct) {
-        if (!root.backlightPresent) return;
-        root.backlightPct = Math.max(0, Math.min(100, Math.round(pct)));
-        Quickshell.execDetached(["brightnessctl", "set", String(root.backlightPct) + "%"]);
+        root.backlightPct = Math.round(Math.max(1, Math.min(100, pct)));
+        Quickshell.execDetached(["brightnessctl", "set", root.backlightPct + "%"]);
+    }
+
+    /**
+     * Parses a `ddcutil getvcp --brief` line, returning the current brightness
+     * percent or -1 when no value is present.
+     */
+    function parseBrightness(text) {
+        var m = text.match(/C\s+(\d+)\s+/);
+        return m ? parseInt(m[1], 10) : -1;
     }
 
     Process {
-        id: blProc
-        command: ["bash", Quickshell.env("HOME") + "/.config/quickshell/scripts/backlight-detect.sh"]
+        id: ddcDetect
+        command: ["ddcutil", "detect", "--brief"]
+        running: false
         stdout: StdioCollector {
             onStreamFinished: {
-                if (text.trim() === "present") {
+                var mons = [];
+                var blocks = this.text.split(/\bDisplay \d+/);
+                for (var i = 0; i < blocks.length; i++) {
+                    var bus = /I2C bus:\s+\/dev\/i2c-(\d+)/.exec(blocks[i]);
+                    var conn = /DRM connector:\s+card\d+-(\S+)/.exec(blocks[i]);
+                    if (bus)
+                        mons.push({ bus: bus[1], label: conn ? conn[1] : "BUS " + bus[1] });
+                }
+                root.ddcMonitors = mons;
+            }
+        }
+    }
+
+    Process {
+        id: blDetect
+        command: ["sh", "-c", "dev=$(ls /sys/class/backlight 2>/dev/null | head -n1); [ -n \"$dev\" ] || exit 0; max=$(cat /sys/class/backlight/$dev/max_brightness); cur=$(cat /sys/class/backlight/$dev/brightness); echo \"$(( cur * 100 / max ))\""]
+        running: false
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var v = parseInt(this.text.trim(), 10);
+                if (!isNaN(v)) {
+                    root.backlightPct = Math.max(1, Math.min(100, v));
                     root.backlightPresent = true;
                 }
             }
@@ -95,6 +136,4 @@ Singleton {
         blockLoading: true
         printErrors: false
     }
-
-    Component.onCompleted: detectBacklight()
 }

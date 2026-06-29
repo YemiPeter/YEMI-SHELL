@@ -2,77 +2,102 @@ import QtQuick
 import "Singletons"
 
 /**
- * Horizontal fader for the mixer. Drag left/right to adjust volume.
+ * Horizontal capture-level fader for the recorder's audio rows: a thin matte
+ * track with a flame fill and a flat tick marker at the value, no knob. Mirrors
+ * the mixer VFader look and contract (drag plus `step` for scroll-wheel and
+ * arrow keys, 5% per notch) so the same focus and stepping logic drives it.
+ * The host owns focus and feeds `focused`; `on` saturates the fill, off dims
+ * it. Value is 0..1. A right-aligned percent readout trails the track.
  */
 Item {
     id: root
 
     property real s: 1
     property real value: 0.5
-    property string label: ""
     property bool focused: false
+    property bool on: true
 
-    implicitHeight: 48 * s
-    implicitWidth: 180 * s
+    signal moved(real v)
+    signal committed(real v)
+    signal focusRequested()
 
-    Rectangle {
-        anchors.fill: parent
-        radius: 8 * root.s
-        color: root.focused ? Qt.alpha(Theme.cream, 0.05) : "transparent"
-        Behavior on color { ColorAnimation { duration: Motion.fast } }
+    implicitHeight: 16 * s
+
+    /**
+     * Nudge the value by a signed percentage (e.g. +5 / -5), clamped to 0..100%,
+     * emitting `moved` and `committed` so the captured level updates on each step.
+     */
+    function step(deltaPct) {
+        const v = Math.max(0, Math.min(1, root.value + deltaPct / 100));
+        root.moved(v);
+        root.committed(v);
     }
 
-    Column {
-        anchors.centerIn: parent
-        spacing: 4 * root.s
+    readonly property real clamped: Math.max(0, Math.min(1, value))
 
-        Text {
-            text: root.label
-            color: Theme.subtle
-            font.family: Theme.font
-            font.pixelSize: 10 * root.s
+    Rectangle {
+        id: track
+        anchors.left: parent.left
+        anchors.right: pct.left
+        anchors.rightMargin: 11 * root.s
+        anchors.verticalCenter: parent.verticalCenter
+        height: 3 * root.s
+        radius: height / 2
+        color: Theme.threadBg
+
+        Rectangle {
+            id: fill
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            width: parent.width * root.clamped
+            radius: parent.radius
+            gradient: Gradient {
+                orientation: Gradient.Horizontal
+                GradientStop { position: 0.0; color: root.on ? Theme.vermBurn : Theme.vermDimDeep }
+                GradientStop { position: 1.0; color: root.on ? Theme.vermLit : Theme.vermDim }
+            }
+            Behavior on width { enabled: !dragArea.pressed; NumberAnimation { duration: Motion.fast } }
         }
 
-        Row {
-            spacing: 8 * root.s
-
-            Rectangle {
-                width: 120 * root.s
-                height: 4 * root.s
-                radius: 2 * root.s
-                color: Qt.alpha(Theme.cream, 0.15)
-
-                Rectangle {
-                    anchors.left: parent.left
-                    anchors.verticalCenter: parent.verticalCenter
-                    height: parent.height
-                    width: parent.width * root.value
-                    radius: parent.radius
-                    color: Theme.flameGlow
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onPositionChanged: (mouse) => {
-                        root.value = Math.max(0, Math.min(1, mouse.x / width));
-                        root.valueChanged(root.value);
-                    }
-                    onClicked: (mouse) => {
-                        root.value = Math.max(0, Math.min(1, mouse.x / width));
-                        root.valueChanged(root.value);
-                    }
-                }
-            }
-
-            Text {
-                text: Math.round(root.value * 100) + "%"
-                color: Theme.cream
-                font.family: Theme.font
-                font.pixelSize: 11 * root.s
-                font.weight: Font.DemiBold
-                font.features: { "tnum": 1 }
-            }
+        Rectangle {
+            id: tick
+            x: Math.max(0, Math.min(track.width - width, track.width * root.clamped - width / 2))
+            anchors.verticalCenter: parent.verticalCenter
+            width: 2.5 * root.s
+            height: 11 * root.s
+            radius: 2 * root.s
+            color: Theme.tickRest
+            Behavior on x { enabled: !dragArea.pressed; NumberAnimation { duration: Motion.fast } }
         }
+
+        MouseArea {
+            id: dragArea
+            anchors.fill: parent
+            anchors.margins: -8 * root.s
+            preventStealing: true
+            enabled: root.on
+            function setFromX(mx) {
+                const v = Math.max(0, Math.min(1, (mx + 8 * root.s) / track.width));
+                root.moved(v);
+            }
+            onPressed: (e) => { root.focusRequested(); setFromX(e.x); }
+            onPositionChanged: (e) => { if (pressed) setFromX(e.x); }
+            onReleased: root.committed(root.value)
+        }
+    }
+
+    Text {
+        id: pct
+        anchors.right: parent.right
+        anchors.verticalCenter: parent.verticalCenter
+        width: 32 * root.s
+        horizontalAlignment: Text.AlignRight
+        text: Math.round(root.clamped * 100) + "%"
+        color: root.focused ? Theme.cream : Theme.subtle
+        font.family: Theme.font
+        font.pixelSize: 10 * root.s
+        font.weight: Font.DemiBold
+        font.features: { "tnum": 1 }
     }
 }

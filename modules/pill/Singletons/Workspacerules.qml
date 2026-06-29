@@ -29,16 +29,21 @@ Singleton {
             onStreamFinished: {
                 var map = {};
                 try {
-                    var rules = JSON.parse(text);
+                    var rules = JSON.parse(this.text);
                     for (var i = 0; i < rules.length; i++) {
                         var ws = parseInt(rules[i].workspaceString);
                         var mon = rules[i].monitor;
-                        if (!mon || isNaN(ws)) continue;
-                        if (!map[mon]) map[mon] = [];
+                        if (!mon || isNaN(ws))
+                            continue;
+                        if (!map[mon])
+                            map[mon] = [];
                         map[mon].push(ws);
                     }
-                } catch (e) { return; }
-                for (var k in map) map[k].sort(function (a, b) { return a - b; });
+                } catch (e) {
+                    return;
+                }
+                for (var k in map)
+                    map[k].sort(function (a, b) { return a - b; });
                 root.byMonitor = map;
             }
         }
@@ -47,7 +52,8 @@ Singleton {
     Connections {
         target: Hyprland
         function onRawEvent(event) {
-            if (event.name === "configreloaded") root.refresh();
+            if (event.name === "configreloaded")
+                root.refresh();
         }
     }
 
