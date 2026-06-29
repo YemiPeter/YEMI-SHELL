@@ -26,9 +26,8 @@ Singleton {
     readonly property int count: entries.length
     property bool pending: false
 
-    // ADAPTED: ricelin → quickshell
-    readonly property string thumbDir: (Quickshell.env("XDG_CACHE_HOME") || (Quickshell.env("HOME") + "/.cache")) + "/quickshell/cliphist-thumbs/"
-    readonly property string thumbScript: Quickshell.env("HOME") + "/.config/quickshell/scripts/cliphist-thumbs.sh"
+    readonly property string thumbDir: (Quickshell.env("XDG_CACHE_HOME") || (Quickshell.env("HOME") + "/.cache")) + "/cliphist-thumbs/"
+    readonly property string thumbScript: Quickshell.env("HOME") + "/.config/hypr/scripts/cliphist-thumbs.sh"
 
     function refresh() {
         if (thumbProc.running || listProc.running || delProc.running || delQueue.length) {
@@ -39,7 +38,8 @@ Singleton {
     }
 
     function copy(entry) {
-        if (!/^\d+$/.test(String(entry.id))) return;
+        if (!/^\d+$/.test(String(entry.id)))
+            return;
         Quickshell.execDetached(["sh", "-c", "printf '%s' \"$1\" | cliphist decode | wl-copy", "_", String(entry.id)]);
     }
 
@@ -58,112 +58,112 @@ Singleton {
     property var delQueue: []
 
     function remove(entry) {
-        if (!entry || !entry.id) return;
-        delQueue.push(entry);
-        if (delProc.running) return;
+        var id = String(entry.id);
+        if (!/^\d+$/.test(id))
+            return;
+        var kept = [];
+        for (var i = 0; i < entries.length; i++)
+            if (entries[i].id !== id)
+                kept.push(entries[i]);
+        entries = kept;
+        delQueue.push(id);
+        pumpDeletes();
+    }
+
+    function pumpDeletes() {
+        if (delProc.running || !delQueue.length)
+            return;
+        var id = delQueue.shift();
+        delProc.command = ["sh", "-c", "printf '%s' \"$1\" | cliphist delete", "_", id];
         delProc.running = true;
-    }
-
-    // --- Thumbnail generation ---
-    Process {
-        id: thumbProc
-        command: ["bash", root.thumbScript]
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                listProc.running = true;
-            }
-        }
-    }
-
-    // --- List refresh ---
-    Process {
-        id: listProc
-        command: ["cliphist", "list"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var lines = text.trim().split("\n");
-                var out = [];
-                for (var i = 0; i < lines.length; i++) {
-                    if (!lines[i].trim()) continue;
-                    var parts = lines[i].split("\t");
-                    out.push({
-                        id: parts[0] || "",
-                        preview: parts[1] || "",
-                        isImage: false,
-                        meta: parts[2] || "",
-                        label: "",
-                        sizeLabel: "",
-                        thumb: ""
-                    });
-                }
-                root.entries = out;
-                // Process any queued deletes
-                if (root.delQueue.length > 0) {
-                    var entry = root.delQueue.shift();
-                    delByIdProc.command = ["cliphist", "del", String(entry.id)];
-                    delByIdProc.running = true;
-                } else {
-                    thumbProc.running = false;
-                }
-                if (root.pending) {
-                    root.pending = false;
-                    root.refresh();
-                }
-            }
-        }
-        running: false
-    }
-
-    Process {
-        id: delByIdProc
-        command: []
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                if (root.delQueue.length > 0) {
-                    var entry = root.delQueue.shift();
-                    delByIdProc.command = ["cliphist", "del", String(entry.id)];
-                    delByIdProc.running = true;
-                } else {
-                    delProc.running = false;
-                    root.refresh();
-                }
-            }
-        }
     }
 
     Process {
         id: delProc
-        command: ["cliphist", "wipe"]
-        running: false
-    }
-
-    Process {
-        id: wipeProc
-        command: ["cliphist", "wipe"]
-        running: false
-    }
-
-    // --- wl-paste watcher ---
-    Timer {
-        id: watchTimer
-        interval: 1000
-        running: true
-        repeat: true
-        onTriggered: {
-            watchProc.running = true;
+        onExited: {
+            if (root.delQueue.length)
+                root.pumpDeletes();
+            else
+                root.refresh();
         }
     }
 
     Process {
         id: watchProc
-        command: ["wl-paste", "-t", "text", "-w", "echo"]
-        running: false
+        command: ["wl-paste", "--watch", "echo", "x"]
+        running: true
+        stdout: SplitParser {
+            onRead: debounce.restart()
+        }
+        onExited: respawn.restart()
+    }
+
+    Timer {
+        id: respawn
+        interval: 2000
+        onTriggered: watchProc.running = true
+    }
+
+    Timer {
+        id: debounce
+        interval: 300
+        onTriggered: root.refresh()
+    }
+
+    Process {
+        id: wipeProc
+        command: ["cliphist", "wipe"]
+        onExited: root.refresh()
+    }
+
+    Process {
+        id: thumbProc
+        command: ["sh", root.thumbScript]
+        onExited: listProc.running = true
+    }
+
+    Process {
+        id: listProc
+        command: ["cliphist", "list"]
         stdout: StdioCollector {
             onStreamFinished: {
-                if (text.trim().length > 0)
-                    root.refresh();
+                var lines = this.text.split("\n");
+                var out = [];
+                var metaRe = /^\[\[ binary data (.*) \]\]$/;
+                var imgRe = /\b(png|jpg|jpeg|gif|bmp|webp)\b/;
+                var splitRe = /^(\S+ \S+) (\w+) (\d+)x(\d+)$/;
+                for (var i = 0; i < lines.length; i++) {
+                    var line = lines[i];
+                    var tab = line.indexOf("\t");
+                    if (tab < 1)
+                        continue;
+                    var id = line.substring(0, tab);
+                    if (!/^\d+$/.test(id))
+                        continue;
+                    var preview = line.substring(tab + 1);
+                    var m = metaRe.exec(preview);
+                    var isImage = m !== null && imgRe.test(m[1]);
+                    var label = "";
+                    var sizeLabel = "";
+                    if (isImage) {
+                        var p = splitRe.exec(m[1]);
+                        label = p ? p[2] + " " + p[3] + "×" + p[4] : m[1];
+                        sizeLabel = p ? p[1] : "";
+                    }
+                    out.push({
+                        id: id,
+                        preview: preview,
+                        isImage: isImage,
+                        label: label,
+                        sizeLabel: sizeLabel,
+                        thumb: isImage ? root.thumbDir + id + ".png" : ""
+                    });
+                }
+                root.entries = out;
+                if (root.pending) {
+                    root.pending = false;
+                    Qt.callLater(root.refresh);
+                }
             }
         }
     }

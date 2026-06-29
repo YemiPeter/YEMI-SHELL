@@ -3,13 +3,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Services.Notifications
 
-/**
- * Notification state for the pill's toast surface and the link inbox glance.
- * Tracks live notifications from the server, groups by app, coalesces
- * duplicates, and maintains a dismiss history. The toast surface polls
- * `popups` for the latest notification; the inbox glance uses `unread` and
- * `groups`.
- */
 Singleton {
     id: root
 
@@ -85,27 +78,190 @@ Singleton {
         if (img.indexOf("image://icon/") === 0) {
             names.push(img.substring(13));
         } else if (img.length && !/\.svg$/i.test(img)) {
-            // fallback for non-SVG images
+            return img;
         }
-        return names.length > 0 ? names[0] : "";
+        names.push(n.appIcon, n.desktopEntry, (n.appName || n.app || "").toLowerCase());
+        for (var i = 0; i < names.length; i++) {
+            var nm = names[i];
+            if (!nm || !nm.length) continue;
+            if (nm.indexOf("/") === 0 || nm.indexOf("file://") === 0) return nm;
+            var p = Quickshell.iconPath(nm, true);
+            if (p.length) return p;
+        }
+        return "";
     }
 
-    function dismiss(id) {
-        root.seenIds[id] = true;
-        root.hookedIds[id] = true;
+    function dismissEntry(e) {
+        if (!e || !e.items) return;
+        var d = Object.assign({}, userDismissed);
+        var gone = {};
+        var live = [];
+        for (var i = 0; i < e.items.length; i++) {
+            var n = e.items[i];
+            if (typeof n.dismiss === "function") {
+                d[n.id] = true;
+                live.push(n);
+            } else {
+                gone[n.id] = true;
+            }
+        }
+        root.userDismissed = d;
+        for (var j = 0; j < live.length; j++) live[j].dismiss();
+        root.history = root.history.filter(function(h) { return !gone[h.id]; });
     }
 
-    function dismissAll() {
-        for (var i = 0; i < tracked.length; i++)
-            root.seenIds[tracked[i].id] = true;
+    /**
+     * Open the app behind a notification entry: invoke its default action when
+     * present, then focus the app's Hyprland window (workspace switch included)
+     * by matching desktopEntry/appName against window classes. The entry is
+     * dismissed afterwards, mirroring stock notification-center behavior.
+     */
+    function activateEntry(e) {
+        if (!e || !e.n) return;
+        var n = e.n;
+        var acts = n.actions || [];
+        for (var i = 0; i < acts.length; i++) {
+            if (acts[i].identifier === "default") {
+                acts[i].invoke();
+                break;
+            }
+        }
+        var token = String(n.desktopEntry && n.desktopEntry.length ? n.desktopEntry : (n.appName || "")).toLowerCase();
+        if (token.length > 0)
+            Quickshell.execDetached(["sh", "-c",
+                "addr=$(hyprctl clients -j | jq -r --arg q \"$1\" '[.[] | select(((.class // \"\") | ascii_downcase | contains($q)) or ((.initialClass // \"\") | ascii_downcase | contains($q)))][0].address // empty'); [ -n \"$addr\" ] && hyprctl dispatch \"hl.dsp.focus({ window = \\\"address:$addr\\\" })\"",
+                "sh", token]);
+        dismissEntry(e);
     }
 
-    function expire(id) {
-        delete root.expireAt[id];
+    function dismissApp(app) {
+        var doomed = tracked.filter(function(n) {
+            return ((n.appName && n.appName.length) ? n.appName : "System") === app;
+        });
+        var d = Object.assign({}, userDismissed);
+        for (var i = 0; i < doomed.length; i++) d[doomed[i].id] = true;
+        root.userDismissed = d;
+        for (var j = 0; j < doomed.length; j++) doomed[j].dismiss();
+        root.history = root.history.filter(function(h) { return h.app !== app; });
     }
 
-    // Notification server
+    function markAllSeen() {
+        var m = {};
+        for (var i = 0; i < tracked.length; i++) m[tracked[i].id] = true;
+        root.seenIds = m;
+    }
+
+    function clearAll() {
+        var l = tracked.slice();
+        var d = Object.assign({}, userDismissed);
+        for (var i = 0; i < l.length; i++) d[l[i].id] = true;
+        root.userDismissed = d;
+        for (var j = 0; j < l.length; j++) l[j].dismiss();
+        root.history = [];
+        root.popups = [];
+    }
+
+    function removePopup(n) {
+        root.popups = root.popups.filter(function(p) { return p !== n; });
+    }
+
+    function toggleExpanded(app) {
+        var e = Object.assign({}, expandedApps);
+        e[app] = e[app] !== true;
+        root.expandedApps = e;
+    }
+
+    /**
+     * Bind the history-snapshot handler to a notification's `closed` signal once.
+     * `keepOnReload` re-runs Component.onCompleted on every QS reload over the
+     * still-tracked notifications, so the id set gates re-hooks: without it each
+     * reload would stack another handler and a single close would push duplicate
+     * history rows. The id is cleared inside the handler so a later notification
+     * reusing the id re-hooks cleanly.
+     */
+    function hookClosed(n) {
+        if (root.hookedIds[n.id])
+            return;
+        var hooked = Object.assign({}, root.hookedIds);
+        hooked[n.id] = true;
+        root.hookedIds = hooked;
+        n.closed.connect(function(reason) {
+            if (!root.userDismissed[n.id])
+                root.history = [{
+                    app: (n.appName && n.appName.length) ? n.appName : "System",
+                    summary: n.summary,
+                    body: n.body,
+                    appIcon: n.appIcon,
+                    desktopEntry: n.desktopEntry,
+                    image: n.image,
+                    urgency: n.urgency,
+                    ts: root.arrivalMs[n.id] || Date.now(),
+                    id: "h" + n.id + "-" + Date.now()
+                }].concat(root.history).slice(0, 50);
+            else {
+                var du = Object.assign({}, root.userDismissed);
+                delete du[n.id];
+                root.userDismissed = du;
+            }
+            root.removePopup(n);
+            var b = Object.assign({}, root.arrivalMs);
+            delete b[n.id];
+            root.arrivalMs = b;
+            var c = Object.assign({}, root.expireAt);
+            delete c[n.id];
+            root.expireAt = c;
+            var h = Object.assign({}, root.hookedIds);
+            delete h[n.id];
+            root.hookedIds = h;
+        });
+    }
+
+    function ageLabel(n) {
+        void root.tick;
+        var t = arrivalMs[n.id] || n.ts;
+        if (!t) return "";
+        var m = Math.floor((Date.now() - t) / 60000);
+        if (m < 1) return "now";
+        if (m < 60) return m + "m";
+        return Math.floor(m / 60) + "h";
+    }
+
+    Timer {
+        interval: 30000
+        running: root.count > 0
+        repeat: true
+        onTriggered: root.tick++
+    }
+
     NotificationServer {
         id: server
+        keepOnReload: true
+        bodySupported: true
+        actionsSupported: true
+        imageSupported: true
+
+        Component.onCompleted: {
+            var l = trackedNotifications.values;
+            var a = Object.assign({}, root.arrivalMs);
+            for (var i = 0; i < l.length; i++) {
+                if (!a[l[i].id]) a[l[i].id] = Date.now();
+                root.hookClosed(l[i]);
+            }
+            root.arrivalMs = a;
+        }
+
+        onNotification: function(n) {
+            var a = Object.assign({}, root.arrivalMs);
+            a[n.id] = Date.now();
+            root.arrivalMs = a;
+            var e = Object.assign({}, root.expireAt);
+            e[n.id] = Date.now() + (n.urgency === NotificationUrgency.Low ? 4000 : 6000);
+            root.expireAt = e;
+            n.tracked = true;
+            root.hookClosed(n);
+            var critical = n.urgency === NotificationUrgency.Critical;
+            if (!Flags.dnd || critical)
+                root.popups = root.popups.concat([n]).slice(-3);
+        }
     }
 }

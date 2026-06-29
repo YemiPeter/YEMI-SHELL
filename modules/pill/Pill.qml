@@ -26,10 +26,6 @@ Item {
     property var barWindow
     property string surface: ""
 
-    Component.onCompleted: {
-        console.log("[PILL] onCompleted: s =", s, "targetW =", targetW, "targetH =", targetH, "mode =", mode);
-    }
-
     property bool hovered: false
     property bool pinned: false
     property bool forcePinned: false
@@ -72,7 +68,6 @@ Item {
     readonly property var wifiActive: wifiNets.find(function(n) { return n && n.connected }) || null
     readonly property real wifiLevel: (wifiActive && wifiActive.signalStrength) || 0
     readonly property bool surfaceOpen: surface.length > 0
-    property int hoverIndex: -1
     property bool hoverLatch: false
     readonly property bool expanded: surfaceOpen || held || hoverLatch
     readonly property bool toastActive: Notifs.popups.length > 0
@@ -138,25 +133,25 @@ Item {
      * ternary chains to keep in lockstep.
      */
     readonly property var surfaces: ({
-        calendar: { size: () => Qt.size(calendarW, calendarH), ame: calendar },
-        launcher: { size: () => Qt.size(launcherW, launcherH), ame: launcher },
+        calendar:  { size: () => Qt.size(calendarW, calendarH), ame: calendar },
+        launcher:  { size: () => Qt.size(launcherW, launcherH), ame: launcher },
         clipboard: { size: () => Qt.size(clipboardW, clipboardH), ame: clip },
         wallpaper: { size: () => Qt.size(wallpaperW, wallpaperH), ame: null },
-        power: { size: () => Qt.size(powerW, powerH), ame: power },
-        media: { size: () => Qt.size(mediaW, mediaH), ame: media },
-        mixer: { size: () => Qt.size(mixerW, mixerH), ame: mixer },
-        link: { size: () => Qt.size(link.desiredW, link.implicitHeight + 26 * s), ame: link },
-        battery: { size: () => Qt.size(batteryW, battery.implicitHeight + 26 * s), ame: battery },
-        settings: { size: () => Qt.size(settingsW, settings.implicitHeight + 29 * s), ame: settings },
-        keybinds: { size: () => Qt.size(keybindsW, keybinds.implicitHeight + 29 * s), ame: keybinds },
-        recorder: { size: () => Qt.size(recorderW, recorder.implicitHeight + 33 * s), ame: recorder },
-        sysmon: { size: () => Qt.size(sysmonW, sysmon.implicitHeight + 33 * s), ame: sysmon },
+        power:     { size: () => Qt.size(powerW, powerH), ame: power },
+        media:     { size: () => Qt.size(mediaW, mediaH), ame: media },
+        mixer:     { size: () => Qt.size(mixerW, mixerH), ame: mixer },
+        link:      { size: () => Qt.size(link.desiredW, link.implicitHeight + 26 * s), ame: link },
+        battery:   { size: () => Qt.size(batteryW, battery.implicitHeight + 26 * s), ame: battery },
+        settings:  { size: () => Qt.size(settingsW, settings.implicitHeight + 29 * s), ame: settings },
+        keybinds:  { size: () => Qt.size(keybindsW, keybinds.implicitHeight + 29 * s), ame: keybinds },
+        recorder:  { size: () => Qt.size(recorderW, recorder.implicitHeight + 33 * s), ame: recorder },
+        sysmon:    { size: () => Qt.size(sysmonW, sysmon.implicitHeight + 33 * s), ame: sysmon },
         appearance: { size: () => Qt.size(appearanceW, appearance.implicitHeight + 29 * s), ame: appearance },
-        updates: { size: () => Qt.size(updatesW, updates.implicitHeight + 29 * s), ame: updates },
-        display: { size: () => Qt.size(displayW, display.implicitHeight + 29 * s), ame: display },
-        input: { size: () => Qt.size(inputW, input.implicitHeight + 29 * s), ame: input },
-        look: { size: () => Qt.size(lookW, look.implicitHeight + 29 * s), ame: look },
-        idlelock: { size: () => Qt.size(idlelockW, idlelock.implicitHeight + 29 * s), ame: idlelock },
+        updates:    { size: () => Qt.size(updatesW, updates.implicitHeight + 29 * s), ame: updates },
+        display:    { size: () => Qt.size(displayW, display.implicitHeight + 29 * s), ame: display },
+        input:      { size: () => Qt.size(inputW, input.implicitHeight + 29 * s), ame: input },
+        look:       { size: () => Qt.size(lookW, look.implicitHeight + 29 * s), ame: look },
+        idlelock:   { size: () => Qt.size(idlelockW, idlelock.implicitHeight + 29 * s), ame: idlelock },
         fontpicker: { size: () => Qt.size(fontpickerW, fontpicker.implicitHeight + 29 * s), ame: fontpicker }
     })
 
@@ -189,7 +184,7 @@ Item {
 
     /**
      * Forward an arrow-key nudge to the open recorder's focused audio fader.
-     * Returns true when the mixer is open and a revealed fader consumed it.
+     * Returns true when the recorder is open and a revealed fader consumed it.
      */
     function recorderStep(deltaPct) {
         return pill.recorderOpen ? recorder.stepFocused(deltaPct) : false;
@@ -201,8 +196,10 @@ Item {
      * when none of them is open.
      */
     function rowNavSurface() {
-        if (pill.settingsOpen) return settings;
-        if (pill.appearanceOpen) return appearance;
+        if (pill.settingsOpen)
+            return settings;
+        if (pill.appearanceOpen)
+            return appearance;
         return null;
     }
 
@@ -212,7 +209,8 @@ Item {
      */
     function settingsMove(dir) {
         var nav = pill.rowNavSurface();
-        if (!nav) return false;
+        if (!nav)
+            return false;
         nav.kbMove(dir);
         return true;
     }
@@ -223,7 +221,8 @@ Item {
      */
     function settingsAdjust(dir) {
         var nav = pill.rowNavSurface();
-        if (!nav) return false;
+        if (!nav)
+            return false;
         nav.kbAdjust(dir);
         return true;
     }
@@ -234,7 +233,8 @@ Item {
      */
     function settingsActivate() {
         var nav = pill.rowNavSurface();
-        if (!nav) return false;
+        if (!nav)
+            return false;
         nav.kbActivate();
         return true;
     }
@@ -301,8 +301,11 @@ Item {
      */
     function surfaceBack() {
         if (pill.keybindsOpen) {
-            if (keybinds.formOpen) keybinds.closeForm();
-            else { pill.requestSurface("settings"); return; }
+            if (keybinds.formOpen)
+                keybinds.closeForm();
+            else
+                pill.requestSurface("settings");
+            return;
         }
         if (pill.fontpickerOpen) {
             pill.requestSurface("appearance");
@@ -338,8 +341,8 @@ Item {
 
     /**
      * Apply the wallpaper strip's focused thumb through wallpaper.sh. The
-     * surface stays open so the pick can be iterated. No-op unless the wallpaper
-     * surface is open.
+     * surface stays open so the pick can be iterated. No-op unless the
+     * wallpaper surface is open.
      */
     function wallpaperActivate() {
         if (pill.wallpaperOpen)
@@ -393,10 +396,6 @@ Item {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // REST STATE — collapsed pill showing clock + status icons
-    // ═══════════════════════════════════════════════════════════════════════
-
     QtObject {
         id: clock
         readonly property var loc: Qt.locale("en_US")
@@ -422,32 +421,25 @@ Item {
      * targetSize.
      */
     readonly property var modeSize: ({
-        osd: () => Qt.size(osd.desiredW, osd.desiredH),
+        osd:   () => Qt.size(osd.desiredW, osd.desiredH),
         toast: () => Qt.size(toastW, toastLoader.item ? toastLoader.item.implicitHeight + 24 * s : restH),
         hover: () => Qt.size(hoverW, hoverH),
         quickChoose: () => Qt.size(quickChooseW, quickChooseH),
-        quickCount: () => Qt.size(quickCountW, quickCountH)
+        quickCount:  () => Qt.size(quickCountW, quickCountH)
     })
 
     readonly property size targetSize: {
         const sf = surfaces[mode];
-        let sz;
-        if (sf) sz = sf.size();
-        else {
-            const f = modeSize[mode];
-            sz = f ? f() : Qt.size(Math.max(restW, restRow.implicitWidth + 36 * s), restH);
-        }
-        console.log("[TARGET] mode:", mode, "size:", sz.width, "x", sz.height, "s:", s);
-        return sz;
+        if (sf)
+            return sf.size();
+        const f = modeSize[mode];
+        return f ? f() : Qt.size(Math.max(restW, restRow.implicitWidth + 36 * s), restH);
     }
     readonly property real targetW: targetSize.width
     readonly property real targetH: targetSize.height
 
     width: targetW
     height: targetH
-
-    onWidthChanged: console.log("[WIDTH] width:", width, "targetW:", targetW, "mode:", mode)
-    onHeightChanged: console.log("[HEIGHT] height:", height, "targetH:", targetH, "mode:", mode)
 
     /**
      * How settled the pill is into its target geometry: 0 while the morph is far
@@ -490,10 +482,6 @@ Item {
     Behavior on width { NumberAnimation { duration: Motion.morph; easing.type: Motion.easeMorph; easing.bezierCurve: Motion.morphCurve } }
     Behavior on height { NumberAnimation { duration: Motion.morph; easing.type: Motion.easeMorph; easing.bezierCurve: Motion.morphCurve } }
     Behavior on morphRadius { NumberAnimation { duration: Motion.morph; easing.type: Motion.easeMorph; easing.bezierCurve: Motion.morphCurve } }
-
-    // ═══════════════════════════════════════════════════════════════════════
-    // BODY — shared background, shadow, sheen
-    // ═══════════════════════════════════════════════════════════════════════
 
     Rectangle {
         id: bud
@@ -564,13 +552,13 @@ Item {
             GradientStop { position: 1.0; color: Qt.alpha(Theme.cardBot, Flags.pillOpacity) }
         }
 
-        layer.enabled: false
-        // layer.effect: MultiEffect {
-        //     shadowEnabled: true
-        //     shadowColor: Qt.rgba(0, 0, 0, Theme.shadowOpacity)
-        //     shadowBlur: 0.7
-        //     shadowVerticalOffset: 3 * pill.s
-        // }
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowColor: Qt.rgba(0, 0, 0, Theme.shadowOpacity)
+            shadowBlur: 0.7
+            shadowVerticalOffset: 3 * pill.s
+        }
 
         Rectangle {
             anchors.top: parent.top
@@ -605,10 +593,6 @@ Item {
         void pill.width;
         void pill.height;
         const drop = 12 * pill.s;
-
-        // Guard ws at the very top to prevent any undefined access
-        if (!ws) return Qt.point(0, 0);
-
         if (soulTarget === "wifi")
             return wifiIcon.mapToItem(pill, wifiIcon.width / 2, wifiIcon.height + drop * 0.55);
         if (soulTarget === "battery")
@@ -625,18 +609,13 @@ Item {
             return recorderIcon.mapToItem(pill, recorderIcon.width / 2, recorderIcon.height + drop * 0.55);
         if (soulTarget === "sysmon")
             return sysmonIcon.mapToItem(pill, sysmonIcon.width / 2, sysmonIcon.height + drop * 0.55);
-
-        // Now handle workspace cases
         if (soulTarget === "ws" && soulWsIndex >= 0) {
             void ws.activeName;
             void ws.width;
             const p = ws.mapToItem(pill, ws.slotCenterX(soulWsIndex), ws.height / 2);
             return Qt.point(p.x, p.y + drop);
         }
-
-        // Fallback: safe dot access
-        const dot = ws.activeDotPoint ? ws.activeDotPoint : Qt.point(0, 0);
-        return ws.mapToItem(pill, dot.x, dot.y + drop);
+        return ws.mapToItem(pill, ws.activeDotPoint.x, ws.activeDotPoint.y + drop);
     }
 
     /**
@@ -658,7 +637,8 @@ Item {
         form: pill.ameSurface ? pill.ameSurface.ameForm
             : (pill.mode === "hover" && pill.hoverSoulGate ? "soul" : "off")
         point: pill.ameSurface
-            ? Qt.point(pill.ameSurface.x + pill.ameSurface.amePoint.x, pill.ameSurface.y + pill.ameSurface.amePoint.y)
+            ? Qt.point(pill.ameSurface.x + pill.ameSurface.amePoint.x,
+                       pill.ameSurface.y + pill.ameSurface.amePoint.y)
             : (pill.mode === "hover" ? pill.soulPoint : pill.wakePoint)
     }
 
@@ -693,27 +673,11 @@ Item {
         }
     }
 
-    // Debug: auto-open battery after 5s for testing
-    Timer {
-        id: debugOpenBattery
-        interval: 5000
-        repeat: false
-        running: true
-        onTriggered: {
-            console.log("[DEBUG] Auto-opening battery surface");
-            pill.surface = "battery";
-        }
-    }
-
     TapHandler {
         enabled: !pill.surfaceOpen
         gesturePolicy: TapHandler.WithinBounds
         onTapped: pill.pinned = !pill.pinned
     }
-
-    // ═══════════════════════════════════════════════════════════════════════
-    // REST — collapsed pill: clock + status icons
-    // ═══════════════════════════════════════════════════════════════════════
 
     Item {
         id: rest
@@ -726,7 +690,6 @@ Item {
             id: restRow
             anchors.centerIn: parent
             spacing: 9 * pill.s
-
             Item {
                 id: restKanji
                 anchors.verticalCenter: parent.verticalCenter
@@ -740,7 +703,8 @@ Item {
                     color: "transparent"
                     font: kanjiFill.font
                     style: Text.Outline
-                    styleColor: Qt.alpha(Theme.vermLit, Math.min(1, (pill.mode === "rest" || !pill.hoverSoulGate ? 0.5 : 0) + pill.kanjiFlash))
+                    styleColor: Qt.alpha(Theme.vermLit,
+                        Math.min(1, (pill.mode === "rest" || !pill.hoverSoulGate ? 0.5 : 0) + pill.kanjiFlash))
                 }
 
                 Text {
@@ -763,7 +727,6 @@ Item {
                     stroke: 1.7
                 }
             }
-
             Text {
                 anchors.verticalCenter: parent.verticalCenter
                 text: clock.hhmm
@@ -775,10 +738,6 @@ Item {
             }
         }
     }
-
-    // ═══════════════════════════════════════════════════════════════════════
-    // HOVER — expanded pill: workspaces + clock + status icons
-    // ═══════════════════════════════════════════════════════════════════════
 
     Item {
         id: hover
@@ -824,7 +783,6 @@ Item {
                     id: hoverClock
                     anchors.centerIn: parent
                     spacing: 2 * pill.s
-
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: clock.hhmm
@@ -834,7 +792,6 @@ Item {
                         font.weight: Font.DemiBold
                         font.features: { "tnum": 1 }
                     }
-
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: clock.date
@@ -938,16 +895,17 @@ Item {
 
                     Shape {
                         id: dndShape
+
                         width: 16
                         height: 16
                         scale: pill.s
                         transformOrigin: Item.TopLeft
                         x: dndShape.boundingRect.width > 0
-                            ? dndIcon.width / 2 - (dndShape.boundingRect.x + dndShape.boundingRect.width / 2) * pill.s
-                            : (dndIcon.width - 16 * pill.s) / 2
+                           ? dndIcon.width / 2 - (dndShape.boundingRect.x + dndShape.boundingRect.width / 2) * pill.s
+                           : (dndIcon.width - 16 * pill.s) / 2
                         y: dndShape.boundingRect.height > 0
-                            ? dndIcon.height / 2 - (dndShape.boundingRect.y + dndShape.boundingRect.height / 2) * pill.s
-                            : (dndIcon.height - 16 * pill.s) / 2
+                           ? dndIcon.height / 2 - (dndShape.boundingRect.y + dndShape.boundingRect.height / 2) * pill.s
+                           : (dndIcon.height - 16 * pill.s) / 2
                         preferredRendererType: Shape.CurveRenderer
 
                         ShapePath {
@@ -959,7 +917,11 @@ Item {
                             startX: 5.2; startY: 12.2
                             PathLine { x: 12.2; y: 12.2 }
                             PathLine { x: 12.2; y: 7.2 }
-                            PathCubic { control1X: 12.2; control1Y: 5.4; control2X: 11.2; control2Y: 4.0; x: 9.5; y: 3.5 }
+                            PathCubic {
+                                control1X: 12.2; control1Y: 5.4
+                                control2X: 11.2; control2Y: 4.0
+                                x: 9.5; y: 3.5
+                            }
                         }
                         ShapePath {
                             strokeColor: Theme.vermLit
@@ -1033,6 +995,7 @@ Item {
                         }
 
                         MouseArea {
+                            id: batteryArea
                             anchors.fill: parent
                             anchors.margins: -6 * pill.s
                             hoverEnabled: true
@@ -1173,13 +1136,15 @@ Item {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: (e) => {
                             if (e.button === Qt.RightButton) {
-                                if (ScreenRec.recording) ScreenRec.stop();
+                                if (ScreenRec.recording)
+                                    ScreenRec.stop();
                                 return;
                             }
                             pill.requestSurface("recorder");
                         }
                         onDoubleClicked: (e) => {
-                            if (e.button === Qt.LeftButton && ScreenRec.recording) ScreenRec.stop();
+                            if (e.button === Qt.LeftButton && ScreenRec.recording)
+                                ScreenRec.stop();
                         }
                         onContainsMouseChanged: if (containsMouse) pill.soulTarget = "recorder"
                     }
@@ -1237,10 +1202,6 @@ Item {
             }
         }
     }
-
-    // ═══════════════════════════════════════════════════════════════════════
-    // SURFACES — all 18 surfaces stacked absolutely, cross-fading
-    // ═══════════════════════════════════════════════════════════════════════
 
     Mixer {
         id: mixer
@@ -1413,10 +1374,6 @@ Item {
         onRequestSurface: (name) => pill.requestSurface(name)
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // OSD + TOAST — overlays that don't derive from PillSurface
-    // ═══════════════════════════════════════════════════════════════════════
-
     Osd {
         id: osd
         anchors.fill: parent
@@ -1430,7 +1387,9 @@ Item {
         enabled: pill.mode === "osd"
         opacity: pill.mode === "osd" ? 1 : 0
         visible: opacity > 0.01
-        Behavior on opacity { NumberAnimation { duration: Motion.standard; easing.type: Motion.easeStandard } }
+        Behavior on opacity {
+            NumberAnimation { duration: Motion.standard; easing.type: Motion.easeStandard }
+        }
     }
 
     Loader {
@@ -1444,7 +1403,9 @@ Item {
         enabled: pill.mode === "toast"
         opacity: pill.mode === "toast" ? 1 : 0
         visible: opacity > 0.01
-        Behavior on opacity { NumberAnimation { duration: Motion.standard; easing.type: Motion.easeStandard } }
+        Behavior on opacity {
+            NumberAnimation { duration: Motion.standard; easing.type: Motion.easeStandard }
+        }
 
         sourceComponent: Item {
             implicitHeight: toastContent.implicitHeight
@@ -1476,10 +1437,14 @@ Item {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // QUICK-RECORD CHOOSER + COUNTDOWN
-    // ═══════════════════════════════════════════════════════════════════════
-
+    /**
+     * Standalone quick-record source chooser. Driven by the SUPER+D keybind with
+     * no recorder surface open: it grows the pill on the focused monitor only
+     * (mode "quickChoose") and offers the same Screen and Window / Region picks as
+     * the surface. Screen with one monitor resolves at once; several monitors flip
+     * to the inline sub-choice. A pick fires ScreenRec.prepareScreen / prepareWindow
+     * → targetReady → the central countdown, then closes.
+     */
     Item {
         id: quickChooser
         anchors.fill: parent
@@ -1487,7 +1452,9 @@ Item {
         enabled: pill.mode === "quickChoose"
         opacity: pill.mode === "quickChoose" ? Math.pow(pill.morphCloseness, 1.3) : 0
         visible: opacity > 0.01
-        Behavior on opacity { NumberAnimation { duration: Motion.standard; easing.type: Motion.easeStandard } }
+        Behavior on opacity {
+            NumberAnimation { duration: Motion.standard; easing.type: Motion.easeStandard }
+        }
 
         Row {
             id: quickSources
@@ -1523,7 +1490,6 @@ Item {
                             color: qSrcArea.containsMouse ? Theme.vermLit : Theme.iconDim
                             stroke: 1.7
                         }
-
                         Text {
                             height: 16 * pill.s
                             verticalAlignment: Text.AlignVCenter
@@ -1580,7 +1546,6 @@ Item {
                         font.pixelSize: 11.5 * pill.s
                         font.weight: Font.Bold
                     }
-
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: qMonTile.modelData.w + " × " + qMonTile.modelData.h
@@ -1630,13 +1595,21 @@ Item {
         }
     }
 
+    /**
+     * Standalone pre-roll countdown toast. Shown at the pill top on the focused
+     * monitor when the central countdown runs and the recorder surface is closed
+     * (mode "quickCount"): a big flame-glow numeral over a small "GET READY" label.
+     * Tapping cancels. The surface's own in-bar countdown covers the surface case.
+     */
     Item {
         id: quickCount
         anchors.fill: parent
         enabled: pill.mode === "quickCount"
         opacity: pill.mode === "quickCount" ? Math.pow(pill.morphCloseness, 1.3) : 0
         visible: opacity > 0.01
-        Behavior on opacity { NumberAnimation { duration: Motion.standard; easing.type: Motion.easeStandard } }
+        Behavior on opacity {
+            NumberAnimation { duration: Motion.standard; easing.type: Motion.easeStandard }
+        }
 
         Column {
             anchors.centerIn: parent
@@ -1651,7 +1624,6 @@ Item {
                 font.weight: Font.ExtraBold
                 font.features: { "tnum": 1 }
             }
-
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: "GET READY"
@@ -1670,4 +1642,5 @@ Item {
             onClicked: ScreenRec.cancel()
         }
     }
+
 }

@@ -24,8 +24,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    // ADAPTED: ricelin → quickshell
-    readonly property string cacheDir: (Quickshell.env("XDG_CACHE_HOME") || (Quickshell.env("HOME") + "/.cache")) + "/quickshell"
+    readonly property string cacheDir: (Quickshell.env("XDG_CACHE_HOME") || (Quickshell.env("HOME") + "/.cache")) + "/ricelin"
 
     property int tempNow: 0
     property int codeNow: 0
@@ -46,157 +45,189 @@ Singleton {
      * the same glyph round the clock.
      */
     function glyphFor(code, day) {
-        if (code === 0) return day ? "sun" : "moon";
-        if (code <= 3) return "cloud";
-        if (code === 45 || code === 48) return "cloud-fog";
-        if (code >= 95) return "cloud-lightning";
-        if ((code >= 71 && code <= 77) || code === 85 || code === 86) return "cloud-snow";
-        if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return "cloud-rain";
+        if (code === 0)
+            return day ? "sun" : "moon";
+        if (code <= 3)
+            return "cloud";
+        if (code === 45 || code === 48)
+            return "cloud-fog";
+        if (code >= 95)
+            return "cloud-lightning";
+        if ((code >= 71 && code <= 77) || code === 85 || code === 86)
+            return "cloud-snow";
+        if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82))
+            return "cloud-rain";
         return "cloud";
     }
 
     /** Short english word for a WMO weather code, for labels and accessibility. */
     function labelFor(code) {
-        if (code === 0) return "Clear";
-        if (code <= 3) return "Cloudy";
-        if (code === 45 || code === 48) return "Fog";
-        if (code >= 95) return "Thunder";
-        if ((code >= 71 && code <= 77) || code === 85 || code === 86) return "Snow";
-        if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return "Rain";
+        if (code === 0)
+            return "Clear";
+        if (code <= 3)
+            return "Cloudy";
+        if (code === 45 || code === 48)
+            return "Fog";
+        if (code >= 95)
+            return "Thunder";
+        if ((code >= 71 && code <= 77) || code === 85 || code === 86)
+            return "Snow";
+        if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82))
+            return "Rain";
         return "Cloudy";
     }
 
     /** Persist resolved coordinates so a restart skips the location round-trip. */
-    function cachePath() { return cacheDir + "/weather.json"; }
-
-    function saveCache() {
-        cacheWriter.path = cachePath();
-        cacheWriter.text = JSON.stringify({ lat: lat, lon: lon, city: city });
-        cacheWriter.atomicWrites = true;
-    }
-
-    function loadCache() {
-        cacheReader.path = cachePath();
-        try {
-            var j = JSON.parse(cacheReader.text());
-            if (j && j.lat && j.lon) {
-                lat = j.lat; lon = j.lon; city = j.city || "";
-                located = true;
-            }
-        } catch (e) { /* ignore */ }
-    }
-
-    function locate() {
-        if (Flags.weatherCity.length > 0) {
-            geoProc.running = true;
-        } else {
-            ipProc.running = true;
-        }
+    function writeLoc() {
+        locCache.setText(JSON.stringify({ city: root.city, lat: root.lat, lon: root.lon }));
     }
 
     function fetchWeather() {
-        if (!located) return;
-        var url = "https://api.open-meteo.com/v1/forecast?latitude=" + lat
-            + "&longitude=" + lon
-            + "&current=temperature_2m,relative_humidity_2m,weather_code,is_day"
-            + "&hourly=temperature_2m,weather_code"
-            + "&daily=weather_code,temperature_2m_max,temperature_2m_min"
-            + "&timezone=auto&forecast_days=1";
-        weatherProc.command = ["curl", "-s", url];
-        weatherProc.running = true;
+        if (!located || wxProc.running)
+            return;
+        wxProc.running = true;
     }
 
-    // --- Cache I/O ---
+    /**
+     * Loads cached coordinates synchronously (blockLoading) and fetches at once;
+     * an absent or malformed cache falls through to a fresh location lookup.
+     */
+    Component.onCompleted: {
+        try {
+            var c = JSON.parse(locCache.text());
+            if (c && typeof c.lat === "number" && typeof c.lon === "number") {
+                root.city = c.city || "";
+                root.lat = c.lat;
+                root.lon = c.lon;
+                root.located = true;
+                root.fetchWeather();
+                return;
+            }
+        } catch (e) {}
+        root.locate();
+    }
+
     FileView {
-        id: cacheReader
+        id: locCache
+        path: root.cacheDir + "/weather-loc.json"
         blockLoading: true
         printErrors: false
     }
 
-    FileView {
-        id: cacheWriter
-        atomicWrites: true
+    /** Resolve coordinates: geocode the manual city override, else fall back to IP. */
+    function locate() {
+        if (Flags.weatherCity && Flags.weatherCity.trim().length > 0)
+            geoProc.running = true;
+        else
+            ipProc.running = true;
     }
 
-    // --- Geocode via city name ---
-    Process {
-        id: geoProc
-        command: ["curl", "-s",
-            "https://geocoding-api.open-meteo.com/v1/search?name=" + encodeURIComponent(Flags.weatherCity) + "&count=1"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try {
-                    var j = JSON.parse(text);
-                    if (j.results && j.results.length > 0) {
-                        root.lat = j.results[0].latitude;
-                        root.lon = j.results[0].longitude;
-                        root.city = j.results[0].name;
-                        root.located = true;
-                        saveCache();
-                        fetchWeather();
-                    }
-                } catch (e) { /* ignore */ }
-            }
-        }
+    Connections {
+        target: Flags
+        function onWeatherCityChanged() { root.locate(); }
     }
 
-    // --- IP-based location lookup ---
     Process {
         id: ipProc
-        command: ["curl", "-s", "http://ip-api.com/json/"]
+        command: ["curl", "-s", "--max-time", "8", "http://ip-api.com/json?fields=lat,lon,city"]
         stdout: StdioCollector {
             onStreamFinished: {
                 try {
-                    var j = JSON.parse(text);
-                    if (j.lat && j.lon) {
-                        root.lat = j.lat;
-                        root.lon = j.lon;
-                        root.city = j.city || "";
+                    var d = JSON.parse(this.text);
+                    if (typeof d.lat === "number" && typeof d.lon === "number") {
+                        root.city = d.city || "";
+                        root.lat = d.lat;
+                        root.lon = d.lon;
                         root.located = true;
-                        saveCache();
-                        fetchWeather();
+                        root.writeLoc();
+                        root.fetchWeather();
                     }
-                } catch (e) { /* ignore */ }
+                } catch (e) {}
             }
         }
     }
 
-    // --- Weather fetch ---
     Process {
-        id: weatherProc
-        command: ["curl", "-s", ""] // placeholder — fetchWeather() sets the actual URL
+        id: geoProc
+        command: ["curl", "-s", "--max-time", "8", "-G",
+            "https://geocoding-api.open-meteo.com/v1/search",
+            "--data-urlencode", "name=" + (Flags.weatherCity || ""),
+            "--data-urlencode", "count=1"]
         stdout: StdioCollector {
             onStreamFinished: {
                 try {
-                    var j = JSON.parse(text);
-                    var c = j.current;
-                    root.tempNow = Math.round(c.temperature_2m);
-                    root.codeNow = c.weather_code;
-                    root.humidity = c.relative_humidity_2m;
-                    root.isDay = c.is_day === 1;
-                    root.hourly = j.hourly.time.map(function(t, i) {
-                        return { time: t, temp: Math.round(j.hourly.temperature_2m[i]), code: j.hourly.weather_code[i] };
-                    });
-                    root.daily = j.daily.time.map(function(t, i) {
-                        return { time: t, code: j.daily.weather_code[i], max: Math.round(j.daily.temperature_2m_max[i]), min: Math.round(j.daily.temperature_2m_min[i]) };
-                    });
+                    var d = JSON.parse(this.text);
+                    var r = d.results && d.results[0];
+                    if (r && typeof r.latitude === "number" && typeof r.longitude === "number") {
+                        root.city = r.name || "";
+                        root.lat = r.latitude;
+                        root.lon = r.longitude;
+                        root.located = true;
+                        root.writeLoc();
+                        root.fetchWeather();
+                    }
+                } catch (e) {}
+            }
+        }
+    }
+
+    Process {
+        id: wxProc
+        command: ["curl", "-s", "--max-time", "10",
+            "https://api.open-meteo.com/v1/forecast?latitude=" + root.lat
+            + "&longitude=" + root.lon
+            + "&current=temperature_2m,weather_code,is_day,relative_humidity_2m"
+            + "&hourly=temperature_2m,weather_code&forecast_hours=24"
+            + "&daily=weather_code,temperature_2m_max,relative_humidity_2m_mean&forecast_days=5&timezone=auto"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    var d = JSON.parse(this.text);
+                    var cur = d.current;
+                    if (!cur)
+                        return;
+                    var rows = [];
+                    var h = d.hourly;
+                    if (h && h.time && h.temperature_2m && h.weather_code) {
+                        var n = Math.min(h.time.length, h.temperature_2m.length, h.weather_code.length);
+                        for (var i = 0; i < n; i++) {
+                            rows.push({
+                                hour: h.time[i].slice(11, 13),
+                                temp: Math.round(h.temperature_2m[i]),
+                                code: h.weather_code[i]
+                            });
+                        }
+                    }
+                    var days = [];
+                    var dd = d.daily;
+                    if (dd && dd.time && dd.weather_code && dd.temperature_2m_max && dd.relative_humidity_2m_mean) {
+                        var dn = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+                        var m = Math.min(dd.time.length, dd.weather_code.length, dd.temperature_2m_max.length, dd.relative_humidity_2m_mean.length);
+                        for (var j = 0; j < m; j++) {
+                            days.push({
+                                day: dn[new Date(dd.time[j]).getDay()],
+                                code: dd.weather_code[j],
+                                temp: Math.round(dd.temperature_2m_max[j]),
+                                rh: Math.round(dd.relative_humidity_2m_mean[j])
+                            });
+                        }
+                    }
+                    root.tempNow = Math.round(cur.temperature_2m);
+                    root.codeNow = cur.weather_code;
+                    root.humidity = Math.round(cur.relative_humidity_2m);
+                    root.isDay = cur.is_day === 1;
+                    root.hourly = rows;
+                    root.daily = days;
                     root.ready = true;
-                } catch (e) { /* ignore */ }
+                } catch (e) {}
             }
         }
     }
 
     Timer {
-        id: weatherTimer
-        interval: 20 * 60 * 1000 // 20 minutes
-        running: located
+        interval: 1200000
+        running: true
         repeat: true
-        onTriggered: fetchWeather()
-    }
-
-    Component.onCompleted: {
-        loadCache();
-        if (located) fetchWeather();
-        else locate();
+        onTriggered: root.fetchWeather()
     }
 }

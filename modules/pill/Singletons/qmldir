@@ -1,15 +1,14 @@
-module Pill.Singletons
-singleton Flags Flags.qml
-singleton Motion Motion.qml
 singleton Theme Theme.qml
-singleton Dyn Dyn.qml
+singleton Motion Motion.qml
+singleton Flags Flags.qml
 singleton Notifs Notifs.qml
+singleton Cliphist Cliphist.qml
+singleton Walls Walls.qml
+singleton Devices Devices.qml
 singleton Battery Battery.qml
 singleton ScreenRec ScreenRec.qml
 singleton Sysmon Sysmon.qml
+singleton Dyn Dyn.qml
 singleton Weather Weather.qml
-singleton Workspacerules Workspacerules.qml
 singleton Events Events.qml
-singleton Cliphist Cliphist.qml
-singleton Devices Devices.qml
-singleton Walls Walls.qml
+singleton Workspacerules Workspacerules.qml
