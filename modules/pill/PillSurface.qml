@@ -1,4 +1,5 @@
 import QtQuick
+import "Singletons"
 
 /**
  * Shared morph-surface base for the pill's standard surfaces. Each surface fills

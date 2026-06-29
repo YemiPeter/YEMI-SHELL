@@ -23,6 +23,12 @@ PillSurface {
     implicitHeight: col.implicitHeight + 24 * s
     implicitWidth: 316 * s
 
+    Component.onCompleted: {
+        console.log("[BATTERY] onCompleted: implicitWidth:", implicitWidth, "implicitHeight:", implicitHeight, "s:", s);
+    }
+    onImplicitHeightChanged: console.log("[BATTERY] implicitHeight changed:", implicitHeight, "s:", s)
+    onImplicitWidthChanged: console.log("[BATTERY] implicitWidth changed:", implicitWidth, "s:", s)
+
     Column {
         id: col
         anchors.centerIn: parent

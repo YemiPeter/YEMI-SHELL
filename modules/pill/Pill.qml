@@ -26,6 +26,10 @@ Item {
     property var barWindow
     property string surface: ""
 
+    Component.onCompleted: {
+        console.log("[PILL] onCompleted: s =", s, "targetW =", targetW, "targetH =", targetH, "mode =", mode);
+    }
+
     property bool hovered: false
     property bool pinned: false
     property bool forcePinned: false
@@ -68,6 +72,7 @@ Item {
     readonly property var wifiActive: wifiNets.find(function(n) { return n && n.connected }) || null
     readonly property real wifiLevel: (wifiActive && wifiActive.signalStrength) || 0
     readonly property bool surfaceOpen: surface.length > 0
+    property int hoverIndex: -1
     property bool hoverLatch: false
     readonly property bool expanded: surfaceOpen || held || hoverLatch
     readonly property bool toastActive: Notifs.popups.length > 0
@@ -426,15 +431,23 @@ Item {
 
     readonly property size targetSize: {
         const sf = surfaces[mode];
-        if (sf) return sf.size();
-        const f = modeSize[mode];
-        return f ? f() : Qt.size(Math.max(restW, restRow.implicitWidth + 36 * s), restH);
+        let sz;
+        if (sf) sz = sf.size();
+        else {
+            const f = modeSize[mode];
+            sz = f ? f() : Qt.size(Math.max(restW, restRow.implicitWidth + 36 * s), restH);
+        }
+        console.log("[TARGET] mode:", mode, "size:", sz.width, "x", sz.height, "s:", s);
+        return sz;
     }
     readonly property real targetW: targetSize.width
     readonly property real targetH: targetSize.height
 
     width: targetW
     height: targetH
+
+    onWidthChanged: console.log("[WIDTH] width:", width, "targetW:", targetW, "mode:", mode)
+    onHeightChanged: console.log("[HEIGHT] height:", height, "targetH:", targetH, "mode:", mode)
 
     /**
      * How settled the pill is into its target geometry: 0 while the morph is far
@@ -677,6 +690,18 @@ Item {
                 return;
             }
             pill.hoverLatch = false;
+        }
+    }
+
+    // Debug: auto-open battery after 5s for testing
+    Timer {
+        id: debugOpenBattery
+        interval: 5000
+        repeat: false
+        running: true
+        onTriggered: {
+            console.log("[DEBUG] Auto-opening battery surface");
+            pill.surface = "battery";
         }
     }
 

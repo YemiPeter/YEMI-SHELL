@@ -107,8 +107,8 @@ Item {
             id: centerContainer
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter
-            width: pill ? pill.implicitWidth : 0
-            height: pill ? pill.implicitHeight : 0
+            width: pill ? pill.width : 0
+            height: pill ? pill.height : 0
         
             // Hover detection for the pill
             HoverHandler {
@@ -126,7 +126,13 @@ Item {
                 surface: ""
                 s: 1
                 anchors.centerIn: parent
+            
+                // Handle surface requests from bar components
+                onRequestSurface: (name) => pill.surface = name
+                onRequestClose: pill.surface = ""
             }
+        
+            property alias pill: pill
         }
 
         // ═══════════════════════════════════════════════════════════════
@@ -193,7 +199,14 @@ Item {
                             when: networkLoader.status === Loader.Ready && root.networkPopup !== undefined
                             restoreMode: Binding.RestoreBinding
                         }
-                    }
+                        Binding {
+                            target: networkLoader.item
+                            property: "pill"
+                            value: centerContainer.pill
+                            when: networkLoader.status === Loader.Ready
+                            restoreMode: Binding.RestoreBinding
+                        }
+                        }
 
                     // Separator
                     Rectangle {
@@ -312,6 +325,13 @@ Item {
                             when: volumeLoader.status === Loader.Ready && root.volumePopup !== undefined
                             restoreMode: Binding.RestoreBinding
                         }
+                        Binding {
+                            target: volumeLoader.item
+                            property: "pill"
+                            value: centerContainer.pill
+                            when: volumeLoader.status === Loader.Ready
+                            restoreMode: Binding.RestoreBinding
+                        }
                     }
                 }
             }
@@ -377,6 +397,13 @@ Item {
                         anchors.verticalCenter: parent.verticalCenter
                         asynchronous: true
                         source: "components/Battery.qml"
+                        Binding {
+                            target: batteryLoader.item
+                            property: "pill"
+                            value: centerContainer.pill
+                            when: batteryLoader.status === Loader.Ready
+                            restoreMode: Binding.RestoreBinding
+                        }
                     }
 
                     // Separator

@@ -7,9 +7,10 @@ import "../../../singletons" as QsSingletons
 // Clean Network indicator - No shadows, proper alignment
 Item {
     id: root
-    
+
     property var barWindow
     property var networkPopup
+    property var pill
     
     readonly property var network: QsServices.Network
     readonly property bool isHovered: mouseArea.containsMouse
@@ -92,23 +93,10 @@ Item {
         hoverEnabled: true
         
         onClicked: {
-            if (!networkPopup) return
-            
-            if (networkPopup.shouldShow) {
-                networkPopup.shouldShow = false
-            } else {
-                if (!barWindow || !barWindow.screen) return
-                
-                const pos = root.mapToItem(barWindow.contentItem, 0, 0)
-                const rightEdge = pos.x + root.width
-                const screenWidth = barWindow.screen.width
-                
-                // Position popup below the bar
-                // Bar anchors to screen top, so margins.top = bar_height + gap
-                const barHeight = barWindow.implicitHeight || 36
-                networkPopup.margins.right = Math.round(screenWidth - rightEdge - 8)
-                networkPopup.margins.top = barHeight + 6  // Just below bar with small gap
-                networkPopup.shouldShow = true
+            console.log("[Network] clicked, pill:", root.pill, "surface:", root.pill ? root.pill.surface : "null", "requestSurface:", root.pill && typeof root.pill.requestSurface === "function" ? "yes" : "no")
+            if (root.pill) {
+                if (root.pill.surface === "link") root.pill.requestSurface("");
+                else root.pill.requestSurface("link");
             }
         }
     }
