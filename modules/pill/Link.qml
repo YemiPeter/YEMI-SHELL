@@ -22,6 +22,7 @@ PillSurface {
 
     implicitHeight: Math.max(280 * s, viewStack.implicitHeight + 24 * s)
     implicitWidth: 360 * s
+    readonly property real desiredW: 360 * s
 
     onActiveChanged: {
         if (active) root.currentView = root.initialView;
@@ -47,7 +48,9 @@ PillSurface {
         Item {
             id: mainView
             anchors.fill: parent
-            visible: root.currentView === "main"
+            opacity: root.currentView === "main" ? 1 : 0
+            visible: opacity > 0.01
+            Behavior on opacity { NumberAnimation { duration: Motion.standard } }
 
             Column {
                 anchors.fill: parent
@@ -138,7 +141,9 @@ PillSurface {
         Item {
             id: wifiView
             anchors.fill: parent
-            visible: root.currentView === "wifi"
+            opacity: root.currentView === "wifi" ? 1 : 0
+            visible: opacity > 0.01
+            Behavior on opacity { NumberAnimation { duration: Motion.standard } }
 
             Column {
                 anchors.fill: parent

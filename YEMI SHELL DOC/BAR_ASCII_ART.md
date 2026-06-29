@@ -1,4 +1,4 @@
-# QuickShell Top Bar - ASCII Art Representation
+^# QuickShell Top Bar - ASCII Art Representation
 
 ## Layout Overview
 

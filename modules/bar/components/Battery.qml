@@ -9,7 +9,9 @@ import "../../../components/effects"
 // Samsung-style animated battery - Matches the reference image
 Item {
     id: root
-    
+
+    property var pill
+
     implicitWidth: batteryContainer.width
     implicitHeight: 24
     
@@ -298,5 +300,17 @@ Item {
                 color: "#ffffff"
             }
         }
+    
+        MouseArea {
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
+            onClicked: {
+                console.log("[Battery] clicked, pill:", root.pill, "surface:", root.pill ? root.pill.surface : "null", "requestSurface:", root.pill && typeof root.pill.requestSurface === "function" ? "yes" : "no")
+                if (root.pill) {
+                    if (root.pill.surface === "battery") root.pill.requestSurface("");
+                    else root.pill.requestSurface("battery");
+                }
+            }
+        }
     }
-}
+    }
