@@ -4,8 +4,8 @@ import Quickshell
 import Quickshell.Io
 
 /**
- * Wallpaper bridge: keeps a warm in-memory snapshot of the wallpaper directory
- * so the wallpaper strip opens instantly without shelling out on demand. A
+ * Wallpaper bridge: keeps a warm in-memory snapshot of ~/Ricelin/wallpapers so
+ * the wallpaper strip opens instantly without shelling out on demand. A
  * refresh first runs the thumbnail script (generating missing 512px previews
  * and pruning ones whose source is gone), then re-lists the directory
  * newest-first and finally re-reads the state file wallpaper.sh maintains, so
@@ -18,9 +18,6 @@ import Quickshell.Io
  * Entries are plain objects: { path, name, mtime, thumb } where path is the
  * absolute source file, mtime its modification time in epoch seconds and
  * thumb the absolute path of the cached preview png.
- *
- * ADAPTED: Paths changed from ~/Ricelin/wallpapers to ~/Pictures/wallpapers
- * and scripts from .config/hypr/scripts to .config/quickshell/scripts.
  */
 Singleton {
     id: root
@@ -30,12 +27,11 @@ Singleton {
     property string current: ""
     property bool pending: false
 
-    // ADAPTED: Ricelin-specific paths → quickshell paths
-    readonly property string wpDir: Quickshell.env("HOME") + "/Pictures/wallpapers"
-    readonly property string thumbDir: (Quickshell.env("XDG_CACHE_HOME") || (Quickshell.env("HOME") + "/.cache")) + "/quickshell-wp-thumbs/"
-    readonly property string thumbScript: Quickshell.env("HOME") + "/.config/quickshell/scripts/wallpaper-thumbs.sh"
-    readonly property string setScript: Quickshell.env("HOME") + "/.config/quickshell/scripts/wallpaper.sh"
-    readonly property string stateFile: (Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")) + "/quickshell-wallpaper"
+    readonly property string wpDir: Quickshell.env("HOME") + "/Ricelin/wallpapers"
+    readonly property string thumbDir: (Quickshell.env("XDG_CACHE_HOME") || (Quickshell.env("HOME") + "/.cache")) + "/ricelin-wp-thumbs/"
+    readonly property string thumbScript: Quickshell.env("HOME") + "/.config/hypr/scripts/wallpaper-thumbs.sh"
+    readonly property string setScript: Quickshell.env("HOME") + "/.config/hypr/scripts/wallpaper.sh"
+    readonly property string stateFile: (Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")) + "/ricelin-wallpaper"
 
     function refresh() {
         if (thumbProc.running || listProc.running || stateProc.running) {
@@ -62,95 +58,83 @@ Singleton {
         applyProc.running = true;
     }
 
-    function random() {
-        if (applyProc.running) {
-            queuedApply = "random";
-            return;
-        }
-        applyProc.command = ["bash", root.setScript, "random"];
-        applyProc.running = true;
+    function trash(path) {
+        trashProc.command = ["gio", "trash", path];
+        trashProc.running = true;
+        var kept = [];
+        for (var i = 0; i < entries.length; i++)
+            if (entries[i].path !== path)
+                kept.push(entries[i]);
+        entries = kept;
     }
 
-    // --- Thumbnail generation ---
+    Process {
+        id: trashProc
+        onExited: function(exitCode) {
+            if (exitCode !== 0)
+                root.refresh();
+        }
+    }
+
     Process {
         id: thumbProc
-        command: ["bash", root.thumbScript]
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                listProc.running = true;
-            }
-        }
+        command: ["sh", root.thumbScript]
+        onExited: listProc.running = true
     }
 
-    // --- Directory listing ---
     Process {
         id: listProc
-        command: ["find", root.wpDir, "-type", "f", "-printf", "%T@\t%p\n"]
+        command: ["sh", "-c", "find \"$1\" -type f \\( -iname '*.jpg' -o -iname '*.png' \\) -printf '%T@\\t%p\\n' | sort -rn", "_", root.wpDir]
         stdout: StdioCollector {
             onStreamFinished: {
-                var lines = text.trim().split("\n");
+                var lines = this.text.split("\n");
                 var out = [];
                 for (var i = 0; i < lines.length; i++) {
-                    if (!lines[i].trim()) continue;
-                    var parts = lines[i].split("\t");
-                    var mtime = parseFloat(parts[0]) || 0;
-                    var path = parts[1] || "";
-                    var name = path.split("/").pop();
-                    var thumb = root.thumbDir + name + ".png";
-                    out.push({ path: path, name: name, mtime: mtime, thumb: thumb });
+                    var tab = lines[i].indexOf("\t");
+                    if (tab < 1)
+                        continue;
+                    var path = lines[i].substring(tab + 1);
+                    var name = path.substring(path.lastIndexOf("/") + 1);
+                    out.push({
+                        path: path,
+                        name: name,
+                        mtime: parseFloat(lines[i].substring(0, tab)),
+                        thumb: root.thumbDir + name + ".png"
+                    });
                 }
-                out.sort(function(a, b) { return b.mtime - a.mtime; });
                 root.entries = out;
                 stateProc.running = true;
             }
         }
-        running: false
-    }
-
-    // --- State file (current wallpaper) ---
-    FileView {
-        id: stateFileView
-        path: root.stateFile
-        blockLoading: true
-        printErrors: false
     }
 
     Process {
         id: stateProc
-        command: ["cat", root.stateFile]
+        command: ["sh", "-c", "cat \"$1\" 2>/dev/null || true", "_", root.stateFile]
         stdout: StdioCollector {
             onStreamFinished: {
-                root.current = text.trim();
+                root.current = this.text.trim();
                 if (root.pending) {
                     root.pending = false;
-                    root.refresh();
+                    Qt.callLater(root.refresh);
                 }
             }
         }
-        running: false
     }
 
     Process {
         id: applyProc
-        command: []
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                if (root.queuedApply.length > 0) {
-                    var next = root.queuedApply;
-                    root.queuedApply = "";
-                    if (next === "random") root.random();
-                    else root.apply(next);
-                } else {
-                    root.refresh();
-                }
+        onExited: {
+            if (root.queuedApply.length) {
+                var next = root.queuedApply;
+                root.queuedApply = "";
+                applyProc.command = ["bash", root.setScript, "set", next];
+                applyProc.running = true;
+                return;
             }
+            stateProc.running = true;
         }
     }
 
-    Component.onCompleted: {
-        refresh();
-        root.current = stateFileView.text().trim();
-    }
+    Component.onCompleted: refresh()
 }

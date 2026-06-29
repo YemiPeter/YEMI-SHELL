@@ -4,7 +4,7 @@ import Quickshell
 import Quickshell.Io
 
 /**
- * System-vitals backend for the sysmon surface. Polls CPU, memory, swap,
+ * System-vitals backend for the 系 SYSTEM surface. Polls CPU, memory, swap,
  * network, disk and (when a discrete GPU is present) GPU load, temperature and
  * VRAM, exposing them as live properties the surface binds to. Polling only runs
  * while `open` is true, on three decoupled cadences so a slow source never
@@ -65,10 +65,10 @@ Singleton {
         prevCpuTotal = 0;
         prevRx = 0;
         prevNetTime = 0;
-        fastTimer.running = true;
+        fastProc.running = true;
         if (hasGpu)
-            gpuTimer.running = true;
-        slowTimer.running = true;
+            gpuProc.running = true;
+        slowProc.running = true;
     }
 
     onOpenChanged: if (open) primeAll()
@@ -79,159 +79,172 @@ Singleton {
         var m = Math.floor((sec % 3600) / 60);
         var hh = h < 10 ? "0" + h : "" + h;
         var mm = m < 10 ? "0" + m : "" + m;
-        return d > 0 ? d + "d " + hh + ":" + mm : hh + ":" + mm;
+        return "UP " + d + "D " + hh + ":" + mm;
     }
 
-    // --- Detection (runs once) ---
+    Component.onCompleted: detectProc.running = true
+
     Process {
         id: detectProc
-        command: ["bash", "-c",
-            Quickshell.env("HOME") + "/.config/quickshell/scripts/sysmon-detect.sh"
-        ]
+        command: ["sh", "-c",
+            "tp=''; for h in /sys/class/hwmon/hwmon*; do for l in \"$h\"/temp*_label; do [ -r \"$l\" ] || continue; [ \"$(cat \"$l\")\" = Tdie ] && { tp=\"${l%_label}_input\"; break 2; }; done; done; "
+            + "[ -z \"$tp\" ] && for h in /sys/class/hwmon/hwmon*; do for l in \"$h\"/temp*_label; do [ -r \"$l\" ] || continue; [ \"$(cat \"$l\")\" = 'Package id 0' ] && { tp=\"${l%_label}_input\"; break 2; }; done; done; "
+            + "[ -z \"$tp\" ] && for h in /sys/class/hwmon/hwmon*; do for l in \"$h\"/temp*_label; do [ -r \"$l\" ] || continue; [ \"$(cat \"$l\")\" = Tctl ] && { tp=\"${l%_label}_input\"; break 2; }; done; done; "
+            + "[ -z \"$tp\" ] && for h in /sys/class/hwmon/hwmon*; do [ -r \"$h/temp1_input\" ] && { tp=\"$h/temp1_input\"; break; }; done; "
+            + "echo \"TEMP $tp\"; "
+            + "if command -v nvidia-smi >/dev/null 2>&1 && nvidia-smi -L >/dev/null 2>&1; then echo 'GPU nvidia'; "
+            + "else for d in /sys/class/drm/card*/device; do [ -r \"$d/vendor\" ] || continue; [ \"$(cat \"$d/vendor\")\" = 0x1002 ] && [ -r \"$d/gpu_busy_percent\" ] && { v=0; [ -r \"$d/mem_info_vram_total\" ] && v=1; echo \"GPU amd $d $v\"; break; }; done; fi"]
         stdout: StdioCollector {
             onStreamFinished: {
-                try {
-                    var j = JSON.parse(text);
-                    root.tempPath = j.tempPath || "";
-                    root.gpuVendor = j.gpuVendor || "";
-                    root.amdDev = j.amdDev || "";
-                    root.hasGpu = j.hasGpu || false;
-                    root.hasVram = j.hasVram || false;
-                } catch (e) { /* ignore */ }
-                primeAll();
+                var lines = this.text.split("\n");
+                for (var i = 0; i < lines.length; i++) {
+                    var p = lines[i].trim().split(/\s+/);
+                    if (p[0] === "TEMP" && p.length > 1)
+                        root.tempPath = p.slice(1).join(" ");
+                    else if (p[0] === "GPU" && p[1] === "nvidia") {
+                        root.gpuVendor = "nvidia";
+                        root.hasGpu = true;
+                        root.hasVram = true;
+                    } else if (p[0] === "GPU" && p[1] === "amd") {
+                        root.gpuVendor = "amd";
+                        root.amdDev = p.slice(2, p.length - 1).join(" ");
+                        root.hasGpu = true;
+                        root.hasVram = p[p.length - 1] === "1";
+                    }
+                }
+                if (root.gpuVendor.length === 0)
+                    root.gpuVendor = "none";
+                if (root.open)
+                    root.primeAll();
             }
         }
     }
 
-    // --- Fast poll: CPU, memory, temp (500ms) ---
+    Process {
+        id: fastProc
+        command: ["sh", "-c",
+            "read -r _ a b c d e f g h _ < /proc/stat; echo \"CPU $((a+b+c+d+e+f+g+h)) $((d+e))\"; "
+            + "awk '/^MemTotal:/{mt=$2}/^MemAvailable:/{ma=$2}/^SwapTotal:/{st=$2}/^SwapFree:/{sf=$2}END{print \"MEM\",mt,ma,st,sf}' /proc/meminfo; "
+            + "awk 'NR>2{gsub(\":\",\" \");if($1!=\"lo\"){rx+=$2;tx+=$10}}END{print \"NET\",rx+0,tx+0}' /proc/net/dev; "
+            + "if [ -n \"$1\" ] && [ -r \"$1\" ]; then echo \"TMP $(cat \"$1\")\"; else echo 'TMP -'; fi",
+            "_", root.tempPath]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var lines = this.text.split("\n");
+                for (var i = 0; i < lines.length; i++) {
+                    var p = lines[i].trim().split(/\s+/);
+                    if (p[0] === "CPU") {
+                        var total = parseFloat(p[1]);
+                        var idle = parseFloat(p[2]);
+                        if (root.prevCpuTotal > 0) {
+                            var dt = total - root.prevCpuTotal;
+                            var di = idle - root.prevCpuIdle;
+                            root.cpu = dt > 0 ? Math.max(0, Math.min(100, Math.round(100 * (dt - di) / dt))) : 0;
+                        }
+                        root.prevCpuTotal = total;
+                        root.prevCpuIdle = idle;
+                    } else if (p[0] === "MEM") {
+                        var mt = parseFloat(p[1]);
+                        var ma = parseFloat(p[2]);
+                        var st = parseFloat(p[3]);
+                        var sf = parseFloat(p[4]);
+                        root.memTotalGb = mt / 1048576;
+                        root.memUsedGb = (mt - ma) / 1048576;
+                        root.memPct = mt > 0 ? Math.round(100 * (mt - ma) / mt) : 0;
+                        root.swapUsedGb = (st - sf) / 1048576;
+                    } else if (p[0] === "NET") {
+                        var rx = parseFloat(p[1]);
+                        var tx = parseFloat(p[2]);
+                        var now = Date.now();
+                        var dt = (now - root.prevNetTime) / 1000;
+                        if (root.prevNetTime > 0 && dt > 0) {
+                            root.netDown = Math.max(0, (rx - root.prevRx) / dt / 1048576);
+                            root.netUp = Math.max(0, (tx - root.prevTx) / dt / 1048576);
+                        }
+                        root.prevRx = rx;
+                        root.prevTx = tx;
+                        root.prevNetTime = now;
+                    } else if (p[0] === "TMP") {
+                        root.cpuTemp = p[1] === "-" ? -1 : Math.round(parseFloat(p[1]) / 1000);
+                    }
+                }
+            }
+        }
+    }
+
+    Process {
+        id: gpuProc
+        command: root.gpuVendor === "nvidia"
+            ? ["sh", "-c", "nvidia-smi --query-gpu=utilization.gpu,temperature.gpu,memory.used,memory.total --format=csv,noheader,nounits | head -1"]
+            : ["sh", "-c",
+                "d=\"$1\"; echo \"BUSY $(cat \"$d/gpu_busy_percent\" 2>/dev/null)\"; "
+                + "t=$(cat \"$d\"/hwmon/hwmon*/temp1_input 2>/dev/null | head -1); echo \"TEMP ${t:-0}\"; "
+                + "echo \"VU $(cat \"$d/mem_info_vram_used\" 2>/dev/null)\"; echo \"VT $(cat \"$d/mem_info_vram_total\" 2>/dev/null)\"",
+                "_", root.amdDev]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (root.gpuVendor === "nvidia") {
+                    var c = this.text.trim().split(",");
+                    if (c.length >= 4) {
+                        root.gpu = Math.max(0, Math.min(100, Math.round(parseFloat(c[0]) || 0)));
+                        root.gpuTemp = Math.round(parseFloat(c[1]) || 0);
+                        root.vramUsedGb = (parseFloat(c[2]) || 0) / 1024;
+                        root.vramTotalGb = (parseFloat(c[3]) || 0) / 1024;
+                    }
+                    return;
+                }
+                var lines = this.text.split("\n");
+                for (var i = 0; i < lines.length; i++) {
+                    var p = lines[i].trim().split(/\s+/);
+                    if (p[0] === "BUSY")
+                        root.gpu = Math.max(0, Math.min(100, Math.round(parseFloat(p[1]) || 0)));
+                    else if (p[0] === "TEMP")
+                        root.gpuTemp = Math.round((parseFloat(p[1]) || 0) / 1000);
+                    else if (p[0] === "VU")
+                        root.vramUsedGb = (parseFloat(p[1]) || 0) / 1073741824;
+                    else if (p[0] === "VT")
+                        root.vramTotalGb = (parseFloat(p[1]) || 0) / 1073741824;
+                }
+            }
+        }
+    }
+
+    Process {
+        id: slowProc
+        command: ["sh", "-c",
+            "df -P / | awk 'NR==2{gsub(\"%\",\"\",$5);print \"DISK \"$5}'; awk '{print \"UP \"int($1)}' /proc/uptime"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var lines = this.text.split("\n");
+                for (var i = 0; i < lines.length; i++) {
+                    var p = lines[i].trim().split(/\s+/);
+                    if (p[0] === "DISK")
+                        root.diskPct = parseInt(p[1], 10) || 0;
+                    else if (p[0] === "UP")
+                        root.uptime = root.fmtUptime(parseInt(p[1], 10) || 0);
+                }
+            }
+        }
+    }
+
     Timer {
-        id: fastTimer
         interval: 500
         running: root.open
         repeat: true
-        onTriggered: {
-            // CPU from /proc/stat
-            var cpuText = fileRead("/proc/stat");
-            var lines = cpuText.split("\n");
-            for (var i = 0; i < lines.length; i++) {
-                if (lines[i].indexOf("cpu ") === 0) {
-                    var parts = lines[i].split(/\s+/);
-                    var total = 0, idle = 0;
-                    for (var j = 1; j < parts.length; j++) {
-                        var v = parseInt(parts[j]) || 0;
-                        total += v;
-                        if (j === 4) idle = v;
-                    }
-                    if (root.prevCpuTotal > 0) {
-                        var dt = total - root.prevCpuTotal;
-                        var di = idle - root.prevCpuIdle;
-                        root.cpu = dt > 0 ? Math.round((1 - di / dt) * 100) : 0;
-                    }
-                    root.prevCpuTotal = total;
-                    root.prevCpuIdle = idle;
-                    break;
-                }
-            }
-
-            // Memory from /proc/meminfo
-            var memText = fileRead("/proc/meminfo");
-            var memLines = memText.split("\n");
-            var memTotal = 0, memAvail = 0, swapTotal = 0, swapFree = 0;
-            for (var k = 0; k < memLines.length; k++) {
-                if (memLines[k].indexOf("MemTotal:") === 0) memTotal = parseInt(memLines[k].split(/\s+/)[1]) || 0;
-                if (memLines[k].indexOf("MemAvailable:") === 0) memAvail = parseInt(memLines[k].split(/\s+/)[1]) || 0;
-                if (memLines[k].indexOf("SwapTotal:") === 0) swapTotal = parseInt(memLines[k].split(/\s+/)[1]) || 0;
-                if (memLines[k].indexOf("SwapFree:") === 0) swapFree = parseInt(memLines[k].split(/\s+/)[1]) || 0;
-            }
-            root.memTotalGb = memTotal / 1048576;
-            root.memUsedGb = (memTotal - memAvail) / 1048576;
-            root.memPct = memTotal > 0 ? Math.round((1 - memAvail / memTotal) * 100) : 0;
-            root.swapUsedGb = (swapTotal - swapFree) / 1048576;
-
-            // Temperature
-            if (root.tempPath.length > 0) {
-                var tempText = fileRead(root.tempPath);
-                root.cpuTemp = parseInt(tempText) || -1;
-            }
-        }
-    }
-
-    // --- GPU poll (1s) ---
-    Process {
-        id: nvidiaProc
-        command: ["nvidia-smi", "--query-gpu=utilization.gpu,memory.used,memory.total", "--format=csv,noheader,nounits"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var parts = text.trim().split(/\s*,\s*/);
-                if (parts.length >= 3) {
-                    root.gpu = parseInt(parts[0]) || 0;
-                    root.vramUsedGb = (parseFloat(parts[1]) || 0) / 1024;
-                    root.vramTotalGb = (parseFloat(parts[2]) || 0) / 1024;
-                }
-            }
-        }
+        onTriggered: if (!fastProc.running) fastProc.running = true
     }
 
     Timer {
-        id: gpuTimer
         interval: 1000
         running: root.open && root.hasGpu
         repeat: true
-        onTriggered: {
-            if (root.gpuVendor === "nvidia") {
-                nvidiaProc.running = true;
-            } else if (root.gpuVendor === "amd" && root.amdDev.length > 0) {
-                var gpuBusy = fileRead("/sys/class/drm/" + root.amdDev + "/device/gpu_busy_percent");
-                root.gpu = parseInt(gpuBusy) || 0;
-            }
-        }
+        onTriggered: if (!gpuProc.running) gpuProc.running = true
     }
 
-    // --- Slow poll: disk, uptime, network (5s) ---
     Timer {
-        id: slowTimer
         interval: 5000
         running: root.open
         repeat: true
-        onTriggered: {
-            // Disk
-            var stat = fileRead("/proc/stat");
-            // uptime
-            var upText = fileRead("/proc/uptime");
-            root.uptime = fmtUptime(parseFloat(upText) || 0);
-
-            // Network delta
-            var netText = fileRead("/proc/net/dev");
-            var netLines = netText.split("\n");
-            var rx = 0, tx = 0;
-            for (var i = 2; i < netLines.length; i++) {
-                if (netLines[i].indexOf(":") > 0 && netLines[i].indexOf("lo:") !== 0) {
-                    var parts = netLines[i].split(/\s+/);
-                    rx += parseInt(parts[1]) || 0;
-                    tx += parseInt(parts[9]) || 0;
-                }
-            }
-            var now = Date.now();
-            if (root.prevNetTime > 0) {
-                var dt = (now - root.prevNetTime) / 1000;
-                root.netDown = dt > 0 ? Math.round((rx - root.prevRx) / dt / 1024) : 0;
-                root.netUp = dt > 0 ? Math.round((tx - root.prevTx) / dt / 1024) : 0;
-            }
-            root.prevRx = rx;
-            root.prevTx = tx;
-            root.prevNetTime = now;
-        }
-    }
-
-    FileView {
-        id: fileReader
-        blockLoading: true
-        printErrors: false
-    }
-
-    function fileRead(path) {
-        fileReader.path = path;
-        return fileReader.text();
+        onTriggered: if (!slowProc.running) slowProc.running = true
     }
 }
-

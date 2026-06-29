@@ -1,82 +1,186 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import "Singletons"
 
 /**
- * Settings index surface. Grid of setting category tiles.
+ * 設 SETTINGS index: a short list of categories grouped into Shell and Control.
+ * Each row carries its kanji, name and caption, and morphs the pill into that
+ * category's sub-surface. Arrow keys move the focused row with the glowing seam
+ * and Return opens it. The Shell group holds Appearance and Display; the Control
+ * group holds Keybinds and Updates.
  */
-PillSurface {
+SettingsSurface {
     id: root
-    mTop: 15
-    mLeft: 17
-    mRight: 17
-    mBottom: 14
 
-    readonly property var categories: [
-        { key: "appearance", icon: "palette", label: "Appearance" },
-        { key: "display", icon: "monitor", label: "Display" },
-        { key: "input", icon: "keyboard", label: "Input" },
-        { key: "look", icon: "sparkles", label: "Look" },
-        { key: "idlelock", icon: "lock", label: "Idle & Lock" },
-        { key: "updates", icon: "download", label: "Updates" },
-        { key: "fontpicker", icon: "type", label: "Fonts" }
+    implicitHeight: content.implicitHeight
+
+    rows: [
+        { item: appearanceRow, kind: "nav", surface: "appearance" },
+        { item: lookRow, kind: "nav", surface: "look" },
+        { item: displayRow, kind: "nav", surface: "display" },
+        { item: inputRow, kind: "nav", surface: "input" },
+        { item: keybindsRow, kind: "nav", surface: "keybinds" },
+        { item: idleRow, kind: "nav", surface: "idlelock" },
+        { item: updatesRow, kind: "nav", surface: "updates" }
     ]
 
-    implicitHeight: catGrid.implicitHeight + 24 * s
-    implicitWidth: 392 * s
+    Column {
+        id: content
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        spacing: 0
 
-    Grid {
-        id: catGrid
-        anchors.centerIn: parent
-        columns: 2
-        columnSpacing: 10 * root.s
-        rowSpacing: 8 * root.s
+        SettingsHeader {
+            s: root.s
+            glyph: "設"
+            title: "SETTINGS"
+        }
 
-        Repeater {
-            model: root.categories
+        Text {
+            topPadding: 16 * root.s
+            bottomPadding: 2 * root.s
+            leftPadding: 12 * root.s
+            text: "Shell"
+            color: Theme.faint
+            font.family: Theme.font
+            font.pixelSize: 8.5 * root.s
+            font.weight: Font.Bold
+            font.capitalization: Font.AllUppercase
+            font.letterSpacing: 1.2 * root.s
+        }
 
-            delegate: Item {
-                id: catTile
-                required property var modelData
-                required property int index
-                width: 170 * root.s
-                height: 60 * root.s
+        SettingsRow {
+            id: appearanceRow
+            surface: root
+            captionOnFocus: true
+            icon: "sparkles"
+            name: "Appearance"
+            sub: "Clock, glyphs, accent palette"
 
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 12 * root.s
-                    color: catArea.containsMouse ? Qt.alpha(Theme.cream, 0.06) : Theme.tileBg
-                    border.width: 1
-                    border.color: catArea.containsMouse ? Qt.alpha(Theme.cream, 0.15) : Theme.border
-                    Behavior on color { ColorAnimation { duration: Motion.fast } }
-                }
+            GlyphIcon {
+                width: 16 * root.s
+                height: 16 * root.s
+                name: "chevron-right"
+                color: root.focusRowItem === appearanceRow ? Theme.cream : Theme.iconDim
+                stroke: 2.2
+            }
+        }
 
-                Row {
-                    anchors.centerIn: parent
-                    spacing: 10 * root.s
+        SettingsRow {
+            id: lookRow
+            surface: root
+            captionOnFocus: true
+            icon: "app-window"
+            name: "Look"
+            sub: "Gaps, rounding, blur, opacity"
 
-                    GlyphIcon {
-                        width: 20 * root.s
-                        height: 20 * root.s
-                        name: modelData.icon
-                        color: Theme.cream
-                        stroke: 1.7
-                    }
+            GlyphIcon {
+                width: 16 * root.s
+                height: 16 * root.s
+                name: "chevron-right"
+                color: root.focusRowItem === lookRow ? Theme.cream : Theme.iconDim
+                stroke: 2.2
+            }
+        }
 
-                    Text {
-                        text: modelData.label
-                        color: Theme.cream
-                        font.family: Theme.font
-                        font.pixelSize: 13 * root.s
-                    }
-                }
+        SettingsRow {
+            id: displayRow
+            surface: root
+            captionOnFocus: true
+            icon: "monitor"
+            name: "Display"
+            sub: "Resolution, refresh, scale"
 
-                MouseArea {
-                    id: catArea
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.requestSurface(modelData.key)
-                }
+            GlyphIcon {
+                width: 16 * root.s
+                height: 16 * root.s
+                name: "chevron-right"
+                color: root.focusRowItem === displayRow ? Theme.cream : Theme.iconDim
+                stroke: 2.2
+            }
+        }
+
+        SettingsRow {
+            id: inputRow
+            surface: root
+            captionOnFocus: true
+            icon: "mouse"
+            name: "Input"
+            sub: "Pointer, keyboard, cursor"
+
+            GlyphIcon {
+                width: 16 * root.s
+                height: 16 * root.s
+                name: "chevron-right"
+                color: root.focusRowItem === inputRow ? Theme.cream : Theme.iconDim
+                stroke: 2.2
+            }
+        }
+
+        Text {
+            topPadding: 16 * root.s
+            bottomPadding: 2 * root.s
+            leftPadding: 12 * root.s
+            text: "Control"
+            color: Theme.faint
+            font.family: Theme.font
+            font.pixelSize: 8.5 * root.s
+            font.weight: Font.Bold
+            font.capitalization: Font.AllUppercase
+            font.letterSpacing: 1.2 * root.s
+        }
+
+        SettingsRow {
+            id: keybindsRow
+            surface: root
+            captionOnFocus: true
+            icon: "keyboard"
+            name: "Keybinds"
+            sub: "Rebind, add, set commands"
+
+            GlyphIcon {
+                width: 16 * root.s
+                height: 16 * root.s
+                name: "chevron-right"
+                color: root.focusRowItem === keybindsRow ? Theme.cream : Theme.iconDim
+                stroke: 2.2
+            }
+        }
+
+        SettingsRow {
+            id: idleRow
+            surface: root
+            captionOnFocus: true
+            icon: "lock"
+            name: "Idle / Lock"
+            sub: "Auto-lock, screen off, suspend"
+
+            GlyphIcon {
+                width: 16 * root.s
+                height: 16 * root.s
+                name: "chevron-right"
+                color: root.focusRowItem === idleRow ? Theme.cream : Theme.iconDim
+                stroke: 2.2
+            }
+        }
+
+        SettingsRow {
+            id: updatesRow
+            surface: root
+            captionOnFocus: true
+            icon: "download"
+            name: "Updates"
+            sub: "Version and check for updates"
+            last: true
+
+            GlyphIcon {
+                width: 16 * root.s
+                height: 16 * root.s
+                name: "chevron-right"
+                color: root.focusRowItem === updatesRow ? Theme.cream : Theme.iconDim
+                stroke: 2.2
             }
         }
     }

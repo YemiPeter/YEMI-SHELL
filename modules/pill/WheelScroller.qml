@@ -1,31 +1,21 @@
 import QtQuick
 
 /**
- * Scroll wheel handler that forwards wheel events to a target Flickable.
- * Used by the wallpaper strip and quick-record monitor picker.
+ * Wheel-to-Flickable bridge for layer-shell surfaces, where the native
+ * WheelHandler path is unreliable: a button-less MouseArea converts wheel
+ * notches into clamped contentY steps on the target Flickable.
  */
-Item {
+MouseArea {
     id: root
 
-    property Item flick
     property real s: 1
+    required property Flickable flick
 
-    anchors.fill: parent
+    acceptedButtons: Qt.NoButton
 
-    onFlickChanged: {
-        if (flick && flick.contentX !== undefined) {
-            // Connected
-        }
-    }
-
-    MouseArea {
-        anchors.fill: parent
-        acceptedButtons: Qt.NoButton
-        onWheel: (wheel) => {
-            if (root.flick) {
-                root.flick.contentX -= wheel.angleDelta.y * 0.5 * root.s;
-                wheel.accepted = true;
-            }
-        }
+    onWheel: function(event) {
+        var max = Math.max(0, flick.contentHeight - flick.height);
+        flick.contentY = Math.max(0, Math.min(max, flick.contentY - event.angleDelta.y / 120 * 36 * s));
+        event.accepted = true;
     }
 }

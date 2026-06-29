@@ -1,40 +1,87 @@
 pragma Singleton
 import QtQuick
-import "../../../singletons" as QsSingletons
+import Quickshell
+import Quickshell.Io
 
 /**
- * Shim: re-exports the project-wide Flags singleton so pill files
- * using `import "Singletons"` find `Flags.dnd` etc. without changes.
- * Do NOT add new properties here — add them in singletons/Flags.qml.
+ * Shared session flags persisted to a small JSON file and watched for external
+ * change, so every Ricelin daemon (pill, sidebar) reads and writes the same
+ * Do-Not-Disturb and Keep-Awake state live without a second notification server
+ * or idle inhibitor. Toggling in one surface updates the others on the next file
+ * event, and the state survives a daemon restart.
  */
-QtObject {
+Singleton {
     id: root
 
-    readonly property bool dnd: QsSingletons.Flags.dnd
-    readonly property bool keepAwake: QsSingletons.Flags.keepAwake
-    readonly property bool time12h: QsSingletons.Flags.time12h
-    readonly property bool clockSeconds: QsSingletons.Flags.clockSeconds
-    readonly property bool showGlyphs: QsSingletons.Flags.showGlyphs
-    readonly property string paletteMode: QsSingletons.Flags.paletteMode
-    readonly property real uiScale: QsSingletons.Flags.uiScale
-    readonly property bool reduceMotion: QsSingletons.Flags.reduceMotion
-    readonly property int manualHue: QsSingletons.Flags.manualHue
-    readonly property bool manualDark: QsSingletons.Flags.manualDark
-    readonly property real manualSat: QsSingletons.Flags.manualSat
-    readonly property string uiFont: QsSingletons.Flags.uiFont
-    readonly property real pillOpacity: QsSingletons.Flags.pillOpacity
-    readonly property bool pillBlur: QsSingletons.Flags.pillBlur
-    readonly property int idleLockMin: QsSingletons.Flags.idleLockMin
-    readonly property int idleScreenOffMin: QsSingletons.Flags.idleScreenOffMin
-    readonly property int idleSuspendMin: QsSingletons.Flags.idleSuspendMin
-    readonly property string weatherCity: QsSingletons.Flags.weatherCity
-    readonly property int recordCountdown: QsSingletons.Flags.recordCountdown
-    readonly property string recordDir: QsSingletons.Flags.recordDir
-    readonly property int recordFps: QsSingletons.Flags.recordFps
-    readonly property string recordQuality: QsSingletons.Flags.recordQuality
-    readonly property bool recordCursor: QsSingletons.Flags.recordCursor
-    readonly property bool recordMic: QsSingletons.Flags.recordMic
-    readonly property bool recordDesktop: QsSingletons.Flags.recordDesktop
-    readonly property int recordClearedBefore: QsSingletons.Flags.recordClearedBefore
-}
+    property alias dnd: adapter.dnd
+    property alias keepAwake: adapter.keepAwake
+    property alias time12h: adapter.time12h
+    property alias clockSeconds: adapter.clockSeconds
+    property alias showGlyphs: adapter.showGlyphs
+    property alias paletteMode: adapter.paletteMode
+    property alias uiScale: adapter.uiScale
+    property alias reduceMotion: adapter.reduceMotion
+    property alias manualHue: adapter.manualHue
+    property alias manualDark: adapter.manualDark
+    property alias manualSat: adapter.manualSat
+    property alias uiFont: adapter.uiFont
+    property alias pillOpacity: adapter.pillOpacity
+    property alias pillBlur: adapter.pillBlur
+    property alias recordCountdown: adapter.recordCountdown
+    property alias recordDir: adapter.recordDir
+    property alias recordFps: adapter.recordFps
+    property alias recordQuality: adapter.recordQuality
+    property alias recordCursor: adapter.recordCursor
+    property alias recordMic: adapter.recordMic
+    property alias recordDesktop: adapter.recordDesktop
+    property alias recordClearedBefore: adapter.recordClearedBefore
+    property alias idleLockMin: adapter.idleLockMin
+    property alias idleScreenOffMin: adapter.idleScreenOffMin
+    property alias idleSuspendMin: adapter.idleSuspendMin
+    property alias weatherCity: adapter.weatherCity
 
+    FileView {
+        id: file
+        path: (Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")) + "/ricelin/flags.json"
+        blockLoading: true
+        watchChanges: true
+        printErrors: false
+
+        onFileChanged: reload()
+        onAdapterUpdated: writeAdapter()
+        onLoadFailed: function(error) {
+            if (error === FileViewError.FileNotFound)
+                writeAdapter();
+        }
+
+        JsonAdapter {
+            id: adapter
+            property bool dnd: false
+            property bool keepAwake: false
+            property bool time12h: false
+            property bool clockSeconds: false
+            property bool showGlyphs: true
+            property string paletteMode: "static"
+            property real uiScale: 1.0
+            property bool reduceMotion: false
+            property int manualHue: 30
+            property bool manualDark: true
+            property real manualSat: 0.5
+            property string uiFont: ""
+            property real pillOpacity: 1.0
+            property bool pillBlur: false
+            property int recordCountdown: 5
+            property string recordDir: ""
+            property int recordFps: 60
+            property string recordQuality: "high"
+            property bool recordCursor: true
+            property bool recordMic: true
+            property bool recordDesktop: true
+            property real recordClearedBefore: 0
+            property int idleLockMin: 5
+            property int idleScreenOffMin: 6
+            property int idleSuspendMin: 0
+            property string weatherCity: ""
+        }
+    }
+}

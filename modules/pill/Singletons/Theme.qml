@@ -1,62 +1,84 @@
 pragma Singleton
 import QtQuick
-import "../../../singletons" as QsSingletons
+import Quickshell
 
 /**
- * Shim: re-exports the project-wide Theme singleton so pill files
- * using `import "Singletons"` find `Theme.cream` etc. without changes.
- * Do NOT add new properties here — add them in singletons/Theme.qml.
+ * Pill palette. Two sources: the curated washi/flame hex below is the identity
+ * and the default, used whenever the dynamic-palette flag is off. With the flag
+ * on, the surfaces and the whole accent ramp follow the wallpaper through the
+ * matugen-fed `Dyn` singleton, while the text family, light veils and shadow
+ * stay locked here so copy keeps its contrast on any generated background. Each
+ * token is a single ternary, so static mode renders byte-identical to the fixed
+ * theme and only the colours that should breathe with the wallpaper do.
  */
-QtObject {
-    id: root
+Singleton {
+    readonly property bool dyn: Flags.paletteMode !== "static"
 
-    readonly property bool dyn: QsSingletons.Theme.dyn
+    /**
+     * Bright warm pop shared by the flame glow, charging glyphs, the recording
+     * countdown, the unread inbox dot, the calendar's today cell and the held
+     * power tile. The dynamic branch uses the wallpaper accent (Dyn.primary):
+     * matugen's on-primary-container does not populate here and collapses the
+     * token to black, while the accent always loads and contrasts the pill
+     * surface. Static mode keeps the fixed warm hex.
+     */
+    readonly property color onGlow: dyn ? Dyn.primary : "#ff9a64"
 
-    // Colors
-    readonly property color onGlow: QsSingletons.Theme.onGlow
-    readonly property color verm: QsSingletons.Theme.verm
-    readonly property color vermLit: QsSingletons.Theme.vermLit
-    readonly property color vermDeep: QsSingletons.Theme.vermDeep
-    readonly property color cream: QsSingletons.Theme.cream
-    readonly property color bright: QsSingletons.Theme.bright
-    readonly property color dim: QsSingletons.Theme.dim
-    readonly property color cardTop: QsSingletons.Theme.cardTop
-    readonly property color cardBot: QsSingletons.Theme.cardBot
-    readonly property color border: QsSingletons.Theme.border
-    readonly property color shadow: QsSingletons.Theme.shadow
-    readonly property color tileBg: QsSingletons.Theme.tileBg
-    readonly property color subtle: QsSingletons.Theme.subtle
-    readonly property color faint: QsSingletons.Theme.faint
-    readonly property color iconDim: QsSingletons.Theme.iconDim
-    readonly property color hair: QsSingletons.Theme.hair
-    readonly property color hairSoft: QsSingletons.Theme.hairSoft
-    readonly property color sheen: QsSingletons.Theme.sheen
-    readonly property color vermDim: QsSingletons.Theme.vermDim
-    readonly property color vermDimDeep: QsSingletons.Theme.vermDimDeep
-    readonly property color vermBurn: QsSingletons.Theme.vermBurn
-    readonly property color tickRest: QsSingletons.Theme.tickRest
-    readonly property color threadBg: QsSingletons.Theme.threadBg
-    readonly property color flameCore: QsSingletons.Theme.flameCore
-    readonly property color flameGlow: QsSingletons.Theme.flameGlow
+    readonly property color verm:     dyn ? Qt.darker(Dyn.primary, 1.18) : "#c0442b"
+    readonly property color vermLit:  dyn ? Dyn.primary : "#e0563b"
+    readonly property color vermDeep: dyn ? Dyn.primaryContainer : "#a3371f"
+    readonly property color cream:    dyn ? Dyn.cream : "#e6d6cb"
+    readonly property color bright:   dyn ? Dyn.bright : "#fff6f0"
+    readonly property color dim:      dyn ? Dyn.dim : "#8a7d74"
+    readonly property color cardTop:  dyn ? Dyn.surfaceContainerHigh : "#2e231b"
+    readonly property color cardBot:  dyn ? Dyn.surfaceContainerLow : "#221813"
+    readonly property color border:   dyn ? Dyn.outlineVariant : "#3a2a22"
+    readonly property color shadow:     Qt.rgba(0, 0, 0, 0.55)
+    readonly property color tileBg:   dyn ? Dyn.surface : "#211711"
+    readonly property color subtle:   dyn ? Dyn.subtle : "#b9a99e"
+    readonly property color faint:    dyn ? Dyn.faint : "#6f635b"
+    readonly property color iconDim:  dyn ? Dyn.iconDim : "#cdbfb4"
+    readonly property color hair:     Qt.alpha(cream, 0.13)
+    readonly property color hairSoft: Qt.alpha(cream, 0.08)
+    readonly property color sheen:    Qt.alpha(cream, 0.07)
+    readonly property color vermDim:   dyn ? Qt.darker(Dyn.primary, 1.5) : "#8a5440"
+    readonly property color vermDimDeep: dyn ? Qt.darker(Dyn.primary, 2.2) : "#5a3526"
+    readonly property color vermBurn:  dyn ? Qt.darker(Dyn.primaryContainer, 1.1) : "#8a2c14"
+    readonly property color tickRest:  dyn ? Dyn.tickRest : "#cbb6a3"
+    readonly property color threadBg:  Qt.alpha(cream, 0.13)
+    readonly property color flameCore: dyn ? Qt.lighter(onGlow, 1.03) : "#ffd9c2"
+    readonly property color flameGlow: dyn ? onGlow : "#ff9a64"
 
-    // Flame canvas ramp (string type, not color)
-    readonly property string flameInk: QsSingletons.Theme.flameInk
-    readonly property string flameEmber: QsSingletons.Theme.flameEmber
-    readonly property string flameBurn: QsSingletons.Theme.flameBurn
-    readonly property string flameTip: QsSingletons.Theme.flameTip
+    /**
+     * Flame canvas ramp: literal hex strings (color type won't work), fed
+     * directly to Canvas addColorStop/strokeStyle. A color property serializes
+     * to #aarrggbb and corrupts the gradient render, so the dynamic branch passes
+     * matugen's raw hex strings through untouched rather than any Qt.darker math.
+     */
+    readonly property string flameInk:   dyn ? Dyn.primary : "#f0795a"
+    readonly property string flameEmber: dyn ? Dyn.primaryContainer : "#7e2812"
+    readonly property string flameBurn:  dyn ? Dyn.primaryContainer : "#8a2c14"
+    readonly property string flameTip:   dyn ? Dyn.onPrimaryContainer : "#ffb38a"
+    readonly property color todayWarm: dyn ? onGlow : "#ffb38a"
+    readonly property color ghost:     dyn ? Dyn.surfaceContainerHighest : "#594636"
+    readonly property color frameBg:      Qt.alpha(cream, 0.055)
+    readonly property color frameBorder:  Qt.alpha(cream, 0.10)
+    readonly property color creamMenu:     Qt.alpha(cream, 0.82)
+    readonly property real shadowOpacity: 0.5
+    readonly property var fontFamilies: Qt.fontFamilies()
+    readonly property string font: (Flags.uiFont.length > 0 && fontFamilies.indexOf(Flags.uiFont) >= 0) ? Flags.uiFont : "Inter"
+    readonly property string fontJp: "Zen Kaku Gothic New"
 
-    readonly property color todayWarm: QsSingletons.Theme.todayWarm
-    readonly property color ghost: QsSingletons.Theme.ghost
-    readonly property color frameBg: QsSingletons.Theme.frameBg
-    readonly property color frameBorder: QsSingletons.Theme.frameBorder
-    readonly property color creamMenu: QsSingletons.Theme.creamMenu
-    readonly property real shadowOpacity: QsSingletons.Theme.shadowOpacity
-    readonly property var fontFamilies: QsSingletons.Theme.fontFamilies
-    readonly property string font: QsSingletons.Theme.font
-    readonly property string fontJp: QsSingletons.Theme.fontJp
-
-    // Functions
+    /**
+     * MPRIS trackArtists arrives as a JS array from some players and as a
+     * plain string from others (Spotify); calling join on the string throws
+     * and kills the whole binding. Handles both, falls back to trackArtist.
+     */
     function joinArtists(artists, single) {
-        return QsSingletons.Theme.joinArtists(artists, single);
+        if (artists && typeof artists.join === "function" && artists.length > 0)
+            return artists.join(", ");
+        if (artists && String(artists).length > 0)
+            return String(artists);
+        return single ? String(single) : "";
     }
 }

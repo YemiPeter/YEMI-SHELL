@@ -2,51 +2,66 @@ import QtQuick
 import "Singletons"
 
 /**
- * Hold-to-confirm button for destructive actions (shutdown, reboot). Fills
- * a progress bar as the user holds; releases early cancel.
+ * Hold-to-confirm heat shared by the destructive gestures (power tiles,
+ * wallpaper trash, clipboard wipe): `hold` fills 0→1 over Motion.heat while
+ * pressed, fires `confirmed` when full and drains on release or exit. A
+ * release before the fill completes drains; one shorter than `tapThreshold`
+ * additionally fires `tapped` for sites whose hitbox doubles as a click
+ * target. The fired latch keeps a release shortly after a confirm from being
+ * misread as a tap while the drain is still running.
  */
 Item {
     id: root
 
-    property real s: 1
-    property real progress: 0
-    property string label: "Hold to confirm"
-    property bool armed: false
+    visible: false
 
-    implicitHeight: 36 * s
-    implicitWidth: Math.max(120 * s, labelText.implicitWidth + 24 * s)
+    property real hold: 0
+    readonly property bool holding: hold > 0.001
+    property real tapThreshold: 0
+    property bool fired: false
 
-    signal triggered()
-    signal cancelled()
+    signal confirmed()
+    signal tapped()
 
-    Rectangle {
-        anchors.fill: parent
-        radius: 10 * root.s
-        color: root.armed ? Qt.alpha(Theme.verm, 0.15) : Qt.alpha(Theme.tileBg, 0.5)
-        border.width: 1
-        border.color: root.armed ? Qt.alpha(Theme.verm, 0.4) : Theme.border
-
-        Behavior on color { ColorAnimation { duration: Motion.fast } }
-        Behavior on border.color { ColorAnimation { duration: Motion.fast } }
+    function press() {
+        fired = false;
+        drain.stop();
+        fill.restart();
     }
 
-    Rectangle {
-        anchors.left: parent.left
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-        width: parent.width * Math.min(1, root.progress)
-        radius: parent.radius
-        color: root.armed ? Qt.alpha(Theme.verm, 0.3) : "transparent"
-        Behavior on width { NumberAnimation { duration: 50 } }
+    function release() {
+        fill.stop();
+        if (fired || hold >= 1)
+            return;
+        if (tapThreshold > 0 && hold < tapThreshold)
+            tapped();
+        drain.restart();
     }
 
-    Text {
-        id: labelText
-        anchors.centerIn: parent
-        text: root.label
-        color: root.armed ? Theme.verm : Theme.dim
-        font.family: Theme.font
-        font.pixelSize: 12 * root.s
-        font.weight: Font.DemiBold
+    function cancel() {
+        fill.stop();
+        drain.restart();
+    }
+
+    NumberAnimation {
+        id: fill
+        target: root
+        property: "hold"
+        from: 0
+        to: 1
+        duration: Motion.heat
+        onFinished: {
+            root.fired = true;
+            root.confirmed();
+            drain.restart();
+        }
+    }
+
+    NumberAnimation {
+        id: drain
+        target: root
+        property: "hold"
+        to: 0
+        duration: 180
     }
 }

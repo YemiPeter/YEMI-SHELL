@@ -1,5 +1,4 @@
 pragma ComponentBehavior: Bound
-
 import QtQuick
 import Quickshell
 import Quickshell.Services.Notifications
@@ -81,110 +80,142 @@ Item {
         }
     }
 
+    Text {
+        id: dismiss
+        anchors.right: parent.right
+        anchors.top: parent.top
+        text: "✕"
+        color: dismissArea.containsMouse ? Theme.cream : Theme.dim
+        font.family: Theme.font
+        font.pixelSize: 11 * root.s
+
+        Behavior on color {
+            ColorAnimation { duration: Motion.fast }
+        }
+
+        MouseArea {
+            id: dismissArea
+            anchors.fill: parent
+            anchors.margins: -6 * root.s
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: Notifs.removePopup(root.notif)
+        }
+    }
+
     Column {
         id: col
         anchors.left: iconTile.right
         anchors.leftMargin: 10 * root.s
-        anchors.right: parent.right
-        anchors.verticalCenter: parent.verticalCenter
-        spacing: 2 * root.s
+        anchors.right: dismiss.left
+        anchors.rightMargin: 8 * root.s
+        anchors.top: parent.top
+        spacing: 3 * root.s
 
         Text {
-            text: root.notif.appName || "App"
-            color: Theme.subtle
+            width: parent.width
+            text: (root.notif.appName && root.notif.appName.length) ? root.notif.appName : "System"
+            color: Theme.dim
             font.family: Theme.font
-            font.pixelSize: 9 * root.s
-            font.weight: Font.Medium
-            font.capitalization: Font.AllUppercase
-        }
-
-        Text {
-            text: root.notif.summary || ""
-            color: Theme.cream
-            font.family: Theme.font
-            font.pixelSize: 12 * root.s
+            font.pixelSize: 8.5 * root.s
             font.weight: Font.DemiBold
+            font.capitalization: Font.AllUppercase
+            font.letterSpacing: 1.4 * root.s
             elide: Text.ElideRight
-            width: parent.width - 20 * root.s
+        }
+
+        Row {
+            width: parent.width
+            spacing: 5 * root.s
+
+            Item {
+                visible: root.critical
+                anchors.verticalCenter: parent.verticalCenter
+                width: 8 * root.s
+                height: 8 * root.s
+
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: 8 * root.s
+                    height: 8 * root.s
+                    radius: 999
+                    color: Theme.flameGlow
+                    opacity: 0.3
+                }
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: 4 * root.s
+                    height: 4 * root.s
+                    radius: 999
+                    color: Theme.flameGlow
+                }
+            }
+
+            Text {
+                width: parent.width - (root.critical ? 13 * root.s : 0)
+                text: root.notif.summary
+                color: Theme.cream
+                font.family: Theme.font
+                font.pixelSize: 11.5 * root.s
+                font.weight: Font.DemiBold
+                maximumLineCount: 1
+                elide: Text.ElideRight
+            }
         }
 
         Text {
-            visible: root.notif.body && root.notif.body.length > 0
+            width: parent.width
+            visible: root.notif.body.length > 0
             text: root.notif.body
             color: Theme.dim
             font.family: Theme.font
-            font.pixelSize: 10 * root.s
+            font.pixelSize: 10.5 * root.s
+            wrapMode: Text.Wrap
+            maximumLineCount: 2
             elide: Text.ElideRight
-            width: parent.width - 20 * root.s
+            textFormat: Text.PlainText
         }
 
         Row {
             visible: root.acts.length > 0
             spacing: 6 * root.s
+            topPadding: 4 * root.s
 
             Repeater {
                 model: root.acts
 
                 Rectangle {
-                    id: actBtn
+                    id: actPill
                     required property var modelData
-                    height: 22 * root.s
-                    radius: 6 * root.s
-                    color: actArea.containsMouse ? Qt.alpha(Theme.vermLit, 0.2) : Qt.alpha(Theme.cream, 0.08)
+                    required property int index
+
+                    height: 20 * root.s
+                    width: actText.implicitWidth + 18 * root.s
+                    radius: 999
+                    color: Theme.tileBg
                     border.width: 1
-                    border.color: actArea.containsMouse ? Qt.alpha(Theme.vermLit, 0.4) : Qt.alpha(Theme.cream, 0.15)
+                    border.color: Theme.border
 
                     Text {
+                        id: actText
                         anchors.centerIn: parent
-                        anchors.margins: 8 * root.s
-                        text: modelData.text
-                        color: Theme.cream
+                        text: actPill.modelData.text
+                        color: actPill.index === 0 ? Theme.vermLit : Theme.dim
                         font.family: Theme.font
-                        font.pixelSize: 10 * root.s
-                        font.weight: Font.Medium
+                        font.pixelSize: 9.5 * root.s
+                        font.weight: Font.DemiBold
                     }
 
                     MouseArea {
-                        id: actArea
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
-                            modelData.invoke();
+                            actPill.modelData.invoke();
                             Notifs.removePopup(root.notif);
                         }
                     }
                 }
             }
         }
-    }
-
-    // Dismiss glyph
-    GlyphIcon {
-        anchors.right: parent.right
-        anchors.top: parent.top
-        anchors.margins: 4 * root.s
-        width: 12 * root.s
-        height: 12 * root.s
-        name: "x"
-        color: Theme.faint
-        stroke: 2
-
-        MouseArea {
-            anchors.fill: parent
-            anchors.margins: -4 * root.s
-            cursorShape: Qt.PointingHandCursor
-            onClicked: Notifs.removePopup(root.notif)
-        }
-    }
-
-    // Critical ember dot
-    Rectangle {
-        anchors.left: parent.left
-        anchors.top: parent.top
-        width: 6 * root.s
-        height: 6 * root.s
-        radius: width / 2
-        color: Theme.verm
-        visible: root.critical
     }
 }

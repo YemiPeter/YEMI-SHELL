@@ -2,63 +2,37 @@ import QtQuick
 import "Singletons"
 
 /**
- * Toggle switch for link surface (WiFi, Bluetooth).
+ * Toggle switch: tile bg off, terracotta fill on, cream knob slides on the
+ * fast motion token. Shared by the link surface and its WLAN/Bluetooth
+ * drill-ins.
  */
-Item {
-    id: root
+Rectangle {
+    id: toggle
 
     property real s: 1
-    property bool checked: false
-    property string label: ""
+    property bool on: false
+    signal toggled()
 
-    signal toggled(bool checked)
-
-    implicitHeight: 28 * s
-    implicitWidth: Math.max(50 * s, labelText.implicitWidth + 40 * s)
-
-    Rectangle {
-        anchors.fill: parent
-        radius: 14 * root.s
-        color: root.checked ? Qt.alpha(Theme.verm, 0.3) : Qt.alpha(Theme.tileBg, 0.5)
-        border.width: 1
-        border.color: root.checked ? Qt.alpha(Theme.verm, 0.5) : Theme.border
-
-        Behavior on color { ColorAnimation { duration: Motion.fast } }
-        Behavior on border.color { ColorAnimation { duration: Motion.fast } }
-    }
+    width: 28 * s
+    height: 16 * s
+    radius: 999
+    color: on ? Theme.verm : Theme.tileBg
+    border.width: on ? 0 : 1
+    border.color: Theme.border
 
     Rectangle {
         anchors.verticalCenter: parent.verticalCenter
-        anchors.left: parent.left
-        anchors.leftMargin: 3 * root.s
-        width: 20 * root.s
-        height: 20 * root.s
-        radius: 10 * root.s
-        color: root.checked ? Theme.verm : Theme.iconDim
-        Behavior on x { NumberAnimation { duration: Motion.fast; easing.type: Motion.easeStandard } }
-        Behavior on color { ColorAnimation { duration: Motion.fast } }
-        x: root.checked ? parent.width - width - 3 * root.s : 3 * root.s
-    }
-
-    Text {
-        id: labelText
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.left: parent.left
-        anchors.leftMargin: 12 * root.s
-        anchors.right: parent.right
-        anchors.rightMargin: 8 * root.s
-        text: root.label
-        color: root.checked ? Theme.cream : Theme.dim
-        font.family: Theme.font
-        font.pixelSize: 12 * root.s
+        width: 10 * toggle.s
+        height: 10 * toggle.s
+        radius: width / 2
+        color: Theme.cream
+        x: toggle.on ? toggle.width - width - 3 * toggle.s : 3 * toggle.s
+        Behavior on x { NumberAnimation { duration: Motion.fast } }
     }
 
     MouseArea {
         anchors.fill: parent
         cursorShape: Qt.PointingHandCursor
-        onClicked: {
-            root.checked = !root.checked;
-            root.toggled(root.checked);
-        }
+        onClicked: toggle.toggled()
     }
 }

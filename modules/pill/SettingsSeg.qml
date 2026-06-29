@@ -1,61 +1,67 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import "Singletons"
 
 /**
- * Segmented control for settings: a row of toggle buttons where one is active.
+ * Mini-segmented choice control. `options` is a list of `{ label, value }`; the
+ * pill whose value equals `value` lights with a flame tint. Picking a pill emits
+ * `picked(value)`; selection keys off the source value, never a child's effective
+ * visibility. The host passes `s` for scale.
  */
-Item {
-    id: root
+Rectangle {
+    id: seg
 
     property real s: 1
     property var options: []
-    property int selected: 0
-    property color activeColor: Theme.verm
-    property color inactiveColor: Theme.tileBg
-    property color textActive: Theme.cream
-    property color textInactive: Theme.dim
+    property var value
+    signal picked(var value)
 
-    implicitHeight: segRow.implicitHeight + 4 * s
-    implicitWidth: segRow.implicitWidth + 8 * s
+    readonly property real pad: 1
+
+    width: pills.implicitWidth + 2 * pad
+    height: pills.implicitHeight + 2 * pad
+    radius: 9 * seg.s
+    color: Theme.tileBg
+    border.width: 1
+    border.color: Theme.border
 
     Row {
-        id: segRow
+        id: pills
         anchors.centerIn: parent
-        spacing: 3 * root.s
+        spacing: 2 * seg.s
 
         Repeater {
-            model: root.options
+            model: seg.options
 
-            delegate: Rectangle {
-                id: seg
+            Rectangle {
+                id: opt
                 required property var modelData
-                required property int index
-                width: Math.max(40 * root.s, modelData.label ? modelData.label.length * 7 * root.s : 30 * root.s)
-                height: 28 * root.s
-                radius: 6 * root.s
-                color: root.selected === index ? root.activeColor : root.inactiveColor
-                border.width: 1
-                border.color: root.selected === index ? Qt.alpha(Theme.vermLit, 0.5) : Qt.alpha(Theme.border, 0.5)
+                readonly property bool current: seg.value === modelData.value
 
+                width: optLabel.implicitWidth + 18 * seg.s
+                height: optLabel.implicitHeight + 12 * seg.s
+                radius: 8 * seg.s
+                color: opt.current ? Qt.alpha(Theme.vermLit, 0.20) : "transparent"
+                border.width: 1
+                border.color: opt.current ? Qt.alpha(Theme.vermLit, 0.55) : "transparent"
                 Behavior on color { ColorAnimation { duration: Motion.fast } }
 
                 Text {
+                    id: optLabel
                     anchors.centerIn: parent
-                    anchors.margins: 8 * root.s
-                    text: modelData.label || ""
-                    color: root.selected === index ? root.textActive : root.textInactive
+                    text: opt.modelData.label
+                    color: opt.current ? Theme.cream : Theme.subtle
                     font.family: Theme.font
-                    font.pixelSize: 11 * root.s
-                    font.weight: root.selected === index ? Font.DemiBold : Font.Normal
+                    font.pixelSize: 10.5 * seg.s
+                    font.weight: Font.Bold
+                    font.letterSpacing: 0.3 * seg.s
                 }
 
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        root.selected = index;
-                        root.selectedChanged(index);
-                    }
+                    onClicked: seg.picked(opt.modelData.value)
                 }
             }
         }

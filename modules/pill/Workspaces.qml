@@ -8,14 +8,16 @@ import "Singletons"
 /**
  * Workspace dots for one monitor. No numbers, no icons. Active one is a larger
  * filled vermillion dot; the rest are small and dim, brightening on hover.
- * Clicking a dot focuses that workspace via the Hyprland dispatcher. Active
+ * Clicking a dot focuses that workspace via the Hyprland-lua dispatcher. Active
  * marker tracks the monitor's live active workspace name from the Hyprland
  * model.
  *
- * The dot range comes from this monitor's workspace rules (Workspacerules),
- * so a rule-driven setup always shows every assigned dot. A setup with no rules
- * falls back to the workspaces Hyprland currently has on this monitor plus the
- * active one, so dots still appear and grow as new workspaces are visited.
+ * The dot range comes from this monitor's workspace rules ([[Workspacerules]]),
+ * so a rule-driven setup (e.g. monitors.lua splitting 1-5 / 6-10 across two
+ * screens) always shows every assigned dot. A setup with no rules (the usual
+ * single-monitor case) falls back to the workspaces Hyprland currently has on
+ * this monitor plus the active one, so dots still appear and grow as new
+ * workspaces are visited.
  */
 Item {
     id: workspaces
@@ -56,51 +58,79 @@ Item {
         return "";
     }
 
-    readonly property int activeId: parseInt(activeName) || 0
+    property int hoverIndex: -1
 
-    signal hoverIndexChanged(int index)
+    readonly property int activeIndex: range.indexOf(parseInt(activeName))
 
-    implicitWidth: Math.max(1, range.length) * (dotW + gap) - gap
-    implicitHeight: dotW
+    /**
+     * Centre x of a dot slot from target layout widths (active stick is wider).
+     * Uses the animation end values, so a focus marker aimed here lands where
+     * the dot settles and doesn't chase the width Behavior.
+     */
+    function slotCenterX(idx) {
+        let x = 0;
+        for (let i = 0; i < idx; i++)
+            x += (i === activeIndex ? stickW : dotW) + gap;
+        return x + (idx === activeIndex ? stickW : dotW) / 2;
+    }
 
-    Row {
+    readonly property point activeDotPoint: {
+        void workspaces.activeName;
+        void workspaces.width;
+        return Qt.point(slotCenterX(Math.max(0, activeIndex)), height / 2);
+    }
+
+    implicitWidth: row.implicitWidth
+    implicitHeight: row.implicitHeight
+
+    RowLayout {
         id: row
-        anchors.centerIn: parent
-        spacing: gap
+        anchors.left: parent.left
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: workspaces.gap
 
         Repeater {
             model: workspaces.range
 
             delegate: Item {
-                id: dot
-                required property int index
-                required property var modelData
-                width: dotW
-                height: dotW
-                anchors.verticalCenter: parent.verticalCenter
+                id: slot
 
-                readonly property bool active: modelData === workspaces.activeId
-                readonly property bool hovered: hoverArea.containsMouse
+                required property var modelData
+                required property int index
+
+                readonly property string wsName: String(modelData)
+                readonly property bool isActive: workspaces.activeName === wsName
+
+                Layout.preferredWidth: slot.isActive ? workspaces.stickW : workspaces.dotW
+                Layout.preferredHeight: 22 * workspaces.s
+                Behavior on Layout.preferredWidth { NumberAnimation { duration: Motion.fast; easing.type: Motion.easeStandard } }
 
                 Rectangle {
-                    anchors.fill: parent
-                    radius: width / 2
-                    color: active ? Theme.verm : (hovered ? Theme.cream : Theme.iconDim)
-                    opacity: active ? 1 : (hovered ? 0.8 : 0.4)
+                    anchors.centerIn: parent
+                    width: parent.width
+                    height: workspaces.dotW
+                    radius: height / 2
+                    color: slot.isActive ? Theme.vermLit : Theme.cream
+                    opacity: slot.isActive ? 1.0 : (area.containsMouse ? 0.7 : 0.3)
                     Behavior on opacity { NumberAnimation { duration: Motion.fast } }
-                    Behavior on color { ColorAnimation { duration: Motion.fast } }
                 }
 
                 MouseArea {
-                    id: hoverArea
+                    id: area
                     anchors.fill: parent
-                    anchors.margins: -4 * workspaces.s
+                    anchors.leftMargin: -workspaces.gap / 2
+                    anchors.rightMargin: -workspaces.gap / 2
+                    anchors.topMargin: -8 * workspaces.s
+                    anchors.bottomMargin: -8 * workspaces.s
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        Hyprland.dispatch("workspace", String(modelData));
+                    onClicked: Hyprland.dispatch('hl.dsp.focus({workspace="' + slot.wsName + '"})')
+                    onContainsMouseChanged: {
+                        if (containsMouse)
+                            workspaces.hoverIndex = slot.index;
+                        else if (workspaces.hoverIndex === slot.index)
+                            workspaces.hoverIndex = -1;
                     }
-                    onEntered: workspaces.hoverIndexChanged(modelData)
                 }
             }
         }
