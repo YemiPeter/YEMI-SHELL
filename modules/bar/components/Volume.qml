@@ -9,9 +9,10 @@ import "../../../components/effects"
 // Volume indicator with number - no popup
 Item {
     id: root
-    
+
     property var barWindow
-    property var volumePopup  // Kept for compatibility but not used
+    property var volumePopup // Kept for compatibility but not used
+    property var pill
     
     readonly property var audio: QsServices.Audio
     readonly property var volumeMonitor: QsServices.VolumeMonitor
@@ -109,7 +110,13 @@ Item {
             volAdjProc.running = true
         }
 
-        onClicked: barToggleMuteProc.running = true
+        onClicked: {
+            console.log("[Volume] clicked, pill:", root.pill, "surface:", root.pill ? root.pill.surface : "null", "requestSurface:", root.pill && typeof root.pill.requestSurface === "function" ? "yes" : "no")
+            if (root.pill) {
+                if (root.pill.surface === "mixer") root.pill.requestSurface("");
+                else root.pill.requestSurface("mixer");
+            }
+        }
     }
 
     Process {
