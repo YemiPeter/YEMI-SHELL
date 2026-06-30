@@ -4,7 +4,7 @@ import Quickshell
 import Quickshell.Io
 
 /**
- * Wallpaper bridge: keeps a warm in-memory snapshot of ~/Ricelin/wallpapers so
+ * Wallpaper bridge: keeps a warm in-memory snapshot of ~/Pictures/Wallpapers so
  * the wallpaper strip opens instantly without shelling out on demand. A
  * refresh first runs the thumbnail script (generating missing 512px previews
  * and pruning ones whose source is gone), then re-lists the directory
@@ -27,11 +27,11 @@ Singleton {
     property string current: ""
     property bool pending: false
 
-    readonly property string wpDir: Quickshell.env("HOME") + "/Ricelin/wallpapers"
-    readonly property string thumbDir: (Quickshell.env("XDG_CACHE_HOME") || (Quickshell.env("HOME") + "/.cache")) + "/ricelin-wp-thumbs/"
+    readonly property string wpDir: Quickshell.env("HOME") + "/Pictures/Wallpapers"
+    readonly property string thumbDir: (Quickshell.env("XDG_CACHE_HOME") || (Quickshell.env("HOME") + "/.cache")) + "/quickshell-wp-thumbs/"
     readonly property string thumbScript: Quickshell.env("HOME") + "/.config/hypr/scripts/wallpaper-thumbs.sh"
     readonly property string setScript: Quickshell.env("HOME") + "/.config/hypr/scripts/wallpaper.sh"
-    readonly property string stateFile: (Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")) + "/ricelin-wallpaper"
+    readonly property string stateFile: (Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")) + "/quickshell-wallpaper"
 
     function refresh() {
         if (thumbProc.running || listProc.running || stateProc.running) {
