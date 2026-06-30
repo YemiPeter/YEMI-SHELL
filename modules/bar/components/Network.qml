@@ -10,7 +10,7 @@ Item {
 
     property var barWindow
     property var networkPopup
-    property var pill
+    property string screenName
     
     readonly property var network: QsServices.Network
     readonly property bool isHovered: mouseArea.containsMouse
@@ -93,11 +93,7 @@ Item {
         hoverEnabled: true
         
         onClicked: {
-            console.log("[Network] clicked, pill:", root.pill, "surface:", root.pill ? root.pill.surface : "null", "requestSurface:", root.pill && typeof root.pill.requestSurface === "function" ? "yes" : "no")
-            if (root.pill) {
-                if (root.pill.surface === "link") root.pill.requestSurface("");
-                else root.pill.requestSurface("link");
-            }
+            QsSingletons.PillState.toggleSurface(root.screenName, "link")
         }
     }
 }

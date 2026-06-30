@@ -2,3 +2,4 @@ module singletons
 singleton Theme 1.0 Theme.qml
 singleton Dyn 1.0 Dyn.qml
 singleton Flags 1.0 Flags.qml
+singleton PillState 1.0 PillState.qml
