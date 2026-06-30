@@ -115,6 +115,7 @@ ShellRoot {
         function launcher(mon: string): void { root.toggleSurface(mon, "launcher"); }
         function power(mon: string): void { root.toggleSurface(mon, "power"); }
         function link(mon: string): void { root.toggleSurface(mon, "link"); }
+        function bluetooth(mon: string): void { root.toggleSurface(mon, "bluetooth"); }
         function battery(mon: string): void { root.toggleSurface(mon, "battery"); }
         function settings(mon: string): void { root.toggleSurface(mon, "settings"); }
         function keybinds(mon: string): void { root.toggleSurface(mon, "keybinds"); }

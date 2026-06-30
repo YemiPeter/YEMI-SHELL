@@ -6,13 +6,6 @@ import "../../config" as QsConfig
 Scope {
     readonly property var config: QsConfig.Config
     
-    // Bluetooth popup window
-    Loader {
-        id: bluetoothPopupLoader
-        source: "components/BluetoothPopupWindow.qml"
-    
-        property var bluetoothPopup: item
-    }
     
     
     Variants {
@@ -43,7 +36,6 @@ Scope {
                     if (status === Loader.Ready) {
                         item.screen = Qt.binding(() => modelData)
                         item.barWindow = Qt.binding(() => window)
-                        item.bluetoothPopup = Qt.binding(() => bluetoothPopupLoader.item)
                     }
                 }
             }

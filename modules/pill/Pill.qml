@@ -39,6 +39,7 @@ Item {
     readonly property bool powerOpen: surface === "power"
     readonly property bool mediaOpen: surface === "media"
     readonly property bool linkOpen: surface === "link"
+    readonly property bool linkBtOpen: surface === "bluetooth"
     readonly property bool batteryOpen: surface === "battery"
     readonly property bool settingsOpen: surface === "settings"
     readonly property bool keybindsOpen: surface === "keybinds"
@@ -60,6 +61,12 @@ Item {
      * toast set "main". Reset once the surface closes so IPC opens land on main.
      */
     property string linkInitialView: "main"
+    
+    /**
+     * Subview the bluetooth surface should land on. Always "bt" — the bar
+     * bluetooth pill opens straight to the device list.
+     */
+    property string linkBtInitialView: "bt"
 
     readonly property var netDevices: (typeof Networking !== "undefined" && Networking && Networking.devices) ? Networking.devices.values : []
     readonly property var wifiDev: netDevices.find(function(d) { return d && d.type === DeviceType.Wifi }) || null
@@ -139,9 +146,10 @@ Item {
         wallpaper: { size: () => Qt.size(wallpaperW, wallpaperH), ame: null },
         power:     { size: () => Qt.size(powerW, powerH), ame: power },
         media:     { size: () => Qt.size(mediaW, mediaH), ame: media },
-        mixer:     { size: () => Qt.size(mixerW, mixerH), ame: mixer },
-        link:      { size: () => Qt.size(link.desiredW, link.implicitHeight + 26 * s), ame: link },
-        battery:   { size: () => Qt.size(batteryW, battery.implicitHeight + 26 * s), ame: battery },
+        mixer: { size: () => Qt.size(mixerW, mixerH), ame: mixer },
+        link: { size: () => Qt.size(link.desiredW, link.implicitHeight + 26 * s), ame: link },
+        bluetooth: { size: () => Qt.size(linkBt.desiredW, linkBt.implicitHeight + 26 * s), ame: linkBt },
+        battery: { size: () => Qt.size(batteryW, battery.implicitHeight + 26 * s), ame: battery },
         settings:  { size: () => Qt.size(settingsW, settings.implicitHeight + 29 * s), ame: settings },
         keybinds:  { size: () => Qt.size(keybindsW, keybinds.implicitHeight + 29 * s), ame: keybinds },
         recorder:  { size: () => Qt.size(recorderW, recorder.implicitHeight + 33 * s), ame: recorder },
@@ -1270,8 +1278,19 @@ Item {
         morphCloseness: pill.morphCloseness
         onRequestClose: pill.requestClose()
     }
-
+    
     onLinkOpenChanged: if (!linkOpen) linkInitialView = "main"
+    
+    Link {
+        id: linkBt
+        s: pill.s
+        open: pill.linkBtOpen
+        initialView: pill.linkBtInitialView
+        morphCloseness: pill.morphCloseness
+        onRequestClose: pill.requestClose()
+    }
+    
+    onLinkBtOpenChanged: if (!linkBtOpen) linkBtInitialView = "bt"
 
     BatterySurface {
         id: battery

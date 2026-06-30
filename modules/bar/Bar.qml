@@ -12,7 +12,6 @@ Item {
     id: root
     property var screen
     property var barWindow
-    property var bluetoothPopup
 
     // Screen name for PillState toggle calls
     readonly property string screenName: root.screen?.name || ""
@@ -203,9 +202,9 @@ Item {
                         }
                         Binding {
                             target: bluetoothLoader.item
-                            property: "bluetoothPopup"
-                            value: root.bluetoothPopup
-                            when: bluetoothLoader.status === Loader.Ready && root.bluetoothPopup !== undefined
+                            property: "screenName"
+                            value: root.screenName
+                            when: bluetoothLoader.status === Loader.Ready
                             restoreMode: Binding.RestoreBinding
                         }
                     }

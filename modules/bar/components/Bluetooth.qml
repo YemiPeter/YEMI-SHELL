@@ -10,7 +10,7 @@ Item {
     id: root
     
     property var barWindow
-    property var bluetoothPopup
+    property string screenName
     
     readonly property bool isHovered: mouseArea.containsMouse
     readonly property var adapter: Bluetooth.defaultAdapter
@@ -90,26 +90,9 @@ Item {
         anchors.margins: -4
         cursorShape: Qt.PointingHandCursor
         hoverEnabled: true
-        
+    
         onClicked: {
-            if (!bluetoothPopup) return
-            
-            if (bluetoothPopup.shouldShow) {
-                bluetoothPopup.shouldShow = false
-            } else {
-                if (!barWindow || !barWindow.screen) return
-                
-                const pos = root.mapToItem(barWindow.contentItem, 0, 0)
-                const rightEdge = pos.x + root.width
-                const screenWidth = barWindow.screen.width
-                
-                // Position popup below the bar
-                // Bar anchors to screen top, so margins.top = bar_height + gap
-                const barHeight = barWindow.implicitHeight || 36
-                bluetoothPopup.margins.right = Math.round(screenWidth - rightEdge - 8)
-                bluetoothPopup.margins.top = barHeight + 6  // Just below bar with small gap
-                bluetoothPopup.shouldShow = true
-            }
+            QsSingletons.PillState.toggleSurface(root.screenName, "bluetooth")
         }
     }
 }
