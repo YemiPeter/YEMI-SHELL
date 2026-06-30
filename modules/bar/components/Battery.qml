@@ -10,7 +10,7 @@ import "../../../components/effects"
 Item {
     id: root
 
-    property var pill
+    property string screenName
 
     implicitWidth: batteryContainer.width
     implicitHeight: 24
@@ -305,11 +305,7 @@ Item {
             anchors.fill: parent
             cursorShape: Qt.PointingHandCursor
             onClicked: {
-                console.log("[Battery] clicked, pill:", root.pill, "surface:", root.pill ? root.pill.surface : "null", "requestSurface:", root.pill && typeof root.pill.requestSurface === "function" ? "yes" : "no")
-                if (root.pill) {
-                    if (root.pill.surface === "battery") root.pill.requestSurface("");
-                    else root.pill.requestSurface("battery");
-                }
+                QsSingletons.PillState.toggleSurface(root.screenName, "battery")
             }
         }
     }

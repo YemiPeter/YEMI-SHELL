@@ -7,7 +7,6 @@ import "../../components/effects"
 import "../../config" as QsConfig
 import "../../services" as QsServices
 import "../../singletons" as QsSingletons
-import "../pill" as Pill
 
 Item {
     id: root
@@ -17,6 +16,12 @@ Item {
     property var networkPopup
     property var volumePopup
     property var brightnessPopup
+
+    // Screen name for PillState toggle calls
+    readonly property string screenName: root.screen?.name || ""
+
+    // Scale factor matching PillOverlay so bar spacing and center spacer align.
+    readonly property real s: screen ? (screen.height / 1080) * QsSingletons.Flags.uiScale : 1
 
     readonly property var config: QsConfig.Config
     readonly property var appearance: QsConfig.AppearanceConfig
@@ -33,10 +38,10 @@ Item {
     Item {
         id: barContainer
         anchors.fill: parent
-        anchors.topMargin: 1
-        anchors.leftMargin: 9
-        anchors.rightMargin: 9
-        anchors.bottomMargin: 1
+        anchors.topMargin: 1 * root.s
+        anchors.leftMargin: 9 * root.s
+        anchors.rightMargin: 9 * root.s
+        anchors.bottomMargin: 1 * root.s
 
         // ═══════════════════════════════════════════════════════════════
         // LEFT MODULE - Workspaces
@@ -45,13 +50,13 @@ Item {
             id: leftPills
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 8
+            spacing: 8 * root.s
 
             // Workspaces pill
             Rectangle {
                 id: leftModule
-                height: 28
-                width: leftContent.implicitWidth + 16
+                height: 28 * root.s
+                width: leftContent.implicitWidth + 16 * root.s
                 radius: 14
                 color: pillBg
                 border.width: 1
@@ -69,7 +74,7 @@ Item {
                     anchors.top: parent.top
                     anchors.left: parent.left
                     anchors.right: parent.right
-                    anchors.margins: 1
+                    anchors.margins: 1 * root.s
                     height: parent.height / 2
                     radius: parent.radius - 1
                     gradient: Gradient {
@@ -81,7 +86,7 @@ Item {
                 RowLayout {
                     id: leftContent
                     anchors.centerIn: parent
-                    spacing: 10
+                    spacing: 10 * root.s
 
                     Loader {
                         id: workspacesLoader
@@ -101,38 +106,15 @@ Item {
         }
 
         // ═══════════════════════════════════════════════════════════════
-        // CENTER MODULE - Pill (Morphing Launcher)
+        // CENTER MODULE - Spacer (pill now lives in PillOverlay.qml)
         // ═══════════════════════════════════════════════════════════════
         Item {
             id: centerContainer
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter
-            width: pill ? pill.width : 0
-            height: pill ? pill.height : 0
-        
-            // Hover detection for the pill
-            HoverHandler {
-                id: pillHover
-                onHoveredChanged: {
-                    if (pill && pill.hovered !== hovered)
-                        pill.hovered = hovered;
-                }
-            }
-        
-            Pill.Pill {
-                id: pill
-                screenName: root.screen?.name || ""
-                barWindow: root.barWindow
-                surface: ""
-                s: 1
-                anchors.centerIn: parent
-            
-                // Handle surface requests from bar components
-                onRequestSurface: (name) => pill.surface = name
-                onRequestClose: pill.surface = ""
-            }
-        
-            property alias pill: pill
+            // Scaled spacer matching the pill's rest dimensions in PillOverlay
+            width: 160 * root.s
+            height: 38 * root.s
         }
 
         // ═══════════════════════════════════════════════════════════════
@@ -142,14 +124,14 @@ Item {
             id: rightPills
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 6
+            spacing: 6 * root.s
 
             // ═══ PILL 1: Network + Bluetooth (Connectivity) ═══
             Rectangle {
                 id: connectivityPill
-                height: 28
-                width: connectivityContent.implicitWidth + 16
-                radius: 14
+                height: 28 * root.s
+                width: connectivityContent.implicitWidth + 16 * root.s
+                radius: 14 * root.s
                 color: pillBg
                 border.width: 1
                 border.color: pillBorder
@@ -166,7 +148,7 @@ Item {
                     anchors.top: parent.top
                     anchors.left: parent.left
                     anchors.right: parent.right
-                    anchors.margins: 1
+                    anchors.margins: 1 * root.s
                     height: parent.height / 2
                     radius: parent.radius - 1
                     gradient: Gradient {
@@ -178,7 +160,7 @@ Item {
                 Row {
                     id: connectivityContent
                     anchors.centerIn: parent
-                    spacing: 4
+                    spacing: 4 * root.s
 
                     Loader {
                         id: networkLoader
@@ -201,19 +183,19 @@ Item {
                         }
                         Binding {
                             target: networkLoader.item
-                            property: "pill"
-                            value: centerContainer.pill
+                            property: "screenName"
+                            value: root.screenName
                             when: networkLoader.status === Loader.Ready
                             restoreMode: Binding.RestoreBinding
                         }
-                        }
+                    }
 
                     // Separator
                     Rectangle {
                         anchors.verticalCenter: parent.verticalCenter
                         width: 1
-                        height: 12
-                        radius: 0.5
+                        height: 12 * root.s
+                        radius: 0.5 * root.s
                         color: pillSeparator
                     }
 
@@ -243,9 +225,9 @@ Item {
             // ═══ PILL 2: Brightness + Volume (Audio/Display) ═══
             Rectangle {
                 id: audioPill
-                height: 28
-                width: audioContent.implicitWidth + 16
-                radius: 14
+                height: 28 * root.s
+                width: audioContent.implicitWidth + 16 * root.s
+                radius: 14 * root.s
                 color: pillBg
                 border.width: 1
                 border.color: pillBorder
@@ -262,7 +244,7 @@ Item {
                     anchors.top: parent.top
                     anchors.left: parent.left
                     anchors.right: parent.right
-                    anchors.margins: 1
+                    anchors.margins: 1 * root.s
                     height: parent.height / 2
                     radius: parent.radius - 1
                     gradient: Gradient {
@@ -274,7 +256,7 @@ Item {
                 Row {
                     id: audioContent
                     anchors.centerIn: parent
-                    spacing: 6
+                    spacing: 6 * root.s
 
                     Loader {
                         id: brightnessLoader
@@ -301,8 +283,8 @@ Item {
                     Rectangle {
                         anchors.verticalCenter: parent.verticalCenter
                         width: 1
-                        height: 12
-                        radius: 0.5
+                        height: 12 * root.s
+                        radius: 0.5 * root.s
                         color: pillSeparator
                     }
 
@@ -327,8 +309,8 @@ Item {
                         }
                         Binding {
                             target: volumeLoader.item
-                            property: "pill"
-                            value: centerContainer.pill
+                            property: "screenName"
+                            value: root.screenName
                             when: volumeLoader.status === Loader.Ready
                             restoreMode: Binding.RestoreBinding
                         }
@@ -339,9 +321,9 @@ Item {
             // ═══ PILL 3: Battery + Tray ═══
             Rectangle {
                 id: powerPill
-                height: 28
-                width: powerContent.implicitWidth + 16
-                radius: 14
+                height: 28 * root.s
+                width: powerContent.implicitWidth + 16 * root.s
+                radius: 14 * root.s
                 color: pillBg
                 border.width: 1
                 border.color: pillBorder
@@ -358,7 +340,7 @@ Item {
                     anchors.top: parent.top
                     anchors.left: parent.left
                     anchors.right: parent.right
-                    anchors.margins: 1
+                    anchors.margins: 1 * root.s
                     height: parent.height / 2
                     radius: parent.radius - 1
                     gradient: Gradient {
@@ -370,7 +352,7 @@ Item {
                 Row {
                     id: powerContent
                     anchors.centerIn: parent
-                    spacing: 6
+                    spacing: 6 * root.s
 
                     // Status Indicators (Caffeine, DND)
                     Loader {
@@ -385,8 +367,8 @@ Item {
                     Rectangle {
                         anchors.verticalCenter: parent.verticalCenter
                         width: 1
-                        height: 12
-                        radius: 0.5
+                        height: 12 * root.s
+                        radius: 0.5 * root.s
                         color: pillSeparator
                         visible: statusIndicatorsLoader.item?.hasActiveIndicators ?? false
                     }
@@ -399,8 +381,8 @@ Item {
                         source: "components/Battery.qml"
                         Binding {
                             target: batteryLoader.item
-                            property: "pill"
-                            value: centerContainer.pill
+                            property: "screenName"
+                            value: root.screenName
                             when: batteryLoader.status === Loader.Ready
                             restoreMode: Binding.RestoreBinding
                         }
@@ -410,8 +392,8 @@ Item {
                     Rectangle {
                         anchors.verticalCenter: parent.verticalCenter
                         width: 1
-                        height: 12
-                        radius: 0.5
+                        height: 12 * root.s
+                        radius: 0.5 * root.s
                         color: pillSeparator
                     }
 

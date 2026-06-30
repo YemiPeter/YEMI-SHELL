@@ -164,6 +164,10 @@ Item {
 
     signal requestSurface(string name)
     signal requestClose()
+    
+    Component.onCompleted: {
+        console.log("[Pill] loaded — screenName:", screenName, "surface:", surface, "s:", s)
+    }
 
     /**
      * Forward an arrow-key nudge to the open mixer's targeted fader. Returns true
