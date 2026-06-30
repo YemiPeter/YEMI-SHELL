@@ -225,11 +225,6 @@ ShellRoot {
             barWindow: root.barWindow
         }
     }
-    // Notification popups in top-right corner
-    Loader {
-        id: notificationPopupsLoader
-        source: "modules/bar/components/NotificationPopups.qml"
-    }
 
 
     // Music Panel
