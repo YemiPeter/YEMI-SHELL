@@ -146,7 +146,7 @@
 
 ```
 Bar Dimensions
-═══════════════════════════════════════════════════════════════════════════════
+══════════════════════════════════════════════════════════════════════════════
 
 Overall Bar
 ┌────────────────────────────────────────────────────────────────────────────┐
@@ -209,6 +209,23 @@ Animation Timings
 │  State Sources:                                                             │
 │  • activeWsId        ← compositor.activeWsId                                │
 │  • isOccupied        ← compositor.getOccupiedWorkspaces()[workspaceId]      │
+│                                                                             │
+│  Center Pill Keyboard Navigation (Pill.qml)                                 │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│                                                                             │
+│  arrow keys (surface open)                                                   │
+│    mixerStep / mixerFocusMove    → mixer fader row                          │
+│    settingsMove / settingsAdjust → settings rows                            │
+│    keybindsMove / keybindsActivate → keybinds list/form                     │
+│    wallpaperMove / wallpaperActivate → wallpaper strip                      │
+│    powerMove / powerPress / powerRelease → power tiles                      │
+│                                                                             │
+│  Escape                                                                     │
+│    surfaceBack() → keybinds form → settings sub-surface → hover pill        │
+│    linkBack() → link subview pop                                            │
+│                                                                             │
+│  Quick-Record (SUPER+D)                                                     │
+│    ScreenRec.prepareScreen / prepareWindow → countdown → record             │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -307,22 +324,39 @@ These popups are injected into Bar.qml pills and open as separate windows.
 **Pill.qml** (center pill) manages **in-window SURFACES** that morph within the same PillOverlay window:
 ```
 Pill.qml surfaces (all open inside PillOverlay.qml, NOT separate windows):
-├── link        → Network/Bluetooth controls (Link.qml, LinkWifi.qml, LinkBt.qml)
-├── mixer       → Audio mixer
-├── calendar    → Calendar/clock
-├── launcher    → App launcher
-├── wallpaper   → Wallpaper picker
-├── power       → Power menu
-├── media       → Media player
-├── battery     → Battery details
-├── settings    → Settings menu
-├── keybinds    → Keyboard shortcuts
-├── recorder    → Screen recorder
-├── sysmon      → System monitor
-├── appearance  → Appearance settings
-├── updates     → Updates
-├── display/input/look/idlelock/fontpicker
-└── clipboard   → Clipboard
+├── rest / hover          → clock, workspaces, status, wifi, battery, media-bud
+├── calendar              → clock + calendar
+├── launcher              → app launcher grid
+├── clipboard             → clipboard history
+├── wallpaper             → wallpaper picker strip
+├── power                 → power tiles
+├── media                 → media player controls
+├── mixer                 → volume mixer faders
+├── link                  → network + bluetooth controls (Link.qml / LinkWifi.qml / LinkBt.qml)
+├── battery               → battery details
+├── settings              → settings menu (SettingsSurface.qml)
+├── keybinds              → keybind editor list + form
+├── recorder              → screen recorder controls
+├── sysmon                → system monitor
+├── appearance            → appearance settings
+├── updates               → updates
+├── display               → display settings
+├── input                 → input settings
+├── look                  → look settings
+├── idlelock              → idle lock settings
+├── fontpicker            → font picker
+├── osd                   → brightness/volume OSD overlay
+├── toast                 → notification toast
+├── quickChoose           → quick-record source chooser
+└── quickCount            → pre-roll countdown toast
+```
+
+**Quick-record flow (Pill.qml):**
+```
+SUPER+D keybind
+  └── ScreenRec.quickChoosing = true  (mode="quickChoose" on focused monitor)
+      ├── single monitor → prepareScreen(pill.screenName) → countdown (mode="quickCount") → record
+      └── multi monitor → quickScreenChoosing = true → inline monitor strip → pick → prepareScreen(name) → ...
 ```
 
 **Key difference:**
@@ -330,6 +364,12 @@ Pill.qml surfaces (all open inside PillOverlay.qml, NOT separate windows):
 - **Surfaces** = morph within the same Pill window (Pill.qml responsibility)
 
 The "link" surface contains network/bluetooth controls (Link.qml, LinkWifi.qml, LinkBt.qml), which is separate from the standalone NetworkPopupWindow.qml / BluetoothPopupWindow.qml.
+
+**Ame Filament Integration:**
+- Each surface that defines `ameForm` or `amePoint` becomes an Ame anchor
+- Pill.qml maps `ameSurface` from the `surfaces` descriptor
+- `wakePoint` = rest kanji center (pill idle anchor)
+- `soulPoint` = hover target (last hovered icon or active workspace dot)
 
 ## Key Design Decisions
 
