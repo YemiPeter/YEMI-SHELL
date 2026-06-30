@@ -102,11 +102,22 @@ ShellRoot {
         }
     }
 
+    // === Pill Launcher IPC Handler ===
+    IpcHandler {
+      target: "pill-launcher"
+      
+      function toggle(mon: string): void {
+        var target = mon || (compositor.focusedMonitor?.name || "");
+        if (target.length > 0)
+          QsSingletons.PillState.toggleSurface(target, "launcher");
+      }
+    }
+
     // === Launcher IPC Handler ===
     IpcHandler {
       target: "launcher"
     
-      function show(mon) {
+      function show(mon: string): void {
         if (!launcherLoader.item) {
           console.warn("🚀 [Launcher IPC] show() — loader item is null");
           return;
@@ -117,7 +128,7 @@ ShellRoot {
         console.log("🚀 [Launcher IPC] show() — loader.shown set to", launcherLoader.item.shown);
       }
     
-      function hide() {
+      function hide(): void {
         if (!launcherLoader.item) {
           console.warn("🚀 [Launcher IPC] hide() — loader item is null");
           return;
@@ -126,21 +137,21 @@ ShellRoot {
         launcherLoader.item.shown = false;
       }
     
-      function toggle(mon) {
+      function toggle(mon: string): void {
           if (!launcherLoader.item) {
-            console.warn("🚀 [Launcher IPC] toggle() — loader item is null");
-            return;
+              console.warn("🚀 [Launcher IPC] toggle() — loader item is null");
+              return;
           }
           console.log("🚀 [Launcher IPC] toggle() — current shown:", launcherLoader.item.shown, "mon:", mon);
           if (launcherLoader.item.shown) {
-            launcherLoader.item.shown = false;
-            console.log("🚀 [Launcher IPC] toggle() — set shown to false");
+              launcherLoader.item.shown = false;
+              console.log("🚀 [Launcher IPC] toggle() — set shown to false");
           } else {
-            launcherLoader.item.targetMonitor = mon || "";
-            launcherLoader.item.shown = true;
-            console.log("🚀 [Launcher IPC] toggle() — set shown to true, targetMonitor:", launcherLoader.item.targetMonitor);
+              launcherLoader.item.targetMonitor = mon || "";
+              launcherLoader.item.shown = true;
+              console.log("🚀 [Launcher IPC] toggle() — set shown to true, targetMonitor:", launcherLoader.item.targetMonitor);
           }
-        }
+      }
     }
 
     // Direct NotificationServer to ensure it starts
@@ -229,11 +240,9 @@ ShellRoot {
     property var filteredWallpapers: {
         if (wallSearchTerm === "") return wallpaperList
         var result = []
-        for (var i = 0; i < wallpaperList.length; i++) {
-            if (wallpaperList[i].name.toLowerCase().includes(wallSearchTerm)) {
+        for (var i = 0; i < wallpaperList.length; i++)
+            if (wallpaperList[i].name.toLowerCase().includes(wallSearchTerm))
                 result.push(wallpaperList[i])
-            }
-        }
         return result
     }
     property int wallSelectedIndex: 0
@@ -322,7 +331,7 @@ ShellRoot {
 
     Process {
         id: hashAllProc
-        command: ["bash", "-c", "for f in '" + root.wallpaperPath + "'/*; do [ -f \"$f\" ] && echo \"$f|$(echo -n \"$f\" | md5sum | cut -d' ' -f1)\"; done"]
+        command: ["bash", "-c", "for f in '" + root.wallpaperPath + "/*'; do [ -f \"$f\" ] && echo \"$f|$(echo -n \"$f\" | md5sum | cut -d' ' -f1)\"; done"]
         stdout: SplitParser {
             onRead: data => {
                 var parts = data.trim().split("|")
