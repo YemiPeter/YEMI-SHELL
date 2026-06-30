@@ -9,7 +9,6 @@ import qs.compositor
 import QtQuick 6.10
 import "services" as QsServices
 import "singletons" as QsSingletons
-import "modules/osd"
 import "modules/pill" as Pill
 
 ShellRoot {
@@ -232,11 +231,6 @@ ShellRoot {
         source: "modules/bar/components/NotificationPopups.qml"
     }
 
-
-    // OSD overlays (volume and brightness)
-    Wrapper {
-        matugen: root.matugen
-    }
 
     // Music Panel
     Loader {

@@ -10,7 +10,7 @@ Item {
     id: root
     
     property var barWindow
-    property var brightnessPopup  // Kept for compatibility but not used
+    property string screenName
     
     readonly property var brightness: QsServices.Brightness
     readonly property bool isHovered: mouseArea.containsMouse
@@ -96,7 +96,11 @@ Item {
         anchors.margins: -4
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        
+    
+        onClicked: {
+            QsSingletons.PillState.toggleSurface(root.screenName, "mixer")
+        }
+    
         onWheel: wheel => {
             if (wheel.angleDelta.y > 0) {
                 brightness.increaseBrightness()

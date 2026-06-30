@@ -13,9 +13,6 @@ Item {
     property var screen
     property var barWindow
     property var bluetoothPopup
-    property var networkPopup
-    property var volumePopup
-    property var brightnessPopup
 
     // Screen name for PillState toggle calls
     readonly property string screenName: root.screen?.name || ""
@@ -176,13 +173,6 @@ Item {
                         }
                         Binding {
                             target: networkLoader.item
-                            property: "networkPopup"
-                            value: root.networkPopup
-                            when: networkLoader.status === Loader.Ready && root.networkPopup !== undefined
-                            restoreMode: Binding.RestoreBinding
-                        }
-                        Binding {
-                            target: networkLoader.item
                             property: "screenName"
                             value: root.screenName
                             when: networkLoader.status === Loader.Ready
@@ -272,9 +262,9 @@ Item {
                         }
                         Binding {
                             target: brightnessLoader.item
-                            property: "brightnessPopup"
-                            value: root.brightnessPopup
-                            when: brightnessLoader.status === Loader.Ready && root.brightnessPopup !== undefined
+                            property: "screenName"
+                            value: root.screenName
+                            when: brightnessLoader.status === Loader.Ready
                             restoreMode: Binding.RestoreBinding
                         }
                     }
@@ -298,13 +288,6 @@ Item {
                             property: "barWindow"
                             value: root.barWindow
                             when: volumeLoader.status === Loader.Ready && root.barWindow !== undefined
-                            restoreMode: Binding.RestoreBinding
-                        }
-                        Binding {
-                            target: volumeLoader.item
-                            property: "volumePopup"
-                            value: root.volumePopup
-                            when: volumeLoader.status === Loader.Ready && root.volumePopup !== undefined
                             restoreMode: Binding.RestoreBinding
                         }
                         Binding {

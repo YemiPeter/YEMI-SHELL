@@ -11,7 +11,6 @@ Item {
     id: root
 
     property var barWindow
-    property var volumePopup // Kept for compatibility but not used
     property string screenName
     
     readonly property var audio: QsServices.Audio
