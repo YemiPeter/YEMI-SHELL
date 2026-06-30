@@ -173,6 +173,8 @@ PillSurface {
             visible: false
         }
 
+        // BLUR DISABLED
+        /*
         MultiEffect {
             anchors.fill: parent
             source: bleedSrc
@@ -182,6 +184,7 @@ PillSurface {
             blur: 0.95
             blurMax: 64
         }
+        */
 
         Rectangle {
             anchors.fill: parent
