@@ -10,32 +10,8 @@ Scope {
     Loader {
         id: bluetoothPopupLoader
         source: "components/BluetoothPopupWindow.qml"
-        
+    
         property var bluetoothPopup: item
-    }
-    
-    // Network popup window
-    Loader {
-        id: networkPopupLoader
-        source: "components/NetworkPopupWindow.qml"
-        
-        property var networkPopup: item
-    }
-    
-    // Volume popup window
-    Loader {
-        id: volumePopupLoader
-        source: "components/VolumePopupWindow.qml"
-        
-        property var volumePopup: item
-    }
-    
-    // Brightness popup window
-    Loader {
-        id: brightnessPopupLoader
-        source: "components/BrightnessPopupWindow.qml"
-        
-        property var brightnessPopup: item
     }
     
     
@@ -68,9 +44,6 @@ Scope {
                         item.screen = Qt.binding(() => modelData)
                         item.barWindow = Qt.binding(() => window)
                         item.bluetoothPopup = Qt.binding(() => bluetoothPopupLoader.item)
-                        item.networkPopup = Qt.binding(() => networkPopupLoader.item)
-                        item.volumePopup = Qt.binding(() => volumePopupLoader.item)
-                        item.brightnessPopup = Qt.binding(() => brightnessPopupLoader.item)
                     }
                 }
             }

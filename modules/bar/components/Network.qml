@@ -9,7 +9,6 @@ Item {
     id: root
 
     property var barWindow
-    property var networkPopup
     property string screenName
     
     readonly property var network: QsServices.Network
