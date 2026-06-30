@@ -39,28 +39,7 @@ if [ -z "$wallpaper" ] || [ ! -f "$wallpaper" ]; then
     exit 0
 fi
 
-case "$next" in
-    dark)
-        wal -i "$wallpaper" --backend wal
-        ;;
-    light)
-        wal -i "$wallpaper" --backend wal -l
-        ;;
-    auto)
-        # Detect brightness using ImageMagick
-        if command -v identify >/dev/null 2>&1; then
-            brightness=$(identify -format "%[fx:mean]" "$wallpaper" 2>/dev/null | head -1)
-            is_light=$(awk "BEGIN { print ($brightness > 0.5) ? 1 : 0 }")
-            if [ "$is_light" = "1" ]; then
-                wal -i "$wallpaper" --backend wal -l
-            else
-                wal -i "$wallpaper" --backend wal
-            fi
-        else
-            # Fallback: default to dark
-            wal -i "$wallpaper" --backend wal
-        fi
-        ;;
-esac
+# wallcolors.py handles dark/light/auto detection internally
+python3 "$HOME/.config/quickshell/scripts/wallcolors.py" "$wallpaper"
 
 exit 0
