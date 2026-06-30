@@ -127,20 +127,23 @@ Singleton {
     Process {
         id: applyProc
         onExited: function(exitCode) {
-            if (exitCode === 0) {
-                afterWallProc.wallPath = root.lastAppliedPath
-                afterWallProc.running = true
+                if (exitCode === 0) {
+                    afterWallProc.wallPath = root.lastAppliedPath
+                    afterWallProc.running = true
+                    // stateProc fires from afterWallProc.onExited — don't call it here
+                } else if (!root.queuedApply.length) {
+                    stateProc.running = true   // only run directly if apply failed
+                }
+    
+                if (root.queuedApply.length) {
+                    var next = root.queuedApply;
+                    root.queuedApply = "";
+                    root.lastAppliedPath = next;
+                    applyProc.command = ["bash", root.setScript, "set", next];
+                    applyProc.running = true;
+                    return;
+                }
             }
-            if (root.queuedApply.length) {
-                var next = root.queuedApply;
-                root.queuedApply = "";
-                root.lastAppliedPath = next;
-                applyProc.command = ["bash", root.setScript, "set", next];
-                applyProc.running = true;
-                return;
-            }
-            stateProc.running = true;
-        }
     }
 
     Process {
@@ -149,6 +152,7 @@ Singleton {
         command: ["bash",
                   Quickshell.env("HOME") + "/.config/quickshell/scripts/after-wall.sh",
                   wallPath]
+        onExited: stateProc.running = true
     }
 
     Component.onCompleted: refresh()
