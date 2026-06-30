@@ -48,12 +48,14 @@ Singleton {
      * running transition exits, so rapid iteration converges on the last pick.
      */
     property string queuedApply: ""
+    property string lastAppliedPath: ""
 
     function apply(path) {
         if (applyProc.running) {
             queuedApply = path;
             return;
         }
+        root.lastAppliedPath = path;
         applyProc.command = ["bash", root.setScript, "set", path];
         applyProc.running = true;
     }
@@ -124,16 +126,29 @@ Singleton {
 
     Process {
         id: applyProc
-        onExited: {
+        onExited: function(exitCode) {
+            if (exitCode === 0) {
+                afterWallProc.wallPath = root.lastAppliedPath
+                afterWallProc.running = true
+            }
             if (root.queuedApply.length) {
                 var next = root.queuedApply;
                 root.queuedApply = "";
+                root.lastAppliedPath = next;
                 applyProc.command = ["bash", root.setScript, "set", next];
                 applyProc.running = true;
                 return;
             }
             stateProc.running = true;
         }
+    }
+
+    Process {
+        id: afterWallProc
+        property string wallPath: ""
+        command: ["bash",
+                  Quickshell.env("HOME") + "/.config/quickshell/scripts/after-wall.sh",
+                  wallPath]
     }
 
     Component.onCompleted: refresh()

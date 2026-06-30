@@ -1,6 +1,6 @@
-singleton Theme Theme.qml
+singleton Theme ../../../singletons/Theme.qml
 singleton Motion Motion.qml
-singleton Flags Flags.qml
+singleton Flags ../../../singletons/Flags.qml
 singleton Notifs Notifs.qml
 singleton Cliphist Cliphist.qml
 singleton Walls Walls.qml
@@ -8,7 +8,7 @@ singleton Devices Devices.qml
 singleton Battery Battery.qml
 singleton ScreenRec ScreenRec.qml
 singleton Sysmon Sysmon.qml
-singleton Dyn Dyn.qml
+singleton Dyn ../../../singletons/Dyn.qml
 singleton Weather Weather.qml
 singleton Events Events.qml
 singleton Workspacerules Workspacerules.qml
