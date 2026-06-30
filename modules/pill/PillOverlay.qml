@@ -20,6 +20,7 @@ PanelWindow {
 
     color: "transparent"
     WlrLayershell.layer: WlrLayer.Overlay
+    WlrLayershell.keyboardFocus: surfaceOpen ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand
     exclusionMode: ExclusionMode.Ignore
     
     mask: surfaceOpen ? fullRegion : pillRegion

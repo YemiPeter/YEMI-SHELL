@@ -34,8 +34,14 @@ ShellRoot {
         function random(): void {
             randomWallProc.running = true
         }
-    }
 
+  function toggle(mon: string): void {
+    var target = mon || (compositor.focusedMonitor?.name || "");
+    if (target.length > 0)
+      QsSingletons.PillState.toggleSurface(target, "wallpaper");
+  }
+
+ }
     // === Music IPC Handler ===
     IpcHandler {
         target: "music"
@@ -102,56 +108,83 @@ ShellRoot {
         }
     }
 
-    // === Pill Launcher IPC Handler ===
+    // === Pill IPC Handler ===
+    // Single entry point for all pill surfaces. Each function takes a monitor
+    // name and toggles that surface via the PillState singleton, which
+    // PillOverlay.qml reads to drive the morphing pill.
+    //
+    // Usage from Hyprland: qs ipc call pill <surface> <monitor>
+    // e.g. qs ipc call pill launcher eDP-1
     IpcHandler {
-      target: "pill-launcher"
-      
-      function toggle(mon: string): void {
+      target: "pill"
+
+      function launcher(mon: string): void {
         var target = mon || (compositor.focusedMonitor?.name || "");
         if (target.length > 0)
           QsSingletons.PillState.toggleSurface(target, "launcher");
       }
-    }
 
-    // === Launcher IPC Handler ===
-    IpcHandler {
-      target: "launcher"
-    
-      function show(mon: string): void {
-        if (!launcherLoader.item) {
-          console.warn("🚀 [Launcher IPC] show() — loader item is null");
-          return;
-        }
-        console.log("🚀 [Launcher IPC] show() — loader present, mon:", mon);
-        launcherLoader.item.targetMonitor = mon || "";
-        launcherLoader.item.shown = true;
-        console.log("🚀 [Launcher IPC] show() — loader.shown set to", launcherLoader.item.shown);
+      function mixer(mon: string): void {
+        var target = mon || (compositor.focusedMonitor?.name || "");
+        if (target.length > 0)
+          QsSingletons.PillState.toggleSurface(target, "mixer");
       }
-    
-      function hide(): void {
-        if (!launcherLoader.item) {
-          console.warn("🚀 [Launcher IPC] hide() — loader item is null");
-          return;
-        }
-        console.log("🚀 [Launcher IPC] hide() — setting shown to false");
-        launcherLoader.item.shown = false;
+
+      function calendar(mon: string): void {
+        var target = mon || (compositor.focusedMonitor?.name || "");
+        if (target.length > 0)
+          QsSingletons.PillState.toggleSurface(target, "calendar");
       }
-    
-      function toggle(mon: string): void {
-          if (!launcherLoader.item) {
-              console.warn("🚀 [Launcher IPC] toggle() — loader item is null");
-              return;
-          }
-          console.log("🚀 [Launcher IPC] toggle() — current shown:", launcherLoader.item.shown, "mon:", mon);
-          if (launcherLoader.item.shown) {
-              launcherLoader.item.shown = false;
-              console.log("🚀 [Launcher IPC] toggle() — set shown to false");
-          } else {
-              launcherLoader.item.targetMonitor = mon || "";
-              launcherLoader.item.shown = true;
-              console.log("🚀 [Launcher IPC] toggle() — set shown to true, targetMonitor:", launcherLoader.item.targetMonitor);
-          }
+
+      function clipboard(mon: string): void {
+        var target = mon || (compositor.focusedMonitor?.name || "");
+        if (target.length > 0)
+          QsSingletons.PillState.toggleSurface(target, "clipboard");
       }
+
+      function power(mon: string): void {
+        var target = mon || (compositor.focusedMonitor?.name || "");
+        if (target.length > 0)
+          QsSingletons.PillState.toggleSurface(target, "power");
+      }
+
+      function settings(mon: string): void {
+        var target = mon || (compositor.focusedMonitor?.name || "");
+        if (target.length > 0)
+          QsSingletons.PillState.toggleSurface(target, "settings");
+      }
+
+      function keybinds(mon: string): void {
+        var target = mon || (compositor.focusedMonitor?.name || "");
+        if (target.length > 0)
+          QsSingletons.PillState.toggleSurface(target, "keybinds");
+      }
+
+      function wallpaper(mon: string): void {
+        var target = mon || (compositor.focusedMonitor?.name || "");
+        if (target.length > 0)
+          QsSingletons.PillState.toggleSurface(target, "wallpaper");
+      }
+
+      function link(mon: string): void {
+        var target = mon || (compositor.focusedMonitor?.name || "");
+        if (target.length > 0)
+          QsSingletons.PillState.toggleSurface(target, "link");
+      }
+
+      function media(mon: string): void {
+        var target = mon || (compositor.focusedMonitor?.name || "");
+        if (target.length > 0)
+          QsSingletons.PillState.toggleSurface(target, "media");
+      }
+
+      function sysmon(mon: string): void {
+        var target = mon || (compositor.focusedMonitor?.name || "");
+        if (target.length > 0)
+          QsSingletons.PillState.toggleSurface(target, "sysmon");
+      }
+
+      function hide(): void { QsSingletons.PillState.close(); }
     }
 
     // Direct NotificationServer to ensure it starts
@@ -199,11 +232,6 @@ ShellRoot {
         source: "modules/bar/components/NotificationPopups.qml"
     }
 
-    // Launcher
-    Loader {
-        id: launcherLoader
-        source: "modules/launcher/LauncherWindow.qml"
-    }
 
     // OSD overlays (volume and brightness)
     Wrapper {
