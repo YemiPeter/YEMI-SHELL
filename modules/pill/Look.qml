@@ -30,9 +30,10 @@ SettingsSurface {
     property int gapsOut: 12
     property int rounding: 12
     property int borderSize: 2
-    property bool blurOn: true
-    property int blurSize: 8
-    property int blurPasses: 3
+    // BLUR DISABLED
+    // property bool blurOn: true
+    // property int blurSize: 8
+    // property int blurPasses: 3
     property real activeOpacity: 1.0
     property real inactiveOpacity: 1.0
 
@@ -67,11 +68,12 @@ SettingsSurface {
         var bs = parseInt(SetDeco.getField(t, "border_size"), 10);
         root.borderSize = isNaN(bs) ? 2 : bs;
 
-        root.blurOn = SetDeco.getBlockField(t, "blur", "enabled") === "true";
-        var bz = parseInt(SetDeco.getBlockField(t, "blur", "size"), 10);
-        root.blurSize = isNaN(bz) ? 8 : bz;
-        var bp = parseInt(SetDeco.getBlockField(t, "blur", "passes"), 10);
-        root.blurPasses = isNaN(bp) ? 3 : bp;
+        // BLUR DISABLED
+        // root.blurOn = SetDeco.getBlockField(t, "blur", "enabled") === "true";
+        // var bz = parseInt(SetDeco.getBlockField(t, "blur", "size"), 10);
+        // root.blurSize = isNaN(bz) ? 8 : bz;
+        // var bp = parseInt(SetDeco.getBlockField(t, "blur", "passes"), 10);
+        // root.blurPasses = isNaN(bp) ? 3 : bp;
 
         var ao = parseFloat(SetDeco.getField(t, "active_opacity"));
         root.activeOpacity = isNaN(ao) ? 1.0 : ao;
@@ -111,11 +113,8 @@ SettingsSurface {
         opacityRefresh.running = true;
     }
 
-    /**
-     * Rewrites one field inside the `blur` block to `literal` and reloads
-     * Hyprland. Scoping to the block keeps `enabled` from hitting the sibling
-     * `shadow` block's `enabled` first.
-     */
+    // BLUR DISABLED
+    /*
     function writeBlur(name, literal) {
         var res = SetDeco.setBlockField(root.decoText, "blur", name, literal);
         if (!res.ok)
@@ -125,12 +124,6 @@ SettingsSurface {
         reloadProc.running = true;
     }
 
-    /**
-     * Adds or removes the pill-blur layer_rule in decoration.lua and reloads
-     * Hyprland so the frosted-glass effect behind the pill turns on or off at
-     * once. The rule lives in the Lua source (the live config parser rejects a
-     * runtime `layerrule` keyword), so it has to be written, not pushed.
-     */
     function applyPillBlur(on) {
         var t = root.decoText;
         var res;
@@ -147,6 +140,7 @@ SettingsSurface {
         decoWriter.setText(res.text);
         reloadProc.running = true;
     }
+    */
 
     FileView {
         id: decoFile
@@ -391,6 +385,8 @@ SettingsSurface {
                 }
             }
 
+            // BLUR DISABLED
+            /*
             GroupLabel { text: "Blur" }
 
             FieldRow {
@@ -441,6 +437,7 @@ SettingsSurface {
                     }
                 }
             }
+            */
 
             GroupLabel { text: "Opacity" }
 
@@ -493,6 +490,8 @@ SettingsSurface {
                 }
             }
 
+            // BLUR DISABLED
+            /*
             FieldRow {
                 label: "Pill blur"
                 caption: "Frosts what is behind the pill. Needs opacity below 100%."
@@ -506,6 +505,7 @@ SettingsSurface {
                     }
                 }
             }
+            */
 
             Item { width: 1; height: 10 * root.s }
         }
