@@ -10,9 +10,13 @@ import QtQuick 6.10
 import "services" as QsServices
 import "singletons" as QsSingletons
 import "modules/osd"
+import "modules/pill" as Pill
 
 ShellRoot {
     id: root
+
+    // Reference to the bar window (set when BarWrapper loads)
+    property var barWindow: null
 
     // Compositor integration
     readonly property var compositor: Compositor
@@ -166,8 +170,18 @@ ShellRoot {
     Loader {
         id: barLoader
         source: "modules/bar/BarWrapper.qml"
+        onLoaded: root.barWindow = item
     }
 
+
+    // Pill overlay windows (one per screen)
+    Variants {
+        model: Quickshell.screens
+        Pill.PillOverlay {
+            modelData: modelData
+            barWindow: root.barWindow
+        }
+    }
     // Notification popups in top-right corner
     Loader {
         id: notificationPopupsLoader
