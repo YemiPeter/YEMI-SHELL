@@ -1,137 +1,385 @@
-# Bar Module Architecture
-**Shell by Yemi** — Component hierarchy, data flow, and dependency map for `modules/bar/`.
-**Audited:** 2026-06-26 | **Status:** ✅ Clean — 0 dangling/circular imports
+# Top Bar Architecture
 
----
+## Full Component Tree
 
-## 1. Component Hierarchy
+```
+┌─────────────────────────────────────────────────────────────────────────────────────┐
+│ shell.qml  (root Quickshell scope)                                                  │
+│                                                                                     │
+│  └── barLoader ──────────────────────► BarWrapper.qml                               │
+│                                      │                                               │
+│                                      ├── bluetoothPopupLoader ──► BluetoothPopup.qml │
+│                                      ├── networkPopupLoader   ──► NetworkPopup.qml   │
+│                                      ├── volumePopupLoader    ──► VolumePopup.qml    │
+│                                      └── brightnessPopupLoader ─► BrightnessPopup.qml │
+│                                      │                                               │
+│                                      └── Variants model: [Quickshell.screens]       │
+│                                           │                                          │
+│                                           └── PanelWindow (per screen)              │
+│                                                │  top-anchored, transparent         │
+│                                                │  height: 60px                       │
+│                                                │  layer: Top                         │
+│                                                │                                      │
+│                                                └── barLoader ──► Bar.qml             │
+│                                                     │                               │
+│                                                     └── barContainer (Item)          │
+│                                                          │  margins: 1,9,9,1         │
+│                                                          │  width: parent - 18px     │
+│                                                          │  scale factor: s          │
+│                                                          │                           │
+│             ┌──────────────────────────────────────────────┼───────────────────┐   │
+│             │                                              │                   │   │
+│             ▼                                              ▼                   ▼   │
+│    ┌────────────────┐                          ┌─────────────────┐  ┌───────────┐ │
+│    │   LEFT PILL    │                          │   CENTER        │  │ RIGHT 3x  │ │
+│    │  workspace pill│                          │   160×38 spacer │  │ ROW       │ │
+│    └────────────────┘                          └─────────────────┘  └───────────┘ │
+│             │                                              │                   │   │
+│             │                                              │                   │   │
+│             ▼                                              ▼                   ▼   │
+│    ┌────────────────┐                          ┌─────────────────────────────────┐ │
+│    │ ☐ ☐ ☐ ☐ ☐ ☐   │                          │      [Center Pill Overlay]      │ │
+│    │ Workspaces     │                          │      (PillOverlay.qml)          │ │
+│    │ 9 workspaces   │                          │      PanelWindow                 │ │
+│    └────────────────┘                          │      layer: Overlay (above bar)  │ │
+│                                                 └─────────────────────────────────┘ │
+│                                                                                     │
+│  ┌─────────────────────────────────────────────────────────────────────────────┐  │
+│  │                      RIGHT PILLS ROW (spacing: 6px)                         │  │
+│  │  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────────────┐  │  │
+│  │  │ NET + BLUETOOTH  │  │ BRIGHT + VOLUME  │  │ STATUS + BATTERY + TRAY  │  │  │
+│  │  │ 󰤨 WiFi 󰂯       │  │ 󰛨 Bright 󰕾    │  │ 󰛊 󰂛 󰁹 󰂄              │  │  │
+│  │  │ "NetworkName"    │  │ slider + level   │  │ indicators+batt+tray     │  │  │
+│  │  └──────────────────┘  └──────────────────┘  └──────────────────────────┘  │  │
+│  │    connectivityPill      audioPill              powerPill                    │  │
+│  └─────────────────────────────────────────────────────────────────────────────┘  │
+│                                                                                     │
+│  Each pill anatomy:                                                                 │
+│  ┌──────────────────────────────┐                                                  │
+│  │ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │  topHighlight (gradient, 4% white → transp)   │
+│  │ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │  height: ~14px (half of 28px)                │
+│  │                              │                                                  │
+│  │   [icon] | [icon]            │  Content Row                                     │
+│  │   w: 1×12 separators        │  spacing varies by pill (4-6px)               │
+│  │                              │                                                  │
+│  └──────────────────────────────┘                                                  │
+│   border: 1px (cream @ 10%)                                                         │
+│   radius: 14px                                                                      │
+│   color: pillBg (cardBot @ 0.7)                                                     │
+│   height: 28 * s                                                                    │
+│   width: implicitWidth + 16 * s                                                     │
+└─────────────────────────────────────────────────────────────────────────────────────┘
+```
 
+## Data Flow Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                            DATA SOURCES → Bar.qml                               │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│  Config (QsConfig.Config)                                                        │
+│  └── bar.height: 60              ──┐                                             │
+│  └── bar.padding: 4               │                                             │
+│  └── workspaces.count: 9          │                                             │
+│  └── workspaces.spacing: 6        │                                             │
+│                                   │                                             │
+│  Theme (QsSingletons.Theme)     │    ┌────────────────────────────────┐        │
+│  └── cardBot      ──────────────┘    │         Bar.qml                 │        │
+│  └── cream        ──────────┐        │  ┌──────────────────────────┐  │        │
+│  └── onGlow        ─────────┼───────►│  │  Left/Right/Center pills │  │        │
+│                               │        │  └──────────────────────────┘  │        │
+│  Compositor                   │        └────────────────────────────────┘        │
+│  └── activeWsId      ─────────┘                                                 │
+│  └── getOccupied()    ─────────┐                                                 │
+│                                │                                                 │
+│  Services                      │                                                 │
+│  ├── IdleInhibitor ────────────┤                                                 │
+│  │   └── inhibited (caffeine)   │                                                 │
+│  ├── Notifs         ────────────┤                                                 │
+│  │   └── dnd                    │                                                 │
+│  ├── Network        ────────────┘                                                 │
+│  ├── Bluetooth     ─────────────┐                                                 │
+│  ├── Volume        ─────────────┤                                                 │
+│  ├── Brightness    ─────────────┤                                                 │
+│  ├── Battery       ─────────────┤                                                 │
+│  └── SystemTray    ─────────────┘                                                 │
+│                                                                                 │
+│  Popups (injected from BarWrapper)                                              │
+│  ├── networkPopup    ─────────────────┐                                         │
+│  ├── bluetoothPopup ──────────────────┤                                         │
+│  ├── volumePopup    ──────────────────┤                                         │
+│  └── brightnessPopup ─────────────────┘                                         │
+│                                                                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Binding Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  Loader.asynchronous: true                                                   │
+│                                                                             │
+│  ┌──────────────┐                                                           │
+│  │   Loader     │                                                           │
+│  │   source:    │                                                           │
+│  │ "Component"  │                                                           │
+│  └──────┬───────┘                                                           │
+│         │                                                                    │
+│         │ when: status === Loader.Ready                                      │
+│         │                                                                    │
+│         ▼                                                                    │
+│  ┌───────────────────────────────────────────────────────────┐             │
+│  │  Binding {                                                 │             │
+│  │      target: loader.item                                    │             │
+│  │      property: "barWindow"                                  │             │
+│  │      value: root.barWindow                                  │             │
+│  │      restoreMode: RestoreBinding                            │             │
+│  │  }                                                          │             │
+│  └───────────────────────────────────────────────────────────┘             │
+│                                                                             │
+│  Ensures safe property injection after lazy loading completes               │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Measurement Reference
+
+```
+Bar Dimensions
+══════════════════════════════════════════════════════════════════════════════
+
+Overall Bar
+┌────────────────────────────────────────────────────────────────────────────┐
+│  height: 60px                                                               │
+│  margins: top=1*s, left=9*s, right=9*s, bottom=1*s                         │
+│  scale factor s = (screen.height / 1080) * Flags.uiScale                    │
+└────────────────────────────────────────────────────────────────────────────┘
+
+Pill Specifications (all pills share these)
+┌────────────────────────────────────────────────────────────────────────────┐
+│  height:     28 * s                                                         │
+│  radius:     14 * s                                                         │
+│  border:     1px (cream color, 10% alpha)                                   │
+│  padding:    width = implicitWidth + 16 * s                                 │
+│  bg:         cardBot color, 70% alpha                                       │
+│  highlight:  gradient, top half, 4% white → transparent                     │
+└────────────────────────────────────────────────────────────────────────────┘
+
+Spacing Matrix
+┌────────────────────────────────────────────────────────────────────────────┐
+│  Section              │  Spacing                                           │
+│───────────────────────┼────────────────────────────────────────────────────│
+│  Left pills (row)     │  8 * s                                              │
+│  Right pills (row)    │  6 * s                                              │
+│  Workspace items      │  6 * s (from config)                                │
+│  Connectivity pill    │  4 * s internal                                     │
+│  Separators           │  1×12*s, radius 0.5*s                              │
+└────────────────────────────────────────────────────────────────────────────┘
+
+Center Spacer (prevents layout shift)
+┌────────────────────────────────────────────────────────────────────────────┐
+│  width:  160 * s                                                            │
+│  height: 38 * s                                                             │
+│  Purpose: reserves space for PillOverlay.qml center pill                   │
+└────────────────────────────────────────────────────────────────────────────┘
+
+Animation Timings
+┌────────────────────────────────────────────────────────────────────────────┐
+│  Pill width change:    250-350ms                                            │
+│  Easing:               OutCubic / BezierCurve [0.34, 1.56, 0.64, 1]       │
+│  Status indicators:    200ms                                                │
+│  Separator fade:       150ms                                                │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Keyboard Interaction Map
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  Workspace Switches (Hyprland / Niri)                                        │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│                                                                             │
+│  Workspace.qml click ──► compositor.dispatch("workspace N")                 │
+│                                                                             │
+│  Where:                                                                     │
+│  • runtime check: activeWsId !== workspaceId                                │
+│  • dispatch only if switching to different workspace                        │
+│  • handled by Repeater delegate in Workspaces.qml                           │
+│                                                                             │
+│  State Sources:                                                             │
+│  • activeWsId        ← compositor.activeWsId                                │
+│  • isOccupied        ← compositor.getOccupiedWorkspaces()[workspaceId]      │
+│                                                                             │
+│  Center Pill Keyboard Navigation (Pill.qml)                                 │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│                                                                             │
+│  arrow keys (surface open)                                                   │
+│    mixerStep / mixerFocusMove    → mixer fader row                          │
+│    settingsMove / settingsAdjust → settings rows                            │
+│    keybindsMove / keybindsActivate → keybinds list/form                     │
+│    wallpaperMove / wallpaperActivate → wallpaper strip                      │
+│    powerMove / powerPress / powerRelease → power tiles                      │
+│                                                                             │
+│  Escape                                                                     │
+│    surfaceBack() → keybinds form → settings sub-surface → hover pill        │
+│    linkBack() → link subview pop                                            │
+│                                                                             │
+│  Quick-Record (SUPER+D)                                                     │
+│    ScreenRec.prepareScreen / prepareWindow → countdown → record             │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Component Reference
+
+| Component | File | Lazy Loaded | Key Properties | Popup |
+|-----------|------|-------------|----------------|-------|
+| Workspaces | components/Workspaces.qml | Yes | count, spacing, active/occupied | None |
+| Network | components/Network.qml | Yes | ssid, strength, enabled | networkPopup |
+| Bluetooth | components/Bluetooth.qml | Yes | connected, device list | bluetoothPopup |
+| Brightness | components/Brightness.qml | Yes | level, slider | brightnessPopup |
+| Volume | components/Volume.qml | Yes | level, mute | volumePopup |
+| Battery | components/Battery.qml | Yes | charge, charging, icon | None |
+| StatusIndicators | components/StatusIndicators.qml | Yes | caffeine, dnd | None |
+| SystemTray | components/SystemTray.qml | Yes | hasItems | None |
+
+## Pill Anatomy (every right-side pill follows this pattern)
+
+```
+┌─────────────────────────────┐
+│ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │  ← topHighlight (gradient, 4% white → transparent)
+│                             │
+│   [icon] | [icon]           │  ← Row content + separators
+│                             │
+└─────────────────────────────┘
+  radius: 14 * s
+  color: pillBg  (cardBot @ 0.7 alpha)
+  border: 1px pillBorder (cream @ 0.10 alpha)
+  height: 28 * s
+  width: implicitWidth + 16 * s
+```
+
+## Data Flow
+
+```
+Config (QsConfig.Config)
+  └── bar.height, bar.padding, bar.workspaces.count, bar.workspaces.spacing
+
+Theme (QsSingletons.Theme)
+  └── cardBot, cream, onGlow  → pill colors
+
+Compositor (QsCompositor.Compositor)
+  └── activeWsId, getOccupiedWorkspaces()  → workspace state
+
+Services
+  ├── IdleInhibitor.inhibited  → caffeine state
+  ├── Notifs.dnd               → DND state
+  └── [Battery, Network, Bluetooth, Volume, Brightness, SystemTray]
+
+Popups (loaded in BarWrapper, injected into Bar)
+  ├── bluetoothPopup
+  ├── networkPopup
+  ├── volumePopup
+  └── brightnessPopup
+```
+
+## BarWrapper → Bar.qml Structure (confirmed)
+
+All 3 right pills live inside **rightPills Row** in Bar.qml (loaded by BarWrapper):
+
+```
+BarWrapper.qml
+└── Variants → PanelWindow
+    └── barLoader → Bar.qml
+        ├── barContainer
+        │   ├── leftPills → leftModule (workspaces pill)
+        │   ├── centerContainer (160×38 * s spacer)
+        │   └── rightPills Row (spacing: 6 * s)
+        │       ├── connectivityPill (Network + Bluetooth)
+        │       ├── audioPill (Brightness + Volume)
+        │       └── powerPill (Status + Battery + Tray)
+        └── [bindings: screen, barWindow, popups]
+```
+
+Separately: PillOverlay.qml renders the center pill in its own overlay window
 ```
 shell.qml
-└── BarWrapper.qml                          (Scope → PanelWindow per screen)
-    ├── bluetoothPopupLoader  → BluetoothPopupWindow.qml
-    ├── networkPopupLoader   → NetworkPopupWindow.qml
-    ├── volumePopupLoader    → VolumePopupWindow.qml
-    ├── brightnessPopupLoader → BrightnessPopupWindow.qml
-    └── barLoader            → Bar.qml
-        ├── [LEFT]  Workspaces pill
-        │   └── workspacesLoader → Workspaces.qml
-        │       └── Repeater (N times) → Workspace.qml
-        ├── [CENTER] Clock pill
-        │   └── clockLoader → Clock.qml
-        ├── [RIGHT-1] Connectivity pill
-        │   ├── networkLoader   → Network.qml
-        │   └── bluetoothLoader → Bluetooth.qml
-        ├── [RIGHT-2] Audio/Display pill
-        │   ├── brightnessLoader → Brightness.qml
-        │   └── volumeLoader     → Volume.qml
-        ├── [RIGHT-3] Power pill
-        │   ├── statusIndicatorsLoader → StatusIndicators.qml
-        │   ├── batteryLoader          → Battery.qml
-        │   └── systemTrayLoader       → SystemTray.qml
-        └── [TOP-LEVEL] NotificationPopups.qml  (loaded separately in shell.qml)
+└── Variants → PillOverlay (PanelWindow, layer: Overlay)
+    └── Pill (morphing center pill)
 ```
 
----
+## Popup vs Surface Architecture (critical distinction)
 
-## 2. Data Flow
+**BarWrapper.qml** manages 4 **separate popup WINDOWS**:
+```
+BarWrapper.qml
+├── BluetoothPopupWindow.qml    (standalone window)
+├── NetworkPopupWindow.qml      (standalone window)
+├── VolumePopupWindow.qml       (standalone window)
+└── BrightnessPopupWindow.qml   (standalone window)
 
-### 2.1 BarWrapper → Bar (parent → child bindings)
+These popups are injected into Bar.qml pills and open as separate windows.
+```
 
-`BarWrapper.qml` creates the `PanelWindow` per screen and binds popup references + screen data into `Bar.qml`:
+**Pill.qml** (center pill) manages **in-window SURFACES** that morph within the same PillOverlay window:
+```
+Pill.qml surfaces (all open inside PillOverlay.qml, NOT separate windows):
+├── rest / hover          → clock, workspaces, status, wifi, battery, media-bud
+├── calendar              → clock + calendar
+├── launcher              → app launcher grid
+├── clipboard             → clipboard history
+├── wallpaper             → wallpaper picker strip
+├── power                 → power tiles
+├── media                 → media player controls
+├── mixer                 → volume mixer faders
+├── link                  → network + bluetooth controls (Link.qml / LinkWifi.qml / LinkBt.qml)
+├── battery               → battery details
+├── settings              → settings menu (SettingsSurface.qml)
+├── keybinds              → keybind editor list + form
+├── recorder              → screen recorder controls
+├── sysmon                → system monitor
+├── appearance            → appearance settings
+├── updates               → updates
+├── display               → display settings
+├── input                 → input settings
+├── look                  → look settings
+├── idlelock              → idle lock settings
+├── fontpicker            → font picker
+├── osd                   → brightness/volume OSD overlay
+├── toast                 → notification toast
+├── quickChoose           → quick-record source chooser
+└── quickCount            → pre-roll countdown toast
+```
 
-| Property | Source | Target |
-|----------|--------|--------|
-| `screen` | `modelData` (from `Quickshell.screens`) | `Bar.qml` → component loaders |
-| `barWindow` | `window` (the PanelWindow itself) | `Bar.qml` → component loaders |
-| `bluetoothPopup` | `bluetoothPopupLoader.item` | `Bar.qml` → `Bluetooth.qml` |
-| `networkPopup` | `networkPopupLoader.item` | `Bar.qml` → `Network.qml` |
-| `volumePopup` | `volumePopupLoader.item` | `Bar.qml` → `Volume.qml` |
-| `brightnessPopup` | `brightnessPopupLoader.item` | `Bar.qml` → `Brightness.qml` |
+**Quick-record flow (Pill.qml):**
+```
+SUPER+D keybind
+  └── ScreenRec.quickChoosing = true  (mode="quickChoose" on focused monitor)
+      ├── single monitor → prepareScreen(pill.screenName) → countdown (mode="quickCount") → record
+      └── multi monitor → quickScreenChoosing = true → inline monitor strip → pick → prepareScreen(name) → ...
+```
 
-All bindings use `Qt.binding()` with `restoreMode: Binding.RestoreBinding` — safe for async loaders.
+**Key difference:**
+- **Popups** = separate windows (BarWrapper responsibility)
+- **Surfaces** = morph within the same Pill window (Pill.qml responsibility)
 
-### 2.2 Bar → Components (Loader pattern)
+The "link" surface contains network/bluetooth controls (Link.qml, LinkWifi.qml, LinkBt.qml), which is separate from the standalone NetworkPopupWindow.qml / BluetoothPopupWindow.qml.
 
-`Bar.qml` loads each component via `Loader` with `asynchronous: true`. After load, it binds:
-- `barWindow` — for popup windows that need to anchor to the bar
-- `barWindow.networkPopup` / `barWindow.bluetoothPopup` etc. — specific popup references
+**Ame Filament Integration:**
+- Each surface that defines `ameForm` or `amePoint` becomes an Ame anchor
+- Pill.qml maps `ameSurface` from the `surfaces` descriptor
+- `wakePoint` = rest kanji center (pill idle anchor)
+- `soulPoint` = hover target (last hovered icon or active workspace dot)
 
-### 2.3 Component → Services (singleton access)
+## Key Design Decisions
 
-Each component accesses backend services through the `QsServices` namespace:
-
-| Component | Service(s) Used | Access Pattern |
-|-----------|-----------------|----------------|
-| `Workspaces.qml` | `QsCompositor.Compositor` | `compositor.activeWsId`, `compositor.dispatch()` |
-| `Workspace.qml` | `QsSingletons.Theme`, `Material3Anim` | Theme colors + animation curves |
-| `Clock.qml` | — (no service) | `Qt.formatDateTime()` |
-| `Network.qml` | `QsServices.Network` | `network.active`, `network.wifiEnabled` |
-| `Bluetooth.qml` | `Quickshell.Bluetooth`, `QsServices.Bluetooth` | `Bluetooth.defaultAdapter`, `Bluetooth.devices` |
-| `Volume.qml` | `QsServices.Audio`, `QsServices.VolumeMonitor` | `volumeMonitor.muted`, `volumeMonitor.percentage` |
-| `Brightness.qml` | `QsServices.Brightness` | `brightness.percentage` |
-| `Battery.qml` | `Quickshell.Services.UPower`, `QsServices.PowerProfiles` | `UPower.displayDevice`, `powerProfiles` |
-| `MediaPlayer.qml` | `qs.services` (Players) | `Players.active` |
-| `StatusIndicators.qml` | `QsServices.IdleInhibitor`, `QsServices.Notifs` | `idleInhibitor.inhibited`, `notifs.dnd` |
-| `SystemTray.qml` | `Quickshell.Services.SystemTray` | `SystemTray.items` |
-| `NotificationPopups.qml` | `QsServices.Notifs`, `QsServices.Logger` | `notifs.activeNotifications` |
-
-### 2.4 Popup Windows (independent PanelWindows)
-
-The four popup windows (`NetworkPopupWindow.qml`, `BluetoothPopupWindow.qml`, `VolumePopupWindow.qml`, `BrightnessPopupWindow.qml`) are standalone `PanelWindow` items loaded by `BarWrapper.qml`. They:
-- Anchor to top-right of screen
-- Show/hide based on `shouldShow` property (set by parent component hover/click)
-- Use `Process` for settings launchers (`nm-connection-editor`, `blueman-manager`)
-
----
-
-## 3. Module Registration
-
-| Module | qmldir | Registered As |
-|--------|--------|---------------|
-| `singletons/` | `module singletons` | `QsSingletons.Theme`, `QsSingletons.Dyn`, `QsSingletons.Flags` |
-| `services/` | `module qs.services` | `QsServices.*` (14 singletons) |
-| `config/` | `module qs.config` | `QsConfig.Config`, `QsConfig.Appearance`, `QsConfig.AppearanceConfig`, `QsConfig.BarConfig` |
-| `compositor/` | `module qs.compositor` | `QsCompositor.Compositor`, `Hyprland`, `Niri` |
-| `components/effects/` | `module effects` | `Material3Anim` |
-| `modules/bar/` | `module modules.bar` | (Bar.qml, BarWrapper.qml) |
-
----
-
-## 4. Theme Integration
-
-All bar components use `QsSingletons.Theme.*` for colors. Key theme properties used:
-
-| Theme Property | Used By |
-|----------------|---------|
-| `Theme.cream` | Workspace, Network, Bluetooth, Volume, Brightness, Battery, Clock, StatusIndicators |
-| `Theme.dim` | Clock |
-| `Theme.dim2` | (not used in bar) |
-| `Theme.verm` | Volume, Brightness (high level), StatusIndicators |
-| `Theme.vermBurn` | NotificationPopups (error color) |
-| `Theme.onGlow` | Workspace (active), Network (hover), Bluetooth (hover), Volume (hover), StatusIndicators |
-| `Theme.cardBot` | Bar pill background, popup surfaces |
-| `Theme.cardTop` | Popup container surfaces |
-| `Theme.bright` | (not used in bar) |
-| `Theme.hair` | (not used in bar) |
-| `Theme.font` | (not used in bar — uses system fonts) |
-
----
-
-## 5. Known Issues
-
-| # | Issue | Severity | Status |
-|---|-------|----------|--------|
-| 1 | `Bar.qml` line 5: `import "components" as BarComponents` — imported but never used | Low | Dead import, harmless |
-| 2 | `MediaPlayer.qml` line 4: `import qs.services` — uses namespace import (different from other components' `import "../../../services" as QsServices`) | Low | Works, but inconsistent style |
-| 3 | `Battery.qml` references `QsServices.PowerProfiles` — service exists but may error if `powerprofiles-daemon` not running | Medium | Expected — service handles missing daemon |
-
----
-
-## 6. Design Notes
-
-- **Modular per-component architecture** — deliberate divergence from Ricelin's monolithic `topbar/Bar.qml`
-- **Async loading** — all components use `asynchronous: true` on Loaders for non-blocking startup
-- **Binding restoration** — `restoreMode: Binding.RestoreBinding` prevents stale bindings on loader re-load
-- **Height uniformity** — all pills use `height: 28`, components use `implicitHeight: 20` or `24`
-- **Phase 4 scaffold** — `BarWrapper.qml` is the composition point for the PillSurface center pill
+| Decision | Rationale |
+|----------|-----------|
+| Popups loaded in BarWrapper, not Bar.qml | Separation of concerns — window management vs. bar layout |
+| Components loaded via `Loader` (async) | Lazy loading, faster startup |
+| `Binding` with `restoreMode: RestoreBinding` | Safe property injection after Loader.Ready |
+| Center spacer is fixed 160×38 * s | Prevents layout shift; actual center pill lives in PillOverlay.qml |
+| Each pill has its own highlight gradient | Consistent frosted-glass aesthetic |
+| StatusIndicators visibility drives separator | Conditional separator only shows when indicators active |
+| PillOverlay uses WlrLayer.Overlay | Renders above bar's WlrLayer.Top so morphing pill floats above bar |
+| Unified scale factor `s` in Bar.qml | Matches PillOverlay scaling so pills and spacer stay aligned on all DPIs |

@@ -43,7 +43,7 @@ Singleton {
 
     FileView {
         id: file
-        path: (Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")) + "/ricelin/flags.json"
+        path: (Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")) + "/yemi-shell/flags.json"
         blockLoading: true
         watchChanges: true
         printErrors: false
