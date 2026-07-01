@@ -384,7 +384,7 @@ Item {
                         id: systemTrayLoader
                         anchors.verticalCenter: parent.verticalCenter
                         asynchronous: true
-                        source: "components/SystemTray.qml"
+                        // source: "components/SystemTray.qml"
                         visible: item?.hasItems ?? false
                     }
                 }

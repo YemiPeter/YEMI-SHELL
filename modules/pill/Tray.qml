@@ -5,7 +5,7 @@ import QtQuick.Layouts
 import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Services.SystemTray
+// import Quickshell.Services.SystemTray
 import "Singletons"
 
 /**
@@ -21,7 +21,7 @@ Item {
     property real s: 1
     property var barWindow
 
-    visible: SystemTray.items.values.length > 0
+    // visible: SystemTray.items.values.length > 0
     implicitWidth: visible ? row.implicitWidth : 0
     implicitHeight: 24 * tray.s
 
@@ -45,7 +45,7 @@ Item {
         spacing: 2 * tray.s
 
         Repeater {
-            model: SystemTray.items
+            // model: SystemTray.items
 
             delegate: Item {
                 id: slot
