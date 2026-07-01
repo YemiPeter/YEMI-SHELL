@@ -42,9 +42,8 @@ binds {
     // Call Yemi's custom shell script for crosshair overlay
     Super+G { spawn "/home/yemi/.config/quickshell/shell" "overlay" "toggle"; }
 
-    // iNiR app launcher / overview.
-    // Call Yemi's custom shell script for overview
-    Mod+Space repeat=false { spawn "/home/yemi/.config/quickshell/shell" "overview" "toggle"; }
+    // YEMI-SHELL app launcher (via QuickShell IPC).
+    Mod+Space repeat=false { spawn "qs" "ipc" "call" "pill" "launcher" "eDP-1"; }
 
     // Clipboard history overlay.
     // Call Yemi's custom shell script for clipboard
@@ -68,9 +67,8 @@ binds {
     // Call Yemi's custom shell script for region menu
     Ctrl+Shift+S { spawn "/home/yemi/.config/quickshell/shell" "region" "menu"; }
 
-    // Wallpaper picker, settings, cheatsheet, panel family switch.
-    // Call Yemi's custom shell script for wallpaper selector
-    Ctrl+Alt+T { spawn "/home/yemi/.config/quickshell/shell" "wallpaperSelector" "toggle"; }
+    // Wallpaper picker (via QuickShell IPC).
+    Ctrl+Alt+T { spawn "qs" "ipc" "call" "wallpaper" "toggle" "eDP-1"; }
     // Call Yemi's custom shell script for settings
     Mod+Comma { spawn "/home/yemi/.config/quickshell/shell" "settings"; }
     // Call Yemi's custom shell script for cheatsheet
@@ -86,10 +84,10 @@ binds {
     // App launchers
     // ═══════════════════════════════════════════════════════════════════════
 
-    // Call Yemi's custom shell script for terminal
-    Mod+T { spawn "/home/yemi/.config/quickshell/shell" "terminal"; }
-    // Call Yemi's custom shell script for terminal
-    Mod+Return { spawn "/home/yemi/.config/quickshell/shell" "terminal"; }
+    // Terminal (direct spawn, matching Hyprland pattern).
+    Mod+T { spawn "kitty"; }
+    // Terminal (direct spawn, matching Hyprland pattern).
+    Mod+Return { spawn "kitty"; }
     Super+E { spawn "nautilus"; }
     // Call Yemi's custom shell script for browser
     Super+W { spawn "/home/yemi/.config/quickshell/shell" "browser"; }
