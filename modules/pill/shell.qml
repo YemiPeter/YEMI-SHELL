@@ -198,18 +198,36 @@ ShellRoot {
              * the screen. Maximize is suppressed globally, so only true
              * fullscreen ever flips this.
              */
-            readonly property bool monFullscreen: {
+            property bool monFullscreen: false
+        
+            function updateFullscreen() {
                 var mons = Hyprland.monitors.values;
                 for (var i = 0; i < mons.length; i++) {
                     if (mons[i].name === modelData.name) {
                         var ws = mons[i].activeWorkspace;
-                        var o = ws ? ws.lastIpcObject : null;
-                        return o ? !!o.hasfullscreen : false;
+                        monFullscreen = ws ? !!ws.hasfullscreen : false;
+                        return;
                     }
                 }
-                return false;
+                monFullscreen = false;
             }
-
+        
+            Component.onCompleted: updateFullscreen()
+        
+            Connections {
+                target: Hyprland
+                function onRawEvent(event) {
+                    // Fullscreen can change via: workspace switch, window open/close,
+                    // or dedicated fullscreen events. Cover all relevant event names.
+                    var fsEvents = ["fullscreen", "fullscreen1", "fullscreen2",
+                                    "openwindow", "closewindow", "movewindow",
+                                    "workspace", "workspacev2"];
+                    if (fsEvents.indexOf(event.name) >= 0) {
+                        Qt.callLater(updateFullscreen)
+                    }
+                }
+            }
+        
             onMonFullscreenChanged: if (monFullscreen) {
                 if (root.openMon === modelData.name) root.close();
                 if (root.peekMon === modelData.name) root.peekMon = "";
