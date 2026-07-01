@@ -203,8 +203,7 @@ ShellRoot {
                 for (var i = 0; i < mons.length; i++) {
                     if (mons[i].name === modelData.name) {
                         var ws = mons[i].activeWorkspace;
-                        var o = ws ? ws.lastIpcObject : null;
-                        return o ? !!o.hasfullscreen : false;
+                        return ws ? !!ws.hasfullscreen : false;
                     }
                 }
                 return false;
