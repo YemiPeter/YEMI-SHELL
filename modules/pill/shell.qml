@@ -206,6 +206,7 @@ ShellRoot {
                     if (mons[i].name === modelData.name) {
                         var ws = mons[i].activeWorkspace;
                         monFullscreen = ws ? !!ws.hasfullscreen : false;
+                        console.log("[FULLSCREEN]", modelData.name, "monFullscreen =", monFullscreen, "ws.hasfullscreen =", ws ? ws.hasfullscreen : "no workspace");
                         return;
                     }
                 }
@@ -228,10 +229,13 @@ ShellRoot {
                 }
             }
         
-            onMonFullscreenChanged: if (monFullscreen) {
-                if (root.openMon === modelData.name) root.close();
-                if (root.peekMon === modelData.name) root.peekMon = "";
-                pill.pinned = false;
+            onMonFullscreenChanged: {
+                console.log("[FULLSCREEN] onMonFullscreenChanged fired, value:", monFullscreen);
+                if (monFullscreen) {
+                    if (root.openMon === modelData.name) root.close();
+                    if (root.peekMon === modelData.name) root.peekMon = "";
+                    pill.pinned = false;
+                }
             }
 
             screen: modelData
