@@ -113,26 +113,6 @@ PillSurface {
             }
         }
 
-        Rectangle {
-            width: parent.width
-            height: 3 * root.s
-            radius: 1.5 * root.s
-            color: Theme.threadBg
-
-            Rectangle {
-                anchors.left: parent.left
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
-                width: parent.width * Battery.frac
-                radius: parent.radius
-                gradient: Gradient {
-                    orientation: Gradient.Horizontal
-                    GradientStop { position: 0.0; color: Battery.charging ? Theme.vermLit : Theme.vermDeep }
-                    GradientStop { position: 1.0; color: Battery.charging ? Theme.flameGlow : Theme.vermLit }
-                }
-            }
-        }
-
         Column {
             width: parent.width
             topPadding: 16 * root.s
