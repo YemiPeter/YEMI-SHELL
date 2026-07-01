@@ -56,6 +56,7 @@ PillSurface {
     property bool hintShown: false
 
     onFocusIndexChanged: {
+        console.log("[WALLPICK] focusIndex changed to", root.focusIndex, "ts=" + Date.now());
         hintShown = false;
         hintDwell.restart();
     }
@@ -139,6 +140,7 @@ PillSurface {
             }
         focusIndex = idx;
         pos = idx;
+        console.log("[WALLPICK] centerOnCurrent() called, focusIndex set to", root.focusIndex, "ts=" + Date.now());
     }
 
     /**
@@ -300,7 +302,7 @@ PillSurface {
 
             readonly property real off: index - root.pos
             readonly property real ao: Math.abs(off)
-            readonly property bool focused: index === root.focusIndex
+            readonly property bool focused: Math.round(root.pos) === index
             readonly property real bright: root.slotLerp(root.slotBright, ao)
             readonly property real sat: root.slotLerp(root.slotSat, ao)
             readonly property real corner: (8 + 2 * Math.max(0, 1 - ao)) * root.s

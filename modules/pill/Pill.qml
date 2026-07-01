@@ -557,31 +557,28 @@ Item {
         id: body
         anchors.fill: parent
         radius: pill.morphRadius
+
+        // 🎛️ TWEAK ZONE — Yemi, adjust these yourself:
+        // - Last number in Qt.rgba(...) = alpha/transparency.
+        //   Lower = more see-through, blur shows more. Try 0.4 to 0.75.
+        // - border.color alpha (currently 0.10) = how visible the edge line is.
+        // - Top highlight gradient's "0.04" = how strong the glossy shine looks.
+        color: Qt.rgba(Theme.cardBot.r, Theme.cardBot.g, Theme.cardBot.b, 0.55)
         border.width: 1
-        border.color: Theme.border
-        gradient: Gradient {
-            GradientStop { position: 0.0; color: Qt.alpha(Theme.cardTop, Flags.pillOpacity) }
-            GradientStop { position: 1.0; color: Qt.alpha(Theme.cardBot, Flags.pillOpacity) }
-        }
+        border.color: Qt.rgba(Theme.cream.r, Theme.cream.g, Theme.cream.b, 0.10)
 
-        // BLUR DISABLED
-        // layer.enabled: true
-        // layer.effect: MultiEffect {
-        //     shadowEnabled: true
-        //     shadowColor: Qt.rgba(0, 0, Theme.shadowOpacity)
-        //     shadowBlur: 0.7
-        //     shadowVerticalOffset: 3 * pill.s
-        // }
-
+        // Top highlight — same as bar pills
         Rectangle {
             anchors.top: parent.top
             anchors.left: parent.left
             anchors.right: parent.right
-            anchors.topMargin: 1
-            anchors.leftMargin: body.radius * 0.6
-            anchors.rightMargin: body.radius * 0.6
-            height: 1
-            color: Theme.sheen
+            anchors.margins: 1 * pill.s
+            height: parent.height / 2
+            radius: parent.radius - 1
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, 0.04) }
+                GradientStop { position: 1.0; color: "transparent" }
+            }
         }
     }
 
