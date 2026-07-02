@@ -201,18 +201,75 @@ ShellRoot {
             property bool monFullscreen: false
         
             function updateFullscreen() {
+                var desktop = Quickshell.env("XDG_CURRENT_DESKTOP");
+                if (desktop && desktop.toLowerCase().indexOf("niri") >= 0) {
+                    // Niri: shell out to niri msg -j windows (no is_fullscreen field exists)
+                    if (!niriFsProc.running) {
+                        niriFsProc.output = "";
+                        niriFsProc.running = true;
+                    }
+                    return;
+                }
+
+                // Hyprland: existing logic unchanged
                 var mons = Hyprland.monitors.values;
                 for (var i = 0; i < mons.length; i++) {
                     if (mons[i].name === modelData.name) {
                         var ws = mons[i].activeWorkspace;
                         monFullscreen = ws ? !!ws.hasfullscreen : false;
+                        console.log("[FS-CHECK]", modelData.name, "monFullscreen=", monFullscreen);
                         console.log("[FULLSCREEN]", modelData.name, "monFullscreen =", monFullscreen, "ws.hasfullscreen =", ws ? ws.hasfullscreen : "no workspace");
                         return;
                     }
                 }
                 monFullscreen = false;
             }
-        
+
+            // Niri fullscreen detection via niri msg -j windows IPC
+            // Reuses the same Process+SplitParser pattern as compositor/Niri.qml
+            Process {
+                id: niriFsProc
+                property string output: ""
+                command: ["niri", "msg", "-j", "windows"]
+                running: false
+
+                stdout: SplitParser {
+                    splitMarker: ""
+                    onRead: function(data) {
+                        niriFsProc.output += data;
+                    }
+                }
+
+                onExited: code => {
+                    if (code === 0) {
+                        try {
+                            var windows = JSON.parse(niriFsProc.output.trim());
+                            var isFullscreen = false;
+                            for (var i = 0; i < windows.length; i++) {
+                                if (windows[i].is_focused) {
+                                    var ts = windows[i].layout.tile_size;
+                                    if (ts && ts.length === 2) {
+                                        // Compare against full monitor logical resolution
+                                        var monW = overlay.modelData.width;
+                                        var monH = overlay.modelData.height;
+                                        if (ts[0] >= monW && ts[1] >= monH) {
+                                            isFullscreen = true;
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+                            overlay.monFullscreen = isFullscreen;
+                            console.log("[FS-CHECK]", overlay.modelData.name, "monFullscreen=", overlay.monFullscreen);
+                        } catch (e) {
+                            console.warn("[FS-CHECK] Failed to parse niri windows:", e);
+                        }
+                    } else {
+                        console.warn("[FS-CHECK] Failed to query niri windows");
+                    }
+                }
+            }
+
             Component.onCompleted: updateFullscreen()
         
             Connections {
@@ -230,6 +287,7 @@ ShellRoot {
             }
         
             onMonFullscreenChanged: {
+                console.log("[FS-CHECK] changed to", monFullscreen, "opacity should be", monFullscreen ? 0 : 1);
                 console.log("[FULLSCREEN] onMonFullscreenChanged fired, value:", monFullscreen);
                 if (monFullscreen) {
                     if (root.openMon === modelData.name) root.close();
