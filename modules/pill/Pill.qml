@@ -21,6 +21,9 @@ import "Singletons"
 Item {
     id: pill
 
+    onYChanged: console.log("[PILLPOS] y=", y, "height=", height, "ts=", Date.now())
+    onHeightChanged: console.log("[PILLPOS] y=", y, "height=", height, "ts=", Date.now())
+
     property real s: 1
     property string screenName: ""
     property var barWindow
@@ -661,6 +664,7 @@ Item {
      * the centred width morph would otherwise cause.
      */
     readonly property real inputPadRight: bud.shown ? bud.budR + 2 * s : 0
+    readonly property real inputPadTop: 2 * s
 
     onHoveredChanged: {
         if (hovered) {
