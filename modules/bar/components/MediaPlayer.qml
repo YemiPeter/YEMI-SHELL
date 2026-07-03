@@ -101,6 +101,7 @@ Item {
                 SequentialAnimation on opacity {
                     running: root.isPlaying
                     loops: Animation.Infinite
+                    paused: !visible
                     NumberAnimation { to: 0.3; duration: 1000 }
                     NumberAnimation { to: 1.0; duration: 1000 }
                 }
@@ -126,6 +127,7 @@ Item {
                     from: vinyl.rotation
                     to: vinyl.rotation + 360
                     duration: 2500
+                    paused: !visible
                     loops: Animation.Infinite
                 }
                 
@@ -200,6 +202,7 @@ Item {
                 
                 SequentialAnimation {
                     id: marqueeAnim
+                    paused: !visible
                     running: titleText.needsScroll && root.isPlaying
                     loops: Animation.Infinite
                     
@@ -410,6 +413,7 @@ Item {
                         SequentialAnimation on scale {
                             running: root.isPlaying
                             loops: Animation.Infinite
+                            paused: !visible
                             NumberAnimation { to: 1.2; duration: 600 }
                             NumberAnimation { to: 1.0; duration: 600 }
                         }
