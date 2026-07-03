@@ -66,6 +66,7 @@ Item {
             right: true
             bottom: true
         }
+        margins.top: 8 * s
 
         color: "transparent"
         WlrLayershell.layer: WlrLayer.Overlay
@@ -205,6 +206,17 @@ Item {
             console.log("[MASK-CHECK] monFullscreen=", monFullscreen, "at rest, no window should be fullscreen");
             if (monFullscreen) {
                 QsSingletons.PillState.close();
+            }
+        }
+
+        // Guard: if a surface is opened while fullscreen is already active
+        // (e.g. via keybind IPC), immediately force-close it.
+        // The `monFullscreen` transition case is already handled above;
+        // this catches the "already fullscreen → keybind → toggleSurface" path.
+        onSurfaceOpenChanged: {
+            if (surfaceOpen && monFullscreen) {
+                console.log("[FS-GUARD] surface opened during fullscreen — closing");
+                Qt.callLater(QsSingletons.PillState.close);
             }
         }
 
