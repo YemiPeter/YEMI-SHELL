@@ -87,7 +87,7 @@ Item {
                     Loader {
                         id: workspacesLoader
                         Layout.alignment: Qt.AlignVCenter
-                        asynchronous: true
+                        asynchronous: false
                         source: "components/Workspaces.qml"
                         Binding {
                             target: workspacesLoader.item
@@ -161,7 +161,7 @@ Item {
                     Loader {
                         id: networkLoader
                         anchors.verticalCenter: parent.verticalCenter
-                        asynchronous: true
+                        asynchronous: false
                         source: "components/Network.qml"
                         Binding {
                             target: networkLoader.item
@@ -191,7 +191,7 @@ Item {
                     Loader {
                         id: bluetoothLoader
                         anchors.verticalCenter: parent.verticalCenter
-                        asynchronous: true
+                        asynchronous: false
                         source: "components/Bluetooth.qml"
                         Binding {
                             target: bluetoothLoader.item
@@ -250,7 +250,7 @@ Item {
                     Loader {
                         id: brightnessLoader
                         anchors.verticalCenter: parent.verticalCenter
-                        asynchronous: true
+                        asynchronous: false
                         source: "components/Brightness.qml"
                         Binding {
                             target: brightnessLoader.item
@@ -280,7 +280,7 @@ Item {
                     Loader {
                         id: volumeLoader
                         anchors.verticalCenter: parent.verticalCenter
-                        asynchronous: true
+                        asynchronous: false
                         source: "components/Volume.qml"
                         Binding {
                             target: volumeLoader.item
@@ -359,7 +359,7 @@ Item {
                     Loader {
                         id: batteryLoader
                         anchors.verticalCenter: parent.verticalCenter
-                        asynchronous: true
+                        asynchronous: false
                         source: "components/Battery.qml"
                         Binding {
                             target: batteryLoader.item
@@ -383,7 +383,7 @@ Item {
                     Loader {
                         id: systemTrayLoader
                         anchors.verticalCenter: parent.verticalCenter
-                        asynchronous: true
+                        asynchronous: false
                         // source: "components/SystemTray.qml"
                         visible: item ? item.hasItems : false
                     }
