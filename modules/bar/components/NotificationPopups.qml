@@ -357,6 +357,7 @@ PanelWindow {
                             SequentialAnimation on opacity {
                                 running: modelData.urgency === 2
                                 loops: Animation.Infinite
+                                paused: !visible
                                 NumberAnimation { to: 0.4; duration: 1200; easing.type: Easing.InOutQuad }
                                 NumberAnimation { to: 0.8; duration: 1200; easing.type: Easing.InOutQuad }
                             }

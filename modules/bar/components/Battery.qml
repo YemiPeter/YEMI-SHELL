@@ -153,6 +153,7 @@ Item {
                             SequentialAnimation on shimmerPos {
                                 running: isCharging && !isFullyCharged && !showExpandedMode
                                 loops: Animation.Infinite
+                                paused: !visible
                                 NumberAnimation { from: -0.3; to: 1.3; duration: 1200; easing.type: Easing.InOutSine }
                                 PauseAnimation { duration: 400 }
                             }
@@ -188,6 +189,7 @@ Item {
                     SequentialAnimation on scale {
                         running: isCharging && !isFullyCharged && !showExpandedMode
                         loops: Animation.Infinite
+                        paused: !visible
                         NumberAnimation { to: 1.2; duration: 400; easing.type: Easing.OutCubic }
                         NumberAnimation { to: 1.0; duration: 400; easing.type: Easing.InCubic }
                     }
@@ -211,6 +213,7 @@ Item {
                 SequentialAnimation on opacity {
                     running: isCritical
                     loops: Animation.Infinite
+                    paused: !visible
                     NumberAnimation { to: 1.0; duration: 500 }
                     NumberAnimation { to: 0.3; duration: 500 }
                 }
@@ -284,6 +287,7 @@ Item {
                     SequentialAnimation on shimmerX {
                         running: showExpandedMode
                         loops: Animation.Infinite
+                        paused: !visible
                         NumberAnimation { from: -0.2; to: 1.2; duration: 1000 }
                         PauseAnimation { duration: 500 }
                     }

@@ -105,6 +105,7 @@ Rectangle {
         SequentialAnimation on opacity {
             running: isActive
             loops: Animation.Infinite
+            paused: !visible
             
             NumberAnimation { to: 0.3; duration: 1500; easing.type: Easing.InOutSine }
             NumberAnimation { to: 0.8; duration: 1500; easing.type: Easing.InOutSine }
