@@ -59,6 +59,7 @@ Item {
             SequentialAnimation on opacity {
                 running: caffeineActive
                 loops: Animation.Infinite
+                paused: !visible
                 NumberAnimation { to: 0.7; duration: 1500; easing.type: Easing.InOutSine }
                 NumberAnimation { to: 1.0; duration: 1500; easing.type: Easing.InOutSine }
             }
