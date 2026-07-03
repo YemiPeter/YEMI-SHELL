@@ -13,7 +13,7 @@ Item {
     property var barWindow
 
     // Screen name for PillState toggle calls
-    readonly property string screenName: root.screen?.name || ""
+    readonly property string screenName: root.screen ? root.screen.name : ""
 
     // Scale factor matching PillOverlay so bar spacing and center spacer align.
     readonly property real s: screen ? (screen.height / 1080) * QsSingletons.Flags.uiScale : 1
@@ -342,7 +342,7 @@ Item {
                         anchors.verticalCenter: parent.verticalCenter
                         asynchronous: false
                         source: "components/StatusIndicators.qml"
-                        visible: item?.hasActiveIndicators ?? false
+                        visible: item ? item.hasActiveIndicators : false
                     }
 
                     // Separator (only if status indicators visible)
@@ -352,7 +352,7 @@ Item {
                         height: 12 * root.s
                         radius: 0.5 * root.s
                         color: pillSeparator
-                        visible: statusIndicatorsLoader.item?.hasActiveIndicators ?? false
+                        visible: statusIndicatorsLoader.item ? statusIndicatorsLoader.item.hasActiveIndicators : false
                     }
 
                     // Battery
@@ -385,7 +385,7 @@ Item {
                         anchors.verticalCenter: parent.verticalCenter
                         asynchronous: true
                         // source: "components/SystemTray.qml"
-                        visible: item?.hasItems ?? false
+                        visible: item ? item.hasItems : false
                     }
                 }
             }
