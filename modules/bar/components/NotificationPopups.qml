@@ -405,6 +405,7 @@ PanelWindow {
                             radius: parent.radius
                             color: root.m3OnSurface
                             opacity: notifCard.isHovered && !notifCard.isDragging ? 0.03 : 0
+                            visible: notifCard.isHovered || opacity > 0
                             
                             Behavior on opacity {
                                 NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
@@ -428,7 +429,6 @@ PanelWindow {
                             onEntered: {
                                 notifCard.isHovered = true
                                 // Pause progress animation
-                                progressAnim.running = false
                             }
                             
                             onExited: {
@@ -436,7 +436,6 @@ PanelWindow {
                                     notifCard.isHovered = false
                                     // Resume progress if not dismissed
                                     if (notifCard.isVisible && progressFill.width > 0) {
-                                        progressAnim.running = true
                                     }
                                 }
                             }
@@ -484,7 +483,6 @@ PanelWindow {
                                         snapBackAnim.start()
                                         // Resume progress timer
                                         if (notifCard.isVisible && progressFill.width > 0 && !notifCard.isHovered) {
-                                            progressAnim.running = true
                                         }
                                     }
                                     gestureArea.scrollAccumulator = 0
@@ -535,7 +533,6 @@ PanelWindow {
                                     
                                     // Resume progress timer
                                     if (notifCard.isVisible && progressFill.width > 0 && !notifCard.isHovered) {
-                                        progressAnim.running = true
                                     }
                                 }
                             }
@@ -584,6 +581,7 @@ PanelWindow {
                                         anchors.centerIn: parent
                                         width: 20
                                         height: 20
+                                        sourceSize: Qt.size(20, 20)
                                         source: {
                                             if (!modelData.appIcon) return ""
                                             if (modelData.appIcon.startsWith("/") || modelData.appIcon.startsWith("file://")) {
@@ -744,6 +742,7 @@ PanelWindow {
                                     Image {
                                         anchors.fill: parent
                                         anchors.margins: 1
+                                        sourceSize: Qt.size(width, height)
                                         source: {
                                             if (!modelData.image) return ""
                                             if (modelData.image.startsWith("file://")) return modelData.image

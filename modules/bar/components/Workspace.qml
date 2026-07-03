@@ -140,5 +140,4 @@ Rectangle {
         }
     }
     
-    scale: 1.0
 }
