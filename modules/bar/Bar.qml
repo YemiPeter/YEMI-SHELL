@@ -2,7 +2,6 @@ import QtQuick 6.10
 import QtQuick.Layouts 6.10
 import QtQuick.Effects
 import Quickshell
-// import "components" as BarComponents // dead import — components loaded via Loader, never referenced
 import "../../components/effects"
 import "../../config" as QsConfig
 import "../../services" as QsServices
@@ -25,6 +24,7 @@ Item {
     readonly property color pillBorder: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.10)
     readonly property color pillSeparator: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.15)
 
+    readonly property color highlightTop: Qt.rgba(1, 1, 1, 0.04)
     // ═══════════════════════════════════════════════════════════════════════
     // MINIMAL AESTHETIC BAR
     // Clean, professional, beautiful - inspired by modern Linux rice
@@ -74,7 +74,7 @@ Item {
                     height: parent.height / 2
                     radius: parent.radius - 1
                     gradient: Gradient {
-                        GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, 0.04) }
+                        GradientStop { position: 0.0; color: highlightTop }
                         GradientStop { position: 1.0; color: "transparent" }
                     }
                 }
@@ -148,7 +148,7 @@ Item {
                     height: parent.height / 2
                     radius: parent.radius - 1
                     gradient: Gradient {
-                        GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, 0.04) }
+                        GradientStop { position: 0.0; color: highlightTop }
                         GradientStop { position: 1.0; color: "transparent" }
                     }
                 }
@@ -237,7 +237,7 @@ Item {
                     height: parent.height / 2
                     radius: parent.radius - 1
                     gradient: Gradient {
-                        GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, 0.04) }
+                        GradientStop { position: 0.0; color: highlightTop }
                         GradientStop { position: 1.0; color: "transparent" }
                     }
                 }
@@ -326,7 +326,7 @@ Item {
                     height: parent.height / 2
                     radius: parent.radius - 1
                     gradient: Gradient {
-                        GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, 0.04) }
+                        GradientStop { position: 0.0; color: highlightTop }
                         GradientStop { position: 1.0; color: "transparent" }
                     }
                 }
@@ -340,7 +340,7 @@ Item {
                     Loader {
                         id: statusIndicatorsLoader
                         anchors.verticalCenter: parent.verticalCenter
-                        asynchronous: true
+                        asynchronous: false
                         source: "components/StatusIndicators.qml"
                         visible: item?.hasActiveIndicators ?? false
                     }

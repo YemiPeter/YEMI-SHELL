@@ -10,11 +10,10 @@ RowLayout {
     Repeater {
         model: SystemTray.items
         
-        delegate: Rectangle {
+        delegate: Item {
+            required property var modelData
             Layout.preferredWidth: 24
             Layout.preferredHeight: 24
-            radius: 4
-            color: "transparent"
             
             Image {
                 anchors.centerIn: parent

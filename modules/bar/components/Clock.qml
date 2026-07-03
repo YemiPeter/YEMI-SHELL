@@ -11,7 +11,6 @@ Item {
     Text {
         id: clockLabel
         anchors.centerIn: parent
-        text: Qt.formatDateTime(new Date(), "hh:mm AP")
         color: QsSingletons.Theme.dim
         font.pixelSize: 11
         font.bold: true

@@ -32,7 +32,6 @@ Item {
     onIsPlayingChanged: {
         if (!isPlaying) {
             marqueeAnim.stop()
-            titleText.x = titleText.needsScroll ? 0 : (80 - titleText.implicitWidth) / 2
         }
     }
     
