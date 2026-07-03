@@ -4,6 +4,7 @@ import QtQuick 6.10
 import "../../config" as QsConfig
 
 Scope {
+    id: root
     readonly property var config: QsConfig.Config
     
     
@@ -24,6 +25,7 @@ Scope {
             }
             
             implicitHeight: config.bar.height
+            Component.onCompleted: console.log("[ALIGN-CHECK] Bar actual height=", height, "implicitHeight=", implicitHeight)
             color: "transparent"
             
             // Bar content
