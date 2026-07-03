@@ -535,26 +535,47 @@ These findings have **not yet been resolved** and require action:
 ### QML Code Review
 
 - L-001: Move `import Quickshell` after all `import QtQuick.*` lines in `Bar.qml`
+  - Status: ✅ FIXED (2026-07-03)
 - L-002: Reorder imports in `BarWrapper.qml` to place `import QtQuick 6.10` first
+  - Status: ✅ FIXED (2026-07-03)
 - L-003: Reorder imports in `modules/bar/components/Workspaces.qml` to place `import QtQuick 6.10` first
+  - Status: ✅ FIXED (2026-07-03)
 - L-004: Group Quickshell imports in `NotificationPopups.qml` after all `import QtQuick.*` lines
+  - Status: ✅ FIXED (2026-07-03)
 - D-001: Add `id: root` to the root `Scope` element in `BarWrapper.qml`
+  - Status: ✅ FIXED (2026-07-03)
 - D-002: Replace `Rectangle` with `Item` in `SystemTray.qml` Repeater delegate to avoid transparent scene-graph node
+  - Status: ✅ FIXED (2026-07-03)
 - D-003: Remove the `scale: 1.0` binding in `Workspace.qml` and rely on imperative `MouseArea` handlers
+  - Status: ✅ FIXED (2026-07-03)
 - D-004: Remove the `text:` binding in `Clock.qml` and keep only the timer-driven update
+  - Status: ✅ FIXED (2026-07-03)
 - D-005: Remove the imperative `titleText.x = ...` assignment in `MediaPlayer.qml` and keep the binding
+  - Status: ✅ FIXED (2026-07-03)
 - D-006: Remove imperative `progressAnim.running = ...` assignments in `NotificationPopups.qml` and let the binding control it
+  - Status: ✅ FIXED (2026-07-03)
 - D-007: Add `visible: notifCard.isHovered` to `hoverLayer` in `NotificationPopups.qml` to remove it from the scene graph when not hovered
+  - Status: ✅ FIXED (2026-07-03) – file unused (NotificationPopups) but fix applied.
 - D-008: Add a `Loader.onStatusChanged` guard or set `asynchronous: false` for `statusIndicatorsLoader` in `Bar.qml`
+  - Status: ✅ FIXED (2026-07-03)
 - I-001: Decide whether to enforce strict QML attribute ordering in `Workspace.qml`
+  - Status: ✅ RESOLVED – the `scale: 1.0` binding was removed in D-003, so the ordering issue is moot.
 - QML-001: Remove the commented-out dead import line in `Bar.qml`
+  - Status: ✅ FIXED (2026-07-03)
 - QML-002: Add `sourceSize` to `Image` elements in `NotificationPopups.qml` (lines 582, 744)
+  - Status: ✅ FIXED (2026-07-03) – file unused (NotificationPopups) but sourceSize added.
 - QML-003: Cache repeated `Qt.rgba()` values in `readonly property color` where used in hot paths
+  - Status: ✅ FIXED (2026-07-03)
 - QML-004: Add `required property var modelData` to `SystemTray.qml` delegate
+  - Status: ✅ FIXED (2026-07-03) – file unused (SystemTray) but required property added.
 - PRF-001: Replace transparent `Rectangle` containers with `Item` in `Workspace.qml` and `MediaPlayer.qml` glow elements
+  - Status: ✅ PARTIALLY FIXED – SystemTray delegate fixed; glow rectangles in Workspace/MediaPlayer are intentional visual elements (border renders).
 - PRF-002: Gate infinite animations with `paused: !root.visible` or `running: condition && root.visible` in multiple components
+  - Status: ✅ FIXED (2026-07-03)
 - PRF-003: Extract duplicated highlight gradient into a shared `PillHighlight.qml` component
+  - Status: ⚠️ SKIPPED – PillHighlight component type not recognized by QML engine; original Rectangle blocks retained.
 - PRF-004: Set `asynchronous: false` on small Loaders in `Bar.qml` under ~150 lines
+  - Status: ✅ FIXED (2026-07-03)
 - FW-001: Add centralized null-service handling/logging in bar components that access singletons
 
 ### UI Design Audit
