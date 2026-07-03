@@ -2,7 +2,7 @@
 
 > **Date**: 2026-03-07
 > **Scope**: `modules/bar/` — 14 QML files
-> **Review types**: QML Code Review (qt-qml-review), UI Design Audit (qt-ui-design), Qt C++ Review (qt-cpp-review)
+> **Review types**: QML Code Review (qt-qml-review), UI Design Audit (qt-ui-design), Qt C++ Review (qt-cpp-review), QML Best Practices (qt-qml), QML Profiling (qt-qml-profiler), Project Rules (YemiWorkingRules, SKILL.md, Qt-Dev-Checklist, qt-deprecated-cl)
 
 ---
 
@@ -12,14 +12,19 @@
    - [Lint Findings](#11-lint-findings)
    - [Deep Analysis Findings](#12-deep-analysis-findings)
    - [Investigation Targets](#13-investigation-targets)
-   - [Summary](#14-summary)
+   - [QML Best Practices (qt-qml.md)](#14-qml-best-practices)
+   - [Performance Profiling (qt-qml-profiler.md)](#15-performance-profiling)
+   - [Summary](#16-summary)
 2. [UI Design Audit](#2-ui-design-audit)
    - [Critical Findings](#21-critical)
    - [Warnings](#22-warnings)
    - [Opportunities](#23-opportunities)
    - [Summary](#24-summary)
 3. [Qt C++ Review](#3-qt-c-review)
-4. [Files Reviewed](#4-files-reviewed)
+4. [Qt Deprecated Classes Check](#4-qt-deprecated-classes-check)
+5. [Qt Framework Development Checklist](#5-qt-framework-development-checklist)
+6. [Project Working Rules Compliance](#6-project-working-rules-compliance)
+7. [Files Reviewed](#7-files-reviewed)
 
 ---
 
@@ -28,48 +33,51 @@
 **Scope**: files: `modules/bar/Bar.qml`, `modules/bar/BarWrapper.qml`, `modules/bar/components/Workspaces.qml`, `modules/bar/components/Workspace.qml`, `modules/bar/components/Network.qml`, `modules/bar/components/Bluetooth.qml`, `modules/bar/components/Brightness.qml`, `modules/bar/components/Volume.qml`, `modules/bar/components/Battery.qml`, `modules/bar/components/StatusIndicators.qml`, `modules/bar/components/SystemTray.qml`, `modules/bar/components/MediaPlayer.qml`, `modules/bar/components/Clock.qml`, `modules/bar/components/NotificationPopups.qml`
 
 **Files reviewed**: 14
-**Issues found**: 12 (4 from lint, 8 from deep analysis)
+**Issues found**: 20 (4 from lint, 12 from deep analysis, 4 from cross-rule checks)
 **qmllint**: not available (no system qmllint binary detected)
 
 ---
 
 ### 1.1 Lint findings
 
-#### [L-001] IMP-4: Import ordering — Quickshell before QtQuick
+#### [L-001 ✅ FIXED] IMP-4: Import ordering — Quickshell before QtQuick
+- **Status**: ✅ FIXED (2026-07-03)
 - **File**: `modules/bar/Bar.qml:1`
 - **Rule**: IMP-4 (Import ordering)
-- **Finding**: `import Quickshell` (line 1) appears before `import QtQuick 6.10` (line 2), `import QtQuick.Layouts 6.10` (line 3), and `import QtQuick.Effects` (line 4). Convention requires Qt modules first, then third-party.
-- **Mitigation**: Move `import Quickshell` after all `import QtQuick.*` lines.
+- **Finding**: `import Quickshell` (line 1) appeared before `import QtQuick 6.10` (line 2), `import QtQuick.Layouts 6.10` (line 3), and `import QtQuick.Effects` (line 4). Convention requires Qt modules first, then third-party.
+- **Mitigation**: Moved `import Quickshell` after all `import QtQuick.*` lines.
 
-#### [L-002] IMP-4: Import ordering — Quickshell before QtQuick
+#### [L-002 ✅ FIXED] IMP-4: Import ordering — Quickshell before QtQuick
+- **Status**: ✅ FIXED (2026-07-03)
 - **File**: `modules/bar/BarWrapper.qml:1`
 - **Rule**: IMP-4 (Import ordering)
-- **Finding**: `import Quickshell` (line 1) and `import Quickshell.Wayland` (line 2) appear before `import QtQuick 6.10` (line 3).
-- **Mitigation**: Reorder to place `import QtQuick 6.10` first.
+- **Finding**: `import Quickshell` (line 1) and `import Quickshell.Wayland` (line 2) appeared before `import QtQuick 6.10` (line 3).
+- **Mitigation**: Reordered to place `import QtQuick 6.10` first.
 
-#### [L-003] IMP-4: Import ordering — Quickshell before QtQuick
+#### [L-003 ✅ FIXED] IMP-4: Import ordering — Quickshell before QtQuick
+- **Status**: ✅ FIXED (2026-07-03)
 - **File**: `modules/bar/components/Workspaces.qml:1`
 - **Rule**: IMP-4 (Import ordering)
-- **Finding**: `import Quickshell` (line 1) appears before `import QtQuick 6.10` (line 2) and `import QtQuick.Layouts 6.10` (line 3).
-- **Mitigation**: Reorder to place `import QtQuick 6.10` first.
+- **Finding**: `import Quickshell` (line 1) appeared before `import QtQuick 6.10` (line 2) and `import QtQuick.Layouts 6.10` (line 3).
+- **Mitigation**: Reordered to place `import QtQuick 6.10` first.
 
-#### [L-004] IMP-4: Import ordering — Quickshell before QtQuick
+#### [L-004 ✅ FIXED] IMP-4: Import ordering — Quickshell before QtQuick
+- **Status**: ✅ FIXED (2026-07-03)
 - **File**: `modules/bar/components/NotificationPopups.qml:4`
 - **Rule**: IMP-4 (Import ordering)
-- **Finding**: `import Quickshell` (line 4) and `import Quickshell.Wayland` (line 5) appear after `import QtQuick.Effects` (line 3) but before local project imports. Quickshell imports should be grouped together after all QtQuick imports.
-- **Mitigation**: Group Quickshell imports together: move lines 4-5 to appear after all `import QtQuick.*` lines and before local project imports.
+- **Finding**: `import Quickshell` (line 4) and `import Quickshell.Wayland` (line 5) appeared after `import QtQuick.Effects` (line 3) but before local project imports. Quickshell imports should be grouped together after all QtQuick imports.
+- **Mitigation**: Grouped Quickshell imports together after all `import QtQuick.*` lines and before local project imports.
 
 ---
 
 ### 1.2 Deep analysis findings
 
-#### [D-001] STY-1: Root element missing `id: root`
-- **File**: `modules/bar/BarWrapper.qml:6`
-- **Category**: Performance & Quality
-- **Confidence**: 100/100
-- **Finding**: The root `Scope` element has no `id` at all. The only `id` in the file is `window` on the inner `PanelWindow` child. This breaks the project convention where all other root elements consistently use `id: root`.
-- **Trace**: Compared against all other topbar files — every other root element uses `id: root` (Bar.qml, Workspace.qml, Network.qml, Bluetooth.qml, Brightness.qml, Volume.qml, Battery.qml, MediaPlayer.qml, Clock.qml, StatusIndicators.qml).
-- **Mitigation**: Add `id: root` to the `Scope` element on line 6.
+#### [D-001 ✅ FIXED] STY-1: Root element missing `id: root`
+- **Status**: ✅ FIXED (2026-07-03)
+- **File**: `modules/bar/BarWrapper.qml:6` — previously `Scope` had no `id`.
+- **Finding**: The root `Scope` element had no `id` at all. The only `id` in the file was `window` on the inner `PanelWindow` child. This broke the project convention where all other root elements consistently use `id: root`.
+- **Mitigation**: Added `id: root` to the `Scope` element on line 6.
+- **Previous confidence**: 100/100
 
 #### [D-002] PRF-1: Transparent Rectangle in delegate
 - **File**: `modules/bar/components/SystemTray.qml:13`
@@ -120,11 +128,11 @@
 - **Mitigation**: Add `visible: notifCard.isHovered` to completely remove the node from the scene graph when not hovered, while keeping the `Behavior on opacity` for the fade-in transition.
 
 #### [D-008] LDR-1: Loader.item access without status guard
-- **File**: `modules/bar/components/StatusIndicators.qml:345`
+- **File**: `modules/bar/components/StatusIndicators.qml:345` (projected from Bar.qml usage, actual file is `Bar.qml:345`)
 - **Category**: Component Loading & Lifecycle
 - **Confidence**: 95/100
-- **Finding**: `statusIndicatorsLoader.item?.hasActiveIndicators` (line 345) uses optional chaining which prevents crashes, but the Loader has `asynchronous: true` (line 344), meaning `item` will be `null` until the component finishes loading asynchronously. The `visible` property will briefly be `false` (due to `?? false`), then snap to the correct value once loaded — causing a brief visual flicker on startup.
-- **Trace**: Line 344: `asynchronous: true`. Line 345: `visible: item?.hasActiveIndicators ?? false`. The Loader's `item` is `null` until async loading completes.
+- **Finding**: `statusIndicatorsLoader.item?.hasActiveIndicators` (Bar.qml line 345) uses optional chaining which prevents crashes, but the Loader has `asynchronous: true` (line 344), meaning `item` will be `null` until the component finishes loading asynchronously. The `visible` property will briefly be `false` (due to `?? false`), then snap to the correct value once loaded — causing a brief visual flicker on startup.
+- **Trace**: Bar.qml line 344: `asynchronous: true`. Line 345: `visible: item?.hasActiveIndicators ?? false`. The Loader's `item` is `null` until async loading completes.
 - **Mitigation**: Either set `asynchronous: false` on the Loader, or add a `Loader.onStatusChanged` handler to set visibility only when `status === Loader.Ready`.
 
 ---
@@ -141,19 +149,114 @@
 
 ---
 
-### 1.4 Summary
+### 1.4 QML Best Practices (from qt-qml.md)
 
-| Category | Lint | Deep | Investigate | Total |
-|----------|------|------|-------------|-------|
-| Imports (IMP) | 4 | 0 | 0 | 4 |
-| Style (STY) | 0 | 1 | 0 | 1 |
-| Performance (PRF) | 0 | 2 | 0 | 2 |
-| Bindings (BND) | 0 | 4 | 0 | 4 |
-| Loading (LDR) | 0 | 1 | 0 | 1 |
-| Ordering (ORD) | 0 | 0 | 1 | 1 |
-| **Total** | **4** | **8** | **1** | **13** |
+#### [QML-001] BPR-1: Dead import leftover in Bar.qml
+- **File**: `modules/bar/Bar.qml:5`
+- **Rule**: Import hygiene — unused imports should be removed
+- **Confidence**: 100/100
+- **Finding**: A commented-out import on line 5: `// import "components" as BarComponents // dead import — components loaded via Loader, never referenced`. The comment itself acknowledges this is dead code. The entire line should be removed.
+- **Mitigation**: Delete line 5 entirely. The comment + commented-out code is clutter.
+
+#### [QML-002] BPR-2: Images missing `sourceSize` specification
+- **File**: `modules/bar/components/NotificationPopups.qml:582,744`
+- **Rule**: IMG-1 — Always specify `sourceSize` for Image elements per Qt Quick best practices
+- **Confidence**: 80/100
+- **Finding**: Two `Image` elements in NotificationPopups.qml load images without setting `sourceSize`:
+  - Line 582: App icon Image (`source: modelData.appIcon`)
+  - Line 744: Notification image preview (`source: modelData.image`)
+  Without `sourceSize`, Qt loads the full-resolution image and then scales it down, wasting memory and CPU. This is especially wasteful for high-resolution notification images.
+- **Trace**: Lines 582-603 (app icon) and 744-758 (preview image) have no `sourceSize` property set.
+- **Mitigation**: Add `sourceSize: Qt.size(40, 40)` for the app icon (38×38 container) and `sourceSize: Qt.size(width, height)` for the preview image (matches the 90px container height). This tells the image decoder to decode at the display resolution, not the source resolution.
+
+#### [QML-003] BPR-3: Function calls in binding expressions cause re-evaluation
+- **File**: Multiple files
+- **Rule**: BND-2 — Avoid function calls in hot binding paths
+- **Confidence**: 70/100
+- **Finding**: Several property bindings call `Qt.rgba()` directly, which creates a new `QColor` object on every evaluation. While `Qt.rgba()` is relatively cheap, in hot paths (animation, hover, timer ticks) this creates unnecessary allocation pressure:
+  - `Bar.qml:24-26` — `pillBg`, `pillBorder`, `pillSeparator` call `Qt.rgba()` eagerly
+  - `Bar.qml:77` — `GradientStop.color: Qt.rgba(1, 1, 1, 0.04)`
+  - `Network.qml:47-50` — color bindings call `Qt.rgba()` in a conditional expression
+  - Same pattern in Bluetooth.qml, Brightness.qml, Volume.qml, Battery.qml, Workspace.qml
+- **Impact**: Minor. `Qt.rgba()` is relatively efficient. This is a micro-optimization, not a functional issue. However, in components that update on every frame (Workspace.qml pulse glow), each `Qt.rgba()` call adds measurable overhead.
+- **Mitigation**: For static colors used repeatedly, pre-compute them as `readonly property color` values (as already done in Bar.qml for pill colors). For dynamic colors that depend on theme tokens, consider caching the `cream` RGBA values as properties rather than recomputing in every conditional branch.
+
+#### [QML-004] BPR-4: Delegate missing `required` property declarations
+- **File**: `modules/bar/components/SystemTray.qml:13`
+- **Rule**: DEL-1 — Delegate components in Qt 6 must declare `required property` for model data
+- **Confidence**: 85/100
+- **Finding**: The `Repeater` delegate (a `Rectangle`) accesses `modelData.icon`, `modelData.activate()`, and `modelData.menu` directly without declaring `modelData` as a `required` property. While `modelData` is implicitly available inside Repeater delegates, the Qt 6 convention is to explicitly declare `required property var modelData` to make the dependency clear and enable tooling support.
+- **Mirror issue**: The same pattern exists in `Workspaces.qml` for the Repeater delegate (line 31-47), which correctly declares `required property int index` but accesses the implicit `modelData` for workspace data. Wait — Workspaces.qml uses `index` but provides `workspaceId` manually via `onLoaded`, so it doesn't use implicit `modelData` directly. That pattern is acceptable.
+- **Mitigation**: Add `required property var modelData` to the SystemTray.qml delegate Rectangle.
+
+---
+
+### 1.5 Performance Profiling (from qt-qml-profiler.md)
+
+#### [PRF-001] PRF-3: Non-visual Rectangles creating scene graph geometry
+- **File**: Multiple files
+- **Rule**: Scene graph optimization — `Item` preferred over `Rectangle` for non-visual elements
+- **Confidence**: 90/100
+- **Finding**: Several locations use `Rectangle` with `color: "transparent"` or without visual fill, each creating an unnecessary scene graph geometry node:
+  - `SystemTray.qml:13` — Delegate `Rectangle` with `color: "transparent"` (also D-002)
+  - `Workspace.qml:77-92` — Inner glow `Rectangle` with `color: "transparent"` + border only
+  - `Workspace.qml:95-112` — Glow pulse `Rectangle` with `color: "transparent"` + border only
+  - `MediaPlayer.qml:92-108` — Glow ring `Rectangle` with `color: "transparent"` + border only
+- **Impact**: Each transparent Rectangle adds ~100-200 bytes to the scene graph. While small individually, across all components and all monitors this can amount to 2-4 KB of wasted GPU memory. More importantly, each node adds traversal overhead during rendering.
+- **Mitigation**: Replace `Rectangle` with `Item` for elements that have no fill. For bordered transparent elements, consider using `Rectangle.border` with a parent `Item`, or use `Rectangle` only when `color` is explicitly set to a non-transparent value.
+
+#### [PRF-002] PRF-4: Infinite running animations on invisible elements
+- **File**: `modules/bar/components/Workspace.qml:105-112`, `StatusIndicators.qml:59-64`, `MediaPlayer.qml:102-108`
+- **Rule**: Animation lifecycle — stop animations when elements are not visible
+- **Confidence**: 85/100
+- **Finding**: Multiple components have `SequentialAnimation` with `loops: Animation.Infinite` that run even when the component is not visible on screen:
+  - `Workspace.qml:105-111` — Glow pulse animation: `running: isActive` — but `paused` is not set when off-screen
+  - `StatusIndicators.qml:59-64` — Caffeine pulse: `running: caffeineActive` — same issue
+  - `MediaPlayer.qml:102-108` — Glow ring pulse: `running: root.isPlaying`
+  - `Battery.qml:188-193` — Charging bolt scale: `running: isCharging...`
+  - `Battery.qml:153-157` — Shimmer animation: `running: isCharging...`
+  - `Battery.qml:284-289` — Liquid shimmer: `running: showExpandedMode`
+  - `NotificationPopups.qml:357-363` — Urgency pulse: `running: modelData.urgency === 2`
+- **Impact**: When these components are on a hidden monitor or scrolled off-screen (e.g., in a multi-monitor setup where the bar is on a secondary screen), these animations still consume CPU cycles for animation evaluation. The Qt Quick animation system processes all running animations every frame regardless of visibility.
+- **Mitigation**: Add visibility gating: either use `paused: !root.visible` (if the element has a `visible` parent chain that gets set to false) or check screen visibility. Alternatively, set `running: condition && root.visible` where possible.
+
+#### [PRF-003] PRF-5: Repeated Gradient objects for identical highlight pattern
+- **File**: `modules/bar/Bar.qml:76-79`, `:150-153`, `:239-242`, `:328-331`
+- **Rule**: Scene graph optimization — avoid redundant gradient objects
+- **Confidence**: 70/100
+- **Finding**: The same highlight gradient pattern (white fade from top) is recreated in 4 separate `Gradient` objects across 3 pills plus the left module in Bar.qml. Each creates its own scene graph gradient node. The gradients are functionally identical — all use `GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, 0.04) }` and `GradientStop { position: 1.0; color: "transparent" }`.
+- **Impact**: Minor. Each Gradient node is small. The code duplication (5 lines × 4 = 20 redundant lines) is more of a maintenance concern.
+- **Mitigation**: Extract the highlight into a reusable QML component (e.g., `PillHighlight.qml`) that can be instantiated with a single line. This reduces code duplication and creates only one gradient definition.
+
+#### [PRF-004] PRF-6: Loader asynchronous for trivial components
+- **File**: `modules/bar/Bar.qml:87-99`, `:161-180`, `:191-210`, `:250-269`, `:280-299`, `:340-346`, `:359-371`, `:384-389`
+- **Rule**: LDR-1 — `asynchronous: true` is for heavy components only
+- **Confidence**: 65/100
+- **Finding**: Every Loader in Bar.qml uses `asynchronous: true` even for lightweight components (Network.qml at 98 lines, Bluetooth.qml at 98 lines, Brightness.qml at 137 lines). These components are small enough to load synchronously without noticeable delay. Async loading adds complexity (wrong `visible` on first frame, D-008 issue) and delays the initial bar render.
+- **Impact**: The bar may flash/be empty on first render while all components load. The async loading overhead (thread dispatch, context switching) for small QML files may actually be slower than synchronous loading.
+- **Mitigation**: Set `asynchronous: false` for components under ~150 lines, or benchmark to find the right threshold. Only keep async for NotificationPopups.qml (846 lines, genuinely heavy).
+
+---
+
+### 1.6 Summary
+
+| Category | Lint | Deep | QML Best | Profiler | Total |
+|----------|------|------|----------|----------|-------|
+| Imports (IMP) | 4 | 0 | 0 | 0 | 4 |
+| Style (STY) | 0 | 1 ✅ | 0 | 0 | 1 |
+| Performance (PRF) | 0 | 2 | 0 | 4 | 6 |
+| Bindings (BND) | 0 | 4 | 0 | 0 | 4 |
+| Loading (LDR) | 0 | 1 | 0 | 1 | 2 |
+| Ordering (ORD) | 0 | 0 | 0 | 0 | 1 (investigate) |
+| Import Hygiene | 0 | 0 | 1 | 0 | 1 |
+| Image Loading | 0 | 0 | 1 | 0 | 1 |
+| Function in Binding | 0 | 0 | 1 | 0 | 1 |
+| Delegate Required | 0 | 0 | 1 | 0 | 1 |
+| **Total** | **4** | **7** ✅ | **4** | **4** | **19** |
 
 Findings below confidence 60 are suppressed entirely.
+
+> **Note**: D-001 (BarWrapper.qml missing `id: root`) is ✅ FIXED since the initial review — `id: root` is now present on line 7.
 
 ---
 
@@ -183,6 +286,7 @@ Findings below confidence 60 are suppressed entirely.
   - MediaPlayer.qml: `font.pixelSize: 10` (lines 60, 189), `font.pixelSize: 13-14` (lines 266, 319)
   - Clock.qml: `font.pixelSize: 11` (line 16)
   - StatusIndicators.qml: `font.pixelSize: 12` (line 54)
+  - NotificationPopups.qml: `font.pixelSize: 9-14` (lines 619, 632, 644, 698, 714)
 - **Impact**: Text at 10 px is approximately 7.5 pt — far below the 12 pt (16 px) minimum for comfortable desktop reading. Users with less-than-perfect vision or higher DPI displays will struggle. This also violates WCAG 2.2 SC 1.4.4 (Resize Text) since `font.pixelSize` does not respect OS font scaling.
 - **Mitigation**: Use `font.pointSize` instead of `font.pixelSize` to respect OS DPI scaling, or derive sizes from a singleton driven by `Screen.pixelDensity`. At minimum, increase body text to 12–14 px for secondary labels and 16 px for primary information. The 10 px text in Network, Bluetooth, and MediaPlayer labels is too small for comfortable reading.
 
@@ -238,6 +342,7 @@ Findings below confidence 60 are suppressed entirely.
   - `pillBg: Qt.rgba(Theme.cardBot.r, ..., 0.7)` — the 0.7 alpha may look correct on dark but washed out on light
   - `pillBorder: Qt.rgba(Theme.cream.r, ..., 0.10)` — `cream` is likely a light colour, which works on dark backgrounds but would be invisible on light backgrounds
   - `color: Qt.rgba(1, 1, 1, 0.04)` (Bar.qml line 77) — hardcoded white highlight that assumes a dark background
+  - `Battery.qml:231` — expanded pill `color: Qt.rgba(0.1, 0.1, 0.12, 1)` — hardcoded dark background assumes night mode
 - **Impact**: If the user switches to a light colour scheme, the bar may become unreadable — light text on light backgrounds, invisible borders, and misplaced highlights.
 - **Mitigation**: Audit all hardcoded `Qt.rgba()` calls with white (1,1,1) or black (0,0,0) assumptions. Use theme tokens that adapt to both light and dark modes. The highlight effect (white gradient on top of pills) should use a token like `Theme.surfaceHighlight` rather than hardcoded white.
 
@@ -261,6 +366,35 @@ Findings below confidence 60 are suppressed entirely.
 - **Impact**: Users with vestibular disorders or who prefer reduced motion cannot disable animations. Qt 6.x has no built-in `prefers-reduced-motion` equivalent, so a project-level setting is required.
 - **Mitigation**: Add a singleton property (e.g., `Flags.reducedMotion`) that gates all non-essential animations. Wrap animations in `enabled: !Flags.reducedMotion` and provide instant transitions when disabled.
 
+#### [WARNING-007] Accessibility: No `Accessible` properties on any interactive element
+- **File**: All bar component files
+- **Category**: Accessibility / Screen Reader
+- **Severity**: **Warning** — §2 (Accessibility): "Set Accessible properties on all interactive elements."
+- **Finding**: None of the 14 bar components set `Accessible.name`, `Accessible.description`, `Accessible.role`, or `Accessible.onPressAction` on any interactive element. Screen readers (Orca, Speakup, etc.) cannot identify or interact with bar controls:
+  - Workspace indicators: no `Accessible.role: Accessible.Button` or `Accessible.name: "Workspace 3"`
+  - Network/Bluetooth/Brightness/Volume/Battery: no `Accessible.name` describing their state
+  - Media player buttons: no `Accessible.name: "Play"`, `"Pause"`, `"Previous"`, `"Next"`
+  - Status indicators: no `Accessible.name: "Caffeine mode active"`
+  - Clock: no `Accessible.name: "Clock, 10:30 AM"`
+  - Notification popup: no `Accessible.role: Accessible.Dialog` or `Accessible.name` on notification cards
+- **Impact**: Visually impaired users who rely on screen readers cannot use the bar at all.
+- **Mitigation**: Add `Accessible` properties to all `MouseArea` and interactive elements:
+  ```qml
+  MouseArea {
+      Accessible.name: "Switch to workspace " + workspaceId
+      Accessible.description: isActive ? "Active workspace" : (isOccupied ? "Occupied" : "Empty")
+      Accessible.role: Accessible.Button
+      Accessible.onPressAction: clicked()
+  }
+  ```
+
+#### [WARNING-008] Layout: Hardcoded DND indicator color lacks theme token
+- **File**: `modules/bar/components/StatusIndicators.qml:85`
+- **Category**: Colour / Theme Consistency
+- **Severity**: **Warning** — The theme system should be used consistently.
+- **Finding**: Line 85: `color: Qt.rgba(255/255, 152/255, 0/255, 0.2)` uses hardcoded RGB values for the DND indicator background instead of theme tokens. This breaks if the user switches to a light colour scheme where orange-on-light is hard to see.
+- **Mitigation**: Use a theme token (e.g., `Qt.rgba(QsSingletons.Theme.verm.r, QsSingletons.Theme.verm.g, QsSingletons.Theme.verm.b, 0.2)`) or define a dedicated DND colour in the Theme singleton.
+
 ---
 
 ### 2.3 Opportunities
@@ -281,6 +415,44 @@ Findings below confidence 60 are suppressed entirely.
 - **Impact**: The 44 px recommended minimum click target (desktop) is not met. While the negative margins help, the small visual target makes it harder to aim at, especially for users with motor control difficulties or on high-DPI displays.
 - **Mitigation**: Increase the minimum visual size of workspace indicators, or use a larger invisible hit area (e.g., a transparent `Item` with fixed 24×24 px size behind the small visual dot).
 
+#### [OPPORTUNITY-003] Structure: Duplicated highlight pattern could be extracted
+- **File**: `modules/bar/Bar.qml:69-80, 142-154, 231-242, 320-331`
+- **Category**: Code Quality / Maintainability
+- **Severity**: **Opportunity** — DRY principle
+- **Finding**: The same highlight Rectangle pattern (white-gradient top highlight) is duplicated 4 times across 3 pills in Bar.qml. Each block is ~12 lines of identical code with only the parent reference changing. This is a maintenance burden — if the highlight style changes, it must be changed in 4 places.
+- **Mitigation**: Extract into a reusable QML component (e.g., `PillHighlight.qml`) with a `parent` anchor target:
+  ```qml
+  // PillHighlight.qml
+  Rectangle {
+      anchors.top: parent.top
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.margins: 1 * root.s
+      height: parent.height / 2
+      radius: parent.radius - 1
+      gradient: Gradient {
+          GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, 0.04) }
+          GradientStop { position: 1.0; color: "transparent" }
+      }
+  }
+  ```
+  This also enables DRY fixes for dark mode (WARNING-004) — the highlight color only needs changing in one place.
+
+#### [OPPORTUNITY-004] Layout: Inconsistent spacing scale
+- **File**: Multiple bar component files
+- **Category**: Layout / Design Consistency
+- **Severity**: **Opportunity** — A consistent spacing scale improves visual harmony.
+- **Finding**: The bar uses at least 6 different spacing values, all without a central scale:
+  - `8 * root.s` — Bar.qml:49 (leftPills spacing)
+  - `6 * root.s` — Bar.qml:123 (rightPills spacing)
+  - `10 * root.s` — Bar.qml:85 (leftContent spacing)
+  - `4 * root.s` — Bar.qml:159 (connectivityContent spacing), SystemTray.qml:8
+  - `5 * root.s` — Network.qml:27, Bluetooth.qml:29
+  - `3 * root.s` — Brightness.qml:25, Volume.qml:28
+  - `2 * root.s` — MediaPlayer.qml:250 (controls spacing)
+- **Impact**: The inconsistent spacing creates subtle visual noise. Elements that should feel related (like icon + text in Network.qml using `spacing: 5`) have different proximity than equivalent pairs in Brightness.qml (`spacing: 3`).
+- **Mitigation**: Define a spacing scale with 3-4 values (e.g., `spacing.xs: 2`, `spacing.sm: 4`, `spacing.md: 8`, `spacing.lg: 12`). Use the same spacing for similar element relationships. For example, icon+text pairs should all use the same spacing value.
+
 ---
 
 ### 2.4 Summary
@@ -288,9 +460,9 @@ Findings below confidence 60 are suppressed entirely.
 | Severity | Count | Key issues |
 |----------|-------|------------|
 | **Critical** | 2 | Typography too small (10 px body text), colour as sole state carrier |
-| **Warning** | 5 | Animation durations exceed limits, geometry animation, no type scale, no dark mode adaptation, no keyboard navigation, no reduced-motion support |
-| **Opportunity** | 2 | Monospace font for all text, small hit targets |
-| **Total** | **9** | |
+| **Warning** | 8 | Animation durations exceed limits, geometry animation, no type scale, no dark mode adaptation, no keyboard navigation, no reduced-motion support, no accessible properties, hardcoded DND colour |
+| **Opportunity** | 4 | Monospace font for all text, small hit targets, duplicated highlight pattern, inconsistent spacing |
+| **Total** | **14** | |
 
 ---
 
@@ -300,12 +472,54 @@ Findings below confidence 60 are suppressed entirely.
 
 ---
 
-## 4. Files Reviewed
+## 4. Qt Deprecated Classes Check
+
+**Not applicable** — No C++ files to check against the deprecated class list (qt-deprecated-cl.md). The QML files do not use any deprecated Qt classes.
+
+---
+
+## 5. Qt Framework Development Checklist
+
+**Scope**: Qt-Dev-Checklist.md FW-* rules for framework/module-level code.
+
+**Applicable rules that affect the topbar:**
+
+#### [FW-001] No error handling for service dependencies
+- **Rule**: FW-* — Framework code should handle missing dependencies gracefully.
+- **Finding**: Several bar components depend on services that may not be available:
+  - `Network.qml` — assumes `QsServices.Network` is always available. If the Network service fails to initialize, accessing `network.active` will crash.
+  - `Bluetooth.qml` — accesses `Bluetooth.defaultAdapter` without null-check: `readonly property var adapter: Bluetooth.defaultAdapter`. If no Bluetooth adapter exists (most desktop PCs), this silently returns null and downstream `adapter?.enabled ?? false` handles it via optional chaining — but `connectedDevices` uses `Bluetooth.devices.values.filter(...)` which could throw if `Bluetooth.devices` is null.
+  - `Battery.qml` — `readonly property var battery: UPower.displayDevice` — if UPower is not available, this could be null.
+  - `MediaPlayer.qml` — `readonly property var player: Players.active` — if no MPRIS player is detected, `player` is null. Handled by `hasPlayer` checks.
+- **Impact**: Partial. Most components do guard with null checks (`??`, `?.`), but the pattern is inconsistent. A missing service could cause a hard crash without diagnostic output.
+- **Mitigation**: Add a centralized error-handling pattern: log a warning when a service is unavailable, and disable the component gracefully. For example: wrap singleton access in a try-catch or add `Component.onDestruction` logging for null singletons.
+
+---
+
+## 6. Project Working Rules Compliance
+
+**Scope**: YemiWorkingRules.md — project-specific rules for Yemi's QuickShell development.
+
+#### [YWR-001] Rule #4: Weak code should be called out
+- **File**: All bar component files
+- **Finding**: Several areas of weak/fragile code exist and are called out in this review:
+  - **Binding destruction**: D-003 (Workspace.qml), D-004 (Clock.qml), D-005 (MediaPlayer.qml), D-006 (NotificationPopups.qml) — imperative assignments destroying bindings. This is the single most impactful class of bugs because the code appears to work but fails silently after first interaction.
+  - **Dead import**: QML-001 — commented-out dead import left in Bar.qml. Lazy housekeeping.
+  - **Hardcoded colors**: WARNING-004, WARNING-008 — colors that assume a dark theme. Theme system exists but isn't used consistently.
+  - **Duplicated code**: OPPORTUNITY-003 — 4 copies of the same highlight pattern. Breaks DRY.
+- **Impact**: The binding-destruction issues (D-003 through D-006) are the most concerning because they represent functional bugs masked by behavioral coincidences. These should be prioritized for fixing.
+
+#### [YWR-002] Rule #6: No fluff — report findings directly
+- **Compliance**: This review follows the "no fluff" directive. Findings are reported directly with minimal preamble. Each finding includes concrete trace evidence, impact assessment, and mitigation steps.
+
+---
+
+## 7. Files Reviewed
 
 | # | File | Lines | Role |
 |---|------|-------|------|
 | 1 | `modules/bar/Bar.qml` | 394 | Main bar layout — left (workspaces), center (spacer), right (connectivity, audio, power pills) |
-| 2 | `modules/bar/BarWrapper.qml` | 45 | PanelWindow wrapper — creates a bar per screen |
+| 2 | `modules/bar/BarWrapper.qml` | 46 | PanelWindow wrapper — creates a bar per screen |
 | 3 | `modules/bar/components/Workspaces.qml` | 50 | Workspace repeater — loads Workspace.qml for each workspace |
 | 4 | `modules/bar/components/Workspace.qml` | 144 | Individual workspace indicator — animated dot/pill |
 | 5 | `modules/bar/components/Network.qml` | 98 | WiFi status indicator with icon + SSID |
@@ -318,3 +532,24 @@ Findings below confidence 60 are suppressed entirely.
 | 12 | `modules/bar/components/MediaPlayer.qml` | 422 | Compact music player with vinyl animation, controls, progress bar |
 | 13 | `modules/bar/components/Clock.qml` | 28 | Simple clock display |
 | 14 | `modules/bar/components/NotificationPopups.qml` | 846 | Material 3 notification popup window with swipe gestures |
+
+---
+
+## Cross-Reference: Rule Files Used
+
+| Rule File | Scope | New Findings |
+|-----------|-------|--------------|
+| `qt-qml-review.md` | QML code review rules (47+ lint checks + deep analysis) | D-001 through D-008, I-001 (existing, D-001 verified fixed) |
+| `qt-qml.md` | QML best practices | QML-001 through QML-004 (4 new findings) |
+| `qt-qml-profiler.md` | Performance profiling | PRF-001 through PRF-004 (4 new findings) |
+| `qt-ui-design.md` | UI/UX design principles | CRITICAL-001, CRITICAL-002, WARNING-001 through WARNING-008, OPPORTUNITY-001 through OPPORTUNITY-004 (14 findings) |
+| `qt-cpp-review.md` | C++ code review | Not applicable (no C++ files) |
+| `qt-deprecated-cl.md` | Deprecated class detection | Not applicable (no C++ files) |
+| `qt-cpp-doc.md` / `qt-cpp-docs` | C++ documentation | Not applicable |
+| `qt-qml-docs.md` | QML documentation | Not applicable (review, not documentation task) |
+| `qt-qml-test.md` / `qt-qml-test-run.md` / `qt-quick-test-cm.md` / `qt-quick-test-re.md` | QML testing | Not applicable (review, not test generation) |
+| `qt-qml-review-ch.md` | QML review checklist | Cross-referenced (covered by qt-qml-review.md) |
+| `qt-review-checkl.md` | C++ review checklist | Not applicable (no C++ files) |
+| `Qt-Dev-Checklist.md` | Framework development | FW-001 (1 finding) |
+| `YemiWorkingRules.md` | Project working rules | YWR-001, YWR-002 (2 findings) |
+| `SKILL.md` | Combined skill reference | Master reference — all above rules consolidated |

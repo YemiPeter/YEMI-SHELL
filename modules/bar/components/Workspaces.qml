@@ -1,6 +1,6 @@
-import Quickshell
 import QtQuick 6.10
 import QtQuick.Layouts 6.10
+import Quickshell
 import "../../../config" as QsConfig
 import "../../../compositor" as QsCompositor
 

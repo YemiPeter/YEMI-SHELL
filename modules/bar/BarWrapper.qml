@@ -1,6 +1,6 @@
+import QtQuick 6.10
 import Quickshell
 import Quickshell.Wayland
-import QtQuick 6.10
 import "../../config" as QsConfig
 
 Scope {
