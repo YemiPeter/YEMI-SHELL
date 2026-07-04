@@ -1,20 +1,17 @@
 import QtQuick 6.10
 import QtQuick.Layouts 6.10
 import QtQuick.Controls 6.10
-import "../../../services" as QsServices
 import "../../../singletons" as QsSingletons
 import "../../../config" as QsConfig
 
-// Status Indicators - Caffeine and DND dots in the bar
+// Status Indicators - Keep Awake and DND dots in the bar
 Item {
     id: root
     
-    readonly property var idleInhibitor: QsServices.IdleInhibitor
-    readonly property var notifs: QsServices.Notifs
     
-    readonly property bool caffeineActive: idleInhibitor.inhibited
-    readonly property bool dndActive: notifs.dnd
-    readonly property bool hasActiveIndicators: caffeineActive || dndActive
+    readonly property bool keepAwakeActive: QsSingletons.Flags.keepAwake
+    readonly property bool dndActive: QsSingletons.Flags.dnd
+    readonly property bool hasActiveIndicators: keepAwakeActive || dndActive
     
     implicitWidth: hasActiveIndicators ? indicatorRow.implicitWidth : 0
     implicitHeight: 28
@@ -37,11 +34,11 @@ Item {
         // Caffeine indicator (coffee icon)
         Rectangle {
             id: caffeineIndicator
-            width: caffeineActive ? 22 : 0
+            width: keepAwakeActive ? 22 : 0
             height: 22
             radius: 11
             color: Qt.rgba(QsSingletons.Theme.onGlow.r, QsSingletons.Theme.onGlow.g, QsSingletons.Theme.onGlow.b, 0.2)
-            visible: caffeineActive
+            visible: keepAwakeActive
             
             Behavior on width {
                 NumberAnimation { duration: 200; easing.bezierCurve: [0.34, 1.56, 0.64, 1] }
@@ -57,7 +54,7 @@ Item {
             
             // Subtle pulse animation when active
             SequentialAnimation on opacity {
-                running: caffeineActive
+                running: keepAwakeActive
                 loops: Animation.Infinite
                 paused: !visible
                 NumberAnimation { to: 0.7; duration: 1500; easing.type: Easing.InOutSine }
@@ -69,11 +66,7 @@ Item {
                 cursorShape: Qt.PointingHandCursor
                 hoverEnabled: true
                 
-                ToolTip.visible: containsMouse
-                ToolTip.text: "Caffeine Mode (click to disable)"
-                ToolTip.delay: 300
-                
-                onClicked: idleInhibitor.inhibited = false
+                onClicked: QsSingletons.Flags.keepAwake = !QsSingletons.Flags.keepAwake
             }
         }
         
@@ -95,7 +88,7 @@ Item {
                 text: "󰂛"  // Bell off icon
                 font.family: "Material Design Icons"
                 font.pixelSize: 12
-                color: "#ff9800"
+                color: QsSingletons.Theme.verm
             }
             
             MouseArea {
@@ -103,11 +96,7 @@ Item {
                 cursorShape: Qt.PointingHandCursor
                 hoverEnabled: true
                 
-                ToolTip.visible: containsMouse
-                ToolTip.text: "Do Not Disturb (click to disable)"
-                ToolTip.delay: 300
-                
-                onClicked: notifs.dnd = false
+                onClicked: QsSingletons.Flags.dnd = !QsSingletons.Flags.dnd
             }
         }
     }

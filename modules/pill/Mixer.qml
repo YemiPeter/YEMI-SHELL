@@ -234,7 +234,7 @@ PillSurface {
                 onToggled: Flags.dnd = !Flags.dnd
             }
             IconChip {
-                glyph: "awake"
+                glyph: "coffee"
                 on: Flags.keepAwake
                 tipTitle: "Keep awake"
                 tipDesc: "Block sleep & screen-off"
