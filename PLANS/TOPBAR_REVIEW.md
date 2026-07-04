@@ -309,13 +309,13 @@ Findings below confidence 60 are suppressed entirely.
 
 ### 2.2 Warnings
 
-#### [WARNING-001] Motion: Animation durations exceed 400 ms budget
+#### [WARNING-001 ✅ FIXED] Motion: Animation durations exceed 400 ms budget
+- **Status**: ✅ FIXED (2026-07-04)
 - **File**: `modules/bar/components/Battery.qml:264`
 - **Category**: Motion
 - **Severity**: **Warning** — §1.1 states "Never exceed 500 ms for any UI animation — slower feels broken."
-- **Finding**: The liquid fill animation in Battery.qml has `duration: 1500` (line 264) — 1.5 seconds for the fill animation when plugged in. This is 3× the maximum recommended duration.
-- **Impact**: A 1.5-second animation feels sluggish and unresponsive. Users may perceive the system as slow or think the animation is stuck.
-- **Mitigation**: Reduce the liquid fill animation to 300–400 ms. The Samsung-style expanded pill effect can still be visually impressive at a faster speed.
+- **Finding**: The liquid fill animation in Battery.qml had `duration: 1500` (line 264) — 1.5 seconds for the fill animation when plugged in. This was 3× the maximum recommended duration.
+- **Mitigation**: Reduced the liquid fill animation from 1500ms to 400ms.
 
 #### [WARNING-002] Motion: Animating geometry properties triggers layout
 - **File**: Multiple files
@@ -391,12 +391,13 @@ Findings below confidence 60 are suppressed entirely.
   }
   ```
 
-#### [WARNING-008] Layout: Hardcoded DND indicator color lacks theme token
+#### [WARNING-008 ✅ FIXED] Layout: Hardcoded DND indicator color lacks theme token
+- **Status**: ✅ FIXED (2026-07-04)
 - **File**: `modules/bar/components/StatusIndicators.qml:85`
 - **Category**: Colour / Theme Consistency
 - **Severity**: **Warning** — The theme system should be used consistently.
-- **Finding**: Line 85: `color: Qt.rgba(255/255, 152/255, 0/255, 0.2)` uses hardcoded RGB values for the DND indicator background instead of theme tokens. This breaks if the user switches to a light colour scheme where orange-on-light is hard to see.
-- **Mitigation**: Use a theme token (e.g., `Qt.rgba(QsSingletons.Theme.verm.r, QsSingletons.Theme.verm.g, QsSingletons.Theme.verm.b, 0.2)`) or define a dedicated DND colour in the Theme singleton.
+- **Finding**: Line 85 used hardcoded RGB values for the DND indicator background instead of theme tokens.
+- **Mitigation**: Replaced hardcoded orange with `Theme.verm` token. StatusIndicators also wired to `QsSingletons.Flags.keepAwake` / `QsSingletons.Flags.dnd` (syncs with center pill mixer toggles). Bar caffeine renamed to "Keep Awake", coffee icon maintained. Mixer keep-awake chip changed from eye glyph to coffee glyph. Bar DND/keep-awake tooltips removed.
 
 ---
 
@@ -596,19 +597,33 @@ These findings have **not yet been resolved** and require action:
 ### UI Design Audit
 
 - CRITICAL-001: Increase body text from 10–14 px to at least 12–16 px, switch from `font.pixelSize` to `font.pointSize` or a `TypeScale` singleton
+  - Status: ⏳ KEPT AS-IS — UI scale in center pill handles sizing; intentional design choice.
 - CRITICAL-002: Add a secondary visual cue (shape/outline/icon) for workspace state alongside colour
+  - Status: ⏳ KEPT AS-IS — Personal rice; dynamic wallpaper theme; not changing.
 - WARNING-001: Reduce liquid fill animation in `Battery.qml` from 1500 ms to 300–400 ms
+  - Status: ✅ FIXED (2026-07-04) — Reduced to 400ms.
 - WARNING-002: Replace animated `width`/`height` with `scale` or `clip` transforms in `Bar.qml`, `Battery.qml`, `StatusIndicators.qml`, `NotificationPopups.qml`
+  - Status: ⏳ DEFERRED — Low-priority optimization.
 - WARNING-003: Create a `TypeScale` singleton with role-based tokens and replace hardcoded `font.pixelSize` values
+  - Status: ⏳ PLANNED — Tie typography to existing UI scale, or add font-size setting in pill.
 - WARNING-004: Audit and replace hardcoded `Qt.rgba(1,1,1,...)` and `Qt.rgba(0,0,0,...)` assumptions with light/dark-aware theme tokens
+  - Status: ⏳ PLANNED — Add light/dark toggle in center pill appearance settings.
 - WARNING-005: Add `KeyNavigation` / `Keys.onPressed` handlers and focus indicators to all interactive bar elements
+  - Status: ⏳ PLANNED — Add keybinds to bar (part of broader keyboard work).
 - WARNING-006: Add a `Flags.reducedMotion` singleton and gate all non-essential animations
+  - Status: ⏳ DEFERRED — `Flags.reduceMotion` already exists; toggle later.
 - WARNING-007: Add `Accessible.name`, `Accessible.role`, `Accessible.onPressAction` to every `MouseArea` in the bar
+  - Status: ⏳ PLANNED — Add accessibility toggle in center pill later.
 - WARNING-008: Replace hardcoded DND colour `Qt.rgba(255/255, 152/255, 0/255, 0.2)` with a theme token in `StatusIndicators.qml`
+  - Status: ✅ FIXED (2026-07-04) — Replaced with `Theme.verm` token.
 - OPPORTUNITY-001: Consider switching from monospace to proportional font for labels/body text
+  - Status: ⏳ KEPT AS-IS — Intentional aesthetic choice.
 - OPPORTUNITY-002: Increase workspace indicator minimum size or add a larger invisible hit target
+  - Status: ⏳ KEPT AS-IS — Intentional design.
 - OPPORTUNITY-003: Extract duplicated highlight `Rectangle` into `PillHighlight.qml`
+  - Status: ⚠️ SKIPPED — QML engine didn't recognize component type; original blocks retained.
 - OPPORTUNITY-004: Define a spacing scale singleton and apply consistent spacing values
+  - Status: ⏳ PLANNED — Verify current state; fix if still inconsistent.
 
 ---
 
