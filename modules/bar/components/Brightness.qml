@@ -14,7 +14,7 @@ Item {
     
     readonly property var brightness: QsServices.Brightness
     readonly property bool isHovered: mouseArea.containsMouse
-    readonly property int percentage: brightness.percentage
+    readonly property int percentage: brightness?.percentage ?? 0
     
     implicitWidth: brightnessRow.implicitWidth
     implicitHeight: 20
