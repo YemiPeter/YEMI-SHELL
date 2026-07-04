@@ -13,10 +13,10 @@ Item {
     
     readonly property var network: QsServices.Network
     readonly property bool isHovered: mouseArea.containsMouse
-    readonly property bool isConnected: network.active !== null
-    readonly property bool isEnabled: network.wifiEnabled
-    readonly property int signalStrength: isConnected ? network.active.strength : 0
-    readonly property string networkName: isConnected ? (network.active.ssid ?? "Connected") : ""
+    readonly property bool isConnected: network?.active !== null
+    readonly property bool isEnabled: network?.wifiEnabled ?? false
+    readonly property int signalStrength: isConnected ? network?.active?.strength : 0
+    readonly property string networkName: isConnected ? (network?.active?.ssid ?? "Connected") : ""
     
     implicitWidth: networkRow.implicitWidth
     implicitHeight: 20
