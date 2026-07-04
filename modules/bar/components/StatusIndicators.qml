@@ -83,7 +83,7 @@ Item {
             width: dndActive ? 22 : 0
             height: 22
             radius: 11
-            color: Qt.rgba(255/255, 152/255, 0/255, 0.2)  // Orange-ish
+            color: Qt.rgba(QsSingletons.Theme.verm.r, QsSingletons.Theme.verm.g, QsSingletons.Theme.verm.b, 0.2)
             visible: dndActive
             
             Behavior on width {
