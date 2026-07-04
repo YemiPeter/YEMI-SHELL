@@ -264,7 +264,7 @@ Item {
                         property: "width"
                         from: 0
                         to: (expandedPill.width - 4) * root.percentage
-                        duration: 1500
+                        duration: 400
                         easing.type: Easing.OutCubic
                     }
                 }
