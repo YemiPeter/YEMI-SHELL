@@ -1,8 +1,8 @@
 # Topbar Review Report
 
 > **Date**: 2026-03-07
-> **Scope**: `modules/bar/` — 14 QML files
-> **Review types**: QML Code Review (qt-qml-review), UI Design Audit (qt-ui-design), Qt C++ Review (qt-cpp-review), QML Best Practices (qt-qml), QML Profiling (qt-qml-profiler), Project Rules (YemiWorkingRules, SKILL.md, Qt-Dev-Checklist, qt-deprecated-cl)
+> **Scope**: `modules/bar/` — 14 QML files + `modules/pill/` center morphing pill system
+> **Review types**: QML Code Review (qt-qml-review), UI Design Audit (qt-ui-design), Qt C++ Review (qt-cpp-review), QML Best Practices (qt-qml), QML Profiler (qt-qml-profiler), Project Rules (YemiWorkingRules, SKILL.md, Qt-Dev-Checklist, qt-deprecated-cl), Center Pill Morph Audit (new)
 
 ---
 
@@ -16,6 +16,7 @@
 6. [Project Working Rules Compliance](#6-project-working-rules-compliance)
 7. [Files Reviewed](#7-files-reviewed)
 8. [Pending Fixes](#8-pending-fixes)
+9. [Center Pill Morph Audit](#9-center-pill-morph-audit)
 
 ---
 
@@ -52,7 +53,7 @@
 #### [L-004] IMP-4: Import ordering — Quickshell before QtQuick
 - **File**: `modules/bar/components/NotificationPopups.qml:4`
 - **Rule**: IMP-4 (Import ordering)
-- **Finding**: `import Quickshell` (line 4) and `import Quickshell.Wayland` (line 5) appeared after `import QtQuick.Effects` (line 3) but before local project imports. Quickshell imports should be grouped after all QtQuick imports.
+- **Finding**: `import Quickshell` (line 4) and `import Quickshell.Wayland` (line 5) appeared after `import QtQuick.Effects` (line 3) but before local project imports. Quickshell imports should be grouped together after all QtQuick imports.
 - **Mitigation**: Group Quickshell imports after all `import QtQuick.*` lines and before local project imports.
 
 ---
@@ -141,6 +142,7 @@
 - **Finding**: `scale: 1.0` is declared on line 143, after all child objects (MouseArea, inner Rectangles) and signal handlers (onClicked, onPressed, onReleased, onEntered, onExited). The QML attribute ordering convention places property assignments before child objects and signal handlers.
 - **Unverified because**: The ordering convention is a style guideline, not a functional issue. The code works correctly regardless of order. The `scale` property may have been placed at the end intentionally as a "default" value.
 - **How to verify**: Check if the project follows strict QML attribute ordering conventions. If so, move `scale: 1.0` to the property assignments section (after `radius: height / 2` on line 38).
+- **Status**: ✅ RESOLVED – the `scale: 1.0` binding was removed in D-003, so the ordering issue is moot.
 
 ---
 
@@ -152,6 +154,7 @@
 - **Confidence**: 100/100
 - **Finding**: A commented-out import on line 5: `// import "components" as BarComponents // dead import — components loaded via Loader, never referenced`. The comment itself acknowledges this is dead code. The entire line should be removed.
 - **Mitigation**: Delete line 5 entirely. The comment + commented-out code is clutter.
+- **Status**: ✅ FIXED (2026-07-03)
 
 #### [QML-002] BPR-2: Images missing `sourceSize` specification
 - **File**: `modules/bar/components/NotificationPopups.qml:582,744`
@@ -163,6 +166,7 @@
   Without `sourceSize`, Qt loads the full-resolution image and then scales it down, wasting memory and CPU. This is especially wasteful for high-resolution notification images.
 - **Trace**: Lines 582-603 (app icon) and 744-758 (preview image) have no `sourceSize` property set.
 - **Mitigation**: Add `sourceSize: Qt.size(40, 40)` for the app icon (38×38 container) and `sourceSize: Qt.size(width, height)` for the preview image (matches the 90px container height). This tells the image decoder to decode at the display resolution, not the source resolution.
+- **Status**: ✅ FIXED (2026-07-03) – file unused (NotificationPopups) but sourceSize added.
 
 #### [QML-003] BPR-3: Function calls in binding expressions cause re-evaluation
 - **File**: Multiple files
@@ -175,6 +179,7 @@
   - Same pattern in Bluetooth.qml, Brightness.qml, Volume.qml, Battery.qml, Workspace.qml
 - **Impact**: Minor. `Qt.rgba()` is relatively efficient. This is a micro-optimization, not a functional issue. However, in components that update on every frame (Workspace.qml pulse glow), each `Qt.rgba()` call adds measurable overhead.
 - **Mitigation**: For static colors used repeatedly, pre-compute them as `readonly property color` values (as already done in Bar.qml for pill colors). For dynamic colors that depend on theme tokens, consider caching the `cream` RGBA values as properties rather than recomputing in every conditional branch.
+- **Status**: ✅ FIXED (2026-07-03)
 
 #### [QML-004] BPR-4: Delegate missing `required` property declarations
 - **File**: `modules/bar/components/SystemTray.qml:13`
@@ -183,6 +188,7 @@
 - **Finding**: The `Repeater` delegate (a `Rectangle`) accesses `modelData.icon`, `modelData.activate()`, and `modelData.menu` directly without declaring `modelData` as a `required` property. While `modelData` is implicitly available inside Repeater delegates, the Qt 6 convention is to explicitly declare `required property var modelData` to make the dependency clear and enable tooling support.
 - **Mirror issue**: The same pattern exists in `Workspaces.qml` for the Repeater delegate (line 31-47), which correctly declares `required property int index` but accesses the implicit `modelData` for workspace data. Workspaces.qml uses `index` but provides `workspaceId` manually via `onLoaded`, so it doesn't use implicit `modelData` directly. That pattern is acceptable.
 - **Mitigation**: Add `required property var modelData` to the SystemTray.qml delegate Rectangle.
+- **Status**: ✅ FIXED (2026-07-03) – file unused (SystemTray) but required property added.
 
 ---
 
@@ -199,6 +205,7 @@
   - `MediaPlayer.qml:92-108` — Glow ring `Rectangle` with `color: "transparent"` + border only
 - **Impact**: Each transparent Rectangle adds ~100-200 bytes to the scene graph. While small individually, across all components and all monitors this can amount to 2-4 KB of wasted GPU memory. More importantly, each node adds traversal overhead during rendering.
 - **Mitigation**: Replace `Rectangle` with `Item` for elements that have no fill. For bordered transparent elements, consider using `Rectangle.border` with a parent `Item`, or use `Rectangle` only when `color` is explicitly set to a non-transparent value.
+- **Status**: ✅ PARTIALLY FIXED – SystemTray delegate fixed; glow rectangles in Workspace/MediaPlayer are intentional visual elements (border renders).
 
 #### [PRF-002] PRF-4: Infinite running animations on invisible elements
 - **File**: `modules/bar/components/Workspace.qml:105-112`, `StatusIndicators.qml:59-64`, `MediaPlayer.qml:102-108`
@@ -214,6 +221,7 @@
   - `NotificationPopups.qml:357-363` — Urgency pulse: `running: modelData.urgency === 2`
 - **Impact**: When these components are on a hidden monitor or scrolled off-screen (e.g., in a multi-monitor setup where the bar is on a secondary screen), these animations still consume CPU cycles for animation evaluation. The Qt Quick animation system processes all running animations every frame regardless of visibility.
 - **Mitigation**: Add visibility gating: either use `paused: !root.visible` (if the element has a `visible` parent chain that gets set to false) or check screen visibility. Alternatively, set `running: condition && root.visible` where possible.
+- **Status**: ✅ FIXED (2026-07-03)
 
 #### [PRF-003] PRF-5: Repeated Gradient objects for identical highlight pattern
 - **File**: `modules/bar/Bar.qml:76-79`, `:150-153`, `:239-242`, `:328-331`
@@ -222,6 +230,7 @@
 - **Finding**: The same highlight gradient pattern (white fade from top) is recreated in 4 separate `Gradient` objects across 3 pills plus the left module in Bar.qml. Each creates its own scene graph gradient node. The gradients are functionally identical — all use `GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, 0.04) }` and `GradientStop { position: 1.0; color: "transparent" }`.
 - **Impact**: Minor. Each Gradient node is small. The code duplication (5 lines × 4 = 20 redundant lines) is more of a maintenance concern.
 - **Mitigation**: Extract the highlight into a reusable QML component (e.g., `PillHighlight.qml`) that can be instantiated with a single line. This reduces code duplication and creates only one gradient definition.
+- **Status**: ⚠️ SKIPPED – PillHighlight component type not recognized by QML engine; original Rectangle blocks retained.
 
 #### [PRF-004] PRF-6: Loader asynchronous for trivial components
 - **File**: `modules/bar/Bar.qml:87-99`, `:161-180`, `:191-210`, `:250-269`, `:280-299`, `:340-346`, `:359-371`, `:384-389`
@@ -230,6 +239,7 @@
 - **Finding**: Every Loader in Bar.qml uses `asynchronous: true` even for lightweight components (Network.qml at 98 lines, Bluetooth.qml at 98 lines, Brightness.qml at 137 lines). These components are small enough to load synchronously without noticeable delay. Async loading adds complexity (wrong `visible` on first frame, D-008 issue) and delays the initial bar render.
 - **Impact**: The bar may flash/be empty on first render while all components load. The async loading overhead (thread dispatch, context switching) for small QML files may actually be slower than synchronous loading.
 - **Mitigation**: Set `asynchronous: false` for components under ~150 lines, or benchmark to find the right threshold. Only keep async for NotificationPopups.qml (846 lines, genuinely heavy).
+- **Status**: ✅ FIXED (2026-07-03)
 
 ---
 
@@ -461,7 +471,7 @@ Findings below confidence 60 are suppressed entirely.
 
 ## 3. Qt C++ Review
 
-**Not applicable** — the topbar is written entirely in QML. No C++ source files (`.cpp`, `.h`, `.hpp`) were found in the `modules/bar/` directory. The qt-cpp-review skill targets C++ code and was not triggered.
+**Not applicable** — the topbar is written entirely in QML. No C++ source files (`.cpp`, `.h`, `.hpp`) were found in the `modules/bar/` or `modules/pill/` directories. The qt-cpp-review skill targets C++ code and was not triggered.
 
 ---
 
@@ -483,7 +493,7 @@ Findings below confidence 60 are suppressed entirely.
   - `Network.qml` — assumes `QsServices.Network` is always available. If the Network service fails to initialize, accessing `network.active` will crash.
   - `Bluetooth.qml` — accesses `Bluetooth.defaultAdapter` without null-check: `readonly property var adapter: Bluetooth.defaultAdapter`. If no Bluetooth adapter exists (most desktop PCs), this silently returns null and downstream `adapter?.enabled ?? false` handles it via optional chaining — but `connectedDevices` uses `Bluetooth.devices.values.filter(...)` which could throw if `Bluetooth.devices` is null.
   - `Battery.qml` — `readonly property var battery: UPower.displayDevice` — if UPower is not available, this could be null.
-  - `MediaPlayer.qml` — `readonly property var player: Players.active` — if no MPRIS player is detected, `player` is null. Handled by `hasPlayer` checks.
+  - MediaPlayer.qml — `readonly property var player: Players.active` — if no MPRIS player is detected, `player` is null. Handled by `hasPlayer` checks.
 - **Impact**: Partial. Most components do guard with null checks (`??`, `?.`), but the pattern is inconsistent. A missing service could cause a hard crash without diagnostic output.
 - **Mitigation**: Add a centralized error-handling pattern: log a warning when a service is unavailable, and disable the component gracefully. For example: wrap singleton access in a try-catch or add `Component.onDestruction` logging for null singletons.
 
@@ -525,6 +535,9 @@ Findings below confidence 60 are suppressed entirely.
 | 12 | `modules/bar/components/MediaPlayer.qml` | 422 | Compact music player with vinyl animation, controls, progress bar |
 | 13 | `modules/bar/components/Clock.qml` | 28 | Simple clock display |
 | 14 | `modules/bar/components/NotificationPopups.qml` | 846 | Material 3 notification popup window with swipe gestures |
+| 15 | `modules/pill/Pill.qml` | 1671 | Center morphing pill — single element that morphs between rest/hover/surfaces |
+| 16 | `modules/pill/PillOverlay.qml` | 264 | Two-window overlay architecture (reserve + overlay PanelWindows) |
+| 17 | `modules/pill/shell.qml` | 479 | Shell root managing per-monitor Pill instances via Variants |
 
 ---
 
@@ -597,6 +610,153 @@ These findings have **not yet been resolved** and require action:
 
 ---
 
+## 9. Center Pill Morph Audit
+
+**Scope**: `modules/pill/Pill.qml`, `modules/pill/PillOverlay.qml`, `modules/pill/shell.qml`, and their connection to `modules/bar/Bar.qml`
+
+**Architecture overview:**
+
+The center pill is a **separate layer-shell window system** that lives outside `modules/bar/`. It uses a two-window architecture defined in `PillOverlay.qml` and `shell.qml`:
+
+1. **Reserve window** (`WlrLayer.Top`) — claims exclusive zone at resting height so the Bar doesn't compete for top-strip space. Height: `restH + topGap` (28px + 8px padding). Zero interactive content; purely a spacer.
+2. **Overlay window** (`WlrLayer.Overlay`) — full-screen transparent window hosting the single morphing `Pill` instance. Handles fullscreen detection (Hyprland/Niri), mask logic, and keyboard focus.
+
+**Bar connection:**
+
+`Bar.qml` (lines 104-114) reserves a center spacer matching the pill's rest dimensions:
+- Width: `160 * root.s`
+- Height: `38 * root.s`
+- Anchored at `horizontalCenter` + `verticalCenter`
+
+This spacer prevents the Bar's right-side pills from colliding with the center pill's resting position. The pill's `restW`/`restH` in `Pill.qml` (lines 97-98) match these values exactly: `160 * s` and `38 * s`.
+
+**Morph architecture (Pill.qml):**
+
+The pill is a single `Item` (line 21) that morphs in-place via `Behavior on width/height` (lines 497-498). Key properties:
+
+- `surface`: string determining which surface is open (rest, hover, mixer, calendar, launcher, clipboard, wallpaper, power, media, link, bluetooth, battery, settings, keybinds, recorder, sysmon, appearance, updates, display, input, look, idlelock, fontpicker)
+- `mode`: derived from `surface` plus quick surfaces (osd, toast, quickChoose, quickCount) and base states (hover, rest)
+- `targetSize`: computed from `surfaces[mode].size()` thunk or `modeSize[mode]` thunk
+- `morphCloseness`: 0→1 progress of current morph animation
+- `expanded`: true when any surface is open, pill is held/pinned, or hover latched
+
+**Surface descriptor system (lines 145-167):**
+
+Each surface is defined in a single `surfaces` object with:
+- `size`: thunk returning target `Qt.size(w, h)`
+- `ame`: reference to the surface's Ame anchor point (or null)
+
+This eliminates parallel ternary chains and centralizes geometry.
+
+**Ame (animated bead):**
+
+The pill includes an `Ame` instance (lines 643-656) that acts as a visual "soul" bead. It:
+- Parks on the active workspace dot or status icon during hover
+- Glides between targets via `soulPoint` calculation
+- Uses `wakePoint` as the rest anchor (center of the "時" kanji)
+- Renders as a Canvas-drawn flame bead (lines 521-546)
+
+**Fullscreen handling (PillOverlay.qml + shell.qml):**
+
+Both files contain identical fullscreen detection logic:
+- Niri: shells out to `niri msg -j windows` (no IPC event available)
+- Hyprland: checks `workspace.hasfullscreen` via `Hyprland.monitors`
+- Poll interval: 500ms (Niri) or event-driven (Hyprland)
+- On fullscreen: `QsSingletons.PillState.close()` and pill retracts off-screen via `opacity: 0` + `Translate{y: -(pill.height + topGap)}`
+
+**Morph surfaces (instantiated in Pill.qml):**
+
+- `rest` / `hover`: built-in states with workspace dots, clock, status icons, weather, minimised tray, system tray, DND indicator
+- `mixer` (Mixer.qml): audio mixer with fader row
+- `calendar` (Calendar.qml): calendar view
+- `launcher` (Launcher.qml): app launcher
+- `clipboard` (Clipboard.qml): clipboard history
+- `wallpaper` (Wallpaper.qml): wallpaper picker with DuckDuckGo search
+- `power` (Power.qml): power/session actions with heat-hold destructive confirm
+- `media` (Media.qml): MPRIS media controls
+- `link` (Link.qml): network/connectivity (WiFi glance, inbox, mixer shortcut)
+- `battery` (BatterySurface.qml): battery details
+- `settings` (Settings.qml): settings category index
+- `keybinds` (Keybinds.qml): keybind editor with chord capture
+- `recorder` (Recorder.qml): screen recorder with countdown
+- `sysmon` (SysmonSurface.qml): system monitor
+- `appearance` (Appearance.qml): appearance settings sub-surface
+- `updates` (Updates.qml): system updates sub-surface
+- `display` (Display.qml): display settings sub-surface
+- `input` (Input.qml): input device settings sub-surface
+- `look` (Look.qml): theme/look sub-surface
+- `idlelock` (IdleLock.qml): idle lock settings
+- `fontpicker` (FontPicker.qml): font selection sub-surface
+- `osd` (Osd.qml): on-screen display for volume/brightness
+- `toast` (Toast.qml): notification toast overlay
+
+### Center Pill Findings
+
+#### [PILL-001] Large file complexity
+- **File**: `modules/pill/Pill.qml` (1671 lines)
+- **Category**: Maintainability
+- **Severity**: Medium
+- **Finding**: Pill.qml is a single 1671-line QML file containing the pill body, morph logic, surface descriptors, Ame bead, hover state, rest state, keyboard routing functions, and instantiations of ~20 surfaces. This exceeds the 500-line guideline for QML files and creates cognitive load.
+- **Impact**: Hard to navigate, difficult to debug, merge conflicts likely.
+- **Mitigation**: Consider splitting into logical sub-components: `PillBody.qml` (morph + surfaces), `PillHover.qml` (hover row), `PillRest.qml` (rest kanji + clock), `PillBead.qml` (Ame), `PillSurfaces.qml` (surface instantiations).
+
+#### [PILL-002] Debug logging embedded in production code
+- **File**: `modules/pill/Pill.qml` lines 24-25, `PillOverlay.qml` lines 89-90, 188-189, shell.qml various
+- **Category**: Code Quality
+- **Severity**: Low
+- **Finding**: Multiple `console.log` and `console.warn` statements remain in production code:
+  - `[PILLPOS]` on every `y`/`height` change (Pill.qml)
+  - `[PILLREGION]` on every region `y`/`height` change (PillOverlay.qml)
+  - `[ALIGN-CHECK]`, `[MASK-CHECK]`, `[FS-CHECK]`, `[FULLSCREEN]` in PillOverlay.qml
+- **Impact**: Log spam in production. Minimal performance cost but noisy.
+- **Mitigation**: Wrap in `if (Flags.debug)` or remove before release.
+
+#### [PILL-003] Surface descriptor thunks create live dependencies
+- **File**: `modules/pill/Pill.qml` lines 145-167
+- **Category**: Bindings & Properties
+- **Confidence**: 85/100
+- **Finding**: The `surfaces` object uses thunks (`size: () => Qt.size(...)`) to create live bindings. This is correct QML pattern, but the thunks reference implicitWidth/implicitHeight of surface items that may not be laid out yet during initial load. The `void` calls in `wakePoint`/`soulPoint` (lines 592-596, 605-631) force dependency registration.
+- **Impact**: Mostly fine — the `void` calls and thunks handle it. However, if a surface's implicitHeight changes unexpectedly (e.g., dynamic content), the morph target won't update because the thunk captured the value at bind time.
+- **Mitigation**: Replace thunks with direct property references where possible: `size: Qt.size(calendarW, calendar.implicitHeight + 32 * s)` instead of `size: () => Qt.size(calendarW, calendarH)`.
+
+#### [PILL-004] Fullscreen detection duplicates logic across two files
+- **File**: `modules/pill/PillOverlay.qml` lines 111-175, `modules/pill/shell.qml` lines 203-240
+- **Category**: Code Quality / DRY
+- **Severity**: Medium
+- **Finding**: `updateFullscreen()` is implemented nearly identically in both PillOverlay.qml and shell.qml. The Niri branch (`niri msg -j windows`) is identical. The Hyprland branch differs only in the monitor lookup target (`root.modelData` vs `modelData`).
+- **Impact**: Bug fixes or platform changes (e.g., Niri IPC changes) must be applied in two places. Already a source of inconsistency — shell.qml doesn't log `[FS-CHECK]` on Niri failure but PillOverlay.qml does.
+- **Mitigation**: Extract `updateFullscreen()` into a shared singleton or helper (`Singletons/Fullscreen.qml`) imported by both files.
+
+#### [PILL-005] Hover latch grace period may race with morph
+- **File**: `modules/pill/Pill.qml` lines 678-688
+- **Category**: Timing / Edge Case
+- **Confidence**: 70/100
+- **Finding**: The `graceTimer` (300ms) releases `hoverLatch` only when `morphCloseness > 0.95`. If the user hovers out before the morph completes, the timer restarts. But if the morph is interrupted (e.g., by a keybind opening a surface), `morphCloseness` may never reach 0.95, leaving `hoverLatch` permanently true.
+- **Impact**: The pill may stay in "expanded" state indefinitely if a morph is interrupted, requiring a manual close.
+- **Mitigation**: Reset `hoverLatch = false` on `modeChanged` (similar to `hoverSoulGate` reset on line 479-483).
+
+#### [PILL-006] Ame bead uses Canvas with manual radial gradient math
+- **File**: `modules/pill/Pill.qml` lines 521-546
+- **Category**: Performance / Maintainability
+- **Confidence**: 60/100
+- **Finding**: The `budBead` Canvas draws a flame bead using manual `createRadialGradient` + `ellipse` calls. This is expensive for a UI element that animates on every hover state change. The bead also uses hardcoded RGBA values (`rgba(255,246,240,0.6)`) instead of theme tokens.
+- **Impact**: Minor. Canvas bead is small. Hardcoded color breaks light theme support.
+- **Mitigation**: Replace Canvas bead with a `Rectangle` + `Gradient` or pre-rendered `Image` sprite. Use theme tokens for the highlight color.
+
+### Center Pill Summary
+
+| Category | Count | Key issues |
+|----------|-------|------------|
+| Maintainability | 1 | 1671-line Pill.qml |
+| Code Quality | 1 | Debug logging in production |
+| Bindings | 1 | Surface thunk dependencyRegistration |
+| DRY | 1 | Fullscreen detection duplicated |
+| Timing | 1 | Hover latch race condition |
+| Performance | 1 | Canvas bead manual drawing |
+| **Total** | **6** | |
+
+---
+
 ## Cross-Reference: Rule Files Used
 
 | Rule File | Scope | New Findings |
@@ -615,3 +775,4 @@ These findings have **not yet been resolved** and require action:
 | `Qt-Dev-Checklist.md` | Framework development | FW-001 (1 finding) |
 | `YemiWorkingRules.md` | Project working rules | YWR-001, YWR-002 (2 findings) |
 | `SKILL.md` | Combined skill reference | Master reference — all above rules consolidated |
+| Center Pill Morph Audit | New audit of `modules/pill/` and `modules/bar/` connection | PILL-001 through PILL-006 (6 new findings) |
