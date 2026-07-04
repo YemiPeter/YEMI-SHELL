@@ -50,7 +50,7 @@ Item {
         mask: Region { width: 0; height: 0 }
 
         readonly property real s: root.modelData ? (root.modelData.height / 1080) * QsSingletons.Flags.uiScale : 1
-        readonly property real restH: 28 * s
+        readonly property real restH: QsSingletons.Metrics.restHBase * s
         readonly property var config: QsConfig.Config
         readonly property real barHeight: config.bar.height
         readonly property real topGap: (barHeight - restH) / 2
@@ -66,7 +66,7 @@ Item {
             right: true
             bottom: true
         }
-        margins.top: 8 * s
+        margins.top: overlayTopOffset
 
         color: "transparent"
         WlrLayershell.layer: WlrLayer.Overlay
@@ -99,9 +99,15 @@ Item {
         // ── Helper properties ────────────────────────────────────────────────
         readonly property var config: QsConfig.Config
         readonly property real s: root.modelData ? (root.modelData.height / 1080) * QsSingletons.Flags.uiScale : 1
-        readonly property real restH: 28 * s
+        readonly property real restH: QsSingletons.Metrics.restHBase * s
         readonly property real barHeight: config.bar.height
-        readonly property real topGap: (barHeight - restH) / 2
+        // Overlay window has margins.top: 8*s (see overlayTopOffset below), which
+        // shifts its ENTIRE coordinate system 8px lower than the Bar window (Bar has
+        // no such margin). Without compensating here, the pill centers correctly
+        // WITHIN the overlay, but sits 8px below the Bar's true centerline. This
+        // subtracts that offset back out so absolute screen position lines up.
+        readonly property real overlayTopOffset: 8 * s
+        readonly property real topGap: (barHeight - restH) / 2 - overlayTopOffset
         readonly property string surface: QsSingletons.PillState.openMon === root.modelData.name ? QsSingletons.PillState.openSurface : ""
         readonly property bool surfaceOpen: surface.length > 0
 
@@ -221,10 +227,17 @@ Item {
         }
 
         // ── Pill instance ────────────────────────────────────────────────────
+        // ⚠️ QML SCOPE RULE: bindings inside a named component instance
+        // (Pill { id: pill }, MouseArea { }, etc.) do NOT auto-climb into
+        // the parent window's scope. Must qualify with the parent window's id.
+        //   ✔  anchors.topMargin: overlay.topGap
+        //   ✗  anchors.topMargin: topGap  (silent ReferenceError)
+        // Same applies to `enabled: overlay.surfaceOpen` on the backdrop
+        // MouseArea below and `y: overlay.monFullscreen ? …` in the Translate.
         Pill {
             id: pill
             anchors.top: parent.top
-            anchors.topMargin: topGap
+            anchors.topMargin: overlay.topGap
             anchors.horizontalCenter: parent.horizontalCenter
             s: overlay.s
             screenName: root.modelData.name
@@ -253,7 +266,7 @@ Item {
         MouseArea {
             anchors.fill: parent
             z: -1
-            enabled: surfaceOpen
+            enabled: overlay.surfaceOpen
             onClicked: (mouse) => {
                 if (!pill.contains(mouse)) {
                     QsSingletons.PillState.close()

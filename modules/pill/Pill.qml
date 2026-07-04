@@ -7,6 +7,7 @@ import Quickshell
 import Quickshell.Services.Mpris
 import Quickshell.Networking
 import "Singletons"
+import "../../singletons" as QsSingletons
 
 /**
  * The pill body. One element carries every state. Width/height driven by `state`
@@ -22,7 +23,10 @@ Item {
     id: pill
 
     onYChanged: console.log("[PILLPOS] y=", y, "height=", height, "ts=", Date.now())
-    onHeightChanged: console.log("[PILLPOS] y=", y, "height=", height, "ts=", Date.now())
+    onHeightChanged: {
+        console.log("[PILLPOS] y=", y, "height=", height, "ts=", Date.now());
+        console.log("[PILLDIM] pillH=", height, "bodyH=", body.height, "bodyBorder=", body.border.width, "budH=", (bud.shown ? bud.height : "hidden"), "budR=", (bud.shown ? bud.budR : "hidden"), "s=", s);
+    }
 
     property real s: 1
     property string screenName: ""
@@ -95,7 +99,7 @@ Item {
     readonly property bool quickCounting: quickHere && ScreenRec.counting && !recorderOpen
 
     readonly property real restW: 160 * s
-    readonly property real restH: 38 * s
+    readonly property real restH: QsSingletons.Metrics.restHBase * s
     readonly property real hoverPad: 20 * s
     readonly property real hoverW: hoverRow.implicitWidth + 2 * hoverPad
     readonly property real hoverH: 58 * s
@@ -177,7 +181,8 @@ Item {
     signal requestClose()
     
     Component.onCompleted: {
-        console.log("[Pill] loaded — screenName:", screenName, "surface:", surface, "s:", s)
+        console.log("[Pill] loaded — screenName:", screenName, "surface:", surface, "s:", s);
+        console.log("[PILLDIM-INIT] pillH=", height, "bodyH=", body.height, "bodyBorder=", body.border.width, "budH=", (bud.shown ? bud.height : "hidden"), "budR=", (bud.shown ? bud.budR : "hidden"), "restH=", restH, "s=", s);
     }
 
     /**
