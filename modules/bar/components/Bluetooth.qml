@@ -13,8 +13,8 @@ Item {
     property string screenName
     
     readonly property bool isHovered: mouseArea.containsMouse
-    readonly property var adapter: Bluetooth.defaultAdapter
-    readonly property var connectedDevices: Bluetooth.devices.values.filter(d => d.connected)
+    readonly property var adapter: Bluetooth?.defaultAdapter ?? null
+    readonly property var connectedDevices: (Bluetooth?.devices?.values ?? []).filter(d => d.connected)
     readonly property bool hasConnection: connectedDevices.length > 0
     readonly property bool isEnabled: adapter?.enabled ?? false
     readonly property string deviceName: hasConnection ? (connectedDevices[0]?.name ?? "Device") : ""

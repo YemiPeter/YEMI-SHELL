@@ -16,8 +16,8 @@ Item {
     readonly property var audio: QsServices.Audio
     readonly property var volumeMonitor: QsServices.VolumeMonitor
     readonly property bool isHovered: mouseArea.containsMouse
-    readonly property bool isMuted: volumeMonitor.muted
-    readonly property int percentage: volumeMonitor.percentage
+    readonly property bool isMuted: volumeMonitor?.muted ?? false
+    readonly property int percentage: volumeMonitor?.percentage ?? 0
     
     implicitWidth: volumeRow.implicitWidth
     implicitHeight: 20
