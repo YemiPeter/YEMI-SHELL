@@ -212,4 +212,33 @@ Last declared sibling renders on top. Use the `z` property only when declaration
 
 ---
 
+### QML Scope Rule — Named Component Property Bindings
+
+Bindings written INSIDE a named component instance's `{ }` block
+(e.g. `Pill { ... }`, `MouseArea { ... }`, `Rectangle { ... }` — anything
+with its own type name, not a bare `Item {}`) do NOT automatically climb
+into the enclosing window/scope for bare property references.
+
+❌ WRONG (inside a child component, needs parent's property):
+    Pill {
+        anchors.topMargin: topGap
+    }
+
+✅ CORRECT (explicitly qualified with parent's id):
+    Pill {
+        anchors.topMargin: overlay.topGap
+    }
+
+RULE: Any binding inside a named child component that needs a property
+from its enclosing scope MUST be qualified with that scope's `id.`
+No exceptions — don't assume it'll resolve.
+
+Symptom if broken: `ReferenceError: <property> is not defined` at runtime,
+often intermittent-feeling because SOME bindings on the same window body
+(not inside a child component) will still resolve fine, making it look
+like a scope bug only affects "some" references when it's actually a
+consistent rule you're only sometimes following.
+
+---
+
 AI assistance has been used to create this output.
