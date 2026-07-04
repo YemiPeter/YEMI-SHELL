@@ -487,15 +487,16 @@ Findings below confidence 60 are suppressed entirely.
 
 **Applicable rules that affect the topbar:**
 
-#### [FW-001] No error handling for service dependencies
+#### [FW-001 ✅ FIXED] No error handling for service dependencies
+- **Status**: ✅ FIXED (2026-07-04)
 - **Rule**: FW-* — Framework code should handle missing dependencies gracefully.
-- **Finding**: Several bar components depend on services that may not be available:
-  - `Network.qml` — assumes `QsServices.Network` is always available. If the Network service fails to initialize, accessing `network.active` will crash.
-  - `Bluetooth.qml` — accesses `Bluetooth.defaultAdapter` without null-check: `readonly property var adapter: Bluetooth.defaultAdapter`. If no Bluetooth adapter exists (most desktop PCs), this silently returns null and downstream `adapter?.enabled ?? false` handles it via optional chaining — but `connectedDevices` uses `Bluetooth.devices.values.filter(...)` which could throw if `Bluetooth.devices` is null.
-  - `Battery.qml` — `readonly property var battery: UPower.displayDevice` — if UPower is not available, this could be null.
-  - MediaPlayer.qml — `readonly property var player: Players.active` — if no MPRIS player is detected, `player` is null. Handled by `hasPlayer` checks.
-- **Impact**: Partial. Most components do guard with null checks (`??`, `?.`), but the pattern is inconsistent. A missing service could cause a hard crash without diagnostic output.
-- **Mitigation**: Add a centralized error-handling pattern: log a warning when a service is unavailable, and disable the component gracefully. For example: wrap singleton access in a try-catch or add `Component.onDestruction` logging for null singletons.
+- **Finding**: Several bar components depended on services that may not be available, lacking null-guards.
+- **Mitigation**: Added null-guards with optional chaining and `??` defaults:
+  - `Network.qml` (lines 16–19): `network?.active`, `network?.wifiEnabled ?? false`, etc.
+  - `Bluetooth.qml` (lines 16–17): `Bluetooth?.defaultAdapter ?? null`, `Bluetooth?.devices?.values ?? []`
+  - `Brightness.qml` (line 17): `brightness?.percentage ?? 0`
+  - `Volume.qml` (lines 19–20): `volumeMonitor?.muted ?? false`, `volumeMonitor?.percentage ?? 0`
+- **Note**: `MediaPlayer.qml` was later removed as dead code; `Battery.qml` null-guard already sufficient.
 
 ---
 
@@ -531,10 +532,10 @@ Findings below confidence 60 are suppressed entirely.
 | 8 | `modules/bar/components/Volume.qml` | 151 | Volume indicator with icon + percentage, wheel control |
 | 9 | `modules/bar/components/Battery.qml` | 312 | Battery indicator with animated fill, charging animation |
 | 10 | `modules/bar/components/StatusIndicators.qml` | 113 | Caffeine + DND status dots |
-| 11 | `modules/bar/components/SystemTray.qml` | 41 | System tray icon repeater |
-| 12 | `modules/bar/components/MediaPlayer.qml` | 422 | Compact music player with vinyl animation, controls, progress bar |
-| 13 | `modules/bar/components/Clock.qml` | 28 | Simple clock display |
-| 14 | `modules/bar/components/NotificationPopups.qml` | 846 | Material 3 notification popup window with swipe gestures |
+| 11 | `modules/bar/components/SystemTray.qml` | — | ❌ Deleted — unused (tray icons now in pill hover row) |
+| 12 | `modules/bar/components/MediaPlayer.qml` | — | ❌ Deleted — unused (media controls now in pill hover / media surface) |
+| 13 | `modules/bar/components/Clock.qml` | — | ❌ Deleted — unused (time now rendered by center pill) |
+| 14 | `modules/bar/components/NotificationPopups.qml` | — | ❌ Deleted — unused (notifications handled by pill toast surface) |
 | 15 | `modules/pill/Pill.qml` | 1671 | Center morphing pill — single element that morphs between rest/hover/surfaces |
 | 16 | `modules/pill/PillOverlay.qml` | 264 | Two-window overlay architecture (reserve + overlay PanelWindows) |
 | 17 | `modules/pill/shell.qml` | 479 | Shell root managing per-monitor Pill instances via Variants |
@@ -590,6 +591,7 @@ These findings have **not yet been resolved** and require action:
 - PRF-004: Set `asynchronous: false` on small Loaders in `Bar.qml` under ~150 lines
   - Status: ✅ FIXED (2026-07-03)
 - FW-001: Add centralized null-service handling/logging in bar components that access singletons
+  - Status: ✅ FIXED (2026-07-04)
 
 ### UI Design Audit
 
