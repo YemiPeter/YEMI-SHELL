@@ -124,17 +124,11 @@ Item {
                 return;
             }
 
-            // Hyprland: check workspace hasfullscreen flag
-            var mons = Hyprland.monitors.values;
-            for (var i = 0; i < mons.length; i++) {
-                if (mons[i].name === root.modelData.name) {
-                    var ws = mons[i].activeWorkspace;
-                    monFullscreen = ws ? !!ws.hasfullscreen : false;
-                    console.log("[FS-CHECK]", root.modelData.name, "monFullscreen=", monFullscreen);
-                    return;
-                }
+            // Hyprland: query hyprctl activeworkspace -j for live fullscreen state
+            if (!hyprFsProc.running) {
+              hyprFsProc.output = "";
+              hyprFsProc.running = true;
             }
-            monFullscreen = false;
         }
 
         // Niri fullscreen detection via niri msg -j windows IPC
@@ -178,9 +172,39 @@ Item {
                     console.warn("[FS-CHECK] Failed to query niri windows");
                 }
             }
-        }
-
-        // Poll fullscreen state every 500ms (Niri has no event-driven IPC for this)
+          }
+          
+          // Hyprland fullscreen detection via hyprctl activeworkspace -j
+          Process {
+            id: hyprFsProc
+            property string output: ""
+            command: ["hyprctl", "activeworkspace", "-j"]
+            running: false
+          
+            stdout: SplitParser {
+              splitMarker: ""
+              onRead: function(data) {
+                hyprFsProc.output += data;
+              }
+            }
+          
+            onExited: code => {
+              if (code === 0) {
+                try {
+                  var ws = JSON.parse(hyprFsProc.output.trim());
+                  var isFullscreen = !!(ws && ws.hasfullscreen);
+                  overlay.monFullscreen = isFullscreen;
+                  console.log("[FS-CHECK]", root.modelData.name, "monFullscreen=", overlay.monFullscreen);
+                } catch (e) {
+                  console.warn("[FS-CHECK] Failed to parse hyprctl output:", e);
+                }
+              } else {
+                console.warn("[FS-CHECK] Failed to query hyprctl activeworkspace");
+              }
+            }
+          }
+          
+          // Poll fullscreen state every 500ms (Niri has no event-driven IPC for this)
         Timer {
             interval: 500
             running: true
