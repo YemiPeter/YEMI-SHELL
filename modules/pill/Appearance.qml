@@ -6,7 +6,7 @@ import Quickshell.Io
 import "Singletons"
 
 /**
- * 相 APPEARANCE sub-surface: the clock format and seconds, the Japanese-glyph
+ * APPEARANCE sub-surface: the clock format and seconds, the glyph
  * toggle that gates every surface header, the palette mode (static flame, dynamic
  * per-wallpaper, or a manually chosen hue), the UI scale and a reduce-motion
  * switch. Reached from the settings index and morphs back to it on an empty click
@@ -99,7 +99,6 @@ SettingsSurface {
 
         SettingsHeader {
             s: root.s
-            glyph: "相"
             title: "APPEARANCE"
             showBack: true
         }

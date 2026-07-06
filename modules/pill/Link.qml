@@ -9,8 +9,8 @@ import Quickshell.Services.Notifications
 import "Singletons"
 
 /**
- * 繋 LINK surface: connectivity rows (auto-detected Netz, Bluetooth) over the
- * 報 INBOX notification center, with WLAN and Bluetooth drill-in subviews that
+ * LINK surface: connectivity rows (auto-detected Netz, Bluetooth) over the
+ * INBOX notification center, with WLAN and Bluetooth drill-in subviews that
  * cross-fade in place. Owns the `subview` state machine and exposes
  * `desiredW` and `back()` for the pill's morph and Escape plumbing. Opening marks all
  * notifications seen after a short beat so unread embers register first.
@@ -368,7 +368,6 @@ PillSurface {
 
                     Text {
                       anchors.verticalCenter: parent.verticalCenter
-                      text: "繋"
                         color: Theme.cream
                         font.family: Theme.fontJp
                         font.weight: Font.Medium
@@ -627,7 +626,6 @@ PillSurface {
                     Text {
                       id: inboxKanji
                       anchors.verticalCenter: parent.verticalCenter
-                      text: "報"
                         color: Theme.dim
                         font.family: Theme.fontJp
                         font.weight: Font.Medium
@@ -653,7 +651,6 @@ PillSurface {
 
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
-                        text: "払"
                         color: clearArea.containsMouse ? Theme.vermLit : Theme.vermDim
                         font.family: Theme.fontJp
                         font.pixelSize: 9 * root.s
@@ -889,7 +886,6 @@ PillSurface {
 
                 Text {
                   anchors.horizontalCenter: parent.horizontalCenter
-                  text: "静"
                     color: Theme.ghost
                     opacity: 0.55
                     font.family: Theme.fontJp

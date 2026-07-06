@@ -486,18 +486,8 @@ Item {
         soulTarget = "";
         soulWsIndex = -1;
     }
-    onHoverSoulGateChanged: if (hoverSoulGate) kanjiFlashAnim.restart()
-
     property string soulTarget: ""
     property int soulWsIndex: -1
-
-    property real kanjiFlash: 0
-
-    SequentialAnimation {
-        id: kanjiFlashAnim
-        NumberAnimation { target: pill; property: "kanjiFlash"; to: 1; duration: 90; easing.type: Easing.OutCubic }
-        NumberAnimation { target: pill; property: "kanjiFlash"; to: 0; duration: 320; easing.type: Easing.OutCubic }
-    }
 
     Behavior on width { NumberAnimation { duration: Motion.morph; easing.type: Motion.easeMorph; easing.bezierCurve: Motion.morphCurve } }
     Behavior on height { NumberAnimation { duration: Motion.morph; easing.type: Motion.easeMorph; easing.bezierCurve: Motion.morphCurve } }
@@ -591,13 +581,13 @@ Item {
     }
 
     /**
-     * Rest anchor for Ame: the 時 kanji centre. The idle outline condenses into
-     * the bead here before it moves.
+     * Rest anchor for Ame: the clock text centre. The idle bead parks here
+     * before it moves on hover.
      */
     readonly property point wakePoint: {
-        void pill.width;
-        void pill.height;
-        return restKanji.mapToItem(pill, restKanji.width / 2, restKanji.height / 2);
+      void pill.width;
+      void pill.height;
+      return restRow.mapToItem(pill, restRow.width / 2, restRow.height / 2);
     }
 
     /**
@@ -706,47 +696,12 @@ Item {
         Behavior on opacity { NumberAnimation { duration: pill.mode === "rest" ? Motion.fast : 260 } }
 
         Row {
-            id: restRow
-            anchors.centerIn: parent
-            spacing: 9 * pill.s
-            Item {
-                id: restKanji
-                anchors.verticalCenter: parent.verticalCenter
-                width: kanjiFill.implicitWidth
-                height: kanjiFill.implicitHeight
-
-                Text {
-                  anchors.fill: parent
-                  text: kanjiFill.text
-                    color: "transparent"
-                    font: kanjiFill.font
-                    style: Text.Outline
-                    styleColor: Qt.alpha(Theme.vermLit,
-                        Math.min(1, (pill.mode === "rest" || !pill.hoverSoulGate ? 0.5 : 0) + pill.kanjiFlash))
-                }
-
-                Text {
-                  id: kanjiFill
-                  text: "時"
-                    color: Theme.cream
-                    font.family: Theme.fontJp
-                    font.weight: Font.Medium
-                    font.pixelSize: 15 * pill.s
-                }
-
-                GlyphIcon {
-                  anchors.centerIn: parent
-                  visible: false
-                  width: 17 * pill.s
-                    height: 17 * pill.s
-                    name: "clock"
-                    color: Theme.cream
-                    stroke: 1.7
-                }
-            }
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                text: clock.hhmm
+          id: restRow
+          anchors.centerIn: parent
+          spacing: 0
+          Text {
+            anchors.verticalCenter: parent.verticalCenter
+            text: clock.hhmm
                 color: Theme.cream
                 font.family: Theme.font
                 font.pixelSize: 16 * pill.s

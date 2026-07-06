@@ -123,7 +123,6 @@ PillSurface {
             spacing: 8 * root.s
             Text {
               anchors.verticalCenter: parent.verticalCenter
-              text: "電"
                 color: Theme.cream
                 font.family: Theme.fontJp
                 font.weight: Font.Medium

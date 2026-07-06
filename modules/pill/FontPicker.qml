@@ -5,7 +5,7 @@ import QtQuick.Controls
 import "Singletons"
 
 /**
- * 字 FONT sub-surface: a searchable list of every installed family, each row
+ * FONT sub-surface: a searchable list of every installed family, each row
  * rendering its own name as a live preview so the user reads the shape before
  * picking. A click writes the family to Flags.uiFont, which Theme.font reads back
  * through a validated ternary so the whole shell re-renders at once; the leading
@@ -81,7 +81,6 @@ SettingsSurface {
 
         SettingsHeader {
             s: root.s
-            glyph: "字"
             title: "FONT"
             showBack: true
         }
@@ -97,7 +96,6 @@ SettingsSurface {
               anchors.left: parent.left
               anchors.leftMargin: 4 * root.s
               anchors.verticalCenter: parent.verticalCenter
-              text: "探"
                 color: Theme.dim
                 font.family: Theme.fontJp
                 font.weight: Font.Medium

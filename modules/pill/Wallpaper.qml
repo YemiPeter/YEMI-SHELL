@@ -252,7 +252,7 @@ PillSurface {
         anchors.right: parent.right
         anchors.rightMargin: 20 * root.s
         s: root.s
-        kanji: "探"
+        kanji: ""
         placeholder: "Search wallpapers"
         visible: root.searching
         enabled: root.searching
@@ -279,7 +279,6 @@ PillSurface {
       anchors.verticalCenter: parent.verticalCenter
       z: 0
       visible: !root.searching
-      text: "壁"
         color: Theme.ghost
         opacity: 0.55
         font.family: Theme.fontJp
