@@ -1,8 +1,181 @@
-# Topbar Review Report
+# Topbar Review & Architecture Rework — Session State
 
-> **Date**: 2026-03-07
-> **Scope**: `modules/bar/` — 14 QML files + `modules/pill/` center morphing pill system
-> **Review types**: QML Code Review (qt-qml-review), UI Design Audit (qt-ui-design), Qt C++ Review (qt-cpp-review), QML Best Practices (qt-qml), QML Profiler (qt-qml-profiler), Project Rules (YemiWorkingRules, SKILL.md, Qt-Dev-Checklist, qt-deprecated-cl), Center Pill Morph Audit (new)
+**Last updated:** 2026-07-06
+**Current branch:** `restructure/clean-tree` (HEAD at `4c5ac3c`)
+**Tagged reference:** `split-reference` (a6fa1e6) – PILL‑001 split attempt, preserved for future reference
+
+---
+
+## ✅ Completed & Committed
+
+### Phase 0 – Launch guard
+- [`~/.config/quickshell/scripts/start-quickshell.sh`](scripts/start-quickshell.sh) created.
+- Prevents duplicate `qs` instances that stack exclusive zones.
+
+### Phase 1 – Fullscreen‑hide fixed
+- Replaced stale `Hyprland.monitors` singleton with `hyprctl activeworkspace -j` via `Process`.
+- Pill reliably hides on Hyprland fullscreen. Niri detection unchanged (geometry heuristic).
+
+### UI Design Audit (partial)
+- Battery liquid fill animation: 1500ms → 400ms.
+- DND indicator color: hardcoded orange → `Theme.verm` token.
+- StatusIndicators wired to `QsSingletons.Flags.keepAwake` / `.dnd` (syncs with center pill mixer toggles).
+- Bar caffeine renamed to "Keep Awake", tooltips removed.
+- Mixer keep‑awake chip: glyph changed from eye to coffee (SVG path from [`GlyphIcon.qml`](modules/pill/GlyphIcon.qml)).
+
+### Bar fixes (QML review)
+- Import ordering corrected in [`Bar.qml`](modules/bar/Bar.qml), [`BarWrapper.qml`](modules/bar/BarWrapper.qml), [`Workspaces.qml`](modules/bar/components/Workspaces.qml), [`NotificationPopups.qml`](modules/bar/components/NotificationPopups.qml).
+- `id: root` added to BarWrapper Scope.
+- Dead code removed: Clock.qml, MediaPlayer.qml, SystemTray.qml, NotificationPopups.qml.
+- Null‑guards added to Network.qml, Bluetooth.qml, Brightness.qml, Volume.qml service singletons.
+- Binding fixes (Workspace.qml scale, Clock.qml text, MediaPlayer.qml titleText, NotificationPopups progressAnim).
+- Performance: `paused: !visible` on infinite animations, `asynchronous: false` on small Loaders, cached `Qt.rgba()` colors in Bar.qml, transparent Rectangle→Item where possible.
+
+---
+
+## 🔄 PILL‑001 Split (Reverted, Preserved)
+
+### What was attempted
+- Split monolithic 1676‑line [`Pill.qml`](modules/pill/Pill.qml) into:
+  - `Pill.qml` (orchestrator)
+  - `PillRest.qml` (rest state)
+  - `PillHover.qml` (hover state)
+  - `PillSurfaces.qml` (surface instantiations)
+  - `PillOverlays.qml` (Osd, toast, quickChoose, quickCount)
+- Added property aliases to expose internal IDs.
+- Added property bindings from parent to child components.
+- Fixed naming collision (`surfaces` property → `surfaceMeta`).
+
+### Why it was reverted
+- After the split, core morph worked and logs were clean, but several surfaces (connectivity, notifications, system stats, screen record, settings) had visual glitches/missing backgrounds and sub‑navigation didn't work correctly.
+- Debugging the surface‑specific issues was taking longer than expected.
+- The split was a preparatory step for the Bar+Pill merge (Phase 5); the merge would naturally resolve cross‑component initialization issues.
+
+### Current state
+- **Tag `split-reference`** preserves the split work permanently.
+- Hard reset to `4c5ac3c` (pre‑split) — original monolithic [`Pill.qml`](modules/pill/Pill.qml) (1676 lines) is back, all other fixes intact.
+
+---
+
+## 🏗️ Current Architecture (Pre‑Merge)
+
+```
+Window #1 – Bar (WlrLayer.Top, exclusionMode: Ignore)
+  └── bar pills (workspaces, connectivity, audio, power)
+
+Window #2 – Reserve (WlrLayer.Top, exclusive zone)
+  └── zero‑size mask, claims top strip
+
+Window #3 – Overlay (WlrLayer.Overlay)
+  └── Pill (morphing center pill, fullscreen detection, mask logic)
+```
+
+---
+
+## 📋 Remaining Plans
+
+### Phase 5 – Overlay Mask Redesign (NEXT STEP)
+**Goal:** Simplify the Overlay window's input mask to match a clear three-state interaction model. Keep the 3-window architecture intact.
+
+**Why this instead of Bar+Pill merge:** The Bar+Pill merge is not viable — the Bar window cannot substitute for the Overlay window because of layer mismatch (`WlrLayer.Top` vs `WlrLayer.Overlay`), surface clipping (Bar is 38px tall), mask limitations (Bar mask can't cover the screen), and exclusive zone conflicts. The Overlay window's full-screen geometry and `Overlay` layer are essential to how the Pill works. See analysis in Section 9.
+
+#### Revised Interaction Model — Three Distinct States
+
+The interaction model is better represented as **three separate states**, not two.
+
+**State 1 — Rest**
+The center pill is idle and displays the time.
+```
+[ Time ]
+```
+* Input mask: **pill only**
+* Hover target: **pill only**
+* Click-through: **everywhere else**
+
+**State 2 — Hover (Morph Only)**
+When the cursor enters the pill, it should **only morph from the time view into the icon view**.
+```
+[ Icons ]
+```
+This state is purely a visual affordance that reveals the available actions.
+* **No launcher or surface opens automatically.**
+* **No modal behavior.**
+* The input mask remains **pill only**.
+* Moving the cursor away returns the pill to the resting state after the existing grace timer.
+* Hover should never open a surface — it should only expose the clickable icons.
+
+**State 3 — Surface Open**
+A surface opens **only after the user explicitly clicks an icon**.
+```
+[ Icons ] Launcher Mixer Calendar ...
+```
+At this point, the interactive region is no longer just the pill. The input mask should become the **union of all interactive UI**:
+* the pill
+* the opened surface (launcher, mixer, calendar, etc.)
+
+Everything outside those regions should remain click-through so underlying applications (Firefox, VS Code, terminals, etc.) continue to receive mouse input.
+
+This preserves the desired behavior:
+* Hover → morph the pill only.
+* Click an icon → open the corresponding surface.
+* Interact with both the surface and surrounding desktop simultaneously.
+* Press Escape (or another explicit close action) to dismiss the surface.
+* Never capture the entire screen unless a future feature explicitly requires modal behavior.
+
+This separates the interaction model into three clear responsibilities:
+1. **Rest** — display information.
+2. **Hover** — reveal available actions.
+3. **Surface Open** — provide an interactive panel while keeping the rest of the desktop accessible.
+
+#### Implementation Steps
+1. Replace the 3-region mask in [`shell.qml`](modules/pill/shell.qml) (the active implementation; `PillOverlay.qml` is dead code) with a single `Region` bound live to the pill's current geometry:
+```qml
+mask: monFullscreen ? hiddenRegion : livePillRegion
+Region { id: hiddenRegion }
+Region {
+    id: livePillRegion
+    x: pill.x + (pill.width - Math.max(pill.width, pill.targetW)) / 2
+    y: pill.y - pill.inputPadTop
+    width: Math.max(pill.width, pill.targetW) + pill.inputPadRight
+    height: Math.max(pill.height, pill.targetH) + pill.inputPadTop
+}
+```
+   - Remove `hiddenRegion`, `pillRegion`, and `fullRegion`.
+   - Remove the `monFullscreen ? hiddenRegion : (...)` ternary — mask always tracks pill geometry.
+2. Remove the backdrop `MouseArea` from [`PillOverlay.qml`](modules/pill/PillOverlay.qml) (lines 289-299) — no more click-outside-to-close.
+3. Simplify or remove the outside-click logic in the overlay `MouseArea` inside [`shell.qml`](modules/pill/shell.qml) (lines 324-344).
+4. Verify [`WlrLayershell.keyboardFocus`](modules/pill/PillOverlay.qml:73) is correct — already set to `Exclusive` when surface open, `OnDemand` otherwise. No change needed.
+5. Verify Escape key handler in [`shell.qml`](modules/pill/shell.qml:354) still works — it calls `root.close()`, which is now the sole close mechanism for pinned surfaces.
+6. Clean up debug logging: remove `[PILLREGION]`, `[MASK-CHECK]`, `[ALIGN-CHECK]` console.log statements.
+
+**After the redesign:**
+- Mask updates mid-morph (bound to animated properties, not just targets).
+- Clicking outside the pill does nothing — Escape or hover-leave closes.
+- Fullscreen hide still works — pill retracts off-screen, mask follows.
+- Multi-monitor: each Variants delegate has its own mask, no cross-monitor leakage.
+
+### Phase 4 – Compositor‑Aware Settings (Deferred)
+- Create `Compositor.qml` singleton.
+- Implement Niri blur support.
+- Pattern for future per‑compositor settings.
+
+### Phase 6 – Remaining Pill Morph Audit Items (Deferred)
+- PILL‑002 (debug logging cleanup)
+- PILL‑003 (surface descriptor thunks)
+- PILL‑005 (hover latch race)
+- PILL‑006 (Ame bead Canvas optimization)
+
+### Phase 2 Revisited – Optional Re‑Split (Future)
+- The `split-reference` tag can be cherry‑picked or merged later if a split is desired again, after the mask redesign is stable.
+
+---
+
+## 🔜 Immediate Next Action
+
+Implement the Overlay mask redesign (Phase 5):
+1. Edit [`PillOverlay.qml`](modules/pill/PillOverlay.qml) — replace 3-region mask with single live-bound `Region`, remove backdrop `MouseArea`, remove debug logs.
+2. Edit [`shell.qml`](modules/pill/shell.qml) — simplify overlay `MouseArea` outside-click logic.
+3. Test: pill renders correctly, morph works, mask tracks mid-animation, fullscreen hide works, Escape closes pinned surfaces, click-outside does nothing.
 
 ---
 
@@ -631,21 +804,43 @@ These findings have **not yet been resolved** and require action:
 
 **Scope**: `modules/pill/Pill.qml`, `modules/pill/PillOverlay.qml`, `modules/pill/shell.qml`, and their connection to `modules/bar/Bar.qml`
 
-**Architecture overview:**
+### PILL-001 Split Attempt (Reverted, Preserved)
 
-The center pill is a **separate layer-shell window system** that lives outside `modules/bar/`. It uses a two-window architecture defined in `PillOverlay.qml` and `shell.qml`:
+**What was attempted:**
+- Split monolithic 1676‑line [`Pill.qml`](modules/pill/Pill.qml) into:
+  - `Pill.qml` (orchestrator)
+  - `PillRest.qml` (rest state)
+  - `PillHover.qml` (hover state)
+  - `PillSurfaces.qml` (surface instantiations)
+  - `PillOverlays.qml` (Osd, toast, quickChoose, quickCount)
+- Added property aliases to expose internal IDs.
+- Added property bindings from parent to child components.
+- Fixed naming collision (`surfaces` property → `surfaceMeta`).
+
+**Why it was reverted:**
+- After the split, core morph worked and logs were clean, but several surfaces (connectivity, notifications, system stats, screen record, settings) had visual glitches/missing backgrounds and sub‑navigation didn't work correctly.
+- Debugging the surface‑specific issues was taking longer than expected.
+- The split was a preparatory step for the Bar+Pill merge (Phase 5); the merge would naturally resolve cross‑component initialization issues.
+
+**Current state:**
+- **Tag `split-reference`** preserves the split work permanently.
+- Hard reset to `4c5ac3c` (pre‑split) — original monolithic [`Pill.qml`](modules/pill/Pill.qml) (1676 lines) is back, all other fixes intact.
+
+### Architecture overview (current)
+
+The center pill is a **separate layer-shell window system** that lives outside `modules/bar/`. It uses a two-window architecture defined in [`PillOverlay.qml`](modules/pill/PillOverlay.qml) and [`shell.qml`](modules/pill/shell.qml):
 
 1. **Reserve window** (`WlrLayer.Top`) — claims exclusive zone at resting height so the Bar doesn't compete for top-strip space. Height: `restH + topGap` (28px + 8px padding). Zero interactive content; purely a spacer.
 2. **Overlay window** (`WlrLayer.Overlay`) — full-screen transparent window hosting the single morphing `Pill` instance. Handles fullscreen detection (Hyprland/Niri), mask logic, and keyboard focus.
 
 **Bar connection:**
 
-`Bar.qml` (lines 104-114) reserves a center spacer matching the pill's rest dimensions:
+[`Bar.qml`](modules/bar/Bar.qml) (lines 104-114) reserves a center spacer matching the pill's rest dimensions:
 - Width: `160 * root.s`
 - Height: `38 * root.s`
 - Anchored at `horizontalCenter` + `verticalCenter`
 
-This spacer prevents the Bar's right-side pills from colliding with the center pill's resting position. The pill's `restW`/`restH` in `Pill.qml` (lines 97-98) match these values exactly: `160 * s` and `38 * s`.
+This spacer prevents the Bar's right-side pills from colliding with the center pill's resting position. The pill's `restW`/`restH` in [`Pill.qml`](modules/pill/Pill.qml) (lines 97-98) match these values exactly: `160 * s` and `38 * s`.
 
 **Morph architecture (Pill.qml):**
 
@@ -716,15 +911,16 @@ Both files contain identical fullscreen detection logic:
 - **Finding**: Pill.qml is a single 1671-line QML file containing the pill body, morph logic, surface descriptors, Ame bead, hover state, rest state, keyboard routing functions, and instantiations of ~20 surfaces. This exceeds the 500-line guideline for QML files and creates cognitive load.
 - **Impact**: Hard to navigate, difficult to debug, merge conflicts likely.
 - **Mitigation**: Consider splitting into logical sub-components: `PillBody.qml` (morph + surfaces), `PillHover.qml` (hover row), `PillRest.qml` (rest kanji + clock), `PillBead.qml` (Ame), `PillSurfaces.qml` (surface instantiations).
+- **Status**: 🔄 ATTEMPTED & REVERTED — see PILL-001 Split section above. Tag `split-reference` preserves the work.
 
 #### [PILL-002] Debug logging embedded in production code
 - **File**: `modules/pill/Pill.qml` lines 24-25, `PillOverlay.qml` lines 89-90, 188-189, shell.qml various
 - **Category**: Code Quality
 - **Severity**: Low
 - **Finding**: Multiple `console.log` and `console.warn` statements remain in production code:
-  - `[PILLPOS]` on every `y`/`height` change (Pill.qml)
-  - `[PILLREGION]` on every region `y`/`height` change (PillOverlay.qml)
-  - `[ALIGN-CHECK]`, `[MASK-CHECK]`, `[FS-CHECK]`, `[FULLSCREEN]` in PillOverlay.qml
+- `[PILLPOS]` on every `y`/`height` change (Pill.qml)
+- `[PILLREGION]` on every region `y`/`height` change (PillOverlay.qml)
+- `[ALIGN-CHECK]`, `[MASK-CHECK]`, `[FS-CHECK]`, `[FULLSCREEN]` in PillOverlay.qml
 - **Impact**: Log spam in production. Minimal performance cost but noisy.
 - **Mitigation**: Wrap in `if (Flags.debug)` or remove before release.
 
@@ -760,11 +956,23 @@ Both files contain identical fullscreen detection logic:
 - **Impact**: Minor. Canvas bead is small. Hardcoded color breaks light theme support.
 - **Mitigation**: Replace Canvas bead with a `Rectangle` + `Gradient` or pre-rendered `Image` sprite. Use theme tokens for the highlight color.
 
+### Phase 3 – Interactive Overlay Mask Redesign (Deferred)
+
+The detailed plan for this redesign is documented in [`PLANS/PILL_INTERACTIVE_OVERLAY_PLAN.md`](PLANS/PILL_INTERACTIVE_OVERLAY_PLAN.md).
+
+**Summary:**
+- Replace binary `pillRegion` / `fullRegion` mask switch with a single `Region` bound live to the pill's current geometry (`pill.x/y/width/height`).
+- Drop the backdrop `MouseArea` entirely — no click-outside-close needed per the interaction model (hover opens, hover-leave closes, Escape closes pinned).
+- Add `WlrLayershell.keyboardFocus` toggle keyed off `pinned || surfaceOpen` so Escape has a keyboard target.
+- Optional visual dim backdrop (cosmetic only, excluded from input `Region`).
+
+**Why deferred:** Current priority is stabilizing `updateFullscreen()` / fullscreen-detection and `shell.qml` cleanup first. This redesign touches the same `PillOverlay.qml` file — safer to land after existing bugs are fixed.
+
 ### Center Pill Summary
 
 | Category | Count | Key issues |
 |----------|-------|------------|
-| Maintainability | 1 | 1671-line Pill.qml |
+| Maintainability | 1 | 1671-line Pill.qml (split attempted & reverted) |
 | Code Quality | 1 | Debug logging in production |
 | Bindings | 1 | Surface thunk dependencyRegistration |
 | DRY | 1 | Fullscreen detection duplicated |
