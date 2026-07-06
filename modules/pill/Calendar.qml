@@ -132,11 +132,9 @@ PillSurface {
     readonly property real focusY: gridPane.y + grid.y + (Math.floor(focusIndex / 7) + 0.5) * (cellH + rowGap) - rowGap / 2
 
     readonly property point soulPoint: {
-        void width;
-        void height;
-        if (Flags.showGlyphs)
-            return calGlyph.mapToItem(root, calGlyph.width / 2, -3 * s);
-        return monthLabel.mapToItem(root, -8 * s, monthLabel.height / 2);
+      void width;
+      void height;
+      return calGlyph.mapToItem(root, calGlyph.width / 2, -3 * s);
     }
 
     ameForm: focused ? "ring" : "soul"
@@ -479,10 +477,9 @@ PillSurface {
                 spacing: 8 * root.s
 
                 Text {
-                    id: calGlyph
-                    anchors.verticalCenter: parent.verticalCenter
-                    visible: Flags.showGlyphs
-                    text: "暦"
+                  id: calGlyph
+                  anchors.verticalCenter: parent.verticalCenter
+                  text: "暦"
                     color: Theme.cream
                     font.family: Theme.fontJp
                     font.weight: Font.Medium

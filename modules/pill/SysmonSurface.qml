@@ -41,11 +41,9 @@ PillSurface {
      * offset it by the surface origin.
      */
     readonly property point soulPoint: {
-        void root.width;
-        void root.height;
-        if (Flags.showGlyphs)
-            return kanji.mapToItem(root, kanji.width / 2, -3 * root.s);
-        return sysLabel.mapToItem(root, -8 * root.s, sysLabel.height / 2);
+      void root.width;
+      void root.height;
+      return kanji.mapToItem(root, kanji.width / 2, -3 * root.s);
     }
 
     ameForm: open ? "soul" : "off"
@@ -185,10 +183,9 @@ PillSurface {
                 spacing: 9 * root.s
 
                 Text {
-                    id: kanji
-                    anchors.verticalCenter: parent.verticalCenter
-                    visible: Flags.showGlyphs
-                    text: "系"
+                  id: kanji
+                  anchors.verticalCenter: parent.verticalCenter
+                  text: "系"
                     color: Theme.cream
                     font.family: Theme.fontJp
                     font.weight: Font.Medium

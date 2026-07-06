@@ -716,9 +716,8 @@ Item {
                 height: kanjiFill.implicitHeight
 
                 Text {
-                    anchors.fill: parent
-                    visible: Flags.showGlyphs
-                    text: kanjiFill.text
+                  anchors.fill: parent
+                  text: kanjiFill.text
                     color: "transparent"
                     font: kanjiFill.font
                     style: Text.Outline
@@ -727,9 +726,8 @@ Item {
                 }
 
                 Text {
-                    id: kanjiFill
-                    visible: Flags.showGlyphs
-                    text: "時"
+                  id: kanjiFill
+                  text: "時"
                     color: Theme.cream
                     font.family: Theme.fontJp
                     font.weight: Font.Medium
@@ -737,9 +735,9 @@ Item {
                 }
 
                 GlyphIcon {
-                    anchors.centerIn: parent
-                    visible: !Flags.showGlyphs
-                    width: 17 * pill.s
+                  anchors.centerIn: parent
+                  visible: false
+                  width: 17 * pill.s
                     height: 17 * pill.s
                     name: "clock"
                     color: Theme.cream

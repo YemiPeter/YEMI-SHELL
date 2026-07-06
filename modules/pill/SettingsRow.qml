@@ -49,12 +49,12 @@ Item {
     }
 
     Text {
-        id: rk
-        anchors.left: parent.left
-        anchors.leftMargin: 12 * srow.s
-        anchors.verticalCenter: parent.verticalCenter
-        visible: srow.glyph.length > 0 && srow.icon.length === 0 && Flags.showGlyphs
-        text: srow.glyph
+      id: rk
+      anchors.left: parent.left
+      anchors.leftMargin: 12 * srow.s
+      anchors.verticalCenter: parent.verticalCenter
+      visible: srow.glyph.length > 0 && srow.icon.length === 0
+      text: srow.glyph
         color: Theme.iconDim
         font.family: Theme.fontJp
         font.pixelSize: 15 * srow.s
