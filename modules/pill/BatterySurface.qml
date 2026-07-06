@@ -4,7 +4,7 @@ import QtQuick
 import "Singletons"
 
 /**
- * 蓄 BATTERY surface: a typographic read-out for the laptop battery. The
+ * BATTERY surface: a typographic read-out for the laptop battery. The
  * percentage is the hero, set over a time-to-empty/full subline, with a thin
  * charge meter and an adaptive stat list (Rate / Health / Capacity) beneath a
  * hairline. Health drops when UPower can't report it and the time line drops
@@ -49,7 +49,6 @@ PillSurface {
 
                 Text {
                   anchors.verticalCenter: parent.verticalCenter
-                  text: "蓄"
                     color: Theme.cream
                     font.family: Theme.fontJp
                     font.weight: Font.Medium

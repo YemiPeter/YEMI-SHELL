@@ -5,7 +5,7 @@ import Quickshell.Io
 import "Singletons"
 
 /**
- * 更 UPDATES sub-surface: reads the installed commit, checks origin/main for newer
+ * UPDATES sub-surface: reads the installed commit, checks origin/main for newer
  * work and fast-forwards in place, all without a terminal. The live config dir is a
  * symlink into the Ricelin clone, so every git op targets the real repo through
  * `git -C` and the commit short-SHA stands in for a version. Reached from the
@@ -160,7 +160,6 @@ SettingsSurface {
 
         SettingsHeader {
             s: root.s
-            glyph: "更"
             title: "UPDATES"
             showBack: true
         }

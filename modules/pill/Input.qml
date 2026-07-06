@@ -7,7 +7,7 @@ import "lib/setInput.js" as SetInput
 import "Singletons"
 
 /**
- * 操 INPUT sub-surface: edits the pointer and cursor settings that live in the
+ * INPUT sub-surface: edits the pointer and cursor settings that live in the
  * Hyprland Lua modules, writing each change straight back to its source so the
  * choice survives a restart. Pointer fields rewrite input.lua and reload
  * Hyprland; sensitivity steps through a small −/value/+ control while the accel
@@ -316,7 +316,6 @@ SettingsSurface {
 
         SettingsHeader {
             s: root.s
-            glyph: "操"
             title: "INPUT"
             showBack: true
         }

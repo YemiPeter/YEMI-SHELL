@@ -4,8 +4,8 @@ import QtQuick
 import "Singletons"
 
 /**
- * 設 SETTINGS index: a short list of categories grouped into Shell and Control.
- * Each row carries its kanji, name and caption, and morphs the pill into that
+ * SETTINGS index: a short list of categories grouped into Shell and Control.
+ * Each row carries its glyph, name and caption, and morphs the pill into that
  * category's sub-surface. Arrow keys move the focused row with the glowing seam
  * and Return opens it. The Shell group holds Appearance and Display; the Control
  * group holds Keybinds and Updates.
@@ -34,7 +34,6 @@ SettingsSurface {
 
         SettingsHeader {
             s: root.s
-            glyph: "設"
             title: "SETTINGS"
         }
 
