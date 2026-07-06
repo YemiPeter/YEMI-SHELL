@@ -376,9 +376,8 @@ PillSurface {
                 spacing: 9 * root.s
 
                 Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    visible: Flags.showGlyphs
-                    text: "録"
+                  anchors.verticalCenter: parent.verticalCenter
+                  text: "録"
                     color: Theme.cream
                     font.family: Theme.fontJp
                     font.weight: Font.Medium
@@ -1128,10 +1127,9 @@ PillSurface {
                 spacing: 6 * root.s
 
                 Text {
-                    visible: Flags.showGlyphs
-                    height: 16 * root.s
-                    verticalAlignment: Text.AlignVCenter
-                    text: "録"
+                  height: 16 * root.s
+                  verticalAlignment: Text.AlignVCenter
+                  text: "録"
                     color: Theme.subtle
                     font.family: Theme.fontJp
                     font.pixelSize: 11 * root.s
@@ -1153,16 +1151,15 @@ PillSurface {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
                 height: parent.height
-                width: clearTxt.width + (Flags.showGlyphs ? clearKanji.width + 5 * root.s : 0)
+                width: clearTxt.width + clearKanji.width + 5 * root.s
                 visible: ScreenRec.recentCount > 0
 
                 Text {
-                    id: clearKanji
-                    anchors.right: clearTxt.left
-                    anchors.rightMargin: 5 * root.s
-                    anchors.verticalCenter: parent.verticalCenter
-                    visible: Flags.showGlyphs
-                    text: "払"
+                  id: clearKanji
+                  anchors.right: clearTxt.left
+                  anchors.rightMargin: 5 * root.s
+                  anchors.verticalCenter: parent.verticalCenter
+                  text: "払"
                     color: clearArea.containsMouse ? Theme.flameGlow : Theme.vermDeep
                     font.family: Theme.fontJp
                     font.pixelSize: 11 * root.s

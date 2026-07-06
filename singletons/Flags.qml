@@ -21,7 +21,6 @@ Singleton {
     property alias keepAwake: adapter.keepAwake
     property alias time12h: adapter.time12h
     property alias clockSeconds: adapter.clockSeconds
-    property alias showGlyphs: adapter.showGlyphs
     property alias paletteMode: adapter.paletteMode
     property alias uiScale: adapter.uiScale
     property alias reduceMotion: adapter.reduceMotion
@@ -64,7 +63,6 @@ Singleton {
             property bool keepAwake: false
             property bool time12h: false
             property bool clockSeconds: false
-            property bool showGlyphs: true
             property string paletteMode: "dynamic"
             property real uiScale: 1.0
             property bool reduceMotion: false
