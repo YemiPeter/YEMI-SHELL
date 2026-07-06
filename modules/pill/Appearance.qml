@@ -82,10 +82,9 @@ SettingsSurface {
     }
 
     rows: [
-        { item: timeRow, kind: "seg", vals: [false, true], get: function () { return Flags.time12h; }, set: function (v) { Flags.time12h = v; } },
-        { item: secRow, kind: "toggle", get: function () { return Flags.clockSeconds; }, set: function (v) { Flags.clockSeconds = v; } },
-        { item: glyphRow, kind: "toggle", get: function () { return Flags.showGlyphs; }, set: function (v) { Flags.showGlyphs = v; } },
-        { item: paletteRow, kind: "seg", vals: ["static", "dynamic", "manual"], get: function () { return Flags.paletteMode; }, set: function (v) { root.applyMode(v); } },
+      { item: timeRow, kind: "seg", vals: [false, true], get: function () { return Flags.time12h; }, set: function (v) { Flags.time12h = v; } },
+      { item: secRow, kind: "toggle", get: function () { return Flags.clockSeconds; }, set: function (v) { Flags.clockSeconds = v; } },
+      { item: paletteRow, kind: "seg", vals: ["static", "dynamic", "manual"], get: function () { return Flags.paletteMode; }, set: function (v) { root.applyMode(v); } },
         { item: scaleRow, kind: "seg", vals: [0.9, 1.0, 1.1, 1.25], get: function () { return Flags.uiScale; }, set: function (v) { Flags.uiScale = v; } },
         { item: motionRow, kind: "toggle", get: function () { return Flags.reduceMotion; }, set: function (v) { Flags.reduceMotion = v; } },
         { item: fontRow, kind: "nav", surface: "fontpicker" }
@@ -135,20 +134,7 @@ SettingsSurface {
         }
 
         SettingsRow {
-            id: glyphRow
-            surface: root
-            name: "Japanese glyphs"
-            icon: "language"
-
-            LinkToggle {
-                s: root.s
-                on: Flags.showGlyphs
-                onToggled: Flags.showGlyphs = !Flags.showGlyphs
-            }
-        }
-
-        SettingsRow {
-            id: paletteRow
+          id: paletteRow
             surface: root
             name: "Palette"
             icon: "palette"
