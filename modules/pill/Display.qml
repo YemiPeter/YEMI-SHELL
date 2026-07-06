@@ -7,7 +7,7 @@ import "lib/monitors.js" as Mon
 import "Singletons"
 
 /**
- * 画 DISPLAY sub-surface: changes each monitor's resolution, refresh rate and
+ * DISPLAY sub-surface: changes each monitor's resolution, refresh rate and
  * scale live through Hyprland's `hl.monitor` eval, behind a GNOME/KDE-style
  * auto-revert safety net. Reads `hyprctl monitors -j` on open and renders one
  * card per output with three segmented pickers: the distinct WxH from the
@@ -209,7 +209,6 @@ SettingsSurface {
 
         SettingsHeader {
             s: root.s
-            glyph: "画"
             title: "DISPLAY"
             showBack: true
         }

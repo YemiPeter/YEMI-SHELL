@@ -7,7 +7,7 @@ import Quickshell.Services.Pipewire
 import "Singletons"
 
 /**
- * 録 RECORD surface: drives gpu-screen-recorder through the ScreenRec singleton,
+ * RECORD surface: drives gpu-screen-recorder through the ScreenRec singleton,
  * built as a flat washi "capture card". The header carries the kanji, label and
  * a status slot (Idle / pulsing dot + elapsed m:ss / Get ready). A tappable
  * config stage shows the recording spec and folds open an options drawer (Frame
@@ -377,7 +377,6 @@ PillSurface {
 
                 Text {
                   anchors.verticalCenter: parent.verticalCenter
-                  text: "録"
                     color: Theme.cream
                     font.family: Theme.fontJp
                     font.weight: Font.Medium
@@ -1129,7 +1128,6 @@ PillSurface {
                 Text {
                   height: 16 * root.s
                   verticalAlignment: Text.AlignVCenter
-                  text: "録"
                     color: Theme.subtle
                     font.family: Theme.fontJp
                     font.pixelSize: 11 * root.s
@@ -1159,7 +1157,6 @@ PillSurface {
                   anchors.right: clearTxt.left
                   anchors.rightMargin: 5 * root.s
                   anchors.verticalCenter: parent.verticalCenter
-                  text: "払"
                     color: clearArea.containsMouse ? Theme.flameGlow : Theme.vermDeep
                     font.family: Theme.fontJp
                     font.pixelSize: 11 * root.s

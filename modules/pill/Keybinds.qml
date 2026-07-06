@@ -9,7 +9,7 @@ import "lib/keychord.js" as Chord
 import "Singletons"
 
 /**
- * 鍵 KEYBINDS surface: a searchable list of the keyboard shortcuts parsed from
+ * KEYBINDS surface: a searchable list of the keyboard shortcuts parsed from
  * ~/.config/hypr/modules/binds.lua, each row a combo chip on the left and its
  * name or derived action on the right; hovering a row reveals the underlying
  * command. Tapping a row opens a unified form prefilled in EDIT mode — a
@@ -336,7 +336,6 @@ PillSurface {
 
                 Text {
                   anchors.verticalCenter: parent.verticalCenter
-                  text: "鍵"
                     color: Theme.cream
                     font.family: Theme.fontJp
                     font.weight: Font.Medium
@@ -376,7 +375,6 @@ PillSurface {
               id: searchGlyph
               anchors.left: parent.left
               anchors.verticalCenter: parent.verticalCenter
-              text: "探"
                 color: Theme.dim
                 font.family: Theme.fontJp
                 font.weight: Font.Medium

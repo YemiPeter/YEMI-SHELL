@@ -10,7 +10,7 @@ import "Singletons"
  * Now-playing card. Album art bleeds edge-to-edge on the left, faded into the
  * card; a blurred copy of the same art glows through a near-opaque warm wash
  * behind everything. Right of the cover: title, artist, a dim service/time
- * line, the play/pause seal (奏/休) flanked by 前/次 skips. Playback runs as a
+ * line, the play/pause seal flanked by prev/next skips. Playback runs as a
  * brush stroke along the bottom (dry base stroke + painted progress stroke);
  * the painted head is where the pill's soul bead docks. Reads the active MPRIS
  * player.
@@ -132,7 +132,7 @@ PillSurface {
         onFinished: coverPair.settle()
     }
 
-    component KanjiSkip: Text {
+    component Skip: Text {
         id: skip
 
         property bool can: false
@@ -345,7 +345,7 @@ PillSurface {
             spacing: 14 * root.s
 
             KanjiSkip {
-                text: "前"
+                text: "<"
                 can: root.hasPlayer && root.player.canGoPrevious
                 onActivated: if (root.player) root.player.previous()
             }
@@ -375,9 +375,9 @@ PillSurface {
 
                 Text {
                     anchors.centerIn: parent
-                    text: root.playing ? "奏" : "休"
+                    text: root.playing ? ">" : "||"
                     color: Theme.bright
-                    font.family: Theme.fontJp
+                    font.family: Theme.font
                     font.pixelSize: 16 * root.s
                     font.weight: Font.DemiBold
                 }
@@ -394,7 +394,7 @@ PillSurface {
             }
 
             KanjiSkip {
-                text: "次"
+                text: ">"
                 can: root.hasPlayer && root.player.canGoNext
                 onActivated: if (root.player) root.player.next()
             }
