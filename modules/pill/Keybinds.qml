@@ -335,9 +335,8 @@ PillSurface {
                 spacing: 8 * root.s
 
                 Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    visible: Flags.showGlyphs
-                    text: "鍵"
+                  anchors.verticalCenter: parent.verticalCenter
+                  text: "鍵"
                     color: Theme.cream
                     font.family: Theme.fontJp
                     font.weight: Font.Medium
@@ -374,12 +373,10 @@ PillSurface {
             visible: !root.formOpen
 
             Text {
-                id: searchGlyph
-                anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
-                visible: Flags.showGlyphs
-                width: Flags.showGlyphs ? implicitWidth : 0
-                text: "探"
+              id: searchGlyph
+              anchors.left: parent.left
+              anchors.verticalCenter: parent.verticalCenter
+              text: "探"
                 color: Theme.dim
                 font.family: Theme.fontJp
                 font.weight: Font.Medium
@@ -387,9 +384,9 @@ PillSurface {
             }
 
             TextField {
-                id: searchField
-                anchors.left: searchGlyph.right
-                anchors.leftMargin: Flags.showGlyphs ? 9 * root.s : 0
+              id: searchField
+              anchors.left: searchGlyph.right
+              anchors.leftMargin: 9 * root.s
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
                 background: null

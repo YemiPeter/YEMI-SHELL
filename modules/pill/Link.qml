@@ -367,9 +367,8 @@ PillSurface {
                     spacing: 8 * root.s
 
                     Text {
-                        anchors.verticalCenter: parent.verticalCenter
-                        visible: Flags.showGlyphs
-                        text: "繋"
+                      anchors.verticalCenter: parent.verticalCenter
+                      text: "繋"
                         color: Theme.cream
                         font.family: Theme.fontJp
                         font.weight: Font.Medium
@@ -626,23 +625,22 @@ PillSurface {
                     }
 
                     Text {
-                        id: inboxKanji
-                        anchors.verticalCenter: parent.verticalCenter
-                        visible: Flags.showGlyphs
-                        text: "報"
+                      id: inboxKanji
+                      anchors.verticalCenter: parent.verticalCenter
+                      text: "報"
                         color: Theme.dim
                         font.family: Theme.fontJp
                         font.weight: Font.Medium
                         font.pixelSize: 11.5 * root.s
                     }
                     Text {
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: Flags.showGlyphs ? "INBOX" : "Notifications"
-                        color: Theme.faint
-                        font.family: Theme.font
-                        font.pixelSize: 9 * root.s
-                        font.weight: Font.Bold
-                        font.letterSpacing: Flags.showGlyphs ? 1.8 * root.s : 0.8 * root.s
+                      anchors.verticalCenter: parent.verticalCenter
+                      text: "INBOX"
+                      color: Theme.faint
+                      font.family: Theme.font
+                      font.pixelSize: 9 * root.s
+                      font.weight: Font.Bold
+                      font.letterSpacing: 1.8 * root.s
                     }
                 }
 
@@ -890,9 +888,8 @@ PillSurface {
                 spacing: 4 * root.s
 
                 Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    visible: Flags.showGlyphs
-                    text: "静"
+                  anchors.horizontalCenter: parent.horizontalCenter
+                  text: "静"
                     color: Theme.ghost
                     opacity: 0.55
                     font.family: Theme.fontJp
@@ -900,13 +897,13 @@ PillSurface {
                     font.pixelSize: 32 * root.s
                 }
                 Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: Flags.showGlyphs ? "SILENCE" : "No notifications to display"
-                    color: Theme.faint
-                    font.family: Theme.font
-                    font.pixelSize: 9 * root.s
-                    font.weight: Font.Bold
-                    font.letterSpacing: Flags.showGlyphs ? 2.2 * root.s : 0.8 * root.s
+                  anchors.horizontalCenter: parent.horizontalCenter
+                  text: "SILENCE"
+                  color: Theme.faint
+                  font.family: Theme.font
+                  font.pixelSize: 9 * root.s
+                  font.weight: Font.Bold
+                  font.letterSpacing: 2.2 * root.s
                 }
             }
         }

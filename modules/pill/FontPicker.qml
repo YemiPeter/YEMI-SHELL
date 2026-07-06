@@ -93,13 +93,11 @@ SettingsSurface {
             height: 28 * root.s
 
             Text {
-                id: searchGlyph
-                anchors.left: parent.left
-                anchors.leftMargin: 4 * root.s
-                anchors.verticalCenter: parent.verticalCenter
-                visible: Flags.showGlyphs
-                width: Flags.showGlyphs ? implicitWidth : 0
-                text: "探"
+              id: searchGlyph
+              anchors.left: parent.left
+              anchors.leftMargin: 4 * root.s
+              anchors.verticalCenter: parent.verticalCenter
+              text: "探"
                 color: Theme.dim
                 font.family: Theme.fontJp
                 font.weight: Font.Medium
@@ -107,9 +105,9 @@ SettingsSurface {
             }
 
             TextField {
-                id: searchField
-                anchors.left: searchGlyph.right
-                anchors.leftMargin: Flags.showGlyphs ? 9 * root.s : 4 * root.s
+              id: searchField
+              anchors.left: searchGlyph.right
+              anchors.leftMargin: 9 * root.s
                 anchors.right: parent.right
                 anchors.rightMargin: 4 * root.s
                 anchors.verticalCenter: parent.verticalCenter

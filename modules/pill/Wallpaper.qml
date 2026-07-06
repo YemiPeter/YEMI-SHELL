@@ -274,12 +274,12 @@ PillSurface {
     }
 
     Text {
-        anchors.left: parent.left
-        anchors.leftMargin: 20 * root.s
-        anchors.verticalCenter: parent.verticalCenter
-        z: 0
-        visible: Flags.showGlyphs && !root.searching
-        text: "壁"
+      anchors.left: parent.left
+      anchors.leftMargin: 20 * root.s
+      anchors.verticalCenter: parent.verticalCenter
+      z: 0
+      visible: !root.searching
+      text: "壁"
         color: Theme.ghost
         opacity: 0.55
         font.family: Theme.fontJp

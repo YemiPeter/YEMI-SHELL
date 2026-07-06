@@ -2,7 +2,7 @@ import QtQuick
 import "Singletons"
 
 /**
- * Settings surface header: the surface kanji (gated by Flags.showGlyphs) and its
+ * Settings surface header: the surface kanji and its
  * uppercase title on the left, with a cog at the index or a back chevron on a
  * sub-surface at the right. The header strip is the back target, but the click is
  * handled at the pill level (a press anywhere on the top strip steps the surface
@@ -25,9 +25,9 @@ Item {
         spacing: 8 * head.s
 
         Text {
-            anchors.verticalCenter: parent.verticalCenter
-            visible: Flags.showGlyphs && head.glyph.length > 0
-            text: head.glyph
+          anchors.verticalCenter: parent.verticalCenter
+          visible: head.glyph.length > 0
+          text: head.glyph
             color: Theme.cream
             font.family: Theme.fontJp
             font.weight: Font.Medium
