@@ -72,7 +72,7 @@ Singleton {
             property bool manualDark: true
             property real manualSat: 0.5
             property string uiFont: ""
-            property real pillOpacity: 1.0
+            property real pillOpacity: 0.55
             property bool pillBlur: false
             property int recordCountdown: 5
             property string recordDir: ""

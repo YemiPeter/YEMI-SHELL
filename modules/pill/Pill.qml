@@ -561,7 +561,7 @@ Item {
         //   Lower = more see-through, blur shows more. Try 0.4 to 0.75.
         // - border.color alpha (currently 0.10) = how visible the edge line is.
         // - Top highlight gradient's "0.04" = how strong the glossy shine looks.
-        color: Qt.rgba(Theme.cardBot.r, Theme.cardBot.g, Theme.cardBot.b, 0.55)
+        color: Qt.rgba(Theme.cardBot.r, Theme.cardBot.g, Theme.cardBot.b, Flags.pillOpacity)
         border.width: 1
         border.color: Qt.rgba(Theme.cream.r, Theme.cream.g, Theme.cream.b, 0.10)
 
