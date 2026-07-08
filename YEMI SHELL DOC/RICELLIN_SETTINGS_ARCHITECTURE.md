@@ -243,7 +243,34 @@ hl.layer_rule({ name = "pill-blur", match = { namespace = "pill" }, blur = true,
 
 **Opacity special path:** changing active/inactive opacity calls both `writeDeco` (reload) AND `hyprctl eval hl.config({...})` to force immediate window-state recompute (otherwise windows keep stale alpha until next focus change).
 
-**Helper library:** `lib/setDeco.js` — `getField`, `setField`, `getBlockField`, `setBlockField`, `hasNamedRule`, `addNamedRule`, `removeNamedRule`.
+**Helper library:** `lib/setDeco.js` — `getField`, `setField`, `getBlockField`, `setBlockField`, `hasNamedRule`, `addNamedRule`, `removeNamedRule`.Created [`YEMI SHELL DOC/RICELLIN_SETTINGS_ARCHITECTURE.md`](YEMI SHELL DOC/RICELLIN_SETTINGS_ARCHITECTURE.md) — a complete read-only map of how RICELLIN connects settings to the pill module.
+
+**What it covers:**
+
+1. **Hierarchy** — `shell.qml → Pill.qml → Settings.qml (index) → 7 sub-surfaces`, with `SettingsSurface.qml` as the shared base and `FontPicker.qml` as a sub-surface of Appearance.
+
+2. **SettingsSurface.qml** — the base class that adds the `rows[]` registry, keyboard nav (`kbMove`/`kbAdjust`/`kbActivate`), mouse hover sync, and the Ame seam (`ameForm`/`amePoint`) to `PillSurface`. Row entry schema documented: `{item, kind, surface, vals, get, set}`.
+
+3. **Pill.qml orchestrator** — the `surfaces` map (single source of truth for all 20 surfaces), the `mode` resolver, settings-specific nav methods (`rowNavSurface`, `settingsMove`, `settingsAdjust`, `settingsActivate`, `surfaceBack`), and the back-navigation decision chain.
+
+4. **Each sub-surface in detail:**
+   - **Appearance** — 7 rows (time format, seconds, glyphs, palette static/dynamic/manual, UI scale, reduce motion, font picker). Palette apply chains through `wallcolors.py` + `hyprctl reload` + Ghostty reload.
+   - **Look** — 6 rows editing `decoration.lua` directly (gaps, rounding, border, blur, opacity). Blur toggles a named `pill-blur` layer_rule. Opacity uses `hyprctl eval hl.config` for immediate window-state refresh.
+   - **Display** — card-based UI, no row registry. Uses `display-apply.sh` with a 12-second auto-revert watchdog. Persists via `monitors.lua` rewrite.
+   - **Input** — custom stepper UI, no row registry. Edits `input.lua`, `env.lua`, `autostart.lua`. Cursor changes apply live via `hyprctl setcursor`.
+   - **Keybinds** — extends `PillSurface` directly (not SettingsSurface). Own ListView + form state machine. Edits `binds.lua` via `lib/binds.js`.
+   - **IdleLock** — 3 seg rows. Regenerates `hypridle.conf` from current values, restarts `hypridle` systemd unit.
+   - **Updates** — custom status UI. Git fetch/pull in `$HOME/.config/quickshell`.
+
+5. **IPC entry points** — `shell.qml`'s `IpcHandler` exposes `settings(mon)` only; sub-surfaces are reached via nav rows calling `requestSurface(name)`.
+
+6. **Flags singleton** — documented as the implicit settings store. All 14+ settings properties, which surfaces read/write them, and how side effects are triggered inline in row callbacks.
+
+7. **Settings → outside world connection map** — ASCII diagram showing each surface's write target (Flags, decoration.lua, monitors.lua, input.lua, binds.lua, hypridle.conf, git).
+
+8. **Key design patterns** — the `rows[]` registry pattern, `backSurface` string, `surfaces` map as single source of truth, Flags as implicit store, and the Ame seam integration.
+
+9. **Full file inventory** — all 18 settings-related files with their roles.
 
 ---
 
