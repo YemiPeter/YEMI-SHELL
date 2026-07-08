@@ -60,9 +60,9 @@ def analyze(wallpaper):
     return win["best"][1], win["best"][2], mean_l
 
 
-def matugen(source_hex):
+def matugen(source_hex, mood="dark"):
     out = subprocess.run(
-        ["matugen", "color", "hex", source_hex, "-m", "dark", "-j", "hex"],
+        ["matugen", "color", "hex", source_hex, "-m", mood, "-j", "hex"],
         capture_output=True, text=True, check=True,
     )
     return json.loads(out.stdout)
@@ -79,26 +79,55 @@ def lerp(x, x0, x1, y0, y1):
 
 
 def main():
-    if len(sys.argv) < 2:
-        return 1
-    if sys.argv[1] == "--hue":
-        hue = (float(sys.argv[2]) % 360) / 360.0
-        mode = sys.argv[3] if len(sys.argv) > 3 else "dark"
-        sat = float(sys.argv[4]) if len(sys.argv) > 4 else 0.5
-        sat = max(0.0, min(1.0, sat))
-        mean_l = 0.85 if mode == "light" else 0.12
-        chromatic = sat > 0.02
-    else:
-        wallpaper = sys.argv[1]
+    mode = "dynamic"
+    mood = "dark"
+    wallpaper = None
+    hue = None
+    sat = None
+    mean_l = None
+
+    args = sys.argv[1:]
+    i = 0
+    while i < len(args):
+        if args[i] == "--mode" and i + 1 < len(args):
+            mode = args[i + 1]
+            i += 2
+        elif args[i] == "--mood" and i + 1 < len(args):
+            mood = args[i + 1]
+            i += 2
+        elif args[i] == "--hue" and i + 3 < len(args):
+            hue = (float(args[i + 1]) % 360) / 360.0
+            mood = args[i + 2]
+            sat = float(args[i + 3])
+            i += 4
+        elif not args[i].startswith("-"):
+            wallpaper = args[i]
+            i += 1
+        else:
+            i += 1
+
+    if mode == "static" and hue is None:
+        hue, sat, mean_l = 0.09, 0.0, 0.12
+
+    if mode == "dynamic" and wallpaper:
         if not Path(wallpaper).is_file():
             return 0
         hue, sat, mean_l = analyze(wallpaper)
         chromatic = hue is not None
         if not chromatic:
             hue, sat = 0.09, 0.0
+    elif mode == "dynamic" and not wallpaper:
+        return 1
+
+    if mode == "static" and hue is not None:
+        chromatic = sat > 0.02
+        mean_l = 0.85 if mood == "light" else 0.12
+
     CACHE.mkdir(parents=True, exist_ok=True)
 
-    light = mean_l >= 0.40
+    light = mood == "light" if mode == "static" else (mean_l >= 0.40 if mean_l is not None else False)
+    if mode == "static":
+        light = mood == "light"
     surf_sat = min(sat, 0.26) if light else min(max(sat, 0.30 if chromatic else 0.0), 0.45)
     acc_sat = (min(sat + 0.18, 0.85) if light else min(max(sat, 0.30) + 0.12, 0.82)) if chromatic else 0.05
     if light:
@@ -118,8 +147,8 @@ def main():
     (CACHE / "colors.json").write_text(json.dumps(pill, indent=2) + "\n")
 
     try:
-        b = {k: v["dark"]["color"] for k, v in
-             matugen(tint(hue, sat, 0.45) if chromatic else "#787878")["base16"].items()}
+        b = {k: v[mood]["color"] for k, v in
+             matugen(tint(hue, sat, 0.45) if chromatic else "#787878", mood)["base16"].items()}
     except (OSError, ValueError, KeyError, subprocess.SubprocessError):
         return 0
 
