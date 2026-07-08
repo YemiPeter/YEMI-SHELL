@@ -22,6 +22,7 @@ Singleton {
     property alias time12h: adapter.time12h
     property alias clockSeconds: adapter.clockSeconds
     property alias paletteMode: adapter.paletteMode
+    property alias systemMood: adapter.systemMood
     property alias uiScale: adapter.uiScale
     property alias reduceMotion: adapter.reduceMotion
     property alias manualHue: adapter.manualHue
@@ -64,6 +65,7 @@ Singleton {
             property bool time12h: false
             property bool clockSeconds: false
             property string paletteMode: "dynamic"
+            property string systemMood: "dark"
             property real uiScale: 1.0
             property bool reduceMotion: false
             property int manualHue: 30
