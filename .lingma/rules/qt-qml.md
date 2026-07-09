@@ -199,6 +199,9 @@ To react to multiple signal sources, use multiple `Connections` blocks — one p
 **Z-ordering follows declaration order.**
 Last declared sibling renders on top. Use the `z` property only when declaration order cannot achieve the goal.
 
+**Editing files on disk does not update in-memory state in a running process.**
+Manually editing a file on disk (e.g. `input.lua`, `monitors.lua`, `env.lua`) while `quickshell` (or any QML-based shell) is already running does **not** cause QML components that already loaded and `seed()`-ed from that file to re-read it. Those components hold a stale in-memory copy of the old values until the process restarts. This is the same class of bug as editing `hyprland.conf` and expecting `hyprctl reload` to pick up every change — some layers need a full process restart (`qs` process, not `hyprctl reload`). The rule: **if you manually edit a file on disk that a running QML component reads on load, or has already read via `FileView.text()` at init time, restart the QML shell before testing the change.** Know which layer each fix targets: some fixes need a reload, some need a full restart.
+
 ---
 
 ## Pre-output checklist (apply silently — never mention in any response)

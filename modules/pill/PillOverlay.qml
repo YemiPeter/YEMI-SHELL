@@ -266,6 +266,7 @@ Item {
             s: overlay.s
             screenName: root.modelData.name
             surface: overlay.surface
+            forcePinned: QsSingletons.PillState.peekMon === root.modelData.name
             opacity: overlay.monFullscreen ? 0 : 1
             Behavior on opacity {
                 NumberAnimation {
