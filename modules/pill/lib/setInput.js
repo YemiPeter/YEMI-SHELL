@@ -35,10 +35,10 @@ function setField(text, name, valueLiteral) {
  * absent.
  */
 function setEnv(text, key, valueRaw) {
-    var re = new RegExp("(hl\\.env\\(\\s*\"" + escapeRe(key) + "\"\\s*,\\s*)\"[^\"]*\"");
+    var re = new RegExp("(env\\s*=\\s*" + escapeRe(key) + "\\s*,)[^\\n]*");
     if (!re.test(text))
         return { text: text, ok: false };
-    return { text: text.replace(re, "$1\"" + valueRaw + "\""), ok: true };
+    return { text: text.replace(re, "$1" + valueRaw), ok: true };
 }
 
 /**
