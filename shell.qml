@@ -183,6 +183,10 @@ ShellRoot {
           QsSingletons.PillState.toggleSurface(target, "sysmon");
       }
 
+      function peek(mon: string): void {
+        QsSingletons.PillState.peek(mon);
+      }
+
       function hide(): void { QsSingletons.PillState.close(); }
     }
 

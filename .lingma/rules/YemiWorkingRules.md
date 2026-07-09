@@ -71,5 +71,12 @@ These are non-negotiable. If you (the agent) ignore these, you are not helping �
 - Do not auto-install or change tooling (e.g. switching theming engines, build tools) without flagging it first.
 - Do not write full working solutions to learning exercises — that's a separate context (freeCodeCamp/JS practice), handled differently.
 - Do not assume frontend polish matters more than backend correctness in this project.
- 
+
+---
+
+## 🔒 Rule #7: Show raw output — never summarize it
+
+- After writing `binds.js` and `test-parse.js`, run `node test-parse.js` YOURSELF using your tool and paste the raw terminal output in your response — not a summary, not a table, the literal stdout text.
+- If the command errors, paste the literal error and stop.
+- Do not describe what the output "shows" — show the output itself.
 
