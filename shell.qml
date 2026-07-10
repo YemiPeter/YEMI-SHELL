@@ -84,25 +84,29 @@ ShellRoot {
         }
     }
 
+    // === Settings Window State (outside IPC to avoid serialization) ===
+    QtObject {
+        id: settingsState
+        property var settingsWindow: null
+    }
+
     // === Settings IPC Handler ===
     IpcHandler {
         target: "settings"
 
-        property var settingsWindow: null
-
         function toggle(): void {
-            if (!settingsWindow) {
+            if (!settingsState.settingsWindow) {
                 var component = Qt.createComponent("modules/settings/SettingsWindow.qml");
                 if (component.status === Component.Ready) {
-                    settingsWindow = component.createObject(root);
+                    settingsState.settingsWindow = component.createObject(root);
                 } else {
                     console.error("❌ Failed to load SettingsWindow:", component.errorString());
                     return;
                 }
             }
             
-            if (settingsWindow) {
-                settingsWindow.toggle();
+            if (settingsState.settingsWindow) {
+                settingsState.settingsWindow.toggle();
             }
         }
     }
