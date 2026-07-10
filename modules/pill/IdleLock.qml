@@ -74,23 +74,40 @@ SettingsSurface {
         return out;
     }
 
-    function apply() {
-        confWriter.setText(buildConf());
-        restartProc.running = true;
-    }
+ Timer {
+  id: debounceTimer
+  interval: 300
+  onTriggered: doApply()
+ }
 
-    FileView {
-        id: confWriter
-        path: root.confPath
-        atomicWrites: true
-        printErrors: false
-    }
+ function apply() {
+  debounceTimer.restart()
+ }
 
-    Process {
-        id: restartProc
-        command: ["systemctl", "--user", "restart", "hypridle"]
-    }
+ function doApply() {
+  confWriter.setText(buildConf())
+  restartProc.running = true
+ }
 
+ FileView {
+  id: confWriter
+  path: root.confPath
+  atomicWrites: true
+  printErrors: true
+    onSaveFailed: (error) => console.log("write failed:", error)
+ }
+
+  Process {
+   id: restartProc
+   command: ["systemctl", "--user", "restart", "hypridle"]
+   onExited: (exitCode, exitStatus) => {
+    if (exitCode !== 0) {
+     console.warn("IdleLock: hypridle restart failed, exit code:", exitCode);
+    } else {
+     console.log("IdleLock: hypridle restarted successfully");
+    }
+   }
+  }
     Column {
         id: content
         anchors.top: parent.top
