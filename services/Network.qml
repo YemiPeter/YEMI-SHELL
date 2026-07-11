@@ -17,54 +17,11 @@ Singleton {
     readonly property string ssid: active?.ssid ?? "Not Connected"
     readonly property int signalStrength: active?.signalStrength ?? 0
     
-    // Bluetooth properties with actual bluetooth status
-    property bool bluetoothConnected: false
-    property string bluetoothDeviceName: "Not Connected"
-    property string bluetoothDeviceAddress: ""
-    
     property var savedNetworks: []
-    
-    // Update bluetooth status
-    function updateBluetoothStatus() {
-        bluetoothStatusProc.running = true
-    }
     
     // Consumer visibility control - set to false to pause polling when UI is hidden
     property bool pollingActive: true
     
-    // Timer to periodically check Bluetooth (only when active)
-    Timer {
-        id: bluetoothTimer
-        interval: 5000 // Check every 5 seconds
-        running: root.pollingActive
-        repeat: true
-        onTriggered: root.updateBluetoothStatus()
-    }
-    
-    // Process to check Bluetooth connection status
-    Process {
-        id: bluetoothStatusProc
-        command: ["bluetoothctl", "devices", "Connected"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const lines = text.trim().split('\n').filter(line => line.length > 0)
-                if (lines.length > 0 && lines[0].startsWith('Device')) {
-                    // Parse: "Device AA:BB:CC:DD:EE:FF Device Name"
-                    const parts = lines[0].split(' ')
-                    if (parts.length >= 3) {
-                        root.bluetoothDeviceAddress = parts[1]
-                        root.bluetoothDeviceName = parts.slice(2).join(' ')
-                        root.bluetoothConnected = true
-                    }
-                } else {
-                    root.bluetoothConnected = false
-                    root.bluetoothDeviceName = "Not Connected"
-                    root.bluetoothDeviceAddress = ""
-                }
-            }
-        }
-    }
-
     function enableWifi(enabled: bool): void {
         const cmd = enabled ? "on" : "off";
         enableWifiProc.exec(["nmcli", "radio", "wifi", cmd]);
@@ -209,8 +166,6 @@ Singleton {
     }
     
     Component.onCompleted: {
-        updateBluetoothStatus()
-        bluetoothTimer.start()
         checkSavedProc.running = true // Load saved networks on start
     }
     

@@ -92,7 +92,7 @@ Item {
         hoverEnabled: true
         
         onClicked: {
-            QsSingletons.PillState.toggleSurface(root.screenName, "link")
+            QsSingletons.PillState.toggleLink(root.screenName, "wifi")
         }
     }
 }
