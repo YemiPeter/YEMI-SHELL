@@ -67,7 +67,7 @@ Item {
      * sets "wifi" to drill straight to the network list; the inbox glance and
      * toast set "main". Reset once the surface closes so IPC opens land on main.
      */
-    property string linkInitialView: "main"
+    property string linkInitialView: QsSingletons.PillState.pendingLinkView
     
     /**
      * Subview the bluetooth surface should land on. Always "bt" — the bar
@@ -1238,7 +1238,7 @@ Item {
         onRequestClose: pill.requestClose()
     }
     
-    onLinkOpenChanged: if (!linkOpen) linkInitialView = "main"
+    onLinkOpenChanged: if (!linkOpen) QsSingletons.PillState.pendingLinkView = "main"
     
     Link {
         id: linkBt

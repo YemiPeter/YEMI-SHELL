@@ -116,6 +116,8 @@
 - **Finding**: `run()` calls `Hyprland.dispatch(a.dispatch)` or `Quickshell.execDetached(a.argv)` for critical system actions (lock, logout, suspend, reboot, shutdown) with no error handling. If `Hyprland.dispatch("exit")` fails (e.g., Hyprland socket not available), the user gets no feedback. If `systemctl reboot` fails, the system doesn't reboot but the pill closes as if it succeeded.
 - **Mitigation**: Check return values or use `Process` with `onExitCodeChanged` to detect failures. Show a toast or error state if the command fails. For `Quickshell.execDetached`, consider using `Process` with error handling instead.
 
+**[FIXED 2026-07-11]** C-16 / W-11 — Power.qml system commands now have exit-status checks. `Hyprland.dispatch` failures surface via toast; `Quickshell.execDetached` replaced with `Process` + `onExitCodeChanged` for lock/logout/suspend/reboot/shutdown. Wave 4 fix.
+
 ### [C-17] `Qt.callLater` used for focus management in Launcher.qml and Clipboard.qml without lifecycle guard
 - **File**: modules/pill/Launcher.qml:104; modules/pill/Clipboard.qml:92
 - **Rule**: QML / lifecycle safety
@@ -456,7 +458,7 @@
 | C-13 | Critical | Mixer.qml:24-37 | Lifecycle | Iterates Repeater before items exist — ❌ **FALSE POSITIVE 2026-07-11** (void `brRep.count` pattern at line 25) |
 | C-14 | Critical | Calendar.qml:34 | i18n | Hardcoded en_US locale |
 | C-15 | Critical | Link.qml:146-159 | Error handling | ip command with no error handling — ✅ **FIXED 2026-07-11** (exit-code check + validate + gate to main) |
-| C-16 | Critical | Power.qml:60-66 | Error handling | System commands without exit check |
+| C-16 | Critical | Power.qml:60-66 | Error handling | System commands without exit check — ✅ **FIXED 2026-07-11** |
 | C-17 | Critical | Launcher.qml:104, Clipboard.qml:92 | Lifecycle | Qt.callLater without active guard — ✅ **FIXED 2026-07-11** (active guard already present) |
 | C-19 | Critical | Battery.qml:184,203 | Font fallback | Hardcoded font families |
 | C-20 | Critical | Mixer.qml:28-32 | Lifecycle | itemAt() returns null during async pop — ❌ **FALSE POSITIVE 2026-07-11** (dup of C-13; void pattern handles it) |
@@ -470,7 +472,7 @@
 | W-8 | Warning | Media.qml:176-187 | Dead code | Disabled blur with no tracking issue |
 | W-9 | Warning | Mixer.qml:300-419 | Error handling | ddcutil without error handling — 🟡 **PARTIAL FIX 2026-07-11** (read errors surfaced; write path deferred) |
 | W-10 | Warning | Launcher.qml, Clipboard.qml | Events | HoverHandler + MouseArea pattern |
-| W-11 | Warning | Power.qml:60-66 | Error handling | System commands without exit check |
+| W-11 | Warning | Power.qml:60-66 | Error handling | System commands without exit check — ✅ **FIXED 2026-07-11** |
 | W-12 | Warning | Ame.qml:340 | Performance | Canvas.Cooperative may drop frames |
 | W-13 | Warning | Battery.qml:189-219 | Performance | Infinite animation paused but registered |
 | W-14 | Warning | Tooltip.qml:74-80 | Performance | MultiEffect overkill for tooltip shadow |
@@ -521,7 +523,7 @@ Two fixes landed:
 ### 🔜 Wave 4 — Next priorities (re-prioritized after Wave 3)
 Remaining open issues: **27** (11 Critical, 11 Warning, 8 Opportunity). *(Down from 29: C-15 fixed, W-9 partial.)*
 
-1. **C-16 / W-11** *(deferred from Wave 3)*: Add exit-status checks to system commands in Power.qml — user feedback on failure. Lower priority: power actions have obvious failure feedback.
+1. ~~**C-16 / W-11**: Add exit-status checks to system commands in Power.qml~~ — **FIXED 2026-07-11** (`Hyprland.dispatch` failures surface via toast; `Quickshell.execDetached` replaced with `Process` + `onExitCodeChanged`).
 2. **C-2 / C-10**: Fix brightness portability (backlight discovery + `brightnessctl` fallback) — breaks shell on non-Intel/AMD hardware.
 3. **C-3 / C-5 / W-5**: Fix shell injection in wallpaper paths (`bash -c` → array args) and the `altSwitcherLoader` stub (guard/remove IPC handlers).
 4. **C-6**: Add `PillState` signals (`surfaceOpened`, `surfaceClosed`, `peekChanged`) — enables downstream reactivity.
