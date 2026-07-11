@@ -128,7 +128,7 @@ PillSurface {
 
     onActiveChanged: {
         if (active) {
-            subview = (initialView === "wifi" && wifiDev) ? "wifi" : "main";
+            subview = initialView === "bt" ? "bt" : (initialView === "wifi" && wifiDev) ? "wifi" : "main";
             seenTimer.restart();
         } else {
             seenTimer.stop();

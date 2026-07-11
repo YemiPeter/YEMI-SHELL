@@ -92,7 +92,7 @@ Item {
         hoverEnabled: true
     
         onClicked: {
-            QsSingletons.PillState.toggleSurface(root.screenName, "bluetooth")
+            QsSingletons.PillState.toggleLink(root.screenName, "bt")
         }
     }
 }
