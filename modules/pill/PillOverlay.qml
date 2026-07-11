@@ -86,8 +86,6 @@ Item {
             y: pill.y - pill.inputPadTop
             width: baseW + pill.inputPadRight
             height: Math.max(pill.height, pill.targetH) + pill.inputPadTop
-            onYChanged: console.log("[PILLREGION] y=", y, "h=", height, "ts=", Date.now())
-            onHeightChanged: console.log("[PILLREGION] y=", y, "h=", height, "ts=", Date.now())
         }
 
         Region {
@@ -164,7 +162,6 @@ Item {
                             }
                         }
                         overlay.monFullscreen = isFullscreen;
-                        console.log("[FS-CHECK]", root.modelData.name, "monFullscreen=", overlay.monFullscreen);
                     } catch (e) {
                         console.warn("[FS-CHECK] Failed to parse niri windows:", e);
                     }
@@ -194,7 +191,6 @@ Item {
                   var ws = JSON.parse(hyprFsProc.output.trim());
                   var isFullscreen = !!(ws && ws.hasfullscreen);
                   overlay.monFullscreen = isFullscreen;
-                  console.log("[FS-CHECK]", root.modelData.name, "monFullscreen=", overlay.monFullscreen);
                 } catch (e) {
                   console.warn("[FS-CHECK] Failed to parse hyprctl output:", e);
                 }
@@ -215,8 +211,6 @@ Item {
 
         Component.onCompleted: {
             updateFullscreen();
-            console.log("[ALIGN-CHECK] barHeight=", barHeight, "restH=", restH, "topGap=", topGap, "s=", s);
-            console.log("[MASK-CHECK] monFullscreen=", monFullscreen, "at rest, no window should be fullscreen");
         }
 
         // Re-check on Hyprland fullscreen events (no-op on Niri)
@@ -231,9 +225,6 @@ Item {
         }
 
         onMonFullscreenChanged: {
-            console.log("[FS-CHECK] changed to", monFullscreen, "opacity should be", monFullscreen ? 0 : 1);
-            console.log("[FULLSCREEN] onMonFullscreenChanged fired, value:", monFullscreen);
-            console.log("[MASK-CHECK] monFullscreen=", monFullscreen, "at rest, no window should be fullscreen");
             if (monFullscreen) {
                 QsSingletons.PillState.close();
             }

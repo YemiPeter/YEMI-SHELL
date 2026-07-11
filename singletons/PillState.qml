@@ -12,7 +12,6 @@ QtObject {
     signal peekChanged(string mon)
 
     function toggleSurface(mon, surface) {
-        console.log("[PillState] toggleSurface:", mon, surface, "| was:", openMon, openSurface)
         if (openMon === mon && openSurface === surface) {
             close();
             return;
@@ -28,14 +27,12 @@ QtObject {
     }
 
     function close() {
-        console.log("[PillState] close")
         openMon = "";
         openSurface = "";
         surfaceClosed();
     }
 
     function peek(mon) {
-        console.log("[PillState] peek:", mon, "| was:", peekMon)
         peekMon = peekMon === mon ? "" : mon;
         peekChanged(mon);
     }
