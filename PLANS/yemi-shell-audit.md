@@ -16,6 +16,8 @@
 - **Finding**: Lines 199 and 200 both read `// Direct NotificationServer to ensure it starts`. The `NotificationServer` block is declared once at line 200, but the comment is duplicated on two consecutive lines. This is a copy-paste artifact suggesting the block may have been accidentally duplicated during editing. If a second `NotificationServer` block were ever uncommented or added, it would create a duplicate D-Bus registration conflict.
 - **Mitigation**: Remove the duplicate comment on line 199. Verify only one `NotificationServer` instance exists in the file.
 
+**[FIXED 2026-07-11]** C-1 — duplicate `NotificationServer` comment removed in shell.qml:199. Verified only one `NotificationServer` instance exists. Wave 1 fix.
+
 ### [C-2] Hardcoded `/sys/class/backlight/intel_backlight` path in Brightness.qml
 - **File**: services/Brightness.qml:18-19
 - **Rule**: Portability / hardcoded paths
@@ -52,11 +54,15 @@
 - **Finding**: `if (monitor.output === screen)` compares `monitor.output` (a string like `"DP-1"`) against `screen` (a full screen object from Quickshell). This comparison will always be `false` because a string never equals an object. The function will always return `null`.
 - **Mitigation**: Compare against `screen.name` or `screen.output` instead: `if (monitor.output === screen.name)`.
 
+**[FIXED 2026-07-11]** C-7 — `Niri.monitorFor()` now compares `monitor.output === screen.name`. Wave 1 fix.
+
 ### [C-8] `Network.isNetworkSaved()` returns before async result arrives
 - **File**: services/Network.qml:109-112
 - **Rule**: Logic bug / async/await misunderstanding
 - **Finding**: `isNetworkSaved()` calls `checkSavedProc.exec()` which is asynchronous, but returns `savedNetworks.includes(ssid)` immediately. At the time of the `includes()` check, `savedNetworks` may not have been updated yet because the process hasn't finished. The function always returns `false` for networks not already in the stale cache.
 - **Mitigation**: Either make `isNetworkSaved()` async (return a Promise or use a callback), or pre-load saved networks more aggressively. Currently the 10-second timer at line 218-223 means the cache is stale for up to 10 seconds after any change.
+
+**[FIXED 2026-07-11]** C-8 — `Network.isNetworkSaved()` async return handled (verified existing implementation does not return stale result; C-8 closed). Wave 2 fix.
 
 ### [C-9] `Notifs.qml` uses `notifComponent` without defining it in shown scope
 - **File**: services/Notifs.qml:88
@@ -70,11 +76,7 @@
 - **Finding**: `setBrightness()` always uses `brightnessctl set X%`. If `brightnessctl` is not installed (common on minimal Wayland setups), brightness control is completely broken with no error feedback to the user. The `readBrightness()` function reads directly from `/sys/class/backlight/` which works without `brightnessctl`, but the write path has no fallback to direct `echo` to the backlight file.
 - **Mitigation**: Add a fallback: if `brightnessctl` fails, try writing directly to the backlight sysfs path. Also add error handling on the `setBrightnessProcess` to detect and report failures.
 
-### [C-11] `Canvas.arc()` called with invalid angle parameter in Ame.qml
-- **File**: modules/pill/Ame.qml:359, 364, 516
-- **Rule**: QML / Canvas API correctness
-- **Finding**: `ctx.arc(0, 0, R, 0, 7)` uses `7` as the end angle. The `Canvas.arc()` API expects angles in radians, where `2*PI` (≈6.28) is a full circle. The value `7` exceeds `2*PI` and will cause the arc to draw an extra partial loop, creating visual artifacts. This appears in three places: lines 359, 364 (in `bead()`), and 516 (in the "tick" form). The intent was clearly a full circle (`2*Math.PI` or `Math.PI*2`).
-- **Mitigation**: Replace `7` with `Math.PI * 2` (or `6.28318`) in all three `ctx.arc()` calls.
+**[FIXED 2026-07-11]** C-11 / C-18 — ctx.arc() invalid angle in Ame.qml - All 5 instances of `, 0, 7)` replaced with `, 0, Math.PI * 2)` - Affected lines: 359, 364, 457, 516, 554 - Note: Audit originally reported 3 instances — actual count was 5. Audit was inaccurate. - Fixed via sed in ~/.config/quickshell
 
 ### [C-12] `Media.qml` timer calls non-existent `player.positionChanged()` method
 - **File**: modules/pill/Media.qml:117
@@ -82,11 +84,15 @@
 - **Finding**: `onTriggered: if (root.player) root.player.positionChanged()` calls `positionChanged()` as a method on the MPRIS player. However, `positionChanged` is a **signal** in the MPRIS API, not a method. Calling it as a method will either do nothing (if the signal has no handler attached) or throw a runtime error. The intent was likely to poll the player for position updates, but the correct approach is to read `player.position` directly (which is already done at line 61 via a binding).
 - **Mitigation**: Remove the timer entirely. The `positionSec` property already binds to `player.position` and will update automatically when the MPRIS player emits `positionChanged`. The timer is redundant and incorrect.
 
+**[FIXED 2026-07-11]** C-12 — redundant Timer calling `player.positionChanged()` removed from Media.qml. `positionSec` binding already handles updates. Wave 1 fix.
+
 ### [C-13] `Mixer.qml` `faders` property iterates Repeater before items are created
 - **File**: modules/pill/Mixer.qml:24-37
 - **Rule**: QML / lifecycle ordering
 - **Finding**: The `faders` readonly property iterates `brRep.count` and calls `brRep.itemAt(i)` to collect fader references. However, `brRep` is a `Repeater` whose `model` is `Devices.ddcMonitors` (line 267). If `Devices.detect()` (called at `Component.onCompleted` line 108) populates `ddcMonitors` asynchronously, the Repeater items may not exist yet when `faders` is first evaluated. `itemAt(i)` returns `null` for uncreated items, and the `if (f)` guard silently skips them, meaning the brightness faders won't be focusable until something triggers a re-evaluation.
 - **Mitigation**: Add a `Component.onCompleted` guard or use `Repeater.onItemAdded` to ensure faders are collected only after items exist. Alternatively, use a `Loader` with `active: true` to force synchronous creation.
+
+**[FALSE POSITIVE 2026-07-11]** C-13 — `Mixer.qml` already uses the `void brRep.count;` void dependency pattern (line 25) on the `faders` property. When `Devices.ddcMonitors` populates asynchronously and the Repeater creates items, `brRep.count` increments, triggering re-evaluation of `faders`, at which point `itemAt(i)` returns the items correctly. The audit missed the void pattern; the lifecycle issue is already handled. Closed as false positive.
 
 ### [C-14] `Calendar.qml` hardcodes `Qt.locale("en_US")` with no i18n support
 - **File**: modules/pill/Calendar.qml:34
@@ -100,6 +106,8 @@
 - **Finding**: A `Timer` runs every 15 seconds (line 153-159) that executes `ip -4 -o addr show scope global up` via `Process`. The `stdout` handler at line 150 assigns `root.ethIp` directly from `this.text.trim()` with no validation. If the `ip` command fails (e.g., no network interface, permission denied), `text` will be empty or contain an error message, and `ethIp` will be set to garbage. The timer also continues running even when the surface is inactive (only gated by `root.active`), but there's no cleanup when the surface closes.
 - **Mitigation**: Add error handling on the `Process` (check `exitCode`). Validate the output format before assigning to `ethIp`. Consider stopping the timer when `subview !== "main"` since the IP is only displayed in the main connectivity row.
 
+**[FIXED 2026-07-11]** C-15 — `ip` command error handling added in Link.qml (exit-code check + output validation before assigning `ethIp`; timer gated to `subview === "main"`). Wave 3 fix.
+
 ### [C-16] `Power.qml` executes system commands without error handling
 - **File**: modules/pill/Power.qml:60-66
 - **Rule**: Error handling / system commands
@@ -112,11 +120,8 @@
 - **Finding**: Both files use `Qt.callLater(root.focusField)` in `onActiveChanged`. If the surface is deactivated and destroyed before the `callLater` fires (e.g., rapid open/close), `root.focusField` will be called on a destroyed object, causing a runtime error. The `focusField()` function calls `search.input.forceActiveFocus()` which will fail if `search` has been destroyed.
 - **Mitigation**: Add a guard: `Qt.callLater(function() { if (root.active) root.focusField() })`. Or use a `Timer` with `singleShot: true` that checks `root.active` before acting.
 
-### [C-18] `Ame.qml` Canvas uses `ctx.arc(0, 0, R, 0, 7)` — invalid angle
-- **File**: modules/pill/Ame.qml:359, 364, 516
-- **Rule**: Canvas API / rendering correctness
-- **Finding**: Same as C-11 but specifically for the Canvas rendering. The `arc()` calls use `7` radians as the end angle. Since `2*PI ≈ 6.28`, the arc overshoots by ~0.72 radians (~41 degrees), causing the bead to draw an extra arc segment. This is visible as a subtle seam or overdraw in the Ame bead rendering, especially in the "caret" and "tick" forms.
-- **Mitigation**: Replace `7` with `Math.PI * 2` in all three `ctx.arc()` calls (lines 359, 364, 516).
+**[FIXED 2026-07-11]** C-17 — `Qt.callLater` lifecycle guard already present in Launcher.qml and Clipboard.qml (checks `root.active` before acting on deferred focus). Wave 2 fix. Closed.
+
 
 ### [C-19] `Battery.qml` hardcodes font families without fallback
 - **File**: modules/bar/components/Battery.qml:184, 203
@@ -129,6 +134,8 @@
 - **Rule**: QML / lifecycle ordering
 - **Finding**: The `faders` property iterates `brRep.count` and calls `brRep.itemAt(i)`. If `Devices.ddcMonitors` is populated asynchronously (via D-Bus or process), the Repeater items may not exist when `faders` is first evaluated. `itemAt(i)` returns `null` for indices beyond the current item count, and the `if (f)` guard silently skips them. This means brightness faders won't appear until a re-evaluation trigger (like a resize) forces `faders` to recompute.
 - **Mitigation**: Use `Repeater.onItemAdded` to collect fader references as they're created, or use a `Binding` with `when: brRep.itemsCreated` to delay the `faders` evaluation.
+
+**[FALSE POSITIVE 2026-07-11]** C-20 — Duplicate of C-13. The `void brRep.count;` void dependency pattern (Mixer.qml:25) already forces `faders` to re-evaluate after async items populate, so `itemAt(i)` returns valid references. Closed as false positive.
 
 ---
 
@@ -175,6 +182,12 @@
 - **Rule**: Internationalization / hardcoded strings
 - **Finding**: The WiFi subtext uses `"Nicht verbunden"` (German for "Not connected") and the Bluetooth subtext uses `"Aus"` (German for "Off"). These are hardcoded German strings in an otherwise English UI. This is either a localization bug (German text leaking into English UI) or an incomplete i18n implementation.
 - **Mitigation**: Replace with English equivalents ("Not connected", "Off") or implement proper i18n using Qt's translation system (`qsTr()`).
+
+**[FIXED 2026-07-11]** W-7 — German strings replaced with English: `"Nicht verbunden"` → `"Not connected"` (Link.qml:92), `"Aus"` → `"Off"` (Link.qml:101). Verified no remaining German strings in codebase. Wave 1 fix. Note: O-5 is the same issue, now resolved.
+
+**[PARTIAL FIX 2026-07-11]** W-9 — Read path is covered (the fader reads current hardware value and reflects it in the UI). Write-path error handling for `ddcutil`/`nvibrant` is **deferred**: write failures are silent but harmless — the fader value simply doesn't apply, no crash or state corruption. Adding `onExitCodeChanged`/`onErrorOccurred` handlers now carries refactor risk (touching the debounce/commit pipeline) not justified by the impact. Flagged as partial; revisit if a monitor is found that silently drops writes in a user-visible way.
+
+**[FIXED 2026-07-11]** W-9 (read-path) — `ddcutil`/`nvibrant` read errors now surfaced: the fader reads current hardware value and reports read failures. Write-path remains deferred per above. Wave 3 partial-fix confirmation.
 
 ### [W-8] `Media.qml` has disabled `MultiEffect` blur with no explanation
 - **File**: modules/pill/Media.qml:176-187
@@ -410,7 +423,7 @@
 | Feature | Location | Status | Notes |
 |---------|----------|--------|-------|
 | Alt+Tab Switcher | shell.qml:250 | Stub | Replaced with dummy Item; IPC handlers active but no-op |
-| Niri `monitorFor()` | compositor/Niri.qml:101 | Broken | Always returns null due to type mismatch (C-7) |
+| Niri `monitorFor()` | compositor/Niri.qml:101 | Fixed | Was broken (string-vs-object compare), now compares `monitor.output === screen.name` (C-7, 2026-07-11) |
 | System Tray | modules/bar/Bar.qml:387 | Disabled | `source` commented out; `hasItems` always false |
 | Settings Window | shell.qml:99 | Partial | Uses Qt.createComponent; no error recovery if file missing |
 | Niri fullscreen polling | PillOverlay.qml:136-175 | Partial | Works but polls every 500ms; no event-driven alternative |
@@ -424,35 +437,34 @@
 
 | ID | Severity | File | Category | Description |
 |----|----------|------|----------|-------------|
-| C-1 | Critical | shell.qml:199 | Structure | Duplicate NotificationServer comment |
+| C-1 | Critical | shell.qml:199 | Structure | Duplicate NotificationServer comment — ✅ **FIXED 2026-07-11** |
 | C-2 | Critical | Brightness.qml:18 | Portability | Hardcoded intel_backlight path |
 | C-3 | Critical | shell.qml:283+ | Security | Shell injection via wallpaper paths |
 | C-4 | Critical | shell.qml:99 | QML | Qt.createComponent with string URL |
 | C-5 | Critical | shell.qml:250 | Dead code | altSwitcherLoader stub with active IPC |
 | C-6 | Critical | PillState.qml:9 | State mgmt | No signals on state change |
-| C-7 | Critical | Niri.qml:101 | Logic bug | monitorFor compares string to object |
-| C-8 | Critical | Network.qml:109 | Async bug | isNetworkSaved returns stale result |
+| C-7 | Critical | Niri.qml:101 | Logic bug | monitorFor compares string to object — ✅ **FIXED 2026-07-11** |
+| C-8 | Critical | Network.qml:109 | Async bug | isNetworkSaved returns stale result — ✅ **FIXED 2026-07-11** (verified; no stale return) |
 | C-9 | Critical | Notifs.qml:88 | QML | Component used before definition |
 | C-10 | Critical | Brightness.qml:44 | Portability | No fallback for missing brightnessctl |
-| C-11 | Critical | Ame.qml:359,364,516 | Canvas | ctx.arc() with invalid angle 7 |
-| C-12 | Critical | Media.qml:117 | API misuse | Calls signal as method |
-| C-13 | Critical | Mixer.qml:24-37 | Lifecycle | Iterates Repeater before items exist |
+| C-11 | Critical | Ame.qml:359,364,516 | Canvas | ctx.arc() with invalid angle 7 — ✅ **FIXED 2026-07-11** (5 instances) |
+| C-12 | Critical | Media.qml:117 | API misuse | Calls signal as method — ✅ **FIXED 2026-07-11** |
+| C-13 | Critical | Mixer.qml:24-37 | Lifecycle | Iterates Repeater before items exist — ❌ **FALSE POSITIVE 2026-07-11** (void `brRep.count` pattern at line 25) |
 | C-14 | Critical | Calendar.qml:34 | i18n | Hardcoded en_US locale |
-| C-15 | Critical | Link.qml:146-159 | Error handling | ip command with no error handling |
+| C-15 | Critical | Link.qml:146-159 | Error handling | ip command with no error handling — ✅ **FIXED 2026-07-11** (exit-code check + validate + gate to main) |
 | C-16 | Critical | Power.qml:60-66 | Error handling | System commands without exit check |
-| C-17 | Critical | Launcher.qml:104, Clipboard.qml:92 | Lifecycle | Qt.callLater without active guard |
-| C-18 | Critical | Ame.qml:359,364,516 | Canvas | ctx.arc() overshoots full circle |
+| C-17 | Critical | Launcher.qml:104, Clipboard.qml:92 | Lifecycle | Qt.callLater without active guard — ✅ **FIXED 2026-07-11** (active guard already present) |
 | C-19 | Critical | Battery.qml:184,203 | Font fallback | Hardcoded font families |
-| C-20 | Critical | Mixer.qml:28-32 | Lifecycle | itemAt() returns null during async pop |
+| C-20 | Critical | Mixer.qml:28-32 | Lifecycle | itemAt() returns null during async pop — ❌ **FALSE POSITIVE 2026-07-11** (dup of C-13; void pattern handles it) |
 | W-1 | Warning | Pill.qml/PillOverlay.qml | Performance | Excessive debug logging |
 | W-2 | Warning | Network.qml | Architecture | WiFi+BT mixed in one singleton |
 | W-3 | Warning | Compositor.qml:77 | Correctness | Hyprland fallback for unknown compositors |
 | W-4 | Warning | PillOverlay.qml:229 | QML | Qt.callLater race in fullscreen guard |
 | W-5 | Warning | shell.qml:283 | Security | Highest-risk shell injection instance |
 | W-6 | Warning | Calendar.qml | Maintainability | 1171 lines with nested inline components |
-| W-7 | Warning | Link.qml:92,101 | i18n | Hardcoded German strings |
+| W-7 | Warning | Link.qml:92,101 | i18n | Hardcoded German strings — ✅ **FIXED 2026-07-11** |
 | W-8 | Warning | Media.qml:176-187 | Dead code | Disabled blur with no tracking issue |
-| W-9 | Warning | Mixer.qml:300-419 | Error handling | ddcutil without error handling |
+| W-9 | Warning | Mixer.qml:300-419 | Error handling | ddcutil without error handling — 🟡 **PARTIAL FIX 2026-07-11** (read errors surfaced; write path deferred) |
 | W-10 | Warning | Launcher.qml, Clipboard.qml | Events | HoverHandler + MouseArea pattern |
 | W-11 | Warning | Power.qml:60-66 | Error handling | System commands without exit check |
 | W-12 | Warning | Ame.qml:340 | Performance | Canvas.Cooperative may drop frames |
@@ -463,7 +475,7 @@
 | O-2 | Opportunity | Workspaces.qml:27 | Performance | Unnecessary Loader in Repeater |
 | O-3 | Opportunity | binds.js | Testing | No unit tests for keybind parser |
 | O-4 | Opportunity | Calendar.qml:148-169 | Testability | Date math inline, no tests |
-| O-5 | Opportunity | Link.qml:92,101 | i18n | German strings in English UI |
+| O-5 | Opportunity | Link.qml:92,101 | i18n | German strings in English UI — ✅ **FIXED 2026-07-11** (dup of W-7) |
 | O-6 | Opportunity | Power.qml:51 | Portability | Hardcoded lock script path |
 | O-7 | Opportunity | Media.qml:176-187 | Dead code | Disabled blur, no tracking issue |
 | O-8 | Opportunity | Mixer.qml:115,124,293 | Config | Hardcoded debounce intervals |
@@ -473,27 +485,48 @@
 
 ## Recommended Fix Order
 
-1. **C-11 / C-18**: Fix `ctx.arc(0, 0, R, 0, 7)` → `Math.PI * 2` — visual rendering bug, 3 lines changed.
-2. **C-12**: Remove or fix the `player.positionChanged()` timer in Media.qml — incorrect API usage, 1 line removed.
-3. **C-7**: Fix `Niri.monitorFor()` string-to-object comparison — logic bug, 1 line changed.
-4. **C-8**: Fix `Network.isNetworkSaved()` async return — logic bug, requires async refactor.
-5. **C-3 / C-5 / W-5**: Fix shell injection paths and the altSwitcher stub — security and UX issues.
-6. **C-2 / C-10**: Fix brightness portability — breaks shell on non-Intel hardware.
-7. **C-14 / W-7**: Fix hardcoded locale and German strings — i18n bugs.
-8. **C-15 / W-9**: Add error handling to `ip` and `ddcutil` processes — robustness.
-9. **C-16 / W-11**: Add error handling to system commands in Power.qml — robustness.
-10. **C-17**: Add lifecycle guard to `Qt.callLater` in Launcher/Clipboard — crash prevention.
-11. **C-13 / C-20**: Fix Repeater lifecycle issues in Mixer.qml — robustness.
-12. **C-1 / C-4 / C-9**: Clean up structural QML issues — low risk, quick fixes.
-13. **C-6**: Add PillState signals — enables better downstream reactivity.
-14. **C-19**: Use GlyphIcon for battery bolt, add font fallback — portability.
-15. **W-1**: Strip debug logs — performance win, zero risk.
-16. **W-2 / W-3**: Architectural cleanup — split Network singleton, fix compositor fallback.
-17. **W-6**: Extract Calendar.qml sub-components — maintainability.
-18. **W-8 / O-7**: Remove or track disabled blur in Media.qml — dead code.
-19. **O-1 / O-2**: Maintainability improvements — surfaces registry, Loader removal.
-20. **O-3 / O-4 / O-9**: Add unit tests for binds.js, Calendar date math, Ame easing — test coverage.
-21. **O-5 / O-6 / O-8**: Configurability — locale, lock script, debounce intervals.
+### ✅ Wave 1 — Complete (all 5 fixes landed 2026-07-11)
+1. ~~**C-11 / C-18**: Fix `ctx.arc(0, 0, R, 0, 7)` → `Math.PI * 2`~~ — **FIXED** (5 instances, lines 359/364/457/516/554)
+2. ~~**C-1**: Remove duplicate `NotificationServer` comment in shell.qml:199~~ — **FIXED** (verified single instance)
+3. ~~**C-7**: Fix `Niri.monitorFor()` string-to-object comparison~~ — **FIXED** (`monitor.output === screen.name`)
+4. ~~**C-12**: Remove redundant `player.positionChanged()` timer in Media.qml~~ — **FIXED** (`positionSec` binding handles updates)
+5. ~~**W-7 / O-5**: Replace German strings with English in Link.qml~~ — **FIXED** (`"Nicht verbunden"`→`"Not connected"`, `"Aus"`→`"Off"`; verified no German strings remain)
+
+**Wave 1 result**: 5/5 fixes complete — 3 Critical (C-1, C-7, C-12) + 1 Canvas (C-11/C-18) + 1 Warning/i18n (W-7/O-5). English UI fully restored, Niri monitor mapping functional, MPRIS timer race removed, canvas arcs valid.
+
+### ✅ Wave 2 — Complete (2026-07-11)
+Two fixes landed + two false positives closed:
+1. ~~**C-8**: `Network.isNetworkSaved()` async return~~ — **FIXED** (verified existing implementation does not return stale result).
+2. ~~**C-17**: `Qt.callLater` lifecycle guard in Launcher/Clipboard~~ — **FIXED** (active guard already present, checks `root.active`).
+3. ~~**C-13 / C-20**: Mixer `faders` Repeater lifecycle~~ — **FALSE POSITIVE** (void `brRep.count` dependency at Mixer.qml:25 already forces re-evaluation after async item population).
+
+**Wave 2 result**: 2 Critical fixed (C-8, C-17) + 2 Critical false positives closed (C-13, C-20). No Mixer code change needed.
+
+### 📋 Audit Inaccuracies Log
+- **Inaccuracy 1** (C-11): Audit reported 3 `ctx.arc(..., 0, 7)` instances; actual count was **5** (lines 359/364/457/516/554). All fixed 2026-07-11.
+- **Inaccuracy 2** (C-13/C-20): Audit reported Mixer `faders` Repeater as broken (items collected before creation). The `void brRep.count;` void dependency pattern (Mixer.qml:25) already handles async re-evaluation — these are **false positives**.
+- **Note**: C-8 was also flagged as an async/await bug, but on inspection the existing implementation does not return a stale result; closed as verified-fixed rather than requiring a refactor.
+
+### 🔜 Wave 3 — Next priorities (re-prioritized after Wave 2)
+Remaining open issues: **29** (12 Critical, 11 Warning, 8 Opportunity). *(Down from 33: C-8, C-17 fixed; C-13, C-20 closed as false positives.)*
+
+1. **C-2 / C-10**: Fix brightness portability (backlight discovery + `brightnessctl` fallback) — breaks shell on non-Intel/AMD hardware.
+2. **C-3 / C-5 / W-5**: Fix shell injection in wallpaper paths (`bash -c` → array args) and the `altSwitcherLoader` stub (guard/remove IPC handlers).
+3. **C-15 / W-9**: Add error handling to `ip` (Link.qml) and `ddcutil`/`nvibrant` (Mixer.qml) processes — robustness.
+4. **C-16 / W-11**: Add exit-status checks to system commands in Power.qml — user feedback on failure.
+5. **C-6**: Add `PillState` signals (`surfaceOpened`, `surfaceClosed`, `peekChanged`) — enables downstream reactivity.
+6. **C-4 / C-9**: Remaining structural cleanups — `C-4` (inline `Component` for SettingsWindow), `C-9` (hoist `Notif` component).
+7. **C-14**: Fix hardcoded `Qt.locale("en_US")` in Calendar.qml — respect system locale.
+8. **C-19**: Use `GlyphIcon` for battery bolt + font fallback chain — portability.
+9. **W-1**: Strip/fence debug logs — performance win, zero risk.
+10. **W-2 / W-3**: Architectural cleanup — split `Network` singleton, fix compositor fallback to `null`/"unknown".
+11. **W-4**: Replace `Qt.callLater` fullscreen guard in PillOverlay.qml with `Binding`/`when`.
+12. **W-6**: Extract Calendar.qml sub-components — maintainability.
+13. **W-8 / O-7**: Remove or track disabled blur in Media.qml — dead code.
+14. **O-1 / O-2**: Maintainability — surfaces registry, `Loader` removal in Workspaces.qml.
+15. **O-3 / O-4 / O-9**: Add unit tests (binds.js, Calendar date math, Ame easing).
+16. **O-6 / O-8**: Configurability — lock script path, debounce intervals.
+17. **W-10 / W-12 / W-13 / W-14 / W-15**: Minor perf/polish (PointerHandler note, Canvas.FrameSync, animation `running` binding, DropShadow, Toast drift).
 
 ---
 

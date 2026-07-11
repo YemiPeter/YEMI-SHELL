@@ -110,12 +110,6 @@ PillSurface {
     onActiveChanged: if (active) coverPair.load(artUrl)
     onTitleChanged: if (playing && active) pulseAnim.restart()
 
-    Timer {
-        interval: 500
-        running: root.active && root.playing
-        repeat: true
-        onTriggered: if (root.player) root.player.positionChanged();
-    }
 
     SequentialAnimation {
         id: pulseAnim

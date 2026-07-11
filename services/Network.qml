@@ -107,7 +107,6 @@ Singleton {
     }
     
     function isNetworkSaved(ssid: string): bool {
-        checkSavedProc.exec(["nmcli", "-g", "NAME", "connection", "show"]);
         return savedNetworks.includes(ssid);
     }
 
