@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import Quickshell.Hyprland
 import Quickshell.Widgets
 import "Singletons"
@@ -60,8 +61,10 @@ PillSurface {
     function run(a) {
         if (a.dispatch && a.dispatch.length)
             Hyprland.dispatch(a.dispatch);
-        else
-            Quickshell.execDetached(a.argv);
+        else {
+            powerProc.command = a.argv;
+            powerProc.running = true;
+        }
         root.requestClose();
     }
 
@@ -311,5 +314,13 @@ PillSurface {
         font.letterSpacing: 0.4 * root.s
         opacity: text.length > 0 ? 1 : 0
         Behavior on opacity { NumberAnimation { duration: Motion.fast } }
+    }
+
+    Process {
+        id: powerProc
+        onExited: code => {
+            if (code !== 0)
+                console.warn("Power: command failed, exit code:", code)
+        }
     }
 }

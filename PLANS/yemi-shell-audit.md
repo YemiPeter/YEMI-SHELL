@@ -48,6 +48,8 @@
 - **Finding**: `toggleSurface()` and `close()` mutate `openMon` and `openSurface` directly without emitting any signal. Consumers like `PillOverlay.qml` rely on `surfaceOpen` (a derived readonly property) which will update via binding, but any consumer that needs to react to the *transition* (e.g., analytics, logging, or the `peek` feature) has no signal to connect to. The `peekMon` property also has no change signal.
 - **Mitigation**: Add signals `surfaceOpened(mon, surface)`, `surfaceClosed()`, and `peekChanged(mon)` to `PillState`. Emit them in the respective functions.
 
+**[FIXED 2026-07-11]** C-6 — Signals declared and emitted in all three functions (`toggleSurface`, `close`, `peek`): `surfaceOpened`, `surfaceClosed`, `peekChanged`. Structure clean, consumers can now react to transitions. Wave 4 fix.
+
 ### [C-7] `Niri.monitorFor()` has incorrect parameter comparison
 - **File**: compositor/Niri.qml:101
 - **Rule**: Logic bug / incorrect comparison
@@ -158,6 +160,8 @@
 - **Rule**: Correctness / compositor detection
 - **Finding**: `detectCompositor()` returns `"hyprland"` as the fallback when neither `XDG_CURRENT_DESKTOP` nor `DESKTOP_SESSION` contains "hyprland" or "niri". On a Sway, Wayfire, or other Wayland compositor, this will silently initialize the Hyprland backend, which will fail to connect to the Hyprland socket and produce confusing errors.
 - **Mitigation**: Return `null` or `"unknown"` as the fallback, and have the UI show a "unsupported compositor" state rather than silently misbehaving.
+
+**[FIXED 2026-07-11]** W-3 — `Compositor.detectCompositor()` now returns `null` as fallback for unknown compositors instead of hardcoded `"hyprland"`. UI can show an unsupported-compositor state rather than silently misbehaving. Wave 4 fix.
 
 ### [W-4] `PillOverlay.qml` uses `Qt.callLater` for fullscreen guard
 - **File**: modules/pill/PillOverlay.qml:229, 249
@@ -442,7 +446,7 @@
 | C-3 | Critical | shell.qml:283+ | Security | Shell injection via wallpaper paths |
 | C-4 | Critical | shell.qml:99 | QML | Qt.createComponent with string URL |
 | C-5 | Critical | shell.qml:250 | Dead code | altSwitcherLoader stub with active IPC |
-| C-6 | Critical | PillState.qml:9 | State mgmt | No signals on state change |
+| C-6 | Critical | PillState.qml:9 | State mgmt | No signals on state change — ✅ **FIXED 2026-07-11** (signals declared, emits added) |
 | C-7 | Critical | Niri.qml:101 | Logic bug | monitorFor compares string to object — ✅ **FIXED 2026-07-11** |
 | C-8 | Critical | Network.qml:109 | Async bug | isNetworkSaved returns stale result — ✅ **FIXED 2026-07-11** (verified; no stale return) |
 | C-9 | Critical | Notifs.qml:88 | QML | Component used before definition |
@@ -458,7 +462,7 @@
 | C-20 | Critical | Mixer.qml:28-32 | Lifecycle | itemAt() returns null during async pop — ❌ **FALSE POSITIVE 2026-07-11** (dup of C-13; void pattern handles it) |
 | W-1 | Warning | Pill.qml/PillOverlay.qml | Performance | Excessive debug logging |
 | W-2 | Warning | Network.qml | Architecture | WiFi+BT mixed in one singleton |
-| W-3 | Warning | Compositor.qml:77 | Correctness | Hyprland fallback for unknown compositors |
+| W-3 | Warning | Compositor.qml:77 | Correctness | Hyprland fallback for unknown compositors — ✅ **FIXED 2026-07-11** (returns `null` fallback) |
 | W-4 | Warning | PillOverlay.qml:229 | QML | Qt.callLater race in fullscreen guard |
 | W-5 | Warning | shell.qml:283 | Security | Highest-risk shell injection instance |
 | W-6 | Warning | Calendar.qml | Maintainability | 1171 lines with nested inline components |
