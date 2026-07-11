@@ -98,7 +98,7 @@ Item {
             for (var monitorId in _niriState.monitors) {
                 var monitor = _niriState.monitors[monitorId];
                 // This would need proper implementation based on screen dimensions/position
-                if (monitor.output === screen) {
+                if (monitor.output === screen.name) {
                     return monitor;
                 }
             }

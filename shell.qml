@@ -194,7 +194,6 @@ ShellRoot {
       function hide(): void { QsSingletons.PillState.close(); }
     }
 
-    // Direct NotificationServer to ensure it starts
 
     // Direct NotificationServer to ensure it starts
     NotificationServer {

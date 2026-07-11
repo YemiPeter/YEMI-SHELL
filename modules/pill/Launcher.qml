@@ -101,7 +101,7 @@ PillSurface {
             query = "";
             search.text = "";
             selectedIndex = 0;
-            Qt.callLater(root.focusField);
+            Qt.callLater(function() { if (root.active) root.focusField(); });
         }
     }
     onResultsChanged: if (selectedIndex >= results.length) selectedIndex = 0;

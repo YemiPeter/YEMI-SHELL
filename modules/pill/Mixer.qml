@@ -308,6 +308,7 @@ PillSurface {
                                 brFader.pct = v;
                         }
                     }
+                    onExited: code => { if (code !== 0) console.warn("Mixer: ddcutil read failed, exit code:", code) }
                 }
 
                 FaderTip {
