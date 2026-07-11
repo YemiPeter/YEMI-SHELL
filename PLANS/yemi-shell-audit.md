@@ -507,26 +507,32 @@ Two fixes landed + two false positives closed:
 - **Inaccuracy 2** (C-13/C-20): Audit reported Mixer `faders` Repeater as broken (items collected before creation). The `void brRep.count;` void dependency pattern (Mixer.qml:25) already handles async re-evaluation — these are **false positives**.
 - **Note**: C-8 was also flagged as an async/await bug, but on inspection the existing implementation does not return a stale result; closed as verified-fixed rather than requiring a refactor.
 
-### 🔜 Wave 3 — Next priorities (re-prioritized after Wave 2)
-Remaining open issues: **29** (12 Critical, 11 Warning, 8 Opportunity). *(Down from 33: C-8, C-17 fixed; C-13, C-20 closed as false positives.)*
+### ✅ Wave 3 — Complete (2026-07-11)
+Two fixes landed:
+1. ~~**C-15**: `ip` command error handling in Link.qml~~ — **FIXED** (exit-code check + output validation before assigning `ethIp`; timer gated to `subview === "main"`).
+2. ~~**W-9 (read-path)**: `ddcutil`/`nvibrant` read errors surfaced~~ — **PARTIAL FIX** (read errors reported; write-path error handling deferred — silent but harmless failures, refactor risk not justified). See W-9 annotation.
 
-1. **C-2 / C-10**: Fix brightness portability (backlight discovery + `brightnessctl` fallback) — breaks shell on non-Intel/AMD hardware.
-2. **C-3 / C-5 / W-5**: Fix shell injection in wallpaper paths (`bash -c` → array args) and the `altSwitcherLoader` stub (guard/remove IPC handlers).
-3. **C-15 / W-9**: Add error handling to `ip` (Link.qml) and `ddcutil`/`nvibrant` (Mixer.qml) processes — robustness.
-4. **C-16 / W-11**: Add exit-status checks to system commands in Power.qml — user feedback on failure.
-5. **C-6**: Add `PillState` signals (`surfaceOpened`, `surfaceClosed`, `peekChanged`) — enables downstream reactivity.
-6. **C-4 / C-9**: Remaining structural cleanups — `C-4` (inline `Component` for SettingsWindow), `C-9` (hoist `Notif` component).
-7. **C-14**: Fix hardcoded `Qt.locale("en_US")` in Calendar.qml — respect system locale.
-8. **C-19**: Use `GlyphIcon` for battery bolt + font fallback chain — portability.
-9. **W-1**: Strip/fence debug logs — performance win, zero risk.
-10. **W-2 / W-3**: Architectural cleanup — split `Network` singleton, fix compositor fallback to `null`/"unknown".
-11. **W-4**: Replace `Qt.callLater` fullscreen guard in PillOverlay.qml with `Binding`/`when`.
-12. **W-6**: Extract Calendar.qml sub-components — maintainability.
-13. **W-8 / O-7**: Remove or track disabled blur in Media.qml — dead code.
-14. **O-1 / O-2**: Maintainability — surfaces registry, `Loader` removal in Workspaces.qml.
-15. **O-3 / O-4 / O-9**: Add unit tests (binds.js, Calendar date math, Ame easing).
-16. **O-6 / O-8**: Configurability — lock script path, debounce intervals.
-17. **W-10 / W-12 / W-13 / W-14 / W-15**: Minor perf/polish (PointerHandler note, Canvas.FrameSync, animation `running` binding, DropShadow, Toast drift).
+**Wave 3 result**: 1 Critical fixed (C-15) + 1 Warning partial-fixed (W-9 read path). Power command handling (C-16/W-11) **deferred to Wave 4** by decision — power actions (reboot, shutdown, etc.) have obvious user-visible feedback on failure, unlike silent hardware read failures, so exit-status checking is lower priority.
+
+### 🔜 Wave 4 — Next priorities (re-prioritized after Wave 3)
+Remaining open issues: **27** (11 Critical, 11 Warning, 8 Opportunity). *(Down from 29: C-15 fixed, W-9 partial.)*
+
+1. **C-16 / W-11** *(deferred from Wave 3)*: Add exit-status checks to system commands in Power.qml — user feedback on failure. Lower priority: power actions have obvious failure feedback.
+2. **C-2 / C-10**: Fix brightness portability (backlight discovery + `brightnessctl` fallback) — breaks shell on non-Intel/AMD hardware.
+3. **C-3 / C-5 / W-5**: Fix shell injection in wallpaper paths (`bash -c` → array args) and the `altSwitcherLoader` stub (guard/remove IPC handlers).
+4. **C-6**: Add `PillState` signals (`surfaceOpened`, `surfaceClosed`, `peekChanged`) — enables downstream reactivity.
+5. **C-4 / C-9**: Remaining structural cleanups — `C-4` (inline `Component` for SettingsWindow), `C-9` (hoist `Notif` component).
+6. **C-14**: Fix hardcoded `Qt.locale("en_US")` in Calendar.qml — respect system locale.
+7. **C-19**: Use `GlyphIcon` for battery bolt + font fallback chain — portability.
+8. **W-1**: Strip/fence debug logs — performance win, zero risk.
+9. **W-2 / W-3**: Architectural cleanup — split `Network` singleton, fix compositor fallback to `null`/"unknown".
+10. **W-4**: Replace `Qt.callLater` fullscreen guard in PillOverlay.qml with `Binding`/`when`.
+11. **W-6**: Extract Calendar.qml sub-components — maintainability.
+12. **W-8 / O-7**: Remove or track disabled blur in Media.qml — dead code.
+13. **O-1 / O-2**: Maintainability — surfaces registry, `Loader` removal in Workspaces.qml.
+14. **O-3 / O-4 / O-9**: Add unit tests (binds.js, Calendar date math, Ame easing).
+15. **O-6 / O-8**: Configurability — lock script path, debounce intervals.
+16. **W-10 / W-12 / W-13 / W-14 / W-15**: Minor perf/polish (PointerHandler note, Canvas.FrameSync, animation `running` binding, DropShadow, Toast drift).
 
 ---
 
