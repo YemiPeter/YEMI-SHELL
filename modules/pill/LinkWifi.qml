@@ -50,9 +50,9 @@ Item {
     property string revealedPw: ""
     property bool revealResolved: false
 
-    readonly property string hsCon: "RicelinHotspot"
+    readonly property string hsCon: "Yemi Shell Hotspot"
     readonly property string hsIface: wifiDev ? (wifiDev.name || "wlan0") : "wlan0"
-    property string hsName: "Ricelin"
+    property string hsName: "Yemi Shell"
     property string hsPw: ""
     property bool hsActive: false
     property bool hsBusy: false
