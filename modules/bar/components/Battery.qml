@@ -181,7 +181,7 @@ Item {
                     visible: isPluggedIn && !showExpandedMode
                     anchors.centerIn: batteryBody
                     text: "󱐋"
-                    font.family: "Material Design Icons"
+                    font.family: "Material Design Icons, sans-serif"
                     font.pixelSize: 9
                     color: batteryLevel > 50 ? "#000000" : "#ffffff"
                     opacity: 0.9
@@ -200,7 +200,7 @@ Item {
             Text {
                 anchors.verticalCenter: parent.verticalCenter
                 text: batteryLevel + "%"
-                font.family: "JetBrainsMono Nerd Font"
+                font.family: QsSingletons.Theme.font
                 font.pixelSize: 11
                 font.weight: isLow ? Font.Bold : Font.Medium
                 color: isPluggedIn ? chargingColor : normalColor
@@ -298,7 +298,7 @@ Item {
             Text {
                 anchors.centerIn: parent
                 text: batteryLevel + "%"
-                font.family: "JetBrainsMono Nerd Font"
+                font.family: QsSingletons.Theme.font
                 font.pixelSize: 11
                 font.weight: Font.Bold
                 color: "#ffffff"

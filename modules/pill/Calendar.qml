@@ -31,7 +31,7 @@ PillSurface {
     mRight: 18
     mBottom: 16
 
-    readonly property var loc: Qt.locale("en_US")
+    readonly property var loc: Qt.locale()
 
     readonly property date today: sysClock.date
     property int viewYear: today.getFullYear()
