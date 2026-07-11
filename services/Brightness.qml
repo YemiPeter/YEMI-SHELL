@@ -14,31 +14,31 @@ Singleton {
     readonly property real level: brightness
     readonly property int percentage: Math.round(brightness * 100)
     
-    // Updated backlight path
-    readonly property string backlightPath: "/sys/class/backlight/intel_backlight/brightness"
-    readonly property string maxBrightnessPath: "/sys/class/backlight/intel_backlight/max_brightness"
+    // Dynamic backlight device discovery
+    property string backlightDevice: ""
+    readonly property string backlightPath: backlightDevice.length > 0 ? "/sys/class/backlight/" + backlightDevice + "/brightness" : ""
+    readonly property string maxBrightnessPath: backlightDevice.length > 0 ? "/sys/class/backlight/" + backlightDevice + "/max_brightness" : ""
+    readonly property bool backlightAvailable: backlightDevice.length > 0
     
     property int currentValue: 0
     property int maxValue: 255
     property bool isSetting: false
     
     Component.onCompleted: {
-        readMaxBrightness()
-        readBrightness()
-        updateTimer.start()
+        discoverProc.running = true
     }
     
     function readMaxBrightness() {
-        maxBrightnessProcess.running = true
+        if (backlightAvailable) maxBrightnessProcess.running = true
     }
     
     function readBrightness() {
-        brightnessProcess.running = true
+        if (backlightAvailable) brightnessProcess.running = true
     }
     
     function setBrightness(value) {
         root.isSetting = true
-        brightness = Math.max(0.05, Math.min(1, value))
+        brightness = Math.max(0.01, Math.min(1, value))
         setBrightnessProcess.command = [
             "bash", "-c",
             "brightnessctl set " + Math.round(brightness * 100) + "%"
@@ -55,6 +55,26 @@ Singleton {
         setBrightness(brightness - 0.05)
     }
     
+    // Discover backlight device
+    Process {
+        id: discoverProc
+        command: ["bash", "-c", "ls /sys/class/backlight/ 2>/dev/null | head -1"]
+        running: false
+        stdout: SplitParser {
+            onRead: data => {
+                const device = data.trim()
+                if (device.length > 0) {
+                    root.backlightDevice = device
+                    readMaxBrightness()
+                    readBrightness()
+                    updateTimer.start()
+                } else {
+                    console.warn("Brightness: no backlight device found in /sys/class/backlight/")
+                }
+            }
+        }
+    }
+
     // Read max brightness
     Process {
         id: maxBrightnessProcess
@@ -92,6 +112,10 @@ Singleton {
     Process {
         id: setBrightnessProcess
         running: false
+        onExited: code => {
+            if (code !== 0)
+                console.warn("Brightness: brightnessctl failed, exit code:", code)
+        }
     }
     
     // Update timer - optimized interval
