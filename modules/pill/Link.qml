@@ -89,7 +89,7 @@ PillSurface {
         ? ("Ethernet"
             + (ethSpeedText.length ? " · " + ethSpeedText : "")
             + (ethIp.length ? " · " + ethIp : ""))
-        : (wifiActive ? (wifiActive.name || "") : (wifiOn ? "Nicht verbunden" : "Aus"))
+        : (wifiActive ? (wifiActive.name || "") : (wifiOn ? "Not connected" : "Off"))
 
     readonly property var btAdapter: (typeof Bluetooth !== "undefined" && Bluetooth) ? Bluetooth.defaultAdapter : null
     readonly property var btDevices: (typeof Bluetooth !== "undefined" && Bluetooth && Bluetooth.devices) ? Bluetooth.devices.values : []
@@ -98,7 +98,7 @@ PillSurface {
     readonly property var btPrimary: btConnected.length > 0 ? btConnected[0] : null
     readonly property int btBattery: batteryLevel(btPrimary)
 
-    readonly property string btSubText: !btOn ? "Aus"
+    readonly property string btSubText: !btOn ? "Off"
         : (btPrimary
             ? ((btPrimary.deviceName || btPrimary.name || "Unknown")
                 + (btConnected.length > 1 ? " +" + (btConnected.length - 1) : ""))
@@ -148,6 +148,7 @@ PillSurface {
         command: ["sh", "-c", "ip -4 -o addr show scope global up | awk '{for(i=1;i<=NF;i++) if($i==\"inet\"){print $(i+1); exit}}' | cut -d/ -f1"]
         running: false
         stdout: StdioCollector { onStreamFinished: root.ethIp = this.text.trim() }
+        onExited: code => { if (code !== 0) root.ethIp = "" }
     }
 
     Timer {

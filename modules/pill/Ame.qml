@@ -356,12 +356,12 @@ Item {
             hg.addColorStop(0.92, Theme.verm);
             hg.addColorStop(1, Theme.flameEmber);
             ctx.beginPath();
-            ctx.arc(0, 0, R, 0, 7);
+            ctx.arc(0, 0, R, 0, Math.PI * 2);
             ctx.fillStyle = hg;
             ctx.fill();
             ctx.save();
             ctx.beginPath();
-            ctx.arc(0, 0, R, 0, 7);
+            ctx.arc(0, 0, R, 0, Math.PI * 2);
             ctx.clip();
             ctx.globalAlpha = (alpha === undefined ? 1 : alpha) * 0.35;
             for (let k = 0; k < 2; k++) {
@@ -454,7 +454,7 @@ Item {
                     const sx2 = bx + Math.cos(sa) * sr;
                     const sy2 = by + Math.sin(sa) * sr * 1.25;
                     ctx.beginPath();
-                    ctx.arc(sx2, sy2, (2.2 - 0.9 * sq) * S, 0, 7);
+                    ctx.arc(sx2, sy2, (2.2 - 0.9 * sq) * S, 0, Math.PI * 2);
                     ctx.fillStyle = Theme.vermLit;
                     ctx.globalAlpha = hop * 0.85;
                     ctx.fill();
@@ -513,7 +513,7 @@ Item {
                 tg.addColorStop(0.92, Theme.verm);
                 tg.addColorStop(1, Theme.flameEmber);
                 ctx.beginPath();
-                ctx.arc(0, 0, ry, 0, 7);
+                ctx.arc(0, 0, ry, 0, Math.PI * 2);
                 ctx.fillStyle = tg;
                 ctx.globalAlpha = Math.max(0.25, fadeIn);
                 ctx.fill();
@@ -551,7 +551,7 @@ Item {
                 const R = (baseR + 6 * S) + 5 * S * root.smoothstep(fadeIn) * e;
                 ctx.globalAlpha = 1;
                 ctx.beginPath();
-                ctx.arc(bx, by, Math.max(2 * S, R), 0, 7);
+                ctx.arc(bx, by, Math.max(2 * S, R), 0, Math.PI * 2);
                 ctx.strokeStyle = Theme.vermLit;
                 ctx.lineWidth = Math.max(1.6 * S, (7 - 4.8 * fadeIn) * S);
                 ctx.stroke();
