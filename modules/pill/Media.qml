@@ -156,30 +156,6 @@ PillSurface {
         radius: 22 * root.s
         color: "transparent"
 
-        Image {
-            id: bleedSrc
-            anchors.fill: parent
-            source: root.active ? root.artUrl : ""
-            sourceSize: Qt.size(128, 128)
-            fillMode: Image.PreserveAspectCrop
-            asynchronous: true
-            cache: true
-            visible: false
-        }
-
-        // BLUR DISABLED
-        /*
-        MultiEffect {
-            anchors.fill: parent
-            source: bleedSrc
-            scale: 1.12
-            visible: root.active && root.artUrl !== "" && bleedSrc.status === Image.Ready
-            blurEnabled: true
-            blur: 0.95
-            blurMax: 64
-        }
-        */
-
         Rectangle {
             anchors.fill: parent
             gradient: Gradient {
