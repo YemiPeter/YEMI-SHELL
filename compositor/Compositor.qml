@@ -74,6 +74,6 @@ Item {
             return "niri";
         }
 
-        return "hyprland"; // Default fallback
+        return null; // Unknown compositor
     }
 }
