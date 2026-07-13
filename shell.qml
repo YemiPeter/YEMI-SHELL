@@ -251,7 +251,7 @@ ShellRoot {
     // === Path Properties ===
     property string homePath: Quickshell.env("HOME")
     property string configPath: homePath + "/.config/quickshell"
-    property string wallpaperPath: homePath + "/wallpapers"
+    property string wallpaperPath: homePath + "/Pictures/Wallpapers"
     property string cachePath: homePath + "/.cache"
     property string statePath: configPath + "/state"
 
@@ -279,11 +279,8 @@ ShellRoot {
     function applyWallpaper(wallpaper) {
         root.currentWallpaper = wallpaper.path
         root.walApplying = true
-        applyWallProc.command = ["bash", "-c",
-            "awww img '" + wallpaper.path + "' --transition-type any --transition-duration 2 & " +
-            "matugen image '" + wallpaper.path + "' -c '" + root.configPath + "/dist/matugen/config.toml'"
-        ]
-        applyWallProc.running = true
+ applyWallProc.command = ["bash", "-c", "skwd wall apply '{\"name\":\"'" + wallpaper.name + "'\"}'"]
+ applyWallProc.running = true
     }
 
     function loadWallpapers() {

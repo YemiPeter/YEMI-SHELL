@@ -5,6 +5,7 @@ import Quickshell.Wayland
 import Quickshell.Hyprland
 import "../../singletons" as QsSingletons
 import "../../config" as QsConfig
+import qs.compositor
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // PillOverlay — two-window architecture
@@ -203,7 +204,7 @@ Item {
           // Poll fullscreen state every 500ms (Niri has no event-driven IPC for this)
         Timer {
             interval: 500
-            running: true
+            running: Compositor.runningCompositor === "niri"
             repeat: true
             triggeredOnStart: true
             onTriggered: overlay.updateFullscreen()
