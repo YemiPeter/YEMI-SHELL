@@ -370,15 +370,6 @@ Item {
                         }
                     }
 
-                    // Separator
-                    Rectangle {
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: 1
-                        height: 12 * root.s
-                        radius: 0.5 * root.s
-                        color: pillSeparator
-                    }
-
                     // System Tray (only if has items)
                     Loader {
                         id: systemTrayLoader
