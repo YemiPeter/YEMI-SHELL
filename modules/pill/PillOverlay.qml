@@ -2,7 +2,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
-import Quickshell.Hyprland
 import "../../singletons" as QsSingletons
 import "../../config" as QsConfig
 import qs.compositor
@@ -214,9 +213,9 @@ Item {
             updateFullscreen();
         }
 
-        // Re-check on Hyprland fullscreen events (no-op on Niri)
+        // Re-check on compositor raw events (Hyprland events forwarded via Compositor)
         Connections {
-            target: Hyprland
+            target: Compositor
             function onRawEvent(event) {
                 var fsEvents = ["fullscreen", "fullscreen1", "fullscreen2", "openwindow", "closewindow", "movewindow", "workspace", "workspacev2"];
                 if (fsEvents.indexOf(event.name) >= 0) {
