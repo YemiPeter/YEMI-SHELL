@@ -2,7 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
-import Quickshell.Hyprland
+import qs.compositor
 import "Singletons"
 
 /**
@@ -35,12 +35,17 @@ Item {
 
         var out = [];
         var seen = ({});
-        var wss = Hyprland.workspaces.values;
-        for (var i = 0; i < wss.length; i++) {
-            var w = wss[i];
-            if (w.id >= 1 && w.monitor && w.monitor.name === screenName && !seen[w.id]) {
-                seen[w.id] = true;
-                out.push(w.id);
+        var mons = Compositor.monitors;
+        for (var mi = 0; mi < mons.length; mi++) {
+            var m = mons[mi];
+            if (m.name === screenName && m.activeWorkspace) {
+                var ws = m.activeWorkspace;
+                var wsId = ws.id || parseInt(ws.name);
+                if (wsId >= 1 && !seen[wsId]) {
+                    seen[wsId] = true;
+                    out.push(wsId);
+                }
+                break;
             }
         }
         var a = parseInt(activeName);
@@ -51,7 +56,7 @@ Item {
     }
 
     readonly property string activeName: {
-        var mons = Hyprland.monitors.values;
+        var mons = Compositor.monitors;
         for (var i = 0; i < mons.length; i++)
             if (mons[i].name === screenName)
                 return mons[i].activeWorkspace ? mons[i].activeWorkspace.name : "";
@@ -124,7 +129,7 @@ Item {
                     anchors.bottomMargin: -8 * workspaces.s
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: Hyprland.dispatch('workspace ' + slot.wsName)
+                    onClicked: Compositor.dispatch('workspace ' + slot.wsName)
                     onContainsMouseChanged: {
                         if (containsMouse)
                             workspaces.hoverIndex = slot.index;
