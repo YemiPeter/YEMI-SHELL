@@ -27,8 +27,6 @@ Item {
         property var activeToplevel: null
         property var focusedWorkspace: null
         property var focusedMonitor: null
-        
-        // These will be populated by calling niri msg commands
     }
     
     // Temporary processes for workspace and window updates
@@ -75,6 +73,27 @@ Item {
     }
 
     Process {
+        id: monitorProc
+        property string output: ""
+        command: ["niri", "msg", "--json", "outputs"]
+        running: false
+
+        stdout: SplitParser {
+            splitMarker: ""
+            onRead: function(data) {
+                monitorProc.output += data;
+            }
+        }
+
+        onExited: code => {
+            if (code === 0)
+                root.parseMonitors(output);
+            else
+                console.warn("Failed to query niri monitors");
+        }
+    }
+
+    Process {
         id: dispatchProc
         running: false
     }
@@ -94,10 +113,9 @@ Item {
     
     function monitorFor(screen: var): var {
         if (enabled) {
-            // Find monitor based on screen information
+            // Match by screen name
             for (var monitorId in _niriState.monitors) {
                 var monitor = _niriState.monitors[monitorId];
-                // This would need proper implementation based on screen dimensions/position
                 if (monitor.output === screen.name) {
                     return monitor;
                 }
@@ -134,6 +152,9 @@ Item {
         
         // Update windows (toplevels)
         updateWindows();
+        
+        // Update monitors
+        updateMonitors();
     }
     
     function updateWorkspaces(): void {
@@ -148,6 +169,13 @@ Item {
 
         windowProc.output = "";
         windowProc.running = true;
+    }
+
+    function updateMonitors(): void {
+        if (!enabled || monitorProc.running) return;
+
+        monitorProc.output = "";
+        monitorProc.running = true;
     }
 
     function parseWorkspaces(output: string): void {
@@ -197,6 +225,85 @@ Item {
             _niriState.activeToplevel = newActiveToplevel;
         } catch (e) {
             console.warn("Failed to parse window data:", e);
+        }
+    }
+
+    function parseMonitors(output: string): void {
+        try {
+            var monitorData = JSON.parse(output.trim());
+
+            // niri msg --json outputs returns an object keyed by output name
+            // e.g. {"eDP-1": { name: "eDP-1", make: "...", ... }}
+            // Transform into a shape compatible with Hyprland.monitors entries:
+            // { output, name, width, height, refresh, scale, x, y, availableModes, activeWorkspace }
+            var newMonitors = {};
+            var newFocusedMonitor = null;
+
+            for (var outputName in monitorData) {
+                var src = monitorData[outputName];
+                var logical = src.logical || {};
+
+                // Build the available modes list in Hyprland format
+                var modes = (src.modes || []).map(function(m, idx) {
+                    return {
+                        w: m.width,
+                        h: m.height,
+                        hz: m.refresh_rate / 1000,
+                        raw: m.width + "x" + m.height + "@" + (m.refresh_rate / 1000).toFixed(2) + "Hz"
+                    };
+                });
+
+                var monitor = {
+                    output: src.name,
+                    name: src.name,
+                    width: logical.width || 0,
+                    height: logical.height || 0,
+                    refresh: (src.modes && src.modes.length > 0) ? src.modes[src.current_mode || 0].refresh_rate / 1000 : 60,
+                    scale: logical.scale || 1,
+                    x: logical.x || 0,
+                    y: logical.y || 0,
+                    availableModes: modes,
+                    modes: modes,
+                    // activeWorkspace is not provided by niri outputs directly;
+                    // we'll populate it from workspace data when we parse workspaces
+                    activeWorkspace: null
+                };
+
+                newMonitors[outputName] = monitor;
+
+                // Determine focused monitor (first one with x=0,y=0 is primary)
+                if (!newFocusedMonitor || (monitor.x === 0 && monitor.y === 0)) {
+                    newFocusedMonitor = monitor;
+                }
+            }
+
+            _niriState.monitors = newMonitors;
+            _niriState.focusedMonitor = newFocusedMonitor;
+
+            // Link workspaces to monitors: after monitors update, assign activeWorkspace
+            // by matching workspace output to monitor name
+            root.linkWorkspacesToMonitors();
+        } catch (e) {
+            console.warn("Failed to parse monitor data:", e);
+        }
+    }
+
+    /**
+     * After both monitors and workspaces have been parsed, link each workspace
+     * to its monitor's activeWorkspace property so consumers that expect
+     * Hyprland-like monitor.activeWorkspace work.
+     */
+    function linkWorkspacesToMonitors(): void {
+        var ws = _niriState.workspaces;
+        var mons = _niriState.monitors;
+        for (var wsId in ws) {
+            var w = ws[wsId];
+            if (w.output && mons[w.output]) {
+                var mon = mons[w.output];
+                if (w.is_focused) {
+                    mon.activeWorkspace = w;
+                }
+            }
         }
     }
     
