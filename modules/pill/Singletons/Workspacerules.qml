@@ -19,6 +19,10 @@ Singleton {
     property var byMonitor: ({})
 
     function refresh() {
+        // Workspace rules are a Hyprland-only concept (no Niri equivalent).
+        // On Niri, never spawn the `hyprctl` call at all.
+        if ((Quickshell.env("XDG_CURRENT_DESKTOP") || "").toLowerCase().indexOf("hyprland") < 0)
+            return;
         proc.running = true;
     }
 
