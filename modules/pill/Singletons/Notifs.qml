@@ -127,9 +127,11 @@ Singleton {
             }
         }
         var token = String(n.desktopEntry && n.desktopEntry.length ? n.desktopEntry : (n.appName || "")).toLowerCase();
-        if (token.length > 0)
+        // Window-focus-on-click is Hyprland-only (uses `hyprctl clients`).
+        // On Niri there is no equivalent, so skip the call entirely.
+        if (token.length > 0 && (Quickshell.env("XDG_CURRENT_DESKTOP") || "").toLowerCase().indexOf("hyprland") >= 0)
             Quickshell.execDetached(["sh", "-c",
-                "addr=$(hyprctl clients -j | jq -r --arg q \"$1\" '[.[] | select(((.class // \"\") | ascii_downcase | contains($q)) or ((.initialClass // \"\") | ascii_downcase | contains($q)))][0].address // empty'); [ -n \"$addr\" ] && hyprctl dispatch \"hl.dsp.focus({ window = \\\"address:$addr\\\" })\"",
+                "addr=$(hyprctl clients -j | jq -r --arg q \"$1\" '[.[] | select((.class // \"\") | ascii_downcase | contains($q)) or ((.initialClass // \"\") | ascii_downcase | contains($q))][0].address // empty'); [ -n \"$addr\" ] && hyprctl dispatch \"hl.dsp.focus({ window = \\\"address:$addr\\\" })\"",
                 "sh", token]);
         dismissEntry(e);
     }
