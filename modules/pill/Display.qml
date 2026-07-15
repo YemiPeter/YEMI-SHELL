@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs.compositor
 import "lib/monitors.js" as Mon
 import "Singletons"
 
@@ -46,7 +47,11 @@ SettingsSurface {
     onActiveChanged: {
         if (active) {
             cancelCountdown();
-            readProc.running = true;
+            if (Compositor.runningCompositor === "niri") {
+                loadMonitorsFromCompositor();
+            } else {
+                readProc.running = true;
+            }
         } else {
             cancelCountdown();
             openPicker = "";
@@ -94,6 +99,17 @@ SettingsSurface {
                 root.note = "Changes apply live, no reload. If a mode looks wrong, it reverts on its own after 12s.";
             }
         }
+    }
+
+    /**
+     * On Niri, Compositor.monitors is already populated by the backend's polling
+     * timer and parseMonitors(), so we read from there instead of spawning a
+     * second niri msg call. The monitor shape matches what Mon.parse produces:
+     * { name, width, height, refresh, scale, x, y, modes }.
+     */
+    function loadMonitorsFromCompositor(): void {
+        root.monitors = Compositor.monitors;
+        root.note = "Changes apply live, no reload. If a mode looks wrong, it reverts on its own after 12s.";
     }
 
     Process {
