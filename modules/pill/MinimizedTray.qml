@@ -2,7 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
-import Quickshell.Hyprland
+import qs.compositor
 import "Singletons"
 
 /**
@@ -22,16 +22,17 @@ Row {
      * clicked, falling back to the focused workspace.
      */
     function restoreWorkspace() {
-        var ms = Hyprland.monitors.values;
+        var ms = Compositor.monitors;
         for (var i = 0; i < ms.length; i++)
             if (ms[i].name === root.screenName && ms[i].activeWorkspace)
                 return ms[i].activeWorkspace.id;
-        return Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id : 1;
+        var fws = Compositor.focusedWorkspace;
+        return fws ? fws.id : 1;
     }
 
     readonly property var items: {
         var out = [];
-        var tl = Hyprland.toplevels.values;
+        var tl = Compositor.toplevels;
         for (var i = 0; i < tl.length; i++) {
             var t = tl[i];
             if (t && t.workspace && t.workspace.name === "special:minimized")
@@ -93,7 +94,7 @@ Row {
                     var addr = chip.modelData.address;
                     if (addr.indexOf("0x") !== 0)
                         addr = "0x" + addr;
-                    Hyprland.dispatch('movetoworkspace ' + root.restoreWorkspace() + ',address:' + addr);
+                    Compositor.dispatch('movetoworkspace ' + root.restoreWorkspace() + ',address:' + addr);
                 }
             }
         }
