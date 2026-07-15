@@ -30,10 +30,26 @@ Item {
         function onRawEvent(event) { root.rawEvent(event) }
     }
     
-    // Interface properties - these should be implemented by both backends
-    readonly property var toplevels: impl?.toplevels ?? []
-    readonly property var workspaces: impl?.workspaces ?? []
-    readonly property var monitors: impl?.monitors ?? []
+    /**
+     * Normalize backend data to a plain array regardless of internal shape.
+     *
+     * Hyprland returns QML model objects (array-like, with a .values accessor).
+     * Niri returns JS objects keyed by id/name.
+     * Consumers should never need to know which one they're dealing with.
+     */
+    function _toArray(v: var): var {
+        if (!v) return [];
+        if (Array.isArray(v)) return v;
+        // Hyprland model objects expose .values as a JS array
+        if (v.values) return v.values;
+        // Niri object keyed by id/name
+        return Object.values(v);
+    }
+    
+    // Interface properties — always plain arrays
+    readonly property var toplevels: _toArray(impl?.toplevels)
+    readonly property var workspaces: _toArray(impl?.workspaces)
+    readonly property var monitors: _toArray(impl?.monitors)
     
     readonly property var activeToplevel: impl?.activeToplevel ?? null
     readonly property var focusedWorkspace: impl?.focusedWorkspace ?? null
