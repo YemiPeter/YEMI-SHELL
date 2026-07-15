@@ -228,6 +228,10 @@ Singleton {
     function prepareWindow() {
         if (busy)
             return;
+        // Window-region picker is Hyprland-only (uses `hyprctl clients`).
+        // On Niri there is no equivalent IPC, so never start the picker.
+        if ((Quickshell.env("XDG_CURRENT_DESKTOP") || "").toLowerCase().indexOf("hyprland") < 0)
+            return;
         windowProc.running = true;
     }
 
