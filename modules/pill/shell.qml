@@ -4,8 +4,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
-import Quickshell.Hyprland
 import Quickshell.Services.Mpris
+import qs.compositor
 import "Singletons"
 
 /**
@@ -33,9 +33,9 @@ ShellRoot {
     property string peekMon: ""
 
     function refresh() {
-        Hyprland.refreshMonitors();
-        Hyprland.refreshWorkspaces();
-        Hyprland.refreshToplevels();
+        // Compositor backends auto-refresh on their polling timers.
+        // No explicit refresh calls needed — the 500ms timer in each
+        // backend handles periodic state updates.
     }
 
     Component.onCompleted: {
@@ -83,7 +83,7 @@ ShellRoot {
     })
 
     Connections {
-        target: Hyprland
+        target: Compositor
         function onRawEvent(event) {
             if (root.refreshEvents[event.name])
                 root.refresh();
@@ -211,8 +211,8 @@ ShellRoot {
                     return;
                 }
 
-                // Hyprland: existing logic unchanged
-                var mons = Hyprland.monitors.values;
+                // Hyprland: read from Compositor.monitors
+                var mons = Compositor.monitors;
                 for (var i = 0; i < mons.length; i++) {
                     if (mons[i].name === modelData.name) {
                         var ws = mons[i].activeWorkspace;
@@ -273,7 +273,7 @@ ShellRoot {
             Component.onCompleted: updateFullscreen()
         
             Connections {
-                target: Hyprland
+                target: Compositor
                 function onRawEvent(event) {
                     // Fullscreen can change via: workspace switch, window open/close,
                     // or dedicated fullscreen events. Cover all relevant event names.
