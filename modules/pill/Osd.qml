@@ -1,9 +1,9 @@
 import QtQuick
 import Quickshell.Widgets
-import Quickshell.Hyprland
 import Quickshell.Services.Pipewire
 import Quickshell.Services.Mpris
 import Quickshell.Io
+import qs.compositor
 import "Singletons"
 
 Item {
@@ -61,7 +61,7 @@ Item {
      * swallows the initial populate, so login doesn't flash.
      */
     readonly property string activeWsName: {
-        var mons = Hyprland.monitors.values;
+        var mons = Compositor.monitors;
         for (var i = 0; i < mons.length; i++)
             if (mons[i].name === screenName)
                 return mons[i].activeWorkspace ? mons[i].activeWorkspace.name : "";
