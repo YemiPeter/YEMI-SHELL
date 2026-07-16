@@ -358,19 +358,36 @@ PillSurface {
             }
         }
         VFader {
-            id: volFader
-            width: faderRow.colW
-            s: root.s
-            icon: "speaker"
-            focused: root.focusIndex === root.faderCount - 2
-            value: root.sink && root.sink.audio ? root.sink.audio.volume : 0
-            valueLabel: Math.round((root.sink && root.sink.audio ? root.sink.audio.volume : 0) * 100) + "%"
-            onMoved: (v) => { if (root.sink && root.sink.audio) root.sink.audio.volume = v; }
-
-            FaderTip {
-                title: "Volume"
-                show: root.hoverIndex === root.faderCount - 2
+          id: volFader
+          width: faderRow.colW
+          s: root.s
+          icon: (root.sink && root.sink.audio && root.sink.audio.muted) ? "speaker-off" : "speaker"
+          focused: root.focusIndex === root.faderCount - 2
+          value: root.sink && root.sink.audio ? root.sink.audio.volume : 0
+          valueLabel: (root.sink && root.sink.audio && root.sink.audio.muted)
+            ? "off"
+            : (Math.round((root.sink && root.sink.audio ? root.sink.audio.volume : 0) * 100) + "%")
+          onMoved: (v) => { if (root.sink && root.sink.audio) root.sink.audio.volume = v; }
+        
+          MouseArea {
+            id: volMute
+            anchors.bottom: parent.bottom
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: 24 * root.s
+            height: 22 * root.s
+            cursorShape: Qt.PointingHandCursor
+            onClicked: {
+              if (root.sink && root.sink.audio)
+                root.sink.audio.muted = !root.sink.audio.muted
             }
+        
+            Tooltip {
+              s: root.s
+              title: "Volume"
+              desc: "Click the icon to mute"
+              show: root.hoverIndex === root.faderCount - 2
+            }
+          }
         }
         VFader {
             id: micFader
