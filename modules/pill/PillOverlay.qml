@@ -163,10 +163,8 @@ Item {
                         }
                         overlay.monFullscreen = isFullscreen;
                     } catch (e) {
-                        console.warn("[FS-CHECK] Failed to parse niri windows:", e);
                     }
                 } else {
-                    console.warn("[FS-CHECK] Failed to query niri windows");
                 }
             }
           }

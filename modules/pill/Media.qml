@@ -25,6 +25,7 @@ PillSurface {
      */
     readonly property var player: {
         var list = Mpris.players.values;
+        list = list.filter(function(p) { return p && p.identity !== "skwd-music"; });
         if (!list || list.length === 0)
             return null;
         var withTrack = null;
@@ -345,7 +346,7 @@ PillSurface {
 
                 Text {
                     anchors.centerIn: parent
-                    text: root.playing ? ">" : "||"
+                    text: root.playing ? "||" : ">"
                     color: Theme.bright
                     font.family: Theme.font
                     font.pixelSize: 16 * root.s
