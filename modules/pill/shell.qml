@@ -217,8 +217,6 @@ ShellRoot {
                     if (mons[i].name === modelData.name) {
                         var ws = mons[i].activeWorkspace;
                         monFullscreen = ws ? !!ws.hasfullscreen : false;
-                        console.log("[FS-CHECK]", modelData.name, "monFullscreen=", monFullscreen);
-                        console.log("[FULLSCREEN]", modelData.name, "monFullscreen =", monFullscreen, "ws.hasfullscreen =", ws ? ws.hasfullscreen : "no workspace");
                         return;
                     }
                 }
@@ -260,12 +258,9 @@ ShellRoot {
                                 }
                             }
                             overlay.monFullscreen = isFullscreen;
-                            console.log("[FS-CHECK]", overlay.modelData.name, "monFullscreen=", overlay.monFullscreen);
                         } catch (e) {
-                            console.warn("[FS-CHECK] Failed to parse niri windows:", e);
                         }
                     } else {
-                        console.warn("[FS-CHECK] Failed to query niri windows");
                     }
                 }
             }
@@ -287,8 +282,6 @@ ShellRoot {
             }
         
             onMonFullscreenChanged: {
-                console.log("[FS-CHECK] changed to", monFullscreen, "opacity should be", monFullscreen ? 0 : 1);
-                console.log("[FULLSCREEN] onMonFullscreenChanged fired, value:", monFullscreen);
                 if (monFullscreen) {
                     if (root.openMon === modelData.name) root.close();
                     if (root.peekMon === modelData.name) root.peekMon = "";
