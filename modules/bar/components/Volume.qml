@@ -110,7 +110,7 @@ Item {
         }
 
         onClicked: {
-            QsSingletons.PillState.toggleSurface(root.screenName, "mixer")
+            Quickshell.execDetached(["pavucontrol"])
         }
     }
 
