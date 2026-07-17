@@ -32,35 +32,43 @@ Item {
         var ruled = Workspacerules.byMonitor[screenName];
         if (ruled && ruled.length)
             return ruled;
+var out = [];
+var seen = ({});
 
-        var out = [];
-        var seen = ({});
-        var mons = Compositor.monitors;
-        for (var mi = 0; mi < mons.length; mi++) {
-            var m = mons[mi];
-            if (m.name === screenName && m.activeWorkspace) {
-                var ws = m.activeWorkspace;
-                var wsId = ws.id || parseInt(ws.name);
-                if (wsId >= 1 && !seen[wsId]) {
-                    seen[wsId] = true;
-                    out.push(wsId);
-                }
-                break;
-            }
-        }
+var wss = Compositor.workspaces;
+for (var i = 0; i < wss.length; i++) {
+  var w = wss[i];
+  // w.monitor.name → Hyprland QML WrapperModel row ; w.output → Niri JSON object
+  var wsMonName = (w.monitor && w.monitor.name) || w.output || "";
+  if (w.id >= 1 && wsMonName === screenName && !seen[w.id]) {
+    seen[w.id] = true;
+    out.push(w.id);
+  }
+}
         var a = parseInt(activeName);
         if (a >= 1 && !seen[a])
             out.push(a);
         out.sort(function (x, y) { return x - y; });
         return out;
-    }
-
-    readonly property string activeName: {
-        var mons = Compositor.monitors;
-        for (var i = 0; i < mons.length; i++)
-            if (mons[i].name === screenName)
-                return mons[i].activeWorkspace ? mons[i].activeWorkspace.name : "";
-        return "";
+      }
+      
+      readonly property string activeName: {
+      // Fast path — Compositor.focusedWorkspace is backed by a QML-tracked
+      // C++ property on Hyprland (and by a QtObject property on Niri), so it
+      // fires near-instantly on a workspace switch without depending on the
+      // _toArray() materialisation that Compositor.monitors goes through.
+      var fw = Compositor.focusedWorkspace;
+      if (fw && fw.monitor && fw.monitor.name === screenName) return fw.name;
+    
+      // Slow path — covers special / scratchpad workspaces whose monitor field
+      // is null, plus any Niri polling delay where the fast path hasn't caught
+      // up yet.  Goes through Compositor.monitors (_toArray), so it may lag by
+      // 0-500 ms on Hyprland but is kept as a correctness fallback.
+      var mons = Compositor.monitors;
+      for (var i = 0; i < mons.length; i++)
+        if (mons[i].name === screenName)
+          return mons[i].activeWorkspace ? mons[i].activeWorkspace.name : "";
+      return "";
     }
 
     property int hoverIndex: -1
