@@ -4,7 +4,7 @@ import QtQuick.Controls 6.10
 import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
-import "../../../services" as QsServices
+import "../../pill/Singletons"
 import "../../../singletons" as QsSingletons
 
 // Material 3 Expressive Brightness Popup
@@ -13,7 +13,7 @@ PanelWindow {
     
     property bool shouldShow: false
     property bool isHovered: false
-    readonly property var brightness: QsServices.Brightness
+    readonly property var brightness: Devices
     
     // Material 3 colors
     readonly property color m3Surface: Qt.rgba(QsSingletons.Theme.cardBot.r, QsSingletons.Theme.cardBot.g, QsSingletons.Theme.cardBot.b, 1.0)
@@ -172,7 +172,7 @@ PanelWindow {
                 Item { Layout.fillWidth: true }
                 
                 Text {
-                    text: brightness.percentage + "%"
+                    text: brightness.backlightPct + "%"
                     font.family: "JetBrainsMono Nerd Font"
                     font.pixelSize: 12
                     font.weight: Font.Medium
@@ -186,10 +186,10 @@ PanelWindow {
                 Layout.fillWidth: true
                 from: 0
                 to: 100
-                value: brightness.percentage
+                value: brightness.backlightPct
                 
                 onMoved: {
-                    brightness.setBrightness(value / 100)
+                    brightness.setBacklight(value)
                 }
                 
                 background: Rectangle {
@@ -261,7 +261,7 @@ PanelWindow {
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: brightness.setBrightness(modelData.value)
+                            onClicked: brightness.setBacklight(modelData.value * 100)
                             
                             onPressed: parent.color = Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.2)
                             onReleased: parent.color = Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.1)
