@@ -1,7 +1,7 @@
 import QtQuick 6.10
 import QtQuick.Layouts 6.10
 import Quickshell
-import "../../../services" as QsServices
+import "../../pill/Singletons"
 import "../../../singletons" as QsSingletons
 import "../../../components/effects"
 
@@ -12,9 +12,9 @@ Item {
     property var barWindow
     property string screenName
     
-    readonly property var brightness: QsServices.Brightness
+    readonly property var brightness: Devices
     readonly property bool isHovered: mouseArea.containsMouse
-    readonly property int percentage: brightness?.percentage ?? 0
+    readonly property int percentage: brightness?.backlightPct ?? 0
     
     implicitWidth: brightnessRow.implicitWidth
     implicitHeight: 20
@@ -103,9 +103,9 @@ Item {
     
         onWheel: wheel => {
             if (wheel.angleDelta.y > 0) {
-                brightness.increaseBrightness()
+                brightness.increaseBacklight()
             } else {
-                brightness.decreaseBrightness()
+                brightness.decreaseBacklight()
             }
         }
     }
@@ -113,7 +113,7 @@ Item {
     // Brightness change pulse
     Connections {
         target: brightness
-        function onBrightnessChanged() {
+        function onBacklightPctChanged() {
             pulseAnim.restart()
         }
     }

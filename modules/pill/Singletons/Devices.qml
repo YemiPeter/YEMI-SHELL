@@ -87,6 +87,14 @@ Singleton {
         Quickshell.execDetached(["brightnessctl", "set", root.backlightPct + "%"]);
     }
 
+    function increaseBacklight() {
+        setBacklight(Math.min(100, root.backlightPct + 5));
+    }
+
+    function decreaseBacklight() {
+        setBacklight(Math.max(1, root.backlightPct - 5));
+    }
+
     /**
      * Parses a `ddcutil getvcp --brief` line, returning the current brightness
      * percent or -1 when no value is present.
