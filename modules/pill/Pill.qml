@@ -110,7 +110,7 @@ Item {
     readonly property real clipboardH: 332 * s
     readonly property real wallpaperW: 720 * s
     readonly property real wallpaperH: 172 * s
-    readonly property real powerW: 330 * s
+    readonly property real powerW: (power.contentWidth > 0 ? power.contentWidth : 330 * s) + 34 * s
     readonly property real powerH: 150 * s
     readonly property real mediaW: 390 * s
     readonly property real mediaH: 150 * s
