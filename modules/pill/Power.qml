@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Services.UPower
 import Quickshell.Hyprland
 import Quickshell.Widgets
 import "Singletons"
@@ -28,6 +29,8 @@ PillSurface {
     mRight: 17
     mBottom: 14
 
+    readonly property real contentWidth: tiles.implicitWidth
+
     property string hovered: ""
     property int focusIndex: -1
     property bool keyHeld: false
@@ -52,8 +55,9 @@ PillSurface {
         { key: "lock",     glyph: "lock",     label: "Lock",     confirm: false, dispatch: "",             argv: [Quickshell.env("HOME") + "/.config/hypr/scripts/lock.sh"] },
         { key: "logout",   glyph: "logout",   label: "Logout",   confirm: true,  dispatch: "exit", argv: [] },
         { key: "suspend",  glyph: "suspend",  label: "Sleep",    confirm: false, dispatch: "",             argv: ["systemctl", "suspend"] },
-        { key: "reboot",   glyph: "reboot",   label: "Restart",  confirm: true,  dispatch: "",             argv: ["systemctl", "reboot"] },
-        { key: "shutdown", glyph: "shutdown", label: "Shutdown", confirm: true,  dispatch: "",             argv: ["systemctl", "poweroff"] }
+        { key: "reboot", glyph: "reboot", label: "Restart", confirm: true, dispatch: "", argv: ["systemctl", "reboot"] },
+        { key: "hibernate", glyph: "snowflake", label: "Hibernate", confirm: true, dispatch: "", argv: ["systemctl", "hibernate"] },
+        { key: "shutdown", glyph: "shutdown", label: "Shutdown", confirm: true, dispatch: "", argv: ["systemctl", "poweroff"] }
     ]
 
     readonly property int splitAfter: 2
@@ -105,14 +109,16 @@ PillSurface {
     }
 
     onActiveChanged: if (!active) {
-        hovered = "";
-        soulKey = "";
-        focusIndex = -1;
-        keyHeld = false;
-        holdingIndex = -1;
-        holdProgress = 0;
+      hovered = "";
+      soulKey = "";
+      focusIndex = -1;
+      keyHeld = false;
+      holdingIndex = -1;
+      holdProgress = 0;
+      profileTile.kbFocus = false;
+      profileTile.pressed = false;
     }
-
+    
     Item {
         id: header
         anchors.top: parent.top
@@ -150,7 +156,83 @@ PillSurface {
         anchors.top: header.bottom
         anchors.topMargin: 14 * root.s
         spacing: 12 * root.s
-
+      
+        Component {
+          id: cycleTileComp
+          Item {
+            id: cycleTile
+            property bool kbFocus: false
+            property bool pressed: false
+            property real holdProgress: 0
+            width: 50 * root.s
+            height: 50 * root.s
+      
+            readonly property string currentGlyph: {
+              switch (PowerProfiles.profile) {
+                case PowerProfile.Balanced:    return "waves"
+                case PowerProfile.Performance: return "bolt"
+                default:                       return "sun"
+              }
+            }
+            readonly property string currentLabel: {
+              switch (PowerProfiles.profile) {
+                case PowerProfile.Balanced:    return "Balanced"
+                case PowerProfile.Performance: return "Performance"
+                default:                       return "Power Saver"
+              }
+            }
+            readonly property color accent: !kbFocus ? Theme.iconDim : Theme.cream
+      
+            function cycleProfile() {
+              switch (PowerProfiles.profile) {
+                case PowerProfile.PowerSaver:   PowerProfiles.profile = PowerProfile.Balanced;    break
+                case PowerProfile.Balanced:     PowerProfiles.profile = PowerProfile.Performance; break
+                case PowerProfile.Performance:
+                default:                        PowerProfiles.profile = PowerProfile.PowerSaver;  break
+              }
+            }
+      
+            Rectangle {
+              anchors.fill: parent
+              radius: Motion.rTile * root.s
+              color: kbFocus ? Theme.frameBg : "transparent"
+              border.width: 1
+              border.color: kbFocus ? Theme.frameBorder : Theme.border
+            }
+            GlyphIcon {
+              anchors.centerIn: parent
+              width: 22 * root.s
+              height: 22 * root.s
+              name: cycleTile.currentGlyph
+              color: accent
+              stroke: 1.9
+            }
+            MouseArea {
+              anchors.fill: parent
+              hoverEnabled: true
+              cursorShape: Qt.PointingHandCursor
+              onClicked: cycleTile.cycleProfile()
+              onEntered: {
+                  root.hovered = "profile"
+                  root.soulKey = "profile"
+                  const c = cycleTile.mapToItem(root, cycleTile.width / 2, 0)
+                  root.hoverX = c.x
+                  root.hoverY = c.y - 9 * root.s
+              }
+              onExited: {
+                  if (root.hovered === "profile")
+                      root.hovered = ""
+              }
+            }
+          }
+        }
+        
+        Loader {
+          id: profileTile
+          anchors.verticalCenter: parent.verticalCenter
+          sourceComponent: cycleTileComp
+        }
+        
         Repeater {
             model: root.actions
 
@@ -301,6 +383,8 @@ PillSurface {
         readonly property string focusKey: root.holdingIndex >= 0
             ? root.actions[root.holdingIndex].key : root.hovered
         readonly property var act: {
+            if (label.focusKey === "profile")
+                return { label: profileTile.item?.currentLabel ?? "", confirm: false }
             for (var i = 0; i < root.actions.length; i++)
                 if (root.actions[i].key === label.focusKey)
                     return root.actions[i];
