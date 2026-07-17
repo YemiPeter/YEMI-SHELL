@@ -12,6 +12,7 @@ import "Singletons"
  */
 Item {
     id: surface
+    clip: true
 
     property real s: 1
     property bool open: false
@@ -46,6 +47,6 @@ Item {
     visible: opacity > 0.01
 
     Behavior on opacity {
-        NumberAnimation { duration: Motion.standard; easing.type: Motion.easeStandard }
+        NumberAnimation { duration: Motion.morph; easing.type: Motion.easeMorph; easing.bezierCurve: Motion.morphCurve }
     }
 }
