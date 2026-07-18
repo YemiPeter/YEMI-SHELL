@@ -542,7 +542,7 @@ Item {
                 ctx.fillStyle = Qt.rgba(1, 0.965, 0.941, 0.6);
                 ctx.fill();
                 ctx.globalAlpha = 1;
-                if (fadeIn < 0.7)
+                if (fadeIn < 0.6)
                     bead(ctx, bx, by, 2.6 * S * (1 - fadeIn), 0, 0, 1 - fadeIn * 1.3);
                 return;
             }
