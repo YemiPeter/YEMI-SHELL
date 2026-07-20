@@ -1,0 +1,4 @@
+module qs.compositor
+singleton Compositor Compositor.qml
+Hyprland Hyprland.qml
+Niri Niri.qml
