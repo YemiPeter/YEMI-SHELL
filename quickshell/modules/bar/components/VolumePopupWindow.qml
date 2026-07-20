@@ -1,0 +1,378 @@
+import QtQuick 6.10
+import QtQuick.Layouts 6.10
+import QtQuick.Controls 6.10
+import QtQuick.Effects
+import Quickshell
+import Quickshell.Wayland
+import "../../../services" as QsServices
+import "../../../singletons" as QsSingletons
+
+// Material 3 Expressive Volume Popup
+PanelWindow {
+    id: popupWindow
+    
+    property bool shouldShow: false
+    property bool isHovered: false
+    readonly property var audio: QsServices.Audio
+    
+    // Material 3 colors
+    readonly property color m3Surface: Qt.rgba(
+        QsSingletons.Theme.cardBot.r,
+        QsSingletons.Theme.cardBot.g,
+        QsSingletons.Theme.cardBot.b,
+        1.0
+    )
+    readonly property color m3Primary: QsSingletons.Theme.verm ?? "#a6e3a1"
+    readonly property color m3OnSurface: QsSingletons.Theme.cream
+    
+    screen: Quickshell.screens[0]
+    
+    anchors {
+        top: true
+        right: true
+    }
+    
+    margins {
+        right: 4
+        top: 4
+    }
+    
+    implicitWidth: 320
+    implicitHeight: contentColumn.implicitHeight + 32
+    color: "transparent"
+    visible: shouldShow || container.opacity > 0
+    
+    // Animated container with Material 3 expressive motion
+    Item {
+        id: container
+        anchors.fill: parent
+        scale: 0.85
+        opacity: 0
+        transformOrigin: Item.TopRight
+        
+        // Bouncy entrance
+        SequentialAnimation {
+            running: popupWindow.shouldShow
+            
+            ParallelAnimation {
+                NumberAnimation {
+                    target: container
+                    property: "scale"
+                    from: 0.7
+                    to: 1.08
+                    duration: 280
+                    easing.type: Easing.OutCubic
+                }
+                NumberAnimation {
+                    target: container
+                    property: "opacity"
+                    from: 0
+                    to: 1
+                    duration: 250
+                }
+            }
+            NumberAnimation {
+                target: container
+                property: "scale"
+                to: 1.0
+                duration: 220
+                easing.type: Easing.OutBack
+                easing.overshoot: 1.8
+            }
+        }
+        
+        // Quick exit
+        ParallelAnimation {
+            running: !popupWindow.shouldShow && container.opacity > 0
+            
+            NumberAnimation {
+                target: container
+                property: "scale"
+                to: 0.85
+                duration: 200
+                easing.type: Easing.InCubic
+            }
+            NumberAnimation {
+                target: container
+                property: "opacity"
+                to: 0
+                duration: 200
+            }
+        }
+        
+        // Shadow
+        Rectangle {
+            anchors.fill: backgroundRect
+            anchors.margins: -6
+            radius: backgroundRect.radius + 3
+            color: "transparent"
+            
+            layer.enabled: true
+            layer.effect: MultiEffect {
+                shadowEnabled: true
+                shadowColor: Qt.rgba(0, 0, 0, 0.35)
+                shadowBlur: 0.8
+                shadowVerticalOffset: 8
+            }
+        }
+    
+        // Material 3 surface
+        Rectangle {
+            id: backgroundRect
+            anchors.fill: parent
+            color: m3Surface
+            radius: 16
+            
+            border.color: Qt.rgba(m3Primary.r, m3Primary.g, m3Primary.b, 0.2)
+            border.width: 1
+            
+            MouseArea {
+                anchors.fill: parent
+                hoverEnabled: true
+                onEntered: popupWindow.isHovered = true
+                onExited: {
+                    popupWindow.isHovered = false
+                    popupWindow.shouldShow = false
+                }
+            }
+        }
+    }
+    
+    ColumnLayout {
+        id: contentColumn
+        anchors.fill: parent
+        anchors.margins: 12
+        spacing: 12
+        
+        // Header
+        Text {
+            text: "Volume"
+            font.family: "JetBrainsMono Nerd Font"
+            font.pixelSize: 14
+            font.weight: Font.DemiBold
+            color: QsSingletons.Theme.cream
+        }
+        
+        // Output volume
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: 8
+            
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+                
+                Text {
+                    text: audio.muted ? "󰖁" : "󰕾"
+                    font.family: "Material Design Icons"
+                    font.pixelSize: 20
+                    color: QsSingletons.Theme.cream
+                }
+                
+                Text {
+                    text: "Output"
+                    font.family: "JetBrainsMono Nerd Font"
+                    font.pixelSize: 12
+                    color: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.7)
+                }
+                
+                Item { Layout.fillWidth: true }
+                
+                Text {
+                    text: audio.percentage + "%"
+                    font.family: "JetBrainsMono Nerd Font"
+                    font.pixelSize: 12
+                    font.weight: Font.Medium
+                    color: QsSingletons.Theme.cream
+                }
+                
+                // Mute toggle
+                Rectangle {
+                    width: 28
+                    height: 28
+                    radius: 6
+                    color: audio.muted ? QsSingletons.Theme.vermBurn : Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.1)
+                    
+                    Behavior on color {
+                        ColorAnimation { duration: 200; easing.type: Easing.OutCubic }
+                    }
+                    
+                    Text {
+                        anchors.centerIn: parent
+                        text: audio.muted ? "󰝟" : "󰝚"
+                        font.family: "Material Design Icons"
+                        font.pixelSize: 14
+                        color: QsSingletons.Theme.cream
+                    }
+                    
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: audio.toggleMute()
+                    }
+                }
+            }
+            
+            // Volume slider
+            Slider {
+                id: volumeSlider
+                Layout.fillWidth: true
+                from: 0
+                to: 150
+                value: audio.percentage
+                
+                onMoved: {
+                    audio.setVolume(value / 100)
+                }
+                
+                background: Rectangle {
+                    x: volumeSlider.leftPadding
+                    y: volumeSlider.topPadding + volumeSlider.availableHeight / 2 - height / 2
+                    implicitWidth: 200
+                    implicitHeight: 6
+                    width: volumeSlider.availableWidth
+                    height: implicitHeight
+                    radius: 3
+                    color: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.1)
+                    
+                    Rectangle {
+                        width: volumeSlider.visualPosition * parent.width
+                        height: parent.height
+                        color: QsSingletons.Theme.onGlow
+                        radius: 3
+                        
+                        Behavior on width {
+                            NumberAnimation { duration: 100; easing.type: Easing.OutCubic }
+                        }
+                    }
+                }
+                
+                handle: Rectangle {
+                    x: volumeSlider.leftPadding + volumeSlider.visualPosition * (volumeSlider.availableWidth - width)
+                    y: volumeSlider.topPadding + volumeSlider.availableHeight / 2 - height / 2
+                    implicitWidth: 18
+                    implicitHeight: 18
+                    radius: 9
+                    color: QsSingletons.Theme.cream
+                    border.color: QsSingletons.Theme.onGlow
+                    border.width: 2
+                    
+                    Behavior on x {
+                        NumberAnimation { duration: 100; easing.type: Easing.OutCubic }
+                    }
+                }
+            }
+        }
+        
+        // Input volume
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: 8
+            
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+                
+                Text {
+                    text: audio.sourceMuted ? "󰍭" : "󰍬"
+                    font.family: "Material Design Icons"
+                    font.pixelSize: 20
+                    color: QsSingletons.Theme.cream
+                }
+                
+                Text {
+                    text: "Input"
+                    font.family: "JetBrainsMono Nerd Font"
+                    font.pixelSize: 12
+                    color: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.7)
+                }
+                
+                Item { Layout.fillWidth: true }
+                
+                Text {
+                    text: audio.sourcePercentage + "%"
+                    font.family: "JetBrainsMono Nerd Font"
+                    font.pixelSize: 12
+                    font.weight: Font.Medium
+                    color: QsSingletons.Theme.cream
+                }
+                
+                // Mute toggle
+                Rectangle {
+                    width: 28
+                    height: 28
+                    radius: 6
+                    color: audio.sourceMuted ? QsSingletons.Theme.vermBurn : Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.1)
+                    
+                    Behavior on color {
+                        ColorAnimation { duration: 200; easing.type: Easing.OutCubic }
+                    }
+                    
+                    Text {
+                        anchors.centerIn: parent
+                        text: audio.sourceMuted ? "󰝟" : "󰝚"
+                        font.family: "Material Design Icons"
+                        font.pixelSize: 14
+                        color: QsSingletons.Theme.cream
+                    }
+                    
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: audio.toggleSourceMute()
+                    }
+                }
+            }
+            
+            // Input volume slider
+            Slider {
+                id: inputSlider
+                Layout.fillWidth: true
+                from: 0
+                to: 150
+                value: audio.sourcePercentage
+                
+                onMoved: {
+                    audio.setSourceVolume(value / 100)
+                }
+                
+                background: Rectangle {
+                    x: inputSlider.leftPadding
+                    y: inputSlider.topPadding + inputSlider.availableHeight / 2 - height / 2
+                    implicitWidth: 200
+                    implicitHeight: 6
+                    width: inputSlider.availableWidth
+                    height: implicitHeight
+                    radius: 3
+                    color: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.1)
+                    
+                    Rectangle {
+                        width: inputSlider.visualPosition * parent.width
+                        height: parent.height
+                        color: QsSingletons.Theme.verm
+                        radius: 3
+                        
+                        Behavior on width {
+                            NumberAnimation { duration: 100; easing.type: Easing.OutCubic }
+                        }
+                    }
+                }
+                
+                handle: Rectangle {
+                    x: inputSlider.leftPadding + inputSlider.visualPosition * (inputSlider.availableWidth - width)
+                    y: inputSlider.topPadding + inputSlider.availableHeight / 2 - height / 2
+                    implicitWidth: 18
+                    implicitHeight: 18
+                    radius: 9
+                    color: QsSingletons.Theme.cream
+                    border.color: QsSingletons.Theme.verm
+                    border.width: 2
+                    
+                    Behavior on x {
+                        NumberAnimation { duration: 100; easing.type: Easing.OutCubic }
+                    }
+                }
+            }
+        }
+    }
+}
