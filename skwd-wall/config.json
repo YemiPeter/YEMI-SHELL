@@ -1,0 +1,115 @@
+{
+  "compositor": "hyprland",
+  "monitor": "",
+  "general": {
+    "locale": "",
+    "closeOnSelection": false,
+    "reopenAtLastSelection": false
+  },
+  "paths": {
+    "wallpaper": "~/Pictures/Wallpapers",
+    "videoWallpaper": "~/videowalls",
+    "cache": "",
+    "templates": "",
+    "scripts": "",
+    "steam": "",
+    "steamWorkshop": "",
+    "steamWeAssets": ""
+  },
+  "features": {
+    "matugen": false,
+    "ollama": false,
+    "steam": false,
+    "wallhaven": true,
+    "videoPreviewInstant": true
+  },
+  "colorSource": "magick",
+  "ollama": {
+    "url": "http://localhost:11434",
+    "model": "gemma3:4b",
+    "consolidateEnabled": true
+  },
+  "steam": {
+    "apiKey": "",
+    "username": ""
+  },
+  "wallhaven": {
+    "apiKey": ""
+  },
+  "matugen": {
+    "schemeType": "scheme-fidelity",
+    "mode": "dark"
+  },
+  "integrations": [
+    {
+      "_comment": "Built-in: MD3 colors for the shell UI (always needed)",
+      "name": "skwd-wall",
+      "template": "quickshell-colors.json",
+      "output": "colors.json"
+    },
+    {
+      "_comment": "MD3 colors for the Skwd shell widgets (skwd-bar etc)",
+      "name": "skwd",
+      "template": "quickshell-colors.json",
+      "output": "~/.cache/skwd/colors.json"
+    }
+  ],
+  "components": {
+    "wallpaperSelector": {
+      "displayMode": "slices",
+      "sliceSpacing": -30,
+      "hexScrollStep": 1,
+      "customPresets": {
+        "C1_slices": {
+          "expandedWidth": 480,
+          "sliceHeight": 270,
+          "sliceWidth": 68,
+          "visibleCount": 18,
+          "sliceSpacing": -30,
+          "skewOffset": 20
+        },
+        "C2_slices": {
+          "expandedWidth": 480,
+          "sliceHeight": 270,
+          "sliceWidth": 68,
+          "visibleCount": 18,
+          "sliceSpacing": -30,
+          "skewOffset": 20
+        }
+      },
+      "roundCorners": true,
+      "expandedWidth": 360,
+      "sliceHeight": 200,
+      "sliceWidth": 52,
+      "visibleCount": 20,
+      "skewOffset": 16
+    }
+  },
+  "wallpaperMute": true,
+  "pickOnlyMode": true,
+  "externalWallpaperCommand": "~/.config/hypr/scripts/wallpaper.sh set %path% && ~/.config/skwd-wall/scripts/sync-colors.sh %path%",
+  "postProcessing": [],
+  "performance": {
+    "imageOptimizePreset": "quality",
+    "imageOptimizeResolution": "1080p",
+    "videoConvertPreset": "balanced",
+    "videoConvertResolution": "2k",
+    "autoOptimizeImages": true,
+    "autoConvertVideos": false,
+    "imageTrashDays": 7,
+    "videoTrashDays": 7,
+    "autoDeleteImageTrash": false,
+    "autoDeleteVideoTrash": false
+  },
+  "paper": {
+    "engine": "awww",
+    "awww": {
+      "transitionType": "random",
+      "transitionFps": 120,
+      "filter": "Bilinear"
+    }
+  },
+  "display": {
+    "fillMode": "fill"
+  }
+}

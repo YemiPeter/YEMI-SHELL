@@ -1,0 +1,109 @@
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/master/doc/json_schema.json",
+  "logo": {
+    "type": "auto",
+    "height": 15,
+    "padding": {
+      "top": 3,
+      "left": 2,
+      "right": 2
+    }
+  },
+  "display": {
+    "separator": " ",
+    "color": {
+      "separator": "blue"
+    }
+  },
+  "modules": [
+    {
+      "type": "os",
+      "key": " ",
+      "keyColor": "cyan"
+    },
+    {
+      "type": "kernel",
+      "key": " ",
+      "keyColor": "cyan"
+    },
+    {
+      "type": "packages",
+      "format": "{} (pacman)",
+      "key": " ",
+      "keyColor": "white"
+    },
+    {
+      "type": "shell",
+      "key": " ",
+      "keyColor": "white"
+    },
+    {
+      "type": "terminal",
+      "key": " ",
+      "keyColor": "white"
+    },
+    {
+      "type": "wm",
+      "key": " ",
+      "keyColor": "white"
+    },
+    {
+      "type": "display",
+      "key": " ",
+      "keyColor": "white"
+    },
+    {
+      "type": "cpu",
+      "format": "{1}",
+      "key": " ",
+      "keyColor": "white"
+    },
+    {
+      "type": "gpu",
+      "format": "{2}",
+      "key": " ",
+      "keyColor": "white"
+    },
+    {
+      "type": "gpu",
+      "format": "{3}",
+      "key": " ",
+      "keyColor": "white"
+    },
+    {
+      "type": "memory",
+      "key": "󰍛 ",
+      "keyColor": "white"
+    },
+    {
+      "type": "swap",
+      "key": "󰾴 ",
+      "keyColor": "white"
+    },
+    {
+      "type": "disk",
+      "key": " ",
+      "keyColor": "white"
+    },
+    {
+      "type": "uptime",
+      "key": " ",
+      "keyColor": "cyan"
+    },
+    {
+      "type": "command",
+      "key": "󱦟 ",
+      "keyColor": "cyan",
+      "text": "birth_install=$(stat -c %W /); current=$(date +%s); time_progression=$((current - birth_install)); days_difference=$((time_progression / 86400)); echo $days_difference days"
+    },
+    "break",
+    {
+      "key": " palette",
+      "type": "colors",
+      "symbol": "circle",
+      "keyColor": "cyan"
+    },
+    "break",
+    "break"
+  ]
+}
