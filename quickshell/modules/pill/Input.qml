@@ -24,9 +24,9 @@ SettingsSurface {
     implicitHeight: content.implicitHeight
     rows: []
 
-    readonly property string inputPath: Quickshell.env("HOME") + "/.config/hypr/modules/input.lua"
-    readonly property string envPath: Quickshell.env("HOME") + "/.config/hypr/modules/env.lua"
-    readonly property string autostartPath: Quickshell.env("HOME") + "/.config/hypr/modules/autostart.lua"
+    readonly property string inputPath: Quickshell.env("RICE_HOME") + "/hypr/modules/input.lua"
+    readonly property string envPath: Quickshell.env("RICE_HOME") + "/hypr/modules/env.lua"
+    readonly property string autostartPath: Quickshell.env("RICE_HOME") + "/hypr/modules/autostart.lua"
 
     property real sensitivity: 0
     property string accelProfile: "flat"

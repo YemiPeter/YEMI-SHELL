@@ -23,9 +23,9 @@ SettingsSurface {
     implicitHeight: content.implicitHeight
     rows: []
 
-    readonly property string decoPath: Quickshell.env("HOME") + "/.config/hypr/modules/decoration.lua"
+    readonly property string decoPath: Quickshell.env("RICE_HOME") + "/hypr/modules/decoration.lua"
     readonly property string pillBlurRule: 'hl.layer_rule({ name = "pill-blur", match = { namespace = "pill" }, blur = true, ignore_alpha = 0.05 })\n'
-    readonly property string decoDefaultsPath: Quickshell.env("HOME") + "/.config/hypr/modules/decoration.defaults.lua"
+    readonly property string decoDefaultsPath: Quickshell.env("RICE_HOME") + "/hypr/modules/decoration.defaults.lua"
 
     property int gapsIn: 6
     property int gapsOut: 12
