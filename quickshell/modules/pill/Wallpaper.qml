@@ -188,7 +188,7 @@ PillSurface {
         }
     }
 
-    readonly property string searchScript: Quickshell.env("HOME") + "/.config/hypr/scripts/wallpaper-search.sh"
+    readonly property string searchScript: Quickshell.env("RICE_HOME") + "/hypr/scripts/wallpaper-search.sh"
 
     Timer {
         id: debounce

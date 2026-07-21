@@ -29,8 +29,8 @@ Singleton {
 
     readonly property string wpDir: Quickshell.env("HOME") + "/Pictures/Wallpapers"
     readonly property string thumbDir: (Quickshell.env("XDG_CACHE_HOME") || (Quickshell.env("HOME") + "/.cache")) + "/quickshell-wp-thumbs/"
-    readonly property string thumbScript: Quickshell.env("HOME") + "/.config/hypr/scripts/wallpaper-thumbs.sh"
-    readonly property string setScript: Quickshell.env("HOME") + "/.config/hypr/scripts/wallpaper.sh"
+    readonly property string thumbScript: Quickshell.env("RICE_HOME") + "/hypr/scripts/wallpaper-thumbs.sh"
+    readonly property string setScript: Quickshell.env("RICE_HOME") + "/hypr/scripts/wallpaper.sh"
     readonly property string stateFile: (Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")) + "/quickshell-wallpaper"
 
     function refresh() {
@@ -150,7 +150,7 @@ Singleton {
         id: afterWallProc
         property string wallPath: ""
         command: ["bash",
-                  Quickshell.env("HOME") + "/.config/quickshell/scripts/after-wall.sh",
+                  Quickshell.env("RICE_HOME") + "/quickshell/scripts/after-wall.sh",
                   wallPath]
         onExited: stateProc.running = true
     }

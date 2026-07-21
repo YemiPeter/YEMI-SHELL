@@ -8,7 +8,7 @@
  *
  * Examples (from the real 70-binds.kdl):
  *     Mod+Tab repeat=false { toggle-overview; }
- *     Mod+Alt+L allow-when-locked=true { spawn "/home/yemi/.config/quickshell/shell" "lock" "activate"; }
+ * Mod+Alt+L allow-when-locked=true { spawn "$RICE_HOME/quickshell/shell" "lock" "activate"; }
  *     Mod+WheelScrollDown cooldown-ms=150 { focus-workspace-down; }
  *     Mod+1 { focus-workspace 1; }
  *

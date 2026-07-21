@@ -11,7 +11,7 @@ import Quickshell.Io
  * one surface updates the others on the next file event, and the state
  * survives a daemon restart.
  *
- * MERGED from Ricelin pill's Flags.qml – this is now the unified
+ * Merged from Shell by Yemi's Flags.qml – this is now the unified
  * project-wide Flags.
  */
 Singleton {
