@@ -41,8 +41,30 @@ run() {
 # --- paths -------------------------------------------------------------------
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 TARGET_DIR="$HOME/.config/quickshell"
-WALLPAPER_DIR="$HOME/wallpapers"
+WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
+FASTFETCH_DIR="$HOME/Pictures/fastfetch"
 DEFAULT_WALLPAPER=""
+
+# --- sample assets bundled with this repo ------------------------------------
+# 5 wallpapers — drop them in ~/Pictures/Wallpapers so skwd-wall has a starting
+# point and colors generate on first run. Add your own wallpapers there.
+SAMPLE_WALLPAPERS=(
+    "assets/wallpapers/pacman-ghosts.webp"
+    "assets/wallpapers/Girl-Face-Resting-On-Hands.webp"
+    "assets/wallpapers/Girl-Waves.webp"
+    "assets/wallpapers/Snoopy.webp"
+    "assets/wallpapers/wallhaven-e8xlgw.webp"
+)
+
+# 5 fastfetch images — shown randomly in the terminal on shell start.
+# Add your own images (PNG/JPG/WebP) to ~/Pictures/fastfetch/
+SAMPLE_FASTFETCH=(
+    "assets/fastfetch/archlinux.png"
+    "assets/fastfetch/nyarch.png"
+    "assets/fastfetch/itachipro.png"
+    "assets/fastfetch/pochita.png"
+    "assets/fastfetch/obito.png"
+)
 
 # --- packages found from the QuickShell config -------------------------------
 PACMAN_PACKAGES=(
