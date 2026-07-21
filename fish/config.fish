@@ -1,4 +1,5 @@
 source /usr/share/cachyos-fish-config/cachyos-config.fish
+set -gx RICE_HOME "$HOME/.config"
 
 # Override CachyOS default fastfetch greeting
 function fish_greeting

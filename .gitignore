@@ -88,3 +88,5 @@ hypr/hyprland.conf.bak*
 **/*.swp
 **/*.swo
 *~
+quickshell-debug.log
+*.log

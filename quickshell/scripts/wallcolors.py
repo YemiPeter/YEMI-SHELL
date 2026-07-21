@@ -156,16 +156,29 @@ def main():
         'return {\n    active = "%s",\n    inactive = "%s",\n}\n'
         % (pill["primary"], b["base01"]))
 
-    lines = [
-        f'background = {b["base00"]}',
-        f'foreground = {b["base07"]}',
-        f'cursor-color = {pill["primary"]}',
-        f'selection-background = {b["base02"]}',
-        f'selection-foreground = {b["base07"]}',
-    ]
-    for i in range(16):
-        lines.append(f'palette = {i}={b["base%02x" % i]}')
-    (CACHE / "ghostty-colors").write_text("\n".join(lines) + "\n")
+    # terminal.json — single source of truth for all terminal emulator colors
+    # apply-terminal-colors.py reads this and fans out to kitty, ghostty, etc.
+    terminal = {
+        "term0":   b["base00"],  # background
+        "term1":   b["base08"],  # red
+        "term2":   b["base0b"],  # green
+        "term3":   b["base0a"],  # yellow
+        "term4":   b["base0d"],  # blue
+        "term5":   b["base0e"],  # magenta
+        "term6":   b["base0c"],  # cyan
+        "term7":   b["base05"],  # white
+        "term8":   b["base03"],  # bright black
+        "term9":   b["base08"],  # bright red
+        "term10":  b["base0b"],  # bright green
+        "term11":  b["base0a"],  # bright yellow
+        "term12":  b["base0d"],  # bright blue
+        "term13":  b["base0e"],  # bright magenta
+        "term14":  b["base0c"],  # bright cyan
+        "term15":  b["base07"],  # bright white / foreground
+        "primary": pill["primary"],
+    }
+    (CACHE / "terminal.json").write_text(json.dumps(terminal, indent=2) + "\n")
+
     return 0
 
 
