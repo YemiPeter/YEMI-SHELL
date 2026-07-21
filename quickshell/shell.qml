@@ -250,7 +250,8 @@ ShellRoot {
 
     // === Path Properties ===
     property string homePath: Quickshell.env("HOME")
-    property string configPath: homePath + "/.config/quickshell"
+    property string riceHome: Quickshell.env("RICE_HOME")
+    property string configPath: riceHome + "/quickshell"
     property string wallpaperPath: homePath + "/Pictures/Wallpapers"
     property string cachePath: homePath + "/.cache"
     property string statePath: configPath + "/state"

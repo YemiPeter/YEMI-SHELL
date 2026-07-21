@@ -7,7 +7,7 @@ import "Singletons"
 /**
  * UPDATES sub-surface: reads the installed commit, checks origin/main for newer
  * work and fast-forwards in place, all without a terminal. The live config dir is a
- * symlink into the Ricelin clone, so every git op targets the real repo through
+ * symlink into the Yemi Shell clone, so every git op targets the real repo through
  * `git -C` and the commit short-SHA stands in for a version. Reached from the
  * settings index and morphs back to it on an empty click or the back chevron.
  *
