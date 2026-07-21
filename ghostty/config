@@ -1,3 +1,5 @@
-background-opacity = 0
-background-blur-radius = 40
 window-decoration = auto
+theme = yemi-auto
+background = #0a0a0f
+foreground = #cdcdcd
+background-opacity = 0.85
