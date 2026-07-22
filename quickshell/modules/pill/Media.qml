@@ -127,31 +127,6 @@ PillSurface {
         onFinished: coverPair.settle()
     }
 
-    component Skip: Text {
-        id: skip
-
-        property bool can: false
-        signal activated()
-
-        anchors.verticalCenter: parent.verticalCenter
-        font.family: Theme.fontJp
-        font.pixelSize: 13 * root.s
-        color: skipArea.containsMouse ? Theme.cream : Theme.dim
-        opacity: skip.can ? 1 : 0.4
-        Behavior on color { ColorAnimation { duration: Motion.fast } }
-        Behavior on opacity { NumberAnimation { duration: Motion.fast } }
-
-        MouseArea {
-            id: skipArea
-            anchors.fill: parent
-            anchors.margins: -6 * root.s
-            hoverEnabled: true
-            enabled: skip.can
-            cursorShape: Qt.PointingHandCursor
-            onClicked: skip.activated()
-        }
-    }
-
     ClippingRectangle {
         anchors.fill: parent
         radius: 22 * root.s
@@ -315,10 +290,42 @@ PillSurface {
             anchors.bottomMargin: 38 * root.s
             spacing: 14 * root.s
 
-            KanjiSkip {
-                text: "<"
-                can: root.hasPlayer && root.player.canGoPrevious
-                onActivated: if (root.player) root.player.previous()
+            Item {
+                id: prevSkip
+                anchors.verticalCenter: parent.verticalCenter
+                width: 28 * root.s
+                height: 28 * root.s
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: width / 2
+                    color: prevSkip.area.containsMouse && prevSkip.enabled ? Theme.tileBg : "transparent"
+                    border.width: 1
+                    border.color: prevSkip.area.containsMouse && prevSkip.enabled ? Theme.border : "transparent"
+                    opacity: prevSkip.enabled ? 1 : 0.35
+                    Behavior on opacity { NumberAnimation { duration: Motion.fast } }
+                }
+
+                GlyphIcon {
+                    anchors.centerIn: parent
+                    width: 14 * root.s
+                    height: 14 * root.s
+                    name: "prev"
+                    color: prevSkip.enabled ? Theme.cream : Theme.faint
+                    stroke: 1.6
+                }
+
+                readonly property bool enabled: root.hasPlayer && root.player.canGoPrevious
+                readonly property alias area: prevArea
+
+                MouseArea {
+                    id: prevArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    enabled: prevSkip.enabled
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: if (root.player) root.player.previous()
+                }
             }
 
             Rectangle {
@@ -344,13 +351,13 @@ PillSurface {
                     GradientStop { position: 1.0; color: root.mix(Theme.vermDeep, Theme.tileBg, 0.55 * (1 - seal.sat)) }
                 }
 
-                Text {
+                GlyphIcon {
                     anchors.centerIn: parent
-                    text: root.playing ? "||" : ">"
+                    width: 16 * root.s
+                    height: 16 * root.s
+                    name: root.playing ? "pause" : "yemi"
                     color: Theme.bright
-                    font.family: Theme.font
-                    font.pixelSize: 16 * root.s
-                    font.weight: Font.DemiBold
+                    stroke: 1.8
                 }
 
                 MouseArea {
@@ -364,10 +371,42 @@ PillSurface {
                 }
             }
 
-            KanjiSkip {
-                text: ">"
-                can: root.hasPlayer && root.player.canGoNext
-                onActivated: if (root.player) root.player.next()
+            Item {
+                id: nextSkip
+                anchors.verticalCenter: parent.verticalCenter
+                width: 28 * root.s
+                height: 28 * root.s
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: width / 2
+                    color: nextSkip.area.containsMouse && nextSkip.enabled ? Theme.tileBg : "transparent"
+                    border.width: 1
+                    border.color: nextSkip.area.containsMouse && nextSkip.enabled ? Theme.border : "transparent"
+                    opacity: nextSkip.enabled ? 1 : 0.35
+                    Behavior on opacity { NumberAnimation { duration: Motion.fast } }
+                }
+
+                GlyphIcon {
+                    anchors.centerIn: parent
+                    width: 14 * root.s
+                    height: 14 * root.s
+                    name: "next"
+                    color: nextSkip.enabled ? Theme.cream : Theme.faint
+                    stroke: 1.6
+                }
+
+                readonly property bool enabled: root.hasPlayer && root.player.canGoNext
+                readonly property alias area: nextArea
+
+                MouseArea {
+                    id: nextArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    enabled: nextSkip.enabled
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: if (root.player) root.player.next()
+                }
             }
         }
 

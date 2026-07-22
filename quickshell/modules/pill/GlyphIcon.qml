@@ -84,7 +84,8 @@ Item {
         "cursor": { d: "M5 3l6 16 2-6 6-2L5 3z", fill: false },
         "video": { d: "M3 7.5a1.5 1.5 0 0 1 1.5-1.5h9A1.5 1.5 0 0 1 15 7.5v9A1.5 1.5 0 0 1 13.5 18h-9A1.5 1.5 0 0 1 3 16.5z M15 10l6-3v10l-6-3z", fill: false },
         "record": { d: "M12 4a8 8 0 1 0 0 16a8 8 0 1 0 0-16z", fill: true },
-        "snowflake": { d: "M12 2v6.5 M12 22v-6.5 M4.93 5.93l4.6 4.6 M14.47 14.47l4.6 4.6 M2 12h6.5 M22 12h-6.5 M4.93 18.07l4.6-4.6 M14.47 9.53l4.6-4.6", fill: false }
+        "snowflake": { d: "M12 2v6.5 M12 22v-6.5 M4.93 5.93l4.6 4.6 M14.47 14.47l4.6 4.6 M2 12h6.5 M22 12h-6.5 M4.93 18.07l4.6-4.6 M14.47 9.53l4.6-4.6", fill: false },
+        "yemi": { d: "M9 5l10 7-10 7z", fill: true }
     })
 
     readonly property var g: glyphs[name] !== undefined ? glyphs[name] : ({ d: "", fill: false })
