@@ -2,19 +2,90 @@
 
 set -euo pipefail
 
-# --- colors ------------------------------------------------------------------
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+# ── Visual ────────────────────────────────────────────────────────────────────
+RESET='\033[0m';  BOLD='\033[1m';  DIM='\033[2m'
+RED='\033[31m';   GREEN='\033[32m'; YELLOW='\033[33m'
+CYAN='\033[36m';  MAGENTA='\033[35m'; WHITE='\033[37m'
 
-ok() { printf "${GREEN}[OK] %s${NC}\n" "$*"; }
-warn() { printf "${YELLOW}[WARN] %s${NC}\n" "$*"; }
-err() { printf "${RED}[ERR] %s${NC}\n" "$*" >&2; }
-step() { printf "\n${BLUE}==> %s${NC}\n" "$*"; }
+ok()   { printf "    ${DIM}[${RESET}${GREEN} OK ${RESET}${DIM}]${RESET} %s\n" "$*"; }
+warn() { printf "    ${DIM}[${RESET}${YELLOW}WARN${RESET}${DIM}]${RESET} %s\n" "$*"; }
+err()  { printf "    ${DIM}[${RESET}${RED}ERR${RESET}${DIM}]${RESET} %s\n" "$*" >&2; }
 
-# --- arguments ---------------------------------------------------------------
+# ── progress bar ──────────────────────────────────────────────────────────────
+TOTAL_STEPS=12
+CURRENT_STEP=0
+
+draw_progress() {
+    local filled=$(( CURRENT_STEP * 30 / TOTAL_STEPS ))
+    local empty=$(( 30 - filled ))
+    local bar=""
+    local i
+    for (( i=0; i<filled; i++ )); do bar+="█"; done
+    for (( i=0; i<empty;  i++ )); do bar+="░"; done
+    printf "\r  ${DIM}[${RESET}${MAGENTA}%s${RESET}${DIM}]${RESET} ${DIM}%d/%d${RESET}\n" \
+        "$bar" "$CURRENT_STEP" "$TOTAL_STEPS"
+}
+
+step() {
+    CURRENT_STEP=$((CURRENT_STEP + 1))
+    printf "\n  ${BOLD}${CYAN}%s${RESET}\n" "$*"
+    draw_progress
+}
+
+# ── spinner ───────────────────────────────────────────────────────────────────
+_spinner_pid=""
+
+spinner_start() {
+    local msg="$1"
+    local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+    (
+        local i=0
+        while true; do
+            printf "\r    ${MAGENTA}%s${RESET}  %s" "${frames[$i]}" "$msg"
+            i=$(( (i+1) % 10 ))
+            sleep 0.08
+        done
+    ) &
+    _spinner_pid=$!
+}
+
+spinner_stop() {
+    local status=$1   # 0 = ok, 1 = fail
+    local msg="${2:-}"
+    [[ -n "$_spinner_pid" ]] && kill "$_spinner_pid" 2>/dev/null && wait "$_spinner_pid" 2>/dev/null
+    printf "\r\033[K"  # clear spinner line
+    _spinner_pid=""
+    if [[ $status -eq 0 ]]; then
+        [[ -n "$msg" ]] && ok "$msg"
+    else
+        err "${msg:-Failed}"
+    fi
+}
+
+trap 'spinner_stop 1' ERR
+
+# ── banner ────────────────────────────────────────────────────────────────────
+print_banner() {
+    printf "${BOLD}${MAGENTA}%s${RESET}\n" "██╗   ██╗███████╗███╗   ███╗██╗"
+    printf "${BOLD}${MAGENTA}%s${RESET}\n" "╚██╗ ██╔╝██╔════╝████╗ ████║██║"
+    printf "${BOLD}${MAGENTA}%s${RESET}\n" " ╚████╔╝ █████╗  ██╔████╔██║██║"
+    printf "${BOLD}${MAGENTA}%s${RESET}\n" "  ╚██╔╝  ██╔══╝  ██║╚██╔╝██║██║"
+    printf "${BOLD}${MAGENTA}%s${RESET}\n" "   ██║   ███████╗██║ ╚═╝ ██║██║"
+    printf "${BOLD}${MAGENTA}%s${RESET}\n" "   ╚═╝   ╚══════╝╚═╝     ╚═╝╚═╝"
+    echo
+    printf "${BOLD}${MAGENTA}%s${RESET}\n" "███████╗██╗  ██╗███████╗██╗     ██╗"
+    printf "${BOLD}${MAGENTA}%s${RESET}\n" "██╔════╝██║  ██║██╔════╝██║     ██║"
+    printf "${BOLD}${MAGENTA}%s${RESET}\n" "███████╗███████║█████╗  ██║     ██║"
+    printf "${BOLD}${MAGENTA}%s${RESET}\n" "╚════██║██╔══██║██╔══╝  ██║     ██║"
+    printf "${BOLD}${MAGENTA}%s${RESET}\n" "███████║██║  ██║███████╗███████╗███████╗"
+    printf "${BOLD}${MAGENTA}%s${RESET}\n" "╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝"
+    echo
+    printf "${DIM}  by YemiPeter • github.com/YemiPeter${RESET}\n"
+    printf "${DIM}  ─────────────────────────────────────${RESET}\n"
+    echo
+}
+
+# ── arguments ─────────────────────────────────────────────────────────────────
 DRY_RUN=false
 for arg in "$@"; do
     case "$arg" in
@@ -32,20 +103,20 @@ done
 
 run() {
     if "$DRY_RUN"; then
-        printf "${YELLOW}dry-run:${NC} %s\n" "$*"
+        printf "${YELLOW}dry-run:${RESET} %s\n" "$*"
     else
         "$@"
     fi
 }
 
-# --- paths -------------------------------------------------------------------
+# ── paths ─────────────────────────────────────────────────────────────────────
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 TARGET_DIR="$HOME/.config/quickshell"
 WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
 FASTFETCH_DIR="$HOME/Pictures/fastfetch"
 DEFAULT_WALLPAPER=""
 
-# --- sample assets bundled with this repo ------------------------------------
+# ── sample assets bundled with this repo ──────────────────────────────────────
 # 5 wallpapers — drop them in ~/Pictures/Wallpapers so skwd-wall has a starting
 # point and colors generate on first run. Add your own wallpapers there.
 SAMPLE_WALLPAPERS=(
@@ -66,7 +137,7 @@ SAMPLE_FASTFETCH=(
     "assets/fastfetch/obito.png"
 )
 
-# --- packages found from the QuickShell config -------------------------------
+# ── packages found from the QuickShell config ───────────────────────────────
 PACMAN_PACKAGES=(
     awww
     bash
@@ -119,7 +190,7 @@ AUR_PACKAGES=(
 PIP_PACKAGES=()
 NPM_PACKAGES=()
 
-# --- preflight ---------------------------------------------------------------
+# ── preflight ─────────────────────────────────────────────────────────────────
 require_arch() {
     step "Checking system"
 
@@ -134,7 +205,7 @@ require_arch() {
     fi
 }
 
-# --- package helpers ---------------------------------------------------------
+# ── package helpers ───────────────────────────────────────────────────────────
 is_pacman_installed() {
     pacman -Qi "$1" >/dev/null 2>&1
 }
@@ -161,7 +232,7 @@ missing_aur_packages() {
     done
 }
 
-# --- yay ---------------------------------------------------------------------
+# ── yay ───────────────────────────────────────────────────────────────────────
 ensure_yay() {
     step "Checking yay"
 
@@ -185,7 +256,7 @@ ensure_yay() {
     ok "yay installed"
 }
 
-# --- pacman packages ---------------------------------------------------------
+# ── pacman packages ───────────────────────────────────────────────────────────
 install_pacman_packages() {
     step "Checking pacman packages"
 
@@ -196,11 +267,12 @@ install_pacman_packages() {
     fi
 
     warn "Missing pacman packages: ${missing[*]}"
+    spinner_start "Installing pacman packages..."
     run sudo pacman -S --needed --noconfirm "${missing[@]}"
-    ok "pacman package step done"
+    spinner_stop $? "pacman package step done"
 }
 
-# --- AUR packages ------------------------------------------------------------
+# ── AUR packages ──────────────────────────────────────────────────────────────
 install_aur_packages() {
     step "Checking AUR packages"
 
@@ -211,11 +283,12 @@ install_aur_packages() {
     fi
 
     warn "Missing AUR packages: ${missing[*]}"
+    spinner_start "Installing AUR packages..."
     run yay -S --needed --noconfirm "${missing[@]}"
-    ok "AUR package step done"
+    spinner_stop $? "AUR package step done"
 }
 
-# --- pip packages ------------------------------------------------------------
+# ── pip packages ──────────────────────────────────────────────────────────────
 install_pip_packages() {
     step "Checking pip packages"
 
@@ -240,11 +313,13 @@ install_pip_packages() {
         ok "pip packages already installed"
     else
         warn "Missing pip packages: ${missing[*]}"
+        spinner_start "Installing pip packages..."
         run python -m pip install --user "${missing[@]}"
+        spinner_stop $? "pip package step done"
     fi
 }
 
-# --- npm packages ------------------------------------------------------------
+# ── npm packages ──────────────────────────────────────────────────────────────
 install_npm_packages() {
     step "Checking npm packages"
 
@@ -269,11 +344,13 @@ install_npm_packages() {
         ok "npm packages already installed"
     else
         warn "Missing npm packages: ${missing[*]}"
+        spinner_start "Installing npm packages..."
         run npm install -g "${missing[@]}"
+        spinner_stop $? "npm package step done"
     fi
 }
 
-# --- RICE_HOME ----------------------------------------------------------------
+# ── RICE_HOME ─────────────────────────────────────────────────────────────────
 ensure_rice_home() {
     step "Setting RICE_HOME"
 
@@ -300,7 +377,7 @@ ensure_rice_home() {
     fi
 }
 
-# --- config copy -------------------------------------------------------------
+# ── config copy ───────────────────────────────────────────────────────────────
 copy_config() {
     step "Checking QuickShell config"
 
@@ -318,7 +395,7 @@ copy_config() {
     ok "Config copied"
 }
 
-# --- services and directories ------------------------------------------------
+# ── services and directories ──────────────────────────────────────────────────
 enable_services() {
     step "Enabling services"
 
@@ -348,7 +425,7 @@ prepare_runtime_dirs() {
     ok "Runtime directories ready"
 }
 
-# --- pywal -------------------------------------------------------------------
+# ── pywal ─────────────────────────────────────────────────────────────────────
 find_default_wallpaper() {
     local candidate
 
@@ -376,18 +453,27 @@ init_pywal() {
     ok "Pywal colors initialized"
 }
 
-# --- summary -----------------------------------------------------------------
+# ── summary ───────────────────────────────────────────────────────────────────
 finish() {
     step "Done"
     ok "QuickShell rice install complete"
     echo
-    echo "Next steps:"
-    echo "  1. Put wallpapers in ~/wallpapers"
-    echo "  2. Add this to Hyprland: exec-once = quickshell"
-    echo "  3. Start it now with: quickshell"
+    echo "  ${BOLD}Next steps:${RESET}"
+    echo "    1. Put wallpapers in ~/Pictures/Wallpapers"
+    echo "    2. Hyprland config already has: exec-once = quickshell -p \$RICE_HOME/quickshell/shell.qml"
+    echo "    3. Log out and back in to load RICE_HOME, then run: quickshell"
+    echo
 }
 
-# --- main --------------------------------------------------------------------
+# ── main ──────────────────────────────────────────────────────────────────────
+print_banner
+
+# Pre-cache sudo credentials to avoid mid-spinner password prompts
+# Skip in dry-run mode — no actual install steps will run
+if ! "$DRY_RUN"; then
+    sudo -v || { err "sudo required for system-level install steps"; exit 1; }
+fi
+
 require_arch
 ensure_yay
 install_pacman_packages
