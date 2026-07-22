@@ -153,7 +153,7 @@ Item {
         mixer: { size: () => Qt.size(mixerW, mixerH), ame: mixer },
         link: { size: () => Qt.size(link.desiredW, link.implicitHeight + 26 * s), ame: link },
         bluetooth: { size: () => Qt.size(linkBt.desiredW, linkBt.implicitHeight + 26 * s), ame: linkBt },
-        battery: { size: () => Qt.size(batteryW, battery.implicitHeight + 26 * s), ame: battery },
+        battery: { size: () => Qt.size(batteryW, battery.implicitHeight + 36 * s), ame: battery },
         settings:  { size: () => Qt.size(settingsW, settings.implicitHeight + 29 * s), ame: settings },
         keybinds:  { size: () => Qt.size(keybindsW, keybinds.implicitHeight + 29 * s), ame: keybinds },
         recorder:  { size: () => Qt.size(recorderW, recorder.implicitHeight + 33 * s), ame: recorder },
