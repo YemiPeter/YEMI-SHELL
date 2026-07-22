@@ -273,6 +273,33 @@ install_npm_packages() {
     fi
 }
 
+# --- RICE_HOME ----------------------------------------------------------------
+ensure_rice_home() {
+    step "Setting RICE_HOME"
+
+    local rice_path="$HOME/.config"
+    local env_d_dir="$HOME/.config/environment.d"
+    local env_d_file="$env_d_dir/rice.conf"
+    local hypr_env="$HOME/.config/hypr/modules/env.lua"
+
+    # --- environment.d (systemd user session) ---
+    run mkdir -p "$env_d_dir"
+    if grep -q "^RICE_HOME=" "$env_d_file" 2>/dev/null; then
+        ok "environment.d/rice.conf already set"
+    else
+        echo "RICE_HOME=$rice_path" >> "$env_d_file"
+        ok "Added RICE_HOME to environment.d/rice.conf"
+    fi
+
+    # --- Hyprland env directive ---
+    if grep -q "^env = RICE_HOME," "$hypr_env" 2>/dev/null; then
+        ok "env.lua already has RICE_HOME"
+    else
+        echo "env = RICE_HOME,$rice_path" >> "$hypr_env"
+        ok "Added RICE_HOME to hypr/modules/env.lua"
+    fi
+}
+
 # --- config copy -------------------------------------------------------------
 copy_config() {
     step "Checking QuickShell config"
@@ -367,6 +394,7 @@ install_pacman_packages
 install_aur_packages
 install_pip_packages
 install_npm_packages
+ensure_rice_home
 copy_config
 enable_services
 prepare_runtime_dirs
