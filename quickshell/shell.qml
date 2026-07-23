@@ -207,13 +207,13 @@ ShellRoot {
         persistenceSupported: true
 
         onNotification: notif => {
-            console.log("📬 [ShellRoot] Notification received:", notif.appName, notif.summary);
+            if (QsSingletons.Flags.debug) console.log("📬 [ShellRoot] Notification received:", notif.appName, notif.summary);
             notif.tracked = true;
             notifs.addNotification(notif);
         }
 
         Component.onCompleted: {
-            console.log("🔔 NotificationServer registered on D-Bus");
+            if (QsSingletons.Flags.debug) console.log("🔔 NotificationServer registered on D-Bus");
         }
     }
 
@@ -259,6 +259,8 @@ ShellRoot {
     // === Music Panel State Properties ===
     property bool musicVisible: false
     property int savedGifIndex: 0
+    property real savedMusicX: 100
+    property real savedMusicY: 50
     function toggleMusic() { musicVisible = !musicVisible }
     property string wallSearchTerm: ""
     property var wallpaperList: []
@@ -413,6 +415,7 @@ ShellRoot {
         onExited: {
             if (!currentWallProc.running) currentWallProc.running = true
             if (!loadSavedGifIndexProc.running) loadSavedGifIndexProc.running = true
+            if (!loadSavedMusicPosProc.running) loadSavedMusicPosProc.running = true
             thumbDirProc.running = true
         }
     }
@@ -430,10 +433,31 @@ ShellRoot {
     }
 
     Process {
+        id: loadSavedMusicPosProc
+        command: ["bash", "-c", "cat '" + root.statePath + "/music-pos' 2>/dev/null || echo '100,50'"]
+        stdout: SplitParser {
+            splitMarker: ""
+            onRead: data => {
+                var parts = data.trim().split(",")
+                var x = parseFloat(parts[0])
+                var y = parseFloat(parts[1])
+                root.savedMusicX = isNaN(x) ? 100 : x
+                root.savedMusicY = isNaN(y) ? 50 : y
+            }
+        }
+    }
+
+    Process {
         id: saveStateProc
         property string stateKey: ""
         property string stateValue: ""
         command: ["bash", "-c", "mkdir -p '" + root.statePath + "' && echo '" + stateValue + "' > '" + root.statePath + "/" + stateKey + "'"]
+    }
+
+    function saveMusicPos(x, y) {
+        saveStateProc.stateKey = "music-pos"
+        saveStateProc.stateValue = Math.round(x) + "," + Math.round(y)
+        saveStateProc.running = true
     }
 
     function saveState(key, value) {
@@ -443,7 +467,7 @@ ShellRoot {
     }
 
     Component.onCompleted: {
-        console.log("QuickShell loaded successfully!")
+        if (QsSingletons.Flags.debug) console.log("QuickShell loaded successfully!")
         initStateDir.running = true
     }
 }

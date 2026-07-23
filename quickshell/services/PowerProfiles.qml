@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick 6.10
 import Quickshell
 import Quickshell.Io
+import "../singletons" as QsSingletons
 
 // Power Profiles Service (power-profiles-daemon)
 Singleton {
@@ -27,7 +28,7 @@ Singleton {
         onExited: code => {
             root.isAvailable = code === 0
             if (root.isAvailable) {
-                console.log("⚡ [PowerProfiles] Service available")
+                if (QsSingletons.Flags.debug) console.log("⚡ [PowerProfiles] Service available")
                 root.updateActiveProfile()
             }
         }
@@ -44,7 +45,7 @@ Singleton {
         stdout: StdioCollector {
             onStreamFinished: {
                 root.activeProfile = text.trim()
-                console.log("⚡ [PowerProfiles] Active profile:", root.activeProfile)
+                if (QsSingletons.Flags.debug) console.log("⚡ [PowerProfiles] Active profile:", root.activeProfile)
             }
         }
     }

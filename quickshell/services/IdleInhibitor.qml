@@ -3,6 +3,7 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import "../singletons" as QsSingletons
 
 Singleton {
     id: root
@@ -11,7 +12,7 @@ Singleton {
     property int inhibitorPid: -1
     
     onInhibitedChanged: {
-        console.log("☕ [IdleInhibitor] Inhibited changed to:", inhibited)
+        if (QsSingletons.Flags.debug) console.log("☕ [IdleInhibitor] Inhibited changed to:", inhibited)
         if (inhibited) {
             enableInhibitor()
         } else {
@@ -20,12 +21,12 @@ Singleton {
     }
     
     function enableInhibitor() {
-        console.log("☕ [IdleInhibitor] Enabling caffeine mode...")
+        if (QsSingletons.Flags.debug) console.log("☕ [IdleInhibitor] Enabling caffeine mode...")
         enableProcess.running = true
     }
     
     function disableInhibitor() {
-        console.log("☕ [IdleInhibitor] Disabling caffeine mode...")
+        if (QsSingletons.Flags.debug) console.log("☕ [IdleInhibitor] Disabling caffeine mode...")
         disableProcess.running = true
     }
     
@@ -40,7 +41,7 @@ Singleton {
                 const pid = parseInt(data.trim())
                 if (!isNaN(pid) && pid > 0) {
                     root.inhibitorPid = pid
-                    console.log("☕ [IdleInhibitor] Started with PID:", pid)
+                    if (QsSingletons.Flags.debug) console.log("☕ [IdleInhibitor] Started with PID:", pid)
                 }
             }
         }
@@ -56,11 +57,11 @@ Singleton {
         
         onExited: {
             root.inhibitorPid = -1
-            console.log("☕ [IdleInhibitor] Stopped")
+            if (QsSingletons.Flags.debug) console.log("☕ [IdleInhibitor] Stopped")
         }
     }
     
     Component.onCompleted: {
-        console.log("☕ [IdleInhibitor] Service loaded")
+        if (QsSingletons.Flags.debug) console.log("☕ [IdleInhibitor] Service loaded")
     }
 }

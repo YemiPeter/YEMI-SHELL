@@ -209,7 +209,7 @@ SettingsSurface {
         printErrors: false
         onSaveFailed: (err) => {
             root.note = "Live mode kept, but writing monitors.lua failed.";
-            console.log("display: write failed: " + err);
+            if (Flags.debug) console.log("display: write failed: " + err);
         }
     }
 
