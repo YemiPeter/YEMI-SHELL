@@ -94,7 +94,7 @@ SettingsSurface {
   path: root.confPath
   atomicWrites: true
   printErrors: true
-    onSaveFailed: (error) => console.log("write failed:", error)
+    onSaveFailed: (error) => { if (Flags.debug) console.log("write failed:", error) }
  }
 
   Process {
@@ -104,7 +104,7 @@ SettingsSurface {
     if (exitCode !== 0) {
      console.warn("IdleLock: hypridle restart failed, exit code:", exitCode);
     } else {
-     console.log("IdleLock: hypridle restarted successfully");
+     if (Flags.debug) console.log("IdleLock: hypridle restarted successfully");
     }
    }
   }

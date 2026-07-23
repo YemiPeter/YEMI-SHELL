@@ -56,7 +56,6 @@ PillSurface {
     property bool hintShown: false
 
     onFocusIndexChanged: {
-        console.log("[WALLPICK] focusIndex changed to", root.focusIndex, "ts=" + Date.now());
         hintShown = false;
         hintDwell.restart();
     }
@@ -115,7 +114,6 @@ PillSurface {
     }
 
     function activate() {
-        console.log("[WALLPICK] activate() called focusIndex=" + focusIndex + " itemCount=" + itemCount + " ts=" + Date.now());
         if (focusIndex < 0 || focusIndex >= itemCount)
             return;
         var entry = items[focusIndex];
@@ -126,7 +124,6 @@ PillSurface {
             dlProc.command = ["bash", root.searchScript, "download", entry.image];
             dlProc.running = true;
         } else {
-            console.log("[WALLPICK] → Walls.apply('" + entry.path + "') ts=" + Date.now());
             Walls.apply(entry.path);
         }
     }
@@ -140,7 +137,6 @@ PillSurface {
             }
         focusIndex = idx;
         pos = idx;
-        console.log("[WALLPICK] centerOnCurrent() called, focusIndex set to", root.focusIndex, "ts=" + Date.now());
     }
 
     /**
@@ -446,7 +442,6 @@ PillSurface {
                 enabled: !tile.remote
                 onConfirmed: if (!tile.remote) Walls.trash(tile.modelData.path)
                 onTapped: {
-                    console.log("[WALLPICK] HeatHold.tapped → activate() path=" + (tile.modelData.path || "n/a") + " focused=" + tile.focused + " ts=" + Date.now());
                     root.activate();
                 }
             }
@@ -456,7 +451,6 @@ PillSurface {
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onPressed: {
-                    console.log("[WALLPICK] MouseArea.pressed path=" + (tile.modelData.path || "n/a") + " focused=" + tile.focused + " remote=" + tile.remote + " ts=" + Date.now());
                     // Set focus first so tile.focused is true for the rest of this handler
                     if (!tile.focused)
                         root.focusIndex = tile.index;
@@ -468,7 +462,6 @@ PillSurface {
                 onReleased: if (tile.focused && !tile.remote) trashHeat.release()
                 onExited: trashHeat.cancel()
                 onClicked: {
-                    console.log("[WALLPICK] MouseArea.clicked path=" + (tile.modelData.path || "n/a") + " focused=" + tile.focused + " ts=" + Date.now());
                     // focusIndex is now set in onPressed — nothing left for onClicked
                 }
             }

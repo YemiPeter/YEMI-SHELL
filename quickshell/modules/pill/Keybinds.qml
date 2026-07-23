@@ -298,7 +298,7 @@ PillSurface {
         }
         onSaveFailed: (err) => {
             root.conflict = "write failed";
-            console.log("keybinds: write failed: " + err);
+            if (Flags.debug) console.log("keybinds: write failed: " + err);
         }
     }
 

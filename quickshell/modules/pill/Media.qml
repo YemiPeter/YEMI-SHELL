@@ -59,7 +59,17 @@ PillSurface {
     readonly property bool hasArt: artUrl !== ""
         && (coverPair.front.status === Image.Ready || coverPair.back.status === Image.Ready)
     readonly property real lengthSec: hasPlayer && player.length > 0 ? player.length : 0
-    readonly property real positionSec: hasPlayer ? player.position : 0
+    property real positionSec: 0
+    
+    Timer {
+        interval: 500
+        running: root.hasPlayer && root.playing
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: root.positionSec = root.hasPlayer ? root.player.position : 0
+    }
+    onHasPlayerChanged: if (!hasPlayer) positionSec = 0
+    
     readonly property real playFrac: lengthSec > 0 ? Math.max(0, Math.min(1, positionSec / lengthSec)) : 0
     property real dragFrac: 0
     property bool dragging: false

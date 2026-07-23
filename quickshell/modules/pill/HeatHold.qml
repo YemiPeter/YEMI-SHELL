@@ -16,7 +16,6 @@ Item {
     visible: false
 
     property real hold: 0
-    Component.onCompleted: console.log("[HEATHOLD] instantiated parent=" + (parent ? parent : "none") + " ts=" + Date.now())
     readonly property bool holding: hold > 0.001
     property real tapThreshold: 0
     property bool fired: false

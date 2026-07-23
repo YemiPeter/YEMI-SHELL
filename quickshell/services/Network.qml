@@ -3,6 +3,7 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import "../singletons" as QsSingletons
 
 Singleton {
     id: root
@@ -52,7 +53,7 @@ Singleton {
             }
         }
         
-        console.log("🌐 [Network] Connecting to:", ssid, password.length > 0 ? "(with password)" : "(saved)")
+        if (QsSingletons.Flags.debug) console.log("🌐 [Network] Connecting to:", ssid, password.length > 0 ? "(with password)" : "(saved)")
         
         if (password && password.length > 0) {
             // Connect to new network with password
@@ -124,7 +125,7 @@ Singleton {
 
         stdout: SplitParser {
             onRead: data => {
-                console.log("🌐 [Network] Connection output:", data)
+                if (QsSingletons.Flags.debug) console.log("🌐 [Network] Connection output:", data)
                 getNetworks.running = true
             }
         }
@@ -136,7 +137,7 @@ Singleton {
             }
         }
         onExited: (code, status) => {
-            console.log("🌐 [Network] Connection exited with code:", code, "status:", status)
+            if (QsSingletons.Flags.debug) console.log("🌐 [Network] Connection exited with code:", code, "status:", status)
             getNetworks.running = true
         }
     }
@@ -160,7 +161,7 @@ Singleton {
         stdout: StdioCollector {
             onStreamFinished: {
                 root.savedNetworks = text.trim().split('\n').filter(n => n.length > 0);
-                console.log("🌐 Saved networks loaded:", root.savedNetworks.length, "networks");
+                if (QsSingletons.Flags.debug) console.log("🌐 Saved networks loaded:", root.savedNetworks.length, "networks");
             }
         }
     }

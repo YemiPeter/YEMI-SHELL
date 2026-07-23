@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick 6.10
 import Quickshell
 import Quickshell.Io
+import "../singletons" as QsSingletons
 
 // Screenshot/Screen Recording Service
 Singleton {
@@ -52,7 +53,7 @@ Singleton {
                 const filepath = `${root.screenshotsDir}/${filename}`
                 const geometry = stdout.trim()
                 
-                console.log("📸 [Screenshot] Capturing region:", geometry)
+                if (QsSingletons.Flags.debug) console.log("📸 [Screenshot] Capturing region:", geometry)
                 screenshotProc.exec(["grim", "-g", geometry, filepath])
                 root.lastScreenshotPath = filepath
             }
@@ -70,7 +71,7 @@ Singleton {
                 const parts = stdout.trim().split(' ')
                 if (parts.length === 4) {
                     const geometry = `${parts[0]},${parts[1]} ${parts[2]}x${parts[3]}`
-                    console.log("📸 [Screenshot] Capturing window:", geometry)
+                    if (QsSingletons.Flags.debug) console.log("📸 [Screenshot] Capturing window:", geometry)
                     screenshotProc.exec(["grim", "-g", geometry, filepath])
                     root.lastScreenshotPath = filepath
                 }
@@ -82,7 +83,7 @@ Singleton {
         id: screenshotProc
         onExited: code => {
             if (code === 0) {
-                console.log("📸 [Screenshot] Saved:", root.lastScreenshotPath)
+                if (QsSingletons.Flags.debug) console.log("📸 [Screenshot] Saved:", root.lastScreenshotPath)
                 
                 // Copy to clipboard using wl-copy with shell redirection
                 clipboardProc.exec(["sh", "-c", `wl-copy < "${root.lastScreenshotPath}"`])
@@ -122,7 +123,7 @@ Singleton {
         ])
         
         root.isRecording = true
-        console.log("🎬 [Screenshot] Recording started")
+        if (QsSingletons.Flags.debug) console.log("🎬 [Screenshot] Recording started")
     }
     
     Process {
@@ -130,7 +131,7 @@ Singleton {
         onExited: code => {
             root.isRecording = false
             if (code === 0) {
-                console.log("🎬 [Screenshot] Recording saved")
+                if (QsSingletons.Flags.debug) console.log("🎬 [Screenshot] Recording saved")
                 notifyProc.exec([
                     "notify-send",
                     "Screen recording saved",
@@ -180,7 +181,7 @@ Singleton {
         id: deleteProc
         onExited: code => {
             if (code === 0) {
-                console.log("📸 [Screenshot] Deleted:", root.lastScreenshotPath)
+                if (QsSingletons.Flags.debug) console.log("📸 [Screenshot] Deleted:", root.lastScreenshotPath)
                 root.lastScreenshotPath = ""
             }
         }

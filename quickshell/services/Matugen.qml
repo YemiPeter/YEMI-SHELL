@@ -2,6 +2,7 @@ pragma Singleton
 
 import Quickshell
 import QtQuick 6.10
+import "../singletons" as QsSingletons
 
 Singleton {
     id: root
@@ -12,7 +13,7 @@ Singleton {
     // Function to reload colors after wallpaper change
     function reload(): void {
         // Colors will be automatically loaded from the generated file
-        console.log("🔄 [Matugen] Colors reloaded from:", colorsPath)
+        if (QsSingletons.Flags.debug) console.log("🔄 [Matugen] Colors reloaded from:", colorsPath)
     }
 
     // Function to apply a new wallpaper and generate colors
@@ -23,6 +24,6 @@ Singleton {
         var cmd = ["matugen", "image", imagePath, "-c", matugenConfigPath];
 
         proc.execute(cmd);
-        console.log("🎨 [Matugen] Generating colors for:", imagePath);
+        if (QsSingletons.Flags.debug) console.log("🎨 [Matugen] Generating colors for:", imagePath);
     }
 }

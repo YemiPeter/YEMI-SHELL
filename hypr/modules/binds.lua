@@ -10,6 +10,7 @@ bind = $mod SHIFT, space, togglefloating                               # Toggle 
 bind = $mod, W, exec, qs ipc call wallpaper toggle eDP-1               # Wallpaper settings
 bind = $mod, X, exec, ~/.config/hypr/scripts/lock.sh                                         # Lock screen
 bind = $mod, M, exec, qs ipc call music toggle                         # Music player
+bind = $mod, C, exec, qs ipc call pill clipboard eDP-1                       # Clipboard history
 bind = $mod, F, fullscreen                                             # Fullscreen
 bind = $mod, Left, movefocus, l                                                   # Move focus left
 bind = $mod, Down, movefocus, d                                                   # Move focus down
@@ -50,10 +51,10 @@ bind = $mod SHIFT, S, movetoworkspace, special                                  
 bind = $mod, P, pseudo                                                                      # Pseudo
 bind = $mod, J, layoutmsg, togglesplit                                                      # Toggle split
 
-# keybind not yet fixed 
+# Screenshots
 
-bind = , Print, exec, mkdir -p ~/screenshots && grim ~/screenshots/$(date +%Y-%m-%d_%H-%M-%S).png && notify-send "Screenshot Saved" "Full screen captured" -i camera-photo
-bind = SHIFT, Print, exec, mkdir -p ~/screenshots && grim -g "$(slurp)" ~/screenshots/$(date +%Y-%m-%d_%H-%M-%S).png && notify-send "Screenshot Saved" "Area captured" -i camera-photo
+bind = CTRL, S, exec, bash -c 'mkdir -p $HOME/Pictures/Screenshots && grim $HOME/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png && notify-send "Screenshot Saved" "Full screen captured" -i camera-photo'
+bind = $mod CTRL, S, exec, bash -c 'mkdir -p $HOME/Pictures/Screenshots && grim -g "$(slurp)" $HOME/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png && notify-send "Screenshot Saved" "Area captured" -i camera-photo'
 bind = , Menu, exec, ~/.config/scripts/define.sh
 bind = $mod, R, exec, gpu-screen-recorder -w screen -f 30 -a default_output -o ~/screen-recordings/$(date +%Y-%m-%d_%H-%M-%S).mp4 & notify-send "Recording Started"
 bind = $mod SHIFT, R, exec, killall -SIGINT gpu-screen-recorder && notify-send "Recording Stopped"

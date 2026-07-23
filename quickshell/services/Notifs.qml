@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick 6.10
 import Quickshell
 import Quickshell.Services.Notifications
+import "../singletons" as QsSingletons
 
 Singleton {
     id: root
@@ -70,7 +71,7 @@ Singleton {
             )
             const cleaned = oldCount - root.notifications.length
             if (cleaned > 0) {
-                console.log("🧹 [Notifs] Cleaned up", cleaned, "old notifications")
+                if (QsSingletons.Flags.debug) console.log("🧹 [Notifs] Cleaned up", cleaned, "old notifications")
             }
         }
     }
@@ -79,11 +80,11 @@ Singleton {
     function addNotification(notif) {
         // Check DND mode
         if (dnd && notif.urgency < 2) {
-            console.log("� [Notifs Service] DND active - suppressing notification:", notif.summary);
+            if (QsSingletons.Flags.debug) console.log("🔕 [Notifs Service] DND active - suppressing notification:", notif.summary);
             return;
         }
         
-        console.log("�📬 [Notifs Service] Adding notification:", notif.summary);
+        if (QsSingletons.Flags.debug) console.log("📬 [Notifs Service] Adding notification:", notif.summary);
         
         const notifWrapper = notifComponent.createObject(root, {
             notification: notif
@@ -91,25 +92,25 @@ Singleton {
         
         // Cap maximum notifications to prevent memory leaks
         root.notifications = [notifWrapper, ...root.notifications].slice(0, root.maxNotifications);
-        console.log("📋 Total notifications:", root.notifications.length);
+        if (QsSingletons.Flags.debug) console.log("📋 Total notifications:", root.notifications.length);
     }
     
     // Toggle DND mode
     function toggleDnd() {
         dnd = !dnd;
-        console.log("🔕 [Notifs Service] DND mode:", dnd ? "enabled" : "disabled");
+        if (QsSingletons.Flags.debug) console.log("🔕 [Notifs Service] DND mode:", dnd ? "enabled" : "disabled");
     }
     
     // Clear all notifications
     function clearAll() {
         notifications.forEach(n => n.close());
-        console.log("🧹 [Notifs Service] All notifications cleared");
+        if (QsSingletons.Flags.debug) console.log("🧹 [Notifs Service] All notifications cleared");
     }
     
     // Clear notifications from specific app
     function clearApp(appName) {
         notifications.filter(n => n.appName === appName).forEach(n => n.close());
-        console.log("🧹 [Notifs Service] Cleared notifications from:", appName);
+        if (QsSingletons.Flags.debug) console.log("🧹 [Notifs Service] Cleared notifications from:", appName);
     }
 
     // Notification wrapper component
@@ -196,7 +197,7 @@ Singleton {
                 notification.dismiss();
             }
             
-            console.log("📋 [Notifs] Notification closed but kept in history:", summary);
+            if (QsSingletons.Flags.debug) console.log("📋 [Notifs] Notification closed but kept in history:", summary);
         }
         
         function invokeAction(actionId) {
@@ -239,7 +240,7 @@ Singleton {
                 notif.notification.dismiss();
             }
             notif.destroy();
-            console.log("🗑️ [Notifs] Notification permanently deleted");
+            if (QsSingletons.Flags.debug) console.log("🗑️ [Notifs] Notification permanently deleted");
         }
     }
 }

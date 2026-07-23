@@ -25,7 +25,6 @@ Scope {
             }
             
             implicitHeight: config.bar.height
-            Component.onCompleted: console.log("[ALIGN-CHECK] Bar actual height=", height, "implicitHeight=", implicitHeight)
             color: "transparent"
             
             // Bar content

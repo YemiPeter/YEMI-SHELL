@@ -338,6 +338,7 @@ Item {
         id: canvas
         anchors.fill: parent
         renderStrategy: Canvas.Cooperative
+        renderTarget: Canvas.FramebufferObject
         antialiasing: true
 
         readonly property real breathe: 1 + 0.0125 * Math.sin(root.swirl * 0.32)
