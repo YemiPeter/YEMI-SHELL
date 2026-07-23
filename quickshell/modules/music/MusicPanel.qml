@@ -188,6 +188,7 @@ PanelWindow {
                     id: contentRow
                     anchors.fill: parent
                     anchors.margins: 15
+                    z: 2
                     spacing: 15
                     layer.enabled: true
                     layer.effect: MultiEffect {
@@ -740,7 +741,7 @@ PanelWindow {
 
     Connections {
         target: root
-        function onMusicVisibleChanged() {
+        onMusicVisibleChanged: {
             if (root.musicVisible) {
                 focusTimer.start()
             }

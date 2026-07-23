@@ -3,6 +3,7 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import "../singletons" as QsSingletons
 
 // Monitor volume directly from wpctl
 Singleton {
@@ -55,6 +56,6 @@ Singleton {
     }
 
     Component.onCompleted: {
-        console.log("📊 [VolumeMonitor] Service loaded - reading from wpctl")
+        if (QsSingletons.Flags.debug) console.log("📊 [VolumeMonitor] Service loaded - reading from wpctl")
     }
 }

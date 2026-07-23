@@ -71,7 +71,7 @@ Item {
             GradientStop { position: 1.0; color: Theme.cardBot }
         }
 
-        layer.enabled: true
+        layer.enabled: visible
         layer.effect: MultiEffect {
             shadowEnabled: true
             shadowColor: Theme.shadow

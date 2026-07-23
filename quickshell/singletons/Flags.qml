@@ -17,6 +17,12 @@ import Quickshell.Io
 Singleton {
     id: root
 
+    /// Whether debug-level console logging is enabled
+    readonly property bool debug: {
+        const envDebug = Quickshell.env("QS_DEBUG")
+        return envDebug === "1" || envDebug === "true"
+    }
+
     property alias dnd: adapter.dnd
     property alias keepAwake: adapter.keepAwake
     property alias time12h: adapter.time12h

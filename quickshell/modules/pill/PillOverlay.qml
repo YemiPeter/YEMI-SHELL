@@ -190,10 +190,8 @@ Item {
                   var isFullscreen = !!(ws && ws.hasfullscreen);
                   overlay.monFullscreen = isFullscreen;
                 } catch (e) {
-                  console.warn("[FS-CHECK] Failed to parse hyprctl output:", e);
                 }
               } else {
-                console.warn("[FS-CHECK] Failed to query hyprctl activeworkspace");
               }
             }
           }
@@ -234,7 +232,6 @@ Item {
         // this catches the "already fullscreen → keybind → toggleSurface" path.
         onSurfaceOpenChanged: {
             if (surfaceOpen && monFullscreen) {
-                console.log("[FS-GUARD] surface opened during fullscreen — closing");
                 Qt.callLater(QsSingletons.PillState.close);
             }
         }
