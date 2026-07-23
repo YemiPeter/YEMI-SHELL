@@ -29,4 +29,4 @@ spawn-at-startup "/usr/lib/mate-polkit/polkit-mate-authentication-agent-1"
 
 // ── Shell by Yemi ───────────────────────────────────────────────────────────
 // Start this Quickshell config when Niri starts.
-spawn-at-startup "quickshell" "-p" "/home/yemi/.config/quickshell/shell.qml"
+spawn-at-startup "quickshell" "-p" "$HOME/.config/quickshell/shell.qml"

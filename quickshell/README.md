@@ -1,8 +1,46 @@
 # Yemi Shell
 
-<p align="center"><em>Yemi Shell</em>, from Latin: conscientious action for the Linux desktop.</p>
+<p align="center">
+  <video src="screenshots/hero.mp4" controls width="800" autoplay loop muted>
+    Your browser does not support the video tag.
+  </video>
+</p>
 
-Yemi Shell is a custom Hyprland/QuickShell (QML) desktop environment featuring a morphing pill-based UI. Built on the Quickshell framework, it transforms the traditional top bar into an interactive morphing pill that breathes with your wallpaper's colors. Every surface, from the launcher to the power menu, emerges dynamically from a single animated element, ready to be summoned with a keystroke.
+<p align="center"><em>Yemi Shell</em> — from Latin: <strong>conscientious action</strong> for the Linux desktop.</p>
+
+<p align="center">
+  A custom Hyprland/QuickShell (QML) desktop environment featuring a morphing pill-based UI. Built on the <a href="https://github.com/tripathiji1312/quickshell">Quickshell</a> framework, it transforms the traditional top bar into an interactive animated pill that breathes with your wallpaper's colors. Every surface, from the launcher to the power menu, emerges dynamically from a single animated element, ready to be summoned with a keystroke.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/framework-Quickshell-6C5CE7?style=flat-square" alt="Framework"/>
+  <img src="https://img.shields.io/badge/compositor-Hyprland-00E676?style=flat-square" alt="Hyprland"/>
+  <img src="https://img.shields.io/badge/compositor-Niri-00B0FF?style=flat-square" alt="Niri"/>
+  <img src="https://img.shields.io/badge/license-MIT-FF6B6B?style=flat-square" alt="License"/>
+</p>
+
+---
+
+## 📸 Screenshots
+
+<table>
+  <tr>
+    <td align="center"><img src="screenshots/pill-idle.png" alt="Idle Pill" width="400"/><br/><em>Idle Pill — breathing animation</em></td>
+    <td align="center"><img src="screenshots/launcher.png" alt="Launcher" width="400"/><br/><em>Application Launcher with fuzzy search</em></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="screenshots/mixer.png" alt="Audio Mixer" width="400"/><br/><em>Audio Mixer — PipeWire faders</em></td>
+    <td align="center"><img src="screenshots/calendar.png" alt="Calendar" width="400"/><br/><em>Calendar Picker</em></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="screenshots/wallpaper-picker.png" alt="Wallpaper Picker" width="400"/><br/><em>Wallpaper Gallery with GIF support</em></td>
+    <td align="center"><img src="screenshots/power-menu.png" alt="Power Menu" width="400"/><br/><em>Power Menu — lock, reboot, shutdown</em></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="screenshots/notifications.png" alt="Notifications" width="400"/><br/><em>Notification Center</em></td>
+    <td align="center"><img src="screenshots/desktop-overview.png" alt="Desktop Overview" width="400"/><br/><em>Desktop Overview</em></td>
+  </tr>
+</table>
 
 ---
 
@@ -10,7 +48,7 @@ Yemi Shell is a custom Hyprland/QuickShell (QML) desktop environment featuring a
 
 ### Morphing Pill UI
 
-A single `Pill.qml` component transforms fluidly between 20+ surfaces using state-driven animations. The pill grows in-place without overshoot, governed by `Motion.morph` easing curves. Key surfaces include:
+A single `Pill.qml` component transforms fluidly between **20+ surfaces** using state-driven animations. The pill grows in-place without overshoot, governed by `Motion.morph` easing curves. Key surfaces include:
 
 | Surface | Dimensions | Purpose |
 |:-------:|:----------:|:--------|
@@ -36,7 +74,7 @@ Native abstraction layer supports both:
 ┌─────────────┐     ┌────────────┐     ┌──────────────┐
 │  Wallpaper  │────▶│wallcolors.py│────▶│ colors.json  │
 └─────────────┘     └────────────┘     └──────┬───────┘
-                                              │
+                                               │
 ┌───────────────┐                     ┌────────┴────────┐
 │  Matugen      │◀────────────────────│  terminal.json  │
 └───────────────┘                     └─────────────────┘
@@ -95,14 +133,14 @@ The `PillOverlay` uses a specialized layer-shell split:
 
 ```
 Wallpaper → wallcolors.py → colors.json → Dyn singleton
-                                              │
-                                    ┌───────┴────────┐
-                                    │                │
-                          Pill surfaces      Theme singleton
-                                    │                │
-                                    └───────┬────────┘
-                                            ▼
-                                     Color tokens
+                                               │
+                                     ┌───────┴────────┐
+                                     │                │
+                           Pill surfaces      Theme singleton
+                                     │                │
+                                     └───────┬────────┘
+                                             ▼
+                                      Color tokens
 ```
 
 ---
@@ -258,4 +296,4 @@ This project is licensed under the MIT License. See `LICENSE` for details.
 
 ---
 
-*Built with ❤️ by Yemi for the Linux desktop community.*
+<p align="center"><em>Built with ❤️ by Yemi for the Linux desktop community.</em></p>

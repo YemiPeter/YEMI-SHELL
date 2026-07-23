@@ -34,51 +34,51 @@ binds {
 
     // Alt-Tab window switcher (YEMI-SHELL's animated switcher).
     // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
-    Alt+Tab { spawn "/home/yemi/.config/quickshell/shell" "altSwitcher" "next"; }
+    Alt+Tab { spawn "$HOME/.config/quickshell/shell" "altSwitcher" "next"; }
     // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
-    Alt+Shift+Tab { spawn "/home/yemi/.config/quickshell/shell" "altSwitcher" "previous"; }
+    Alt+Shift+Tab { spawn "$HOME/.config/quickshell/shell" "altSwitcher" "previous"; }
 
     // Crosshair overlay toggle.
     // Call Yemi's custom shell script for crosshair overlay
-    Super+G { spawn "/home/yemi/.config/quickshell/shell" "overlay" "toggle"; }
+    Super+G { spawn "$HOME/.config/quickshell/shell" "overlay" "toggle"; }
 
     // YEMI-SHELL app launcher (via QuickShell IPC).
     Mod+Space repeat=false { spawn "qs" "ipc" "call" "pill" "launcher" "eDP-1"; }
 
     // Clipboard history overlay.
     // Call Yemi's custom shell script for clipboard
-    Mod+V { spawn "/home/yemi/.config/quickshell/shell" "clipboard" "toggle"; }
+    Mod+V { spawn "$HOME/.config/quickshell/shell" "clipboard" "toggle"; }
 
     // Lock screen.
     // Call Yemi's custom shell script for lock screen
-    Mod+Alt+L allow-when-locked=true { spawn "/home/yemi/.config/quickshell/shell" "lock" "activate"; }
+    Mod+Alt+L allow-when-locked=true { spawn "$HOME/.config/quickshell/shell" "lock" "activate"; }
     // Re-focus the lock surface (workaround when input feels dead after suspend/resume).
     // Call Yemi's custom shell script for lock focus
-    Mod+Ctrl+Shift+L allow-when-locked=true { spawn "/home/yemi/.config/quickshell/shell" "lock" "focus"; }
+    Mod+Ctrl+Shift+L allow-when-locked=true { spawn "$HOME/.config/quickshell/shell" "lock" "focus"; }
 
     // Region selector: screenshot / OCR / Google Lens search.
     // Call Yemi's custom shell script for region selection
-    Mod+Shift+S { spawn "/home/yemi/.config/quickshell/shell" "region" "screenshot"; }
+    Mod+Shift+S { spawn "$HOME/.config/quickshell/shell" "region" "screenshot"; }
     // Call Yemi's custom shell script for OCR
-    Mod+Shift+X { spawn "/home/yemi/.config/quickshell/shell" "region" "ocr"; }
+    Mod+Shift+X { spawn "$HOME/.config/quickshell/shell" "region" "ocr"; }
     // Call Yemi's custom shell script for search
-    Mod+Shift+A { spawn "/home/yemi/.config/quickshell/shell" "region" "search"; }
+    Mod+Shift+A { spawn "$HOME/.config/quickshell/shell" "region" "search"; }
     // Unified snip menu (pick action/scope from the in-overlay toolbar).
     // Call Yemi's custom shell script for region menu
-    Ctrl+Shift+S { spawn "/home/yemi/.config/quickshell/shell" "region" "menu"; }
+    Ctrl+Shift+S { spawn "$HOME/.config/quickshell/shell" "region" "menu"; }
 
     // Wallpaper picker (via QuickShell IPC).
     Ctrl+Alt+T { spawn "qs" "ipc" "call" "wallpaper" "toggle" "eDP-1"; }
     // Call Yemi's custom shell script for settings
-    Mod+Comma { spawn "/home/yemi/.config/quickshell/shell" "settings"; }
+    Mod+Comma { spawn "$HOME/.config/quickshell/shell" "settings"; }
     // Call Yemi's custom shell script for cheatsheet
-    Mod+Slash { spawn "/home/yemi/.config/quickshell/shell" "cheatsheet" "toggle"; }
+    Mod+Slash { spawn "$HOME/.config/quickshell/shell" "cheatsheet" "toggle"; }
     // Call Yemi's custom shell script for panel family
-    Mod+Shift+W { spawn "/home/yemi/.config/quickshell/shell" "panelFamily" "cycle"; }
+    Mod+Shift+W { spawn "$HOME/.config/quickshell/shell" "panelFamily" "cycle"; }
 
     // Session / power dialog.
     // Call Yemi's custom shell script for session
-    Mod+Shift+Q { spawn "/home/yemi/.config/quickshell/shell" "session" "toggle"; }
+    Mod+Shift+Q { spawn "$HOME/.config/quickshell/shell" "session" "toggle"; }
 
     // ═══════════════════════════════════════════════════════════════════════
     // App launchers
@@ -90,7 +90,7 @@ binds {
     Mod+Return { spawn "kitty"; }
     Super+E { spawn "nautilus"; }
     // Call Yemi's custom shell script for browser
-    Super+W { spawn "/home/yemi/.config/quickshell/shell" "browser"; }
+    Super+W { spawn "$HOME/.config/quickshell/shell" "browser"; }
 
     // ═══════════════════════════════════════════════════════════════════════
     // Window management
