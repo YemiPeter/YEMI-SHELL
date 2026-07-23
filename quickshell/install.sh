@@ -405,6 +405,7 @@ enable_services() {
     run systemctl --user enable --now pipewire.socket
     run systemctl --user enable --now pipewire-pulse.socket
     run systemctl --user enable --now wireplumber.service
+    run systemctl --user enable --now playerctld.service
 
     ok "Service step done"
 }
