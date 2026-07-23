@@ -38,6 +38,7 @@ PanelWindow {
     property bool isApplyingGif: false
     property string currentGifSource: "file://" + gifPath + "/current.gif"
     property int pendingGifIndex: -1
+    property string artUrl: ""
 
     function formatTime(seconds) {
         var mins = Math.floor(seconds / 60)
@@ -154,10 +155,47 @@ PanelWindow {
                 radius: 15
                 clip: true
 
+                Item {
+                    id: artworkMask
+                    anchors.fill: parent
+                    layer.enabled: true
+                    layer.effect: MultiEffect {
+                        maskEnabled: true
+                        maskSource: cornerMask
+                    }
+
+                    Image {
+                        id: artworkBg
+                        anchors.fill: parent
+                        source: musicPanel.artUrl
+                        fillMode: Image.PreserveAspectCrop
+                        smooth: true
+                        asynchronous: true
+                        visible: musicPanel.artUrl !== ""
+                        opacity: 0.35
+                    }
+                }
+
+                Rectangle {
+                    id: cornerMask
+                    anchors.fill: parent
+                    radius: 15
+                    visible: false
+                    layer.enabled: true
+                }
+
                 RowLayout {
+                    id: contentRow
                     anchors.fill: parent
                     anchors.margins: 15
                     spacing: 15
+                    layer.enabled: true
+                    layer.effect: MultiEffect {
+                        shadowEnabled: true
+                        shadowColor: Qt.rgba(0, 0, 0, 0.6)
+                        shadowBlur: 0.8
+                        shadowVerticalOffset: 2
+                    }
 
                     ColumnLayout {
                         Layout.fillWidth: true
@@ -218,7 +256,7 @@ PanelWindow {
                                     onClicked: function(mouse) {
                                         if (musicPanel.length > 0 && !seekProc.running) {
                                             var seekPos = (mouse.x / parent.width) * musicPanel.length
-                                            seekProc.command = ["playerctl", "position", seekPos.toString()]
+                                            seekProc.command = ["playerctl", "--player=playerctld", "position", seekPos.toString()]
                                             seekProc.running = true
                                         }
                                     }
@@ -321,6 +359,7 @@ PanelWindow {
 
                             Loader {
                                 id: danceGifLoader
+                                z: 1
                                 anchors.fill: parent
                                 active: true
                                 sourceComponent: AnimatedImage {
@@ -779,7 +818,7 @@ PanelWindow {
 
     Process {
         id: musicStatusProc
-        command: ["playerctl", "status"]
+        command: ["playerctl", "--player=playerctld", "status"]
         stdout: SplitParser {
             onRead: data => {
                 var newStatus = data.trim()
@@ -789,6 +828,7 @@ PanelWindow {
                 musicPanel.playerStatus = newStatus
                 if (!musicTitleProc.running) musicTitleProc.running = true
                 if (!musicArtistProc.running) musicArtistProc.running = true
+                if (!musicArtProc.running) musicArtProc.running = true
                 if (!musicLenProc.running) musicLenProc.running = true
                 if (isNowPlaying) {
                     if (!musicPosProc.running) musicPosProc.running = true
@@ -804,27 +844,37 @@ PanelWindow {
                 musicPanel.playerStatus = "Stopped"
                 musicPanel.trackTitle = ""
                 musicPanel.trackArtist = ""
+                musicPanel.artUrl = ""
             }
         }
     }
 
     Process {
+        id: musicArtProc
+        command: ["playerctl", "--player=playerctld", "metadata", "mpris:artUrl"]
+        stdout: SplitParser {
+            onRead: line => musicPanel.artUrl = line.trim()
+        }
+        onExited: code => { if (code !== 0) musicPanel.artUrl = "" }
+    }
+
+    Process {
         id: musicTitleProc
-        command: ["playerctl", "metadata", "title"]
+        command: ["playerctl", "--player=playerctld", "metadata", "title"]
         stdout: SplitParser { onRead: data => musicPanel.trackTitle = data.trim() }
         onExited: code => { if (code !== 0) musicPanel.trackTitle = "" }
     }
 
     Process {
         id: musicArtistProc
-        command: ["playerctl", "metadata", "artist"]
+        command: ["playerctl", "--player=playerctld", "metadata", "artist"]
         stdout: SplitParser { onRead: data => musicPanel.trackArtist = data.trim() }
         onExited: code => { if (code !== 0) musicPanel.trackArtist = "" }
     }
 
     Process {
         id: musicPosProc
-        command: ["playerctl", "position"]
+        command: ["playerctl", "--player=playerctld", "position"]
         stdout: SplitParser {
             onRead: data => {
                 var pos = parseFloat(data.trim()) || 0
@@ -836,30 +886,30 @@ PanelWindow {
 
     Process {
         id: musicLenProc
-        command: ["sh", "-c", "playerctl metadata mpris:length 2>/dev/null | awk '{print $1/1000000}'"]
+        command: ["sh", "-c", "playerctl --player=playerctld metadata mpris:length 2>/dev/null | awk '{print $1/1000000}'"]
         stdout: SplitParser { onRead: data => musicPanel.length = parseFloat(data.trim()) || 0 }
     }
 
     Process {
         id: playPauseProc
-        command: ["playerctl", "play-pause"]
+        command: ["playerctl", "--player=playerctld", "play-pause"]
         onExited: { if (!musicStatusProc.running) musicStatusProc.running = true }
     }
 
     Process {
         id: nextProc
-        command: ["playerctl", "next"]
+        command: ["playerctl", "--player=playerctld", "next"]
         onExited: { if (!musicStatusProc.running) musicStatusProc.running = true }
     }
 
     Process {
         id: prevProc
-        command: ["playerctl", "previous"]
+        command: ["playerctl", "--player=playerctld", "previous"]
         onExited: { if (!musicStatusProc.running) musicStatusProc.running = true }
     }
 
     Process {
         id: seekProc
-        command: ["playerctl", "position", "0"]
+        command: ["playerctl", "--player=playerctld", "position", "0"]
     }
 }
