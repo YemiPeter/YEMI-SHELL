@@ -38,7 +38,7 @@
   },
   "matugen": {
     "schemeType": "scheme-fidelity",
-    "mode": "dark"
+    "mode": "light"
   },
   "integrations": [
     {
