@@ -5,17 +5,17 @@ import Quickshell.Io
 import "Singletons"
 
 /**
- * UPDATES sub-surface: reads the installed commit, checks origin/main for newer
- * work and fast-forwards in place, all without a terminal. The live config dir is a
- * symlink into the Yemi Shell clone, so every git op targets the real repo through
- * `git -C` and the commit short-SHA stands in for a version. Reached from the
- * settings index and morphs back to it on an empty click or the back chevron.
+ * UPDATES sub-surface: reads the installed commit from ~/YEMI-SHELL, checks
+ * origin/main for newer work via check-update.sh, and fast-forwards in place
+ * all without a terminal. The check script runs every 30 minutes in the
+ * background so the pill badge stays current. Reached from the settings index
+ * and morphs back to it on an empty click or the back chevron.
  *
- * The check fetches origin/main and compares local HEAD against FETCH_HEAD by SHA:
- * an inequality means an update is available and reveals the update button, while
- * the behind-count is only a hint (a shallow clone can report zero). Updating runs
- * a plain `pull --ff-only` that fails safely on a dirty tree or conflict; nothing
- * here ever discards or resets, since this is a live machine.
+ * The check compares local HEAD against origin/HEAD by SHA via check-update.sh;
+ * an inequality means an update is available and reveals the update button.
+ * Updating runs a plain `pull --ff-only` that fails safely on a dirty tree or
+ * conflict; nothing here ever discards or resets, since this is a live machine.
+ * After a successful pull, the shell is restarted via `qs ipc call reload`.
  */
 SettingsSurface {
     id: root
@@ -24,7 +24,8 @@ SettingsSurface {
     implicitHeight: content.implicitHeight
     rows: []
 
-    readonly property string repoDir: "$HOME/.config/quickshell"
+    readonly property string repoDir: "$HOME/YEMI-SHELL"
+    readonly property string checkScript: "$HOME/.config/quickshell/scripts/check-update.sh"
 
     property string version: ""
     property string status: ""
@@ -54,21 +55,38 @@ SettingsSurface {
 
     readonly property string headline: statusKind === "updating" ? "Updating…"
         : statusKind === "checking" ? "Checking…"
-        : statusKind === "behind" ? (behindCount + " update" + (behindCount === 1 ? "" : "s") + " available")
+        : statusKind === "behind" ? "Update available"
         : statusKind === "updated" ? "Updated"
         : statusKind === "fail" ? "Check failed"
         : statusKind === "ok" ? "Up to date"
         : "Installed"
 
-    onActiveChanged: {
-        if (active) {
-            verProc.running = true;
-        } else {
-            focusRowItem = null;
-            kbIndex = -1;
+    // ---- background auto-check timer (every 30 min) ----
+    Timer {
+        id: autoCheckTimer
+        interval: 30 * 60 * 1000  // 30 minutes
+        repeat: true
+        running: root.active
+        triggeredOnStart: true
+        onTriggered: {
+            if (!root.checking && !root.updating) {
+                startCheck();
+            }
         }
     }
 
+    onActiveChanged: {
+        if (active) {
+            verProc.running = true;
+            autoCheckTimer.start();
+        } else {
+            focusRowItem = null;
+            kbIndex = -1;
+            autoCheckTimer.stop();
+        }
+    }
+
+    // ---- read installed commit from YEMI-SHELL ----
     Process {
         id: verProc
         command: ["sh", "-c", "git -C \"" + root.repoDir + "\" log -1 --format='%h %cs'"]
@@ -77,14 +95,10 @@ SettingsSurface {
         }
     }
 
+    // ---- check for updates via check-update.sh ----
     Process {
         id: checkProc
-        command: ["sh", "-c",
-            "git -C \"" + root.repoDir + "\" fetch --quiet origin main"
-            + " && L=$(git -C \"" + root.repoDir + "\" rev-parse HEAD)"
-            + " && R=$(git -C \"" + root.repoDir + "\" rev-parse FETCH_HEAD)"
-            + " && if [ \"$L\" = \"$R\" ]; then echo uptodate;"
-            + " else echo \"behind $(git -C \"" + root.repoDir + "\" rev-list --count HEAD..FETCH_HEAD 2>/dev/null)\"; fi"]
+        command: ["sh", root.checkScript]
         property string out: ""
         stdout: StdioCollector {
             onStreamFinished: checkProc.out = this.text.trim()
@@ -98,23 +112,29 @@ SettingsSurface {
                 root.status = "check failed (offline?)";
                 return;
             }
-            if (line === "uptodate") {
+            if (line === "up-to-date") {
                 root.behind = false;
                 root.checked = true;
                 root.status = "";
                 return;
             }
-            var n = parseInt(line.split(" ")[1], 10);
-            root.behindCount = (isNaN(n) || n < 1) ? 1 : n;
-            root.behind = true;
-            root.checked = true;
-            root.status = "";
+            if (line === "update-available") {
+                root.behindCount = 1;
+                root.behind = true;
+                root.checked = true;
+                root.status = "";
+                return;
+            }
+            root.behind = false;
+            root.status = "unexpected: " + line;
         }
     }
 
+    // ---- pull updates from YEMI-SHELL and restart shell ----
     Process {
         id: pullProc
-        command: ["sh", "-c", "git -C \"" + root.repoDir + "\" pull --ff-only"]
+        command: ["sh", "-c",
+            "git -C \"" + root.repoDir + "\" pull --ff-only && (qs ipc call reload 2>/dev/null || quickshell reload 2>/dev/null || true)"]
         property string err: ""
         stdout: StdioCollector {}
         stderr: StdioCollector {
@@ -126,7 +146,7 @@ SettingsSurface {
             pullProc.err = "";
             if (exitCode === 0) {
                 root.behind = false;
-                root.status = "updated · restart the shell to apply";
+                root.status = "updated · restarting…";
                 verProc.running = true;
             } else {
                 root.status = e.length > 0 ? e.split("\n")[0] : "update failed";
