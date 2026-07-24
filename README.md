@@ -1,9 +1,7 @@
 # Yemi Shell
 
 <p align="center">
-  <video src="screenshots/hero.mp4" controls width="800" autoplay loop muted>
-    Your browser does not support the video tag.
-  </video>
+  <video src="screenshots/hero.mp4" autoplay loop muted playsinline></video>
 </p>
 
 <p align="center"><em>Yemi Shell</em> — from Latin: <strong>conscientious action</strong> for the Linux desktop.</p>
