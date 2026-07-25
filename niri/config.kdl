@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// iNiR — Niri Compositor Configuration
+// YEMI-SHELL — Niri Compositor Configuration
 // ─────────────────────────────────────────────────────────────────────────────
 //
 // This config is split into modular files under config.d/ so you can edit
@@ -35,8 +35,8 @@ debug {
 }
 
 // Where native Niri screenshots land (Print key).
-// iNiR's region selector (Mod+Shift+S) uses its own path.
-screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
+// YEMI-shell's region selector (Mod+Shift+S) uses its own path.
+screenshot-path "~/Pictures/Screenshots from %Y-%m-%d %H-%M-%S.png"
 
 // ── Modular includes ────────────────────────────────────────────────────────
 include "config.d/10-input-and-cursor.kdl"

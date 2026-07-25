@@ -194,6 +194,60 @@ ShellRoot {
       function hide(): void { QsSingletons.PillState.close(); }
     }
 
+    // === Audio IPC Handler ===
+    IpcHandler {
+      target: "audio"
+
+      function volumeUp(): void {
+        QsServices.Audio.increaseVolume()
+      }
+
+      function volumeDown(): void {
+        QsServices.Audio.decreaseVolume()
+      }
+
+      function mute(): void {
+        QsServices.Audio.toggleMute()
+      }
+
+      function micMute(): void {
+        QsServices.Audio.toggleSourceMute()
+      }
+    }
+
+    // === Brightness IPC Handler ===
+    IpcHandler {
+      target: "brightness"
+
+      function increment(): void {
+        QsServices.Brightness.increaseBrightness()
+      }
+
+      function decrement(): void {
+        QsServices.Brightness.decreaseBrightness()
+      }
+    }
+
+    // === MPRIS IPC Handler ===
+    IpcHandler {
+      target: "mpris"
+
+      function playPause(): void {
+        var player = QsServices.Players.active
+        if (player) player.playPause()
+      }
+
+      function next(): void {
+        var player = QsServices.Players.active
+        if (player) player.next()
+      }
+
+      function previous(): void {
+        var player = QsServices.Players.active
+        if (player) player.previous()
+      }
+    }
+
 
     // Direct NotificationServer to ensure it starts
     NotificationServer {

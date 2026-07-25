@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-LOCAL=$(git -C ~/YEMI-SHELL rev-parse HEAD 2>/dev/null)
-REMOTE=$(git -C ~/YEMI-SHELL ls-remote origin HEAD 2>/dev/null | cut -f1)
+REPO="$HOME/YEMI-SHELL"
+git -C "$REPO" fetch origin main --quiet 2>/dev/null || exit 1
+LOCAL=$(git -C "$REPO" rev-parse HEAD 2>/dev/null)
+REMOTE=$(git -C "$REPO" rev-parse origin/main 2>/dev/null)
 if [ "$LOCAL" = "$REMOTE" ]; then
-  echo "up-to-date"
+ echo "up-to-date"
 else
-  echo "update-available"
+ echo "update-available"
 fi

@@ -24,8 +24,8 @@ SettingsSurface {
     implicitHeight: content.implicitHeight
     rows: []
 
-    readonly property string repoDir: "$HOME/YEMI-SHELL"
-    readonly property string checkScript: "$HOME/.config/quickshell/scripts/check-update.sh"
+    readonly property string repoDir: Quickshell.env("HOME") + "/YEMI-SHELL"
+    readonly property string checkScript: Quickshell.env("HOME") + "/.config/quickshell/scripts/check-update.sh"
 
     property string version: ""
     property string status: ""
