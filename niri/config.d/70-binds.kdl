@@ -6,8 +6,8 @@
 // Use `wev` to discover XKB key names.
 // Most actions here can also be triggered via `niri msg action <name>`.
 //
-// Once iNiR binds but now modify for YEMI-SHELL route through the `YEMI-SHELL` launcher which talks to Quickshell
-// via IPC. Niri-native actions (focus, move, resize…) go directly to Niri.
+// Niri keybinds for YEMI-SHELL. YEMI-SHELL actions go through Quickshell IPC.
+// Niri-native actions (focus, move, resize…) go directly to Niri.
 // ─────────────────────────────────────────────────────────────────────────────
 
 binds {
