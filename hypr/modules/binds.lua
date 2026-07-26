@@ -34,7 +34,7 @@ bind = $mod, C, exec, qs ipc call pill clipboard eDP-1                 # Clipboa
 bind = $mod, S, exec, bash -c 'mkdir -p $HOME/Pictures/Screenshots && grim -g "$(slurp)" $HOME/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png && notify-send "Screenshot Saved" "Area captured" -i camera-photo'
 
 # Full screenshot
-bind = CTRL, S, exec, bash -c 'mkdir -p $HOME/Pictures/Screenshots && grim $HOME/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png && notify-send "Screenshot Saved" "Full screen captured" -i camera-photo'
+bind = $mod SHIFT, S, exec, bash -c 'mkdir -p $HOME/Pictures/Screenshots && grim $HOME/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png && notify-send "Screenshot Saved" "Full screen captured" -i camera-photo'
 
 # Region screenshot (alternate key)
 bind = $mod CTRL, S, exec, bash -c 'mkdir -p $HOME/Pictures/Screenshots && grim -g "$(slurp)" $HOME/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png && notify-send "Screenshot Saved" "Area captured" -i camera-photo'
@@ -120,10 +120,3 @@ bind = $mod SHIFT, Tab, cyclenext, prev                          # Cycle windows
 bindm = $mod, mouse:272, movewindow
 bindm = $mod, mouse:273, resizewindow
 
-# Audio (hardware keys)
-binde = , F1, exec, amixer set Master toggle
-binde = , F2, exec, amixer set Master 1%-
-binde = , F3, exec, amixer set Master 1%+
-binde = , XF86AudioMute, exec, amixer set Master toggle
-binde = , XF86AudioLowerVolume, exec, amixer set Master 1%-
-binde = , XF86AudioRaiseVolume, exec, amixer set Master 1%+
