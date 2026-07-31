@@ -1871,7 +1871,7 @@ Scope {
             icon: "instant_mix",
             desc: Translation.tr("Wallpaper & quick tweaks"),
             essential: true,
-            component: Quickshell.shellPath("modules/settings/QuickConfig.qml")
+            component: Quickshell.shellPath("settings/QuickConfig.qml")
         },
         {
             name: Translation.tr("System"),
@@ -1879,7 +1879,7 @@ Scope {
             icon: "browse",
             desc: Translation.tr("Audio, battery, language, lock"),
             essential: true,
-            component: Quickshell.shellPath("modules/settings/GeneralConfig.qml")
+            component: Quickshell.shellPath("settings/GeneralConfig.qml")
         },
         {
             name: Translation.tr("Bar"),
@@ -1888,7 +1888,7 @@ Scope {
             iconRotation: 180,
             desc: Translation.tr("Position, tray, modules"),
             essential: true,
-            component: Quickshell.shellPath("modules/settings/BarConfig.qml")
+            component: Quickshell.shellPath("settings/BarConfig.qml")
         },
         {
             name: Translation.tr("Background"),
@@ -1896,7 +1896,7 @@ Scope {
             icon: "texture",
             desc: Translation.tr("Parallax, effects, backdrop"),
             essential: false,
-            component: Quickshell.shellPath("modules/settings/BackgroundConfig.qml")
+            component: Quickshell.shellPath("settings/BackgroundConfig.qml")
         },
         {
             name: Translation.tr("Themes"),
@@ -1904,7 +1904,7 @@ Scope {
             icon: "palette",
             desc: Translation.tr("Colors, fonts, styles"),
             essential: true,
-            component: Quickshell.shellPath("modules/settings/ThemesConfig.qml")
+            component: Quickshell.shellPath("settings/ThemesConfig.qml")
         },
         {
             name: Translation.tr("Panels"),
@@ -1912,7 +1912,7 @@ Scope {
             icon: "bottom_app_bar",
             desc: Translation.tr("Dock, sidebar, overview"),
             essential: true,
-            component: Quickshell.shellPath("modules/settings/InterfaceConfig.qml")
+            component: Quickshell.shellPath("settings/InterfaceConfig.qml")
         },
         {
             name: Translation.tr("Tools"),
@@ -1920,7 +1920,7 @@ Scope {
             icon: "build",
             desc: Translation.tr("Recording, crosshair, overlays"),
             essential: false,
-            component: Quickshell.shellPath("modules/settings/ToolsConfig.qml")
+            component: Quickshell.shellPath("settings/ToolsConfig.qml")
         },
         {
             name: Translation.tr("Services"),
@@ -1928,7 +1928,7 @@ Scope {
             icon: "settings",
             desc: Translation.tr("Weather, AI, apps"),
             essential: false,
-            component: Quickshell.shellPath("modules/settings/ServicesConfig.qml")
+            component: Quickshell.shellPath("settings/ServicesConfig.qml")
         },
         {
             name: Translation.tr("Advanced"),
@@ -1936,7 +1936,7 @@ Scope {
             icon: "construction",
             desc: Translation.tr("Color gen, performance"),
             essential: false,
-            component: Quickshell.shellPath("modules/settings/AdvancedConfig.qml")
+            component: Quickshell.shellPath("settings/AdvancedConfig.qml")
         },
         {
             name: Translation.tr("Shortcuts"),
@@ -1944,7 +1944,7 @@ Scope {
             icon: "keyboard",
             desc: Translation.tr("Keybindings reference"),
             essential: true,
-            component: Quickshell.shellPath("modules/settings/CheatsheetConfig.qml")
+            component: Quickshell.shellPath("settings/CheatsheetConfig.qml")
         },
         {
             name: Translation.tr("Modules"),
@@ -1952,7 +1952,7 @@ Scope {
             icon: "extension",
             desc: Translation.tr("Enable/disable panels, scaling"),
             essential: false,
-            component: Quickshell.shellPath("modules/settings/ModulesConfig.qml")
+            component: Quickshell.shellPath("settings/ModulesConfig.qml")
         },
         {
             name: Translation.tr("Waffle Style"),
@@ -1960,7 +1960,7 @@ Scope {
             icon: "window",
             desc: Translation.tr("Win11-style taskbar"),
             essential: false,
-            component: Quickshell.shellPath("modules/settings/WaffleConfig.qml")
+            component: Quickshell.shellPath("settings/WaffleConfig.qml")
         },
         {
             name: Translation.tr("Compositor"),
@@ -1968,7 +1968,7 @@ Scope {
             icon: "desktop_windows",
             desc: Translation.tr("Display, input, layout"),
             essential: false,
-            component: Quickshell.shellPath("modules/settings/NiriConfig.qml")
+            component: Quickshell.shellPath("settings/NiriConfig.qml")
         },
         {
             name: Translation.tr("About"),
@@ -1976,7 +1976,7 @@ Scope {
             icon: "info",
             desc: Translation.tr("Version & credits"),
             essential: true,
-            component: Quickshell.shellPath("modules/settings/About.qml")
+            component: Quickshell.shellPath("settings/About.qml")
         },
         {
             name: Translation.tr("Widgets"),
@@ -1984,7 +1984,7 @@ Scope {
             icon: "widgets",
             desc: Translation.tr("Clock, weather, media, custom"),
             essential: false,
-            component: Quickshell.shellPath("modules/settings/DesktopWidgetsConfig.qml")
+            component: Quickshell.shellPath("settings/DesktopWidgetsConfig.qml")
         },
         {
             name: Translation.tr("Monitors"),
@@ -1992,7 +1992,7 @@ Scope {
             icon: "display_settings",
             desc: Translation.tr("Per-monitor shell visibility"),
             essential: true,
-            component: Quickshell.shellPath("modules/settings/MonitorVisibilityConfig.qml")
+            component: Quickshell.shellPath("settings/MonitorVisibilityConfig.qml")
         }
     ]
 
