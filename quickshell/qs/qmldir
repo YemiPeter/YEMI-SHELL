@@ -1,0 +1,7 @@
+module qs 1.0
+
+singleton Module 1.0 Module.qml
+
+# Submodule re-exports - allows `import qs.services`, `import qs.modules.common`, etc.
+# Note: Subdirectories with their own qmldir files are automatically available
+#       when you import them as submodules (e.g., import qs.services)

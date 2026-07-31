@@ -1,0 +1,1 @@
+/home/yemi/.config/quickshell/inir/CompositorService.qml

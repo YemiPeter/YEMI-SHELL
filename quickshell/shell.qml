@@ -16,6 +16,7 @@ ShellRoot {
 
     // Reference to the bar window (set when BarWrapper loads)
     property var barWindow: null
+	property bool fullSettingsOpen: false
 
     // Compositor integration
     readonly property var compositor: Compositor
@@ -34,13 +35,12 @@ ShellRoot {
             randomWallProc.running = true
         }
 
-  function toggle(mon: string): void {
-    var target = mon || (compositor.focusedMonitor?.name || "");
-    if (target.length > 0)
-      QsSingletons.PillState.toggleSurface(target, "wallpaper");
-  }
-
- }
+        function toggle(mon: string): void {
+            var target = mon || (compositor.focusedMonitor?.name || "");
+            if (target.length > 0)
+                QsSingletons.PillState.toggleSurface(target, "wallpaper");
+        }
+    }
     // === Music IPC Handler ===
     IpcHandler {
         target: "music"
@@ -107,6 +107,29 @@ ShellRoot {
             
             if (settingsState.settingsWindow) {
                 settingsState.settingsWindow.toggle();
+            }
+        }
+    }
+
+    // === Full Settings Overlay IPC Handler (Alt+S) ===
+    IpcHandler {
+        target: "fullSettings"
+        function toggle(): void {
+            root.fullSettingsOpen = !root.fullSettingsOpen;
+        }
+    }
+
+    // === Test IPC Handler ===
+    IpcHandler {
+        target: "test"
+
+        function run(): void {
+            var component = Qt.createComponent("modules/test/TestLoader.qml");
+            if (component.status === Component.Ready) {
+                var testObj = component.createObject(root);
+                testObj.runTests();
+            } else {
+                console.error("❌ Failed to load TestLoader:", component.errorString());
             }
         }
     }
@@ -309,6 +332,14 @@ ShellRoot {
     property string wallpaperPath: homePath + "/Pictures/Wallpapers"
     property string cachePath: homePath + "/.cache"
     property string statePath: configPath + "/state"
+
+    // === Full Settings Overlay (loaded on demand via Alt+S) ===
+    Loader {
+        id: fullSettingsLoader
+        active: root.fullSettingsOpen
+        asynchronous: true
+        sourceComponent: Qt.createComponent("modules/settings/SettingsOverlay.qml")
+    }
 
     // === Music Panel State Properties ===
     property bool musicVisible: false

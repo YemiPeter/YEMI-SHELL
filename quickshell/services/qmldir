@@ -8,9 +8,13 @@ singleton VolumeMonitor VolumeMonitor.qml
 singleton SystemUsage SystemUsage.qml
 singleton IdleInhibitor IdleInhibitor.qml
 singleton Notifs Notifs.qml
+singleton CompositorService CompositorService.qml
 singleton PowerProfiles PowerProfiles.qml
 singleton Screenshot Screenshot.qml
 singleton Logger Logger.qml
 singleton Bluetooth Bluetooth.qml
 singleton Hyprsunset Hyprsunset.qml
 # singleton Pywal 1.0 Pywal.qml
+singleton Translation Translation.qml
+singleton NiriService NiriService.qml
+DankSocket 1.0 DankSocket.qml

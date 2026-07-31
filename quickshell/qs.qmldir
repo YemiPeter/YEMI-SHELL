@@ -1,0 +1,10 @@
+module qs 1.0
+
+# Re-export submodules - this allows `import qs` to pull in all submodules
+# When you do `import qs.services`, it resolves to qs.services module
+# When you do `import qs.modules.common`, it resolves to qs.modules.common module
+
+# Note: Individual submodule imports still need to be used explicitly:
+# import qs.services
+# import qs.modules.common
+# import qs.modules.common.widgets
