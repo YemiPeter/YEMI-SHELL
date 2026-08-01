@@ -58,7 +58,6 @@ singleton Ai 1.0 Ai.qml
 singleton AppCatalog 1.0 AppCatalog.qml
 singleton Autostart 1.0 Autostart.qml
 singleton Booru 1.0 Booru.qml
-singleton BooruResponseData 1.0 BooruResponseData.qml
 singleton CavaTheme 1.0 CavaTheme.qml
 singleton ConflictKiller 1.0 ConflictKiller.qml
 singleton FirstRunExperience 1.0 FirstRunExperience.qml

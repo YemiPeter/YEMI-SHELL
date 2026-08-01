@@ -33,4 +33,12 @@ Singleton {
         showWeather: false,    // requires Weather.qml service
         showSystem: true
     })
+
+    // Settings UI configuration - controls how settings are displayed
+    readonly property bool ready: true
+    readonly property var options: ({
+        settingsUi: {
+            overlayMode: true
+        }
+    })
 }

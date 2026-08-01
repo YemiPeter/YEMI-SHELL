@@ -5,7 +5,9 @@
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Notifications
+import qs
 import qs.compositor
+import qs.config
 import QtQuick 6.10
 import "services" as QsServices
 import "singletons" as QsSingletons
@@ -16,7 +18,6 @@ ShellRoot {
 
     // Reference to the bar window (set when BarWrapper loads)
     property var barWindow: null
-	property bool fullSettingsOpen: false
 
     // Compositor integration
     readonly property var compositor: Compositor
@@ -84,39 +85,18 @@ ShellRoot {
         }
     }
 
-    // === Settings Window State (outside IPC to avoid serialization) ===
-    QtObject {
-        id: settingsState
-        property var settingsWindow: null
-    }
-
     // === Settings IPC Handler ===
     IpcHandler {
         target: "settings"
 
-        function toggle(): void {
-            if (!settingsState.settingsWindow) {
-                var component = Qt.createComponent("modules/settings/SettingsWindow.qml");
-                if (component.status === Component.Ready) {
-                    settingsState.settingsWindow = component.createObject(root);
-                } else {
-                    console.error("❌ Failed to load SettingsWindow:", component.errorString());
-                    return;
-                }
-            }
-            
-            if (settingsState.settingsWindow) {
-                settingsState.settingsWindow.toggle();
+        function open(): void {
+            if (Config.options?.settingsUi?.overlayMode ?? false) {
+                GlobalStates.settingsOverlayOpen = !GlobalStates.settingsOverlayOpen
+            } else {
+                Quickshell.execDetached([Quickshell.shellPath("scripts/settings-window.sh")])
             }
         }
-    }
-
-    // === Full Settings Overlay IPC Handler (Alt+S) ===
-    IpcHandler {
-        target: "fullSettings"
-        function toggle(): void {
-            root.fullSettingsOpen = !root.fullSettingsOpen;
-        }
+        function toggle(): void { open() }
     }
 
     // === Test IPC Handler ===
@@ -334,11 +314,9 @@ ShellRoot {
     property string statePath: configPath + "/state"
 
     // === Full Settings Overlay (loaded on demand via Alt+S) ===
-    Loader {
-        id: fullSettingsLoader
-        active: root.fullSettingsOpen
-        asynchronous: true
-        sourceComponent: Qt.createComponent("modules/settings/SettingsOverlay.qml")
+    LazyLoader {
+        active: Config.ready && (Config.options?.settingsUi?.overlayMode ?? false)
+        component: Qt.createComponent("settings/SettingsOverlay.qml")
     }
 
     // === Music Panel State Properties ===
@@ -367,8 +345,8 @@ ShellRoot {
     function applyWallpaper(wallpaper) {
         root.currentWallpaper = wallpaper.path
         root.walApplying = true
- applyWallProc.command = ["bash", "-c", "skwd wall apply '{\"name\":\"'" + wallpaper.name + "'\"}'"]
- applyWallProc.running = true
+        applyWallProc.command = ["bash", "-c", "skwd wall apply '{\"name\":\"'" + wallpaper.name + "'\"}'"]
+        applyWallProc.running = true
     }
 
     function loadWallpapers() {

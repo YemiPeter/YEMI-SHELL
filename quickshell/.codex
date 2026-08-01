@@ -1,1 +1,70 @@
-This project uses a custom development skill. See `.lingma/rules/SKILL.md` for the full reference covering Qt C++, QML, testing, profiling, UI design, and project working rules.
+# YemiShell — Agent Toolchain Configuration
+
+## Skills
+
+This project uses a unified agent skill system with two tiers:
+
+### Primary Skill (Qt & Quickshell)
+See [`.lingma/rules/SKILL.md`](.lingma/rules/SKILL.md) for the full reference covering:
+- Qt C++ documentation, code review, and testing
+- QML documentation, linting, profiling, and testing
+- UI/UX design principles
+- YemiShell-specific working rules
+
+### Trae Builtin Skills
+See `.lingma/rules/trae/` for Trae-integrated skills:
+- **TRAE-code-review** — Structured code review with Mermaid diagrams, sub-agent cross-validation, and iterative fix loop
+- **TRAE-debugger** — Evidence-driven debugging with Debug Server, scientific method hypothesis testing, and log instrumentation
+- **TRAE-dynamic-ui** — Dynamic visual content generation via PureShowWidget (inline and panel modes)
+- **TRAE-generate-mini-app** — Taro-based multi-platform mini-program code generation
+
+## MCP Servers
+
+Configured in `.roomodes` (canonical source). Currently available:
+
+| Server | Purpose | Transport |
+|--------|---------|-----------|
+| `github` | Repository operations | stdio (via `github-mcp-server`) |
+| `context7` | Library documentation lookup | stdio (npx `@upstash/context7-mcp`) |
+| `sequential-thinking` | Structured reasoning | stdio (npx `@modelcontextprotocol/server-sequential-thinking`) |
+| `cocoindex-code` | Code indexing and search | stdio (`ccc mcp`) |
+
+### Secrets
+API keys are stored as placeholders in config files. Set actual values before use:
+- `GITHUB_PERSONAL_ACCESS_TOKEN` — from https://github.com/settings/tokens
+- `CONTEXT7_API_KEY` — from https://console.upstash.com
+
+## Custom Modes
+
+Workspace-scoped mode defined in `.roomodes`:
+- **✍️ Mode Writer** — Create and edit custom modes with validation
+
+Global modes registered in Zoocode installations vary by IDE. See `.roomodes` for the canonical project-mode definition.
+
+## Configuration Back-Sync
+
+To propagate changes from the canonical workspace config to all IDE installations:
+
+```bash
+./scripts/sync-mcp-config.sh
+```
+
+## IDE Installations
+
+| IDE | Location | Zoocode Version | MCP Config Synced | Modes Synced |
+|-----|----------|-----------------|--------------------|----|
+| VS Code | `~/.vscode/extensions/` | 3.72.0 | Via `.roomodes` | Via `.roomodes` |
+| Trae | `~/.trae/` | 3.72.0 | ✅ | ✅ |
+| Kiro | `~/.kiro/` | 3.73.100299 | ✅ | ✅ |
+| Antigravity IDE | `~/.antigravity-ide/` | 3.72.0 | — global modes preserved | — |
+| Cursor | `~/.cursor/` | — | ✅ | N/A |
+| Cline (standalone) | `~/.cline/` | — | ✅ | N/A |
+| Roo | `~/.roo/` | — | ✅ | N/A |
+
+## Quick Reference
+
+- **Canonical MCP config:** `.roomodes` (mcpServers block)
+- **Canonical modes:** `.roomodes` (customModes block)
+- **Canonical skill:** `.lingma/rules/SKILL.md`
+- **Trae skills:** `.lingma/rules/trae/`
+- **Integration docs:** `INTEGRATION.md`
