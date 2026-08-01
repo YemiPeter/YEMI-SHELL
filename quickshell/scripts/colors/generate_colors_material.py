@@ -1,0 +1,1 @@
+/home/yemi/iNiR/scripts/colors/generate_colors_material.py

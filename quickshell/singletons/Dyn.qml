@@ -4,8 +4,9 @@ import Quickshell
 import Quickshell.Io
 
 /**
- * Live wallpaper-derived palette. matugen writes a small colour JSON on every
- * wallpaper change (via wallcolors.py) and this singleton watches it, so the
+ * Live wallpaper-derived palette. switchwall.sh (the same script the settings
+ * UI uses) writes a small colour JSON on every wallpaper change via
+ * generate_colors_material.py, and this singleton watches that file so the
  * tokens update the moment the wallpaper does. Theme reads these only while the
  * dynamic-palette flag is on; otherwise the curated washi hex wins. Defaults are
  * a warm fallback so a missing file still yields a usable scheme. Surfaces and
@@ -34,7 +35,7 @@ Singleton {
 
     FileView {
         id: file
-        path: (Quickshell.env("XDG_CACHE_HOME") || (Quickshell.env("HOME") + "/.cache")) + "/yemi-shell/colors.json"
+        path: (Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")) + "/quickshell/user/generated/colors.json"
         blockLoading: true
         watchChanges: true
         printErrors: false
@@ -53,13 +54,13 @@ Singleton {
             property string on_primary_container: "#ffddb3"
             property string outline: "#9c8f80"
             property string outline_variant: "#4f4539"
-            property string cream: "#e6d6cb"
-            property string bright: "#fff6f0"
-            property string subtle: "#b9a99e"
-            property string dim: "#8a7d74"
-            property string faint: "#6f635b"
-            property string icon_dim: "#cdbfb4"
-            property string tick_rest: "#cbb6a3"
+            property string cream: "#ede4d9"
+            property string bright: "#ede4d9"
+            property string subtle: "#b1aaa0"
+            property string dim: "#b1aaa0"
+            property string faint: "#b1aaa0"
+            property string icon_dim: "#b1aaa0"
+            property string tick_rest: "#b1aaa0"
         }
     }
 }

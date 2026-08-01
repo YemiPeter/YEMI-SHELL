@@ -2,18 +2,23 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs.modules.common
+import qs.modules.common.functions
 
 /**
  * Wallpaper bridge: keeps a warm in-memory snapshot of ~/Pictures/Wallpapers so
  * the wallpaper strip opens instantly without shelling out on demand. A
  * refresh first runs the thumbnail script (generating missing 512px previews
  * and pruning ones whose source is gone), then re-lists the directory
- * newest-first and finally re-reads the state file wallpaper.sh maintains, so
- * `current` always names the wallpaper on screen. Thumbnails land before the
+ * newest-first and finally re-reads the state file that switchwall.sh writes,
+ * so `current` always names the wallpaper on screen. Thumbnails land before the
  * list so strip delegates never bind to a not-yet-existing file; a refresh
  * arriving while the pipeline runs sets `pending` and replays once the state
- * lands. Applying routes through wallpaper.sh so the picker shares the exact
- * transition, palette and state path with the random keybind.
+ * lands. Applying routes through switchwall.sh so the picker shares the exact
+ * transition, palette and state path with the random keybind and settings UI.
+ *
+ * switchwall.sh handles wallpaper set + color regeneration in one shot, so
+ * there is no separate after-wall post-processing step.
  *
  * Entries are plain objects: { path, name, mtime, thumb } where path is the
  * absolute source file, mtime its modification time in epoch seconds and
@@ -30,7 +35,7 @@ Singleton {
     readonly property string wpDir: Quickshell.env("HOME") + "/Pictures/Wallpapers"
     readonly property string thumbDir: (Quickshell.env("XDG_CACHE_HOME") || (Quickshell.env("HOME") + "/.cache")) + "/quickshell-wp-thumbs/"
     readonly property string thumbScript: Quickshell.env("RICE_HOME") + "/hypr/scripts/wallpaper-thumbs.sh"
-    readonly property string setScript: Quickshell.env("RICE_HOME") + "/hypr/scripts/wallpaper.sh"
+    readonly property string setScript: Directories.wallpaperSwitchScriptPath
     readonly property string stateFile: (Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")) + "/quickshell-wallpaper"
 
     function refresh() {
@@ -48,15 +53,18 @@ Singleton {
      * running transition exits, so rapid iteration converges on the last pick.
      */
     property string queuedApply: ""
-    property string lastAppliedPath: ""
 
     function apply(path) {
         if (applyProc.running) {
             queuedApply = path;
             return;
         }
-        root.lastAppliedPath = path;
-        applyProc.command = ["bash", root.setScript, "set", path];
+        applyProc.command = [
+            Directories.wallpaperSwitchScriptPath,
+            "--image", FileUtils.trimFileProtocol(String(path ?? "")),
+            "--mode", (Appearance.m3colors.darkmode ? "dark" : "light"),
+            "--skip-config-write"
+        ];
         applyProc.running = true;
     }
 
@@ -127,32 +135,20 @@ Singleton {
     Process {
         id: applyProc
         onExited: function(exitCode) {
-                if (exitCode === 0) {
-                    afterWallProc.wallPath = root.lastAppliedPath
-                    afterWallProc.running = true
-                    // stateProc fires from afterWallProc.onExited — don't call it here
-                } else if (!root.queuedApply.length) {
-                    stateProc.running = true   // only run directly if apply failed
-                }
-    
                 if (root.queuedApply.length) {
                     var next = root.queuedApply;
                     root.queuedApply = "";
-                    root.lastAppliedPath = next;
-                    applyProc.command = ["bash", root.setScript, "set", next];
+                    applyProc.command = [
+                        Directories.wallpaperSwitchScriptPath,
+                        "--image", FileUtils.trimFileProtocol(next),
+                        "--mode", (Appearance.m3colors.darkmode ? "dark" : "light"),
+                        "--skip-config-write"
+                    ];
                     applyProc.running = true;
                     return;
                 }
+                stateProc.running = true;
             }
-    }
-
-    Process {
-        id: afterWallProc
-        property string wallPath: ""
-        command: ["bash",
-                  Quickshell.env("RICE_HOME") + "/quickshell/scripts/after-wall.sh",
-                  wallPath]
-        onExited: stateProc.running = true
     }
 
     Component.onCompleted: refresh()

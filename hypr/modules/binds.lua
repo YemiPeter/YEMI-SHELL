@@ -39,6 +39,9 @@ bind = $mod SHIFT, S, exec, bash -c 'mkdir -p $HOME/Pictures/Screenshots && grim
 # Region screenshot (alternate key)
 bind = $mod CTRL, S, exec, bash -c 'mkdir -p $HOME/Pictures/Screenshots && grim -g "$(slurp)" $HOME/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png && notify-send "Screenshot Saved" "Area captured" -i camera-photo'
 
+# Settings overlay
+bind = ALT, S, exec, qs ipc call settings toggle                   # Settings overlay
+
 # Screen recording
 bind = $mod, R, exec, gpu-screen-recorder -w screen -f 30 -a default_output -o ~/screen-recordings/$(date +%Y-%m-%d_%H-%M-%S).mp4 & notify-send "Recording Started"
 bind = $mod SHIFT, R, exec, killall -SIGINT gpu-screen-recorder && notify-send "Recording Stopped"
