@@ -57,6 +57,7 @@ singleton YtMusic 1.0 YtMusic.qml
 singleton Ai 1.0 Ai.qml
 singleton AppCatalog 1.0 AppCatalog.qml
 singleton Autostart 1.0 Autostart.qml
+BooruResponseData 1.0 BooruResponseData.qml
 singleton Booru 1.0 Booru.qml
 singleton CavaTheme 1.0 CavaTheme.qml
 singleton ConflictKiller 1.0 ConflictKiller.qml
@@ -70,3 +71,4 @@ singleton PowerProfilePersistence 1.0 PowerProfilePersistence.qml
 singleton Todo 1.0 Todo.qml
 singleton VoiceSearch 1.0 VoiceSearch.qml
 singleton Wallhaven 1.0 Wallhaven.qml
+BooruResponseData 1.0 BooruResponseData.qml

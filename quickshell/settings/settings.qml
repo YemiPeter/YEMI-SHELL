@@ -16,6 +16,7 @@ import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
 import qs.modules.common.functions as CF
+import "." as Settings
 
 ApplicationWindow {
     id: root
@@ -28,98 +29,98 @@ ApplicationWindow {
             name: Translation.tr("Quick"),
             icon: "instant_mix",
             essential: true,
-            component: "modules/settings/QuickConfig.qml"
+            component: "QuickConfig.qml"
         },
         {
             name: Translation.tr("System"),
             icon: "browse",
             essential: true,
-            component: "modules/settings/GeneralConfig.qml"
+            component: "GeneralConfig.qml"
         },
         {
             name: Translation.tr("Bar"),
             icon: "toast",
             iconRotation: 180,
             essential: true,
-            component: "modules/settings/BarConfig.qml"
+            component: "BarConfig.qml"
         },
         {
             name: Translation.tr("Background"),
             icon: "texture",
             essential: false,
-            component: "modules/settings/BackgroundConfig.qml"
+            component: "BackgroundConfig.qml"
         },
         {
             name: Translation.tr("Themes"),
             icon: "palette",
             essential: true,
-            component: "modules/settings/ThemesConfig.qml"
+            component: "ThemesConfig.qml"
         },
         {
             name: Translation.tr("Panels"),
             icon: "bottom_app_bar",
             essential: true,
-            component: "modules/settings/InterfaceConfig.qml"
+            component: "InterfaceConfig.qml"
         },
         {
             name: Translation.tr("Tools"),
             icon: "build",
             essential: false,
-            component: "modules/settings/ToolsConfig.qml"
+            component: "ToolsConfig.qml"
         },
         {
             name: Translation.tr("Services"),
             icon: "settings",
             essential: false,
-            component: "modules/settings/ServicesConfig.qml"
+            component: "ServicesConfig.qml"
         },
         {
             name: Translation.tr("Advanced"),
             icon: "construction",
             essential: false,
-            component: "modules/settings/AdvancedConfig.qml"
+            component: "AdvancedConfig.qml"
         },
         {
             name: Translation.tr("Shortcuts"),
             icon: "keyboard",
             essential: true,
-            component: "modules/settings/CheatsheetConfig.qml"
+            component: "CheatsheetConfig.qml"
         },
         {
             name: Translation.tr("Modules"),
             icon: "extension",
             essential: false,
-            component: "modules/settings/ModulesConfig.qml"
+            component: "ModulesConfig.qml"
         },
         {
             name: Translation.tr("Waffle Style"),
             icon: "window",
             essential: false,
-            component: "modules/settings/WaffleConfig.qml"
+            component: "WaffleConfig.qml"
         },
         {
             name: Translation.tr("Compositor"),
             icon: "desktop_windows",
             essential: false,
-            component: "modules/settings/NiriConfig.qml"
+            component: "NiriConfig.qml"
         },
         {
             name: Translation.tr("About"),
             icon: "info",
             essential: true,
-            component: "modules/settings/About.qml"
+            component: "About.qml"
         },
         {
             name: Translation.tr("Desktop Widgets"),
             icon: "widgets",
             essential: false,
-            component: "modules/settings/DesktopWidgetsConfig.qml"
+            component: "DesktopWidgetsConfig.qml"
         },
         {
             name: Translation.tr("Monitors"),
             icon: "display_settings",
             essential: true,
-            component: "modules/settings/MonitorVisibilityConfig.qml"
+            component: "MonitorVisibilityConfig.qml"
         }
     ]
     property int currentPage: 0
@@ -1398,7 +1399,7 @@ ApplicationWindow {
 
     function getWaffleSettingsPageIndex() {
         for (var i = 0; i < pages.length; i++) {
-            if ((pages[i].component || "").indexOf("modules/settings/WaffleConfig.qml") >= 0)
+            if ((pages[i].component || "").indexOf("WaffleConfig.qml") >= 0)
                 return i;
         }
         return -1;

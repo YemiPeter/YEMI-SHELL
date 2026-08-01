@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 LOCK_FILE="/tmp/settings-window.lock"
 
 # Kill any existing settings window
-pkill -f "qs -n -p settings/settings.qml" 2>/dev/null
+pkill -f "quickshell -n -p" 2>/dev/null
 sleep 0.2
 
 # Run with flock to prevent concurrent instances

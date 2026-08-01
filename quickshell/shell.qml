@@ -8,6 +8,7 @@ import Quickshell.Services.Notifications
 import qs
 import qs.compositor
 import qs.config
+import qs.modules.settings as Settings
 import QtQuick 6.10
 import "services" as QsServices
 import "singletons" as QsSingletons
@@ -316,7 +317,7 @@ ShellRoot {
     // === Full Settings Overlay (loaded on demand via Alt+S) ===
     LazyLoader {
         active: Config.ready && (Config.options?.settingsUi?.overlayMode ?? false)
-        component: Qt.createComponent("settings/SettingsOverlay.qml")
+        Settings.SettingsOverlay {}
     }
 
     // === Music Panel State Properties ===
