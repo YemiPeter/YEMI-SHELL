@@ -1,3 +1,0 @@
-module qs.modules.settings
-singleton SettingsOverlay 1.0 SettingsOverlay.qml
-singleton SettingsWindow 1.0 SettingsWindow.qml

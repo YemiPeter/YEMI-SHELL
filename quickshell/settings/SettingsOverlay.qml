@@ -208,7 +208,7 @@ Scope {
     function getWaffleSettingsPageIndex() {
         for (var i = 0; i < overlayPages.length; i++) {
             var componentPath = String(overlayPages[i].component || "");
-            if (componentPath.indexOf("modules/settings/WaffleConfig.qml") >= 0) {
+            if (componentPath.indexOf("WaffleConfig.qml") >= 0) {
                 return i;
             }
         }
