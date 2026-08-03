@@ -49,6 +49,7 @@ singleton TimerService 1.0 TimerService.qml
 singleton TrayService 1.0 TrayService.qml
 singleton Updates 1.0 Updates.qml
 singleton WallpaperListener 1.0 WallpaperListener.qml
+singleton WallpaperManager WallpaperManager.qml
 singleton Wallpapers 1.0 Wallpapers.qml
 singleton Weather 1.0 Weather.qml
 singleton WidgetPowerManager 1.0 WidgetPowerManager.qml

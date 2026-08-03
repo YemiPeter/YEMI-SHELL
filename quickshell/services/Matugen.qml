@@ -2,6 +2,7 @@ pragma Singleton
 
 import Quickshell
 import QtQuick 6.10
+import qs.services
 import "../singletons" as QsSingletons
 
 Singleton {
@@ -10,10 +11,13 @@ Singleton {
     // Path to the generated colors file that Matugen will create
     readonly property string colorsPath: Quickshell.env("RICE_HOME") + "/quickshell/state/colors.qml"
 
-    // Function to reload colors after wallpaper change
+    // Function to reload colors after wallpaper change.
+    // Previously this only logged — the A→B pipeline bridge was broken.
+    // Now it delegates to MaterialThemeLoader.reapplyTheme() which re-reads
+    // generated/colors.json and applies colors to Appearance.m3colors.
     function reload(): void {
-        // Colors will be automatically loaded from the generated file
-        if (QsSingletons.Flags.debug) console.log("🔄 [Matugen] Colors reloaded from:", colorsPath)
+        if (QsSingletons.Flags.debug) console.log("🔄 [Matugen] reload() → delegating to MaterialThemeLoader.reapplyTheme()")
+        MaterialThemeLoader.reapplyTheme()
     }
 
     // Function to apply a new wallpaper and generate colors

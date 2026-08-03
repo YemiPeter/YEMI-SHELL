@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Io
 import qs.modules.common
 import qs.modules.common.functions
+import qs.services
 
 /**
  * Wallpaper bridge: keeps a warm in-memory snapshot of ~/Pictures/Wallpapers so
@@ -14,7 +15,7 @@ import qs.modules.common.functions
  * so `current` always names the wallpaper on screen. Thumbnails land before the
  * list so strip delegates never bind to a not-yet-existing file; a refresh
  * arriving while the pipeline runs sets `pending` and replays once the state
- * lands. Applying routes through switchwall.sh so the picker shares the exact
+ * lands. Applying routes through WallpaperManager so the picker shares the exact
  * transition, palette and state path with the random keybind and settings UI.
  *
  * switchwall.sh handles wallpaper set + color regeneration in one shot, so
@@ -35,11 +36,11 @@ Singleton {
     readonly property string wpDir: Quickshell.env("HOME") + "/Pictures/Wallpapers"
     readonly property string thumbDir: (Quickshell.env("XDG_CACHE_HOME") || (Quickshell.env("HOME") + "/.cache")) + "/quickshell-wp-thumbs/"
     readonly property string thumbScript: Quickshell.env("RICE_HOME") + "/hypr/scripts/wallpaper-thumbs.sh"
-    readonly property string setScript: Directories.wallpaperSwitchScriptPath
     readonly property string stateFile: (Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")) + "/quickshell-wallpaper"
 
     function refresh() {
-        if (thumbProc.running || listProc.running || stateProc.running) {
+        if (thumbProc.running || listProc.running || stateProc.running
+            || WallpaperManager.isRunning) {
             pending = true;
             return;
         }
@@ -55,17 +56,25 @@ Singleton {
     property string queuedApply: ""
 
     function apply(path) {
-        if (applyProc.running) {
+        if (WallpaperManager.isRunning) {
             queuedApply = path;
             return;
         }
-        applyProc.command = [
-            Directories.wallpaperSwitchScriptPath,
-            "--image", FileUtils.trimFileProtocol(String(path ?? "")),
-            "--mode", (Appearance.m3colors.darkmode ? "dark" : "light"),
-            "--skip-config-write"
-        ];
-        applyProc.running = true;
+        WallpaperManager.setWallpaper(path);
+    }
+
+    // Listen for apply completion from WallpaperManager
+    Connections {
+        target: WallpaperManager
+        onApplyCompleted: {
+            if (queuedApply.length) {
+                var next = queuedApply;
+                queuedApply = "";
+                WallpaperManager.setWallpaper(next);
+                return;
+            }
+            stateProc.running = true;
+        }
     }
 
     function trash(path) {
@@ -94,13 +103,13 @@ Singleton {
 
     Process {
         id: listProc
-        command: ["sh", "-c", "find \"$1\" -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' -o -iname '*.gif' \\) -printf '%T@\\t%p\\n' | sort -rn", "_", root.wpDir]
+        command: ["sh", "-c", "find \"$1\" -type f \\\\\\\\-iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' -o -iname '*.gif' \\\\\\\\-printf '%T@\\\\\\\\t%p\\\\\\\\n' | sort -rn", "_", root.wpDir]
         stdout: StdioCollector {
             onStreamFinished: {
-                var lines = this.text.split("\n");
+                var lines = this.text.split("\\n");
                 var out = [];
                 for (var i = 0; i < lines.length; i++) {
-                    var tab = lines[i].indexOf("\t");
+                    var tab = lines[i].indexOf("\\t");
                     if (tab < 1)
                         continue;
                     var path = lines[i].substring(tab + 1);
@@ -130,25 +139,6 @@ Singleton {
                 }
             }
         }
-    }
-
-    Process {
-        id: applyProc
-        onExited: function(exitCode) {
-                if (root.queuedApply.length) {
-                    var next = root.queuedApply;
-                    root.queuedApply = "";
-                    applyProc.command = [
-                        Directories.wallpaperSwitchScriptPath,
-                        "--image", FileUtils.trimFileProtocol(next),
-                        "--mode", (Appearance.m3colors.darkmode ? "dark" : "light"),
-                        "--skip-config-write"
-                    ];
-                    applyProc.running = true;
-                    return;
-                }
-                stateProc.running = true;
-            }
     }
 
     Component.onCompleted: refresh()

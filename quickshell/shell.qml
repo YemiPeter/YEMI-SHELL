@@ -25,16 +25,21 @@ ShellRoot {
 
     // Initialize services immediately
     readonly property var notifs: QsServices.Notifs
-    readonly property var matugen: QsServices.Matugen
     readonly property var audio: QsServices.Audio
     readonly property var brightness: QsServices.Brightness
 
     // === Wallpaper IPC Handler ===
+    // Provides wallpaper control for external tools (skwd, Hyprlpaper, etc.)
+    // Use "qs ipc call wallpaper set <path>" to set wallpaper via WallpaperManager
     IpcHandler {
         target: "wallpaper"
 
         function random(): void {
             randomWallProc.running = true
+        }
+
+        function set(path: string): void {
+            QsServices.WallpaperManager.setWallpaper(path)
         }
 
         function toggle(mon: string): void {
@@ -340,14 +345,13 @@ ShellRoot {
     property string currentWallpaper: ""
     property bool wallsLoaded: false
     property bool thumbsReady: false
-    property bool walApplying: false
+    // Wallpaper applies are now managed by WallpaperManager
+    readonly property bool walApplying: QsServices.WallpaperManager.isRunning
     property var wallpaperHashes: ({})
 
     function applyWallpaper(wallpaper) {
         root.currentWallpaper = wallpaper.path
-        root.walApplying = true
-        applyWallProc.command = ["bash", "-c", "skwd wall apply '{\"name\":\"'" + wallpaper.name + "'\"}'"]
-        applyWallProc.running = true
+        QsServices.WallpaperManager.setWallpaper(wallpaper.path)
     }
 
     function loadWallpapers() {
@@ -464,9 +468,9 @@ ShellRoot {
 
     Process {
         id: ipcColorLoadProc
-        command: ["bash", "-c", "echo reload"]
+        command: [Directories.scriptsPath + "/colors/switchwall.sh", "--mode", (Appearance.m3colors.darkmode ? "dark" : "light"), "--noswitch", "--skip-config-write"]
         onExited: {
-            root.matugen.reload()
+            QsServices.MaterialThemeLoader.reapplyTheme()
         }
     }
 

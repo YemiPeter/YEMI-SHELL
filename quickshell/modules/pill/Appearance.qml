@@ -13,8 +13,7 @@ import "Singletons"
  * on an empty click or the back chevron.
  *
  * Color source and system mood are independent switches — changing either
- * rebuilds the rice colour set through wallcolors.py and reloads Hyprland
- * and the terminal.
+ * rebuilds the rice colour set through the unified color pipeline.
  */
 SettingsSurface {
     id: root
@@ -23,37 +22,11 @@ SettingsSurface {
     implicitHeight: content.implicitHeight
 
     function applyMode() {
-        if (Flags.paletteMode === "dynamic") {
-            dynamicProc.mood = Flags.systemMood;
-            dynamicProc.running = true;
-        } else {
-            staticProc.mood = Flags.systemMood;
-            staticProc.running = true;
+        // Color regeneration is handled by the unified Pipeline B (switchwall.sh via IPC)
+        // Just trigger it with the current mood setting
+        if (Quickshell.ipc) {
+            Quickshell.ipc.call("colors", "reload");
         }
-        systemThemeProc.running = true;
-    }
-    
-    Process {
-        id: staticProc
-        property string mood: "dark"
-        command: ["sh", "-c",
-            "python3 \"$HOME/.config/hypr/scripts/wallcolors.py\" --mode static --mood \"$1\" && hyprctl reload >/dev/null 2>&1; busctl --user call com.mitchellh.ghostty /com/mitchellh/ghostty org.gtk.Actions Activate \"sava{sv}\" reload-config 0 0 >/dev/null 2>&1 || true",
-            "sh", mood]
-    }
-    
-    Process {
-        id: dynamicProc
-        property string mood: "dark"
-        command: ["sh", "-c",
-            "f=\"${XDG_STATE_HOME:-$HOME/.local/state}/yemi-shell-wallpaper\"; pic=$(cat \"$f\" 2>/dev/null); [ -f \"$pic\" ] && python3 \"$HOME/.config/hypr/scripts/wallcolors.py\" --mode dynamic --mood \"$1\" \"$pic\" >/dev/null 2>&1; hyprctl reload >/dev/null 2>&1; busctl --user call com.mitchellh.ghostty /com/mitchellh/ghostty org.gtk.Actions Activate \"sava{sv}\" reload-config 0 0 >/dev/null 2>&1 || true",
-            "sh", mood]
-    }
-    
-    Process {
-        id: systemThemeProc
-        command: ["sh", "-c",
-            "\"$HOME/.config/quickshell/scripts/apply-system-theme.sh\" \"$1\"",
-            "sh", Flags.systemMood]
     }
 
     rows: [

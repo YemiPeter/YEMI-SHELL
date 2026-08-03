@@ -298,6 +298,7 @@ PillSurface {
             readonly property real off: index - root.pos
             readonly property real ao: Math.abs(off)
             readonly property bool focused: Math.round(root.pos) === index
+            readonly property bool currentWall: modelData.path === Walls.current
             readonly property real bright: root.slotLerp(root.slotBright, ao)
             readonly property real sat: root.slotLerp(root.slotSat, ao)
             readonly property real corner: (8 + 2 * Math.max(0, 1 - ao)) * root.s
@@ -427,10 +428,15 @@ PillSurface {
                 anchors.fill: parent
                 radius: tile.corner
                 color: "transparent"
-                border.width: 1
+                border.width: 2
                 border.color: {
+                    // Highlight error state for failed remote downloads
                     if (tile.remote && dlProc.failed.length && dlProc.failed === tile.modelData.image)
                         return Theme.vermLit;
+                    // Highlight current wallpaper with flame glow
+                    if (tile.currentWall)
+                        return Theme.flameGlow;
+                    // Highlight tile being committed (trash in progress)
                     return tile.committing ? Theme.vermLit : Theme.border;
                 }
                 Behavior on border.color { ColorAnimation { duration: Motion.fast } }

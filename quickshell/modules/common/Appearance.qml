@@ -221,6 +221,65 @@ Singleton {
         property color term15: "#221A1A"
     }
 
+    // ===================================================================
+    // SEMANTIC TOKENS - Direct mapping over m3colors for pill migration.
+    // This is the target for components migrating from Theme.* to Appearance.tokens.*
+    // See COLOR_ARCHITECTURE_PLAN.md 4.1 for the full mapping table.
+    // ===================================================================
+    readonly property QtObject tokens: QtObject {
+        // Surface tokens
+        readonly property color surface: m3colors.m3surface
+        readonly property color surfaceDim: m3colors.m3surfaceDim
+        readonly property color surfaceBright: m3colors.m3surfaceBright
+        readonly property color surfaceContainerLowest: m3colors.m3surfaceContainerLowest
+        readonly property color surfaceContainerLow: m3colors.m3surfaceContainerLow
+        readonly property color surfaceContainer: m3colors.m3surfaceContainer
+        readonly property color surfaceContainerHigh: m3colors.m3surfaceContainerHigh
+        readonly property color surfaceContainerHighest: m3colors.m3surfaceContainerHighest
+        readonly property color background: m3colors.m3background
+        readonly property color onBackground: m3colors.m3onBackground
+
+        // Text/content tokens
+        readonly property color onSurface: m3colors.m3onSurface
+        readonly property color onSurfaceVariant: m3colors.m3onSurfaceVariant
+        readonly property color outline: m3colors.m3outline
+        readonly property color outlineVariant: m3colors.m3outlineVariant
+
+        // Primary accent
+        readonly property color primary: m3colors.m3primary
+        readonly property color onPrimary: m3colors.m3onPrimary
+        readonly property color primaryContainer: m3colors.m3primaryContainer
+        readonly property color onPrimaryContainer: m3colors.m3onPrimaryContainer
+
+        // Secondary accent
+        readonly property color secondary: m3colors.m3secondary
+        readonly property color onSecondary: m3colors.m3onSecondary
+        readonly property color secondaryContainer: m3colors.m3secondaryContainer
+        readonly property color onSecondaryContainer: m3colors.m3onSecondaryContainer
+
+        // Tertiary
+        readonly property color tertiary: m3colors.m3tertiary
+        readonly property color onTertiary: m3colors.m3onTertiary
+
+        // Error
+        readonly property color error: m3colors.m3error
+        readonly property color onError: m3colors.m3onError
+        readonly property color errorContainer: m3colors.m3errorContainer
+        readonly property color onErrorContainer: m3colors.m3onErrorContainer
+
+        // Shadow and scrim
+        readonly property color shadow: m3colors.m3shadow
+        readonly property color scrim: m3colors.m3scrim
+
+        // Inverse
+        readonly property color inverseSurface: m3colors.m3inverseSurface
+        readonly property color inverseOnSurface: m3colors.m3inverseOnSurface
+        readonly property color inversePrimary: m3colors.m3inversePrimary
+
+        // State
+        readonly property bool darkmode: m3colors.darkmode
+    }
+
     colors: QtObject {
         // Ink colors for aurora light mode - sumi-e inspired (Japanese ink wash)
         // Warm, muted tones instead of pure gray/black

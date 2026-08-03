@@ -87,7 +87,7 @@
   },
   "wallpaperMute": true,
   "pickOnlyMode": true,
-  "externalWallpaperCommand": "~/.config/hypr/scripts/wallpaper.sh set %path% && ~/.config/skwd-wall/scripts/sync-colors.sh %path%",
+  "externalWallpaperCommand": "qs ipc call wallpaper set %path%",
   "postProcessing": [],
   "performance": {
     "imageOptimizePreset": "quality",
@@ -100,14 +100,6 @@
     "videoTrashDays": 7,
     "autoDeleteImageTrash": false,
     "autoDeleteVideoTrash": false
-  },
-  "paper": {
-    "engine": "awww",
-    "awww": {
-      "transitionType": "random",
-      "transitionFps": 120,
-      "filter": "Bilinear"
-    }
   },
   "display": {
     "fillMode": "fill"
