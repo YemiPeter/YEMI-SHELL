@@ -156,160 +156,115 @@ Singleton {
         id: colors
         property color shadow: ColorUtils.transparentize('#161616', 0.62)
         property color ambientShadow: ColorUtils.transparentize("#000000", 0.75)
-        
-        // Material-aware colors - 3 paths:
+
+        // ═══ LooksColorResolver (Phase 2.4) ═══════════════════════════════
+        // Collapses the repeated `useMaterial ? Material : (dark ? D : L)`
+        // 3-way ternary chains into a 2-path resolver:
+        //   path 1 (useMaterial)  → Appearance.colors.<token>
+        //   path 2 (Win11 fallback) → dark/light palettes + transparency.
+        // Behavior is byte-identical to the original ternaries; surfaces read
+        // as single lines instead of nested chains.
+        function _pick(darkColor, lightColor) {
+            return root.dark ? darkColor : lightColor
+        }
+        // Plain: material token vs raw dark/light color
+        function _plain(token, darkColor, lightColor) {
+            return root.useMaterial ? Appearance.colors[token] : _pick(darkColor, lightColor)
+        }
+        // Transparentized: material token vs alpha-scaled dark/light
+        function _transparent(token, darkColor, lightColor, alpha) {
+            if (root.useMaterial) return Appearance.colors[token]
+            return ColorUtils.transparentize(_pick(darkColor, lightColor), alpha)
+        }
+        // Glass-aware transparent: material token vs Win11 fallback where the
+        // glass base surface is lifted when glassActive+dark, and the alpha
+        // switches between backgroundTransparency (glass) and contentTransparency.
+        function _transparentGlass(token, glassBase, darkColor, lightColor) {
+            if (root.useMaterial) return Appearance.colors[token]
+            const base = (root.glassActive && root.dark) ? glassBase : _pick(darkColor, lightColor)
+            return ColorUtils.transparentize(base, root.glassActive ? root.backgroundTransparency : root.contentTransparency)
+        }
+        // Border two-path: glass+material → subtle border; material → outlineVariant.
+        function _border(token, darkColor, lightColor, alpha) {
+            if (!root.useMaterial)
+                return ColorUtils.transparentize((root.glassActive && root.dark) ? root.darkColors.bg0Border : _pick(darkColor, lightColor), alpha)
+            if (root.glassActive)
+                return Appearance.angelEverywhere ? (Appearance.angel.colBorderSubtle ?? "transparent")
+                                                  : (Appearance.colors.colBorderSubtle ?? "transparent")
+            return Appearance.colors[token]
+        }
+        // Glass surface two-path: glass+material → angel/aurora glass surface
+        // with a minimum opacity; otherwise the fallback prop (which itself
+        // already resolves material vs Win11). Byte-identical to the original
+        // `glassActive && useMaterial ? glass : <fallback>` ternary.
+        function _glassSurface(angelToken, auroraToken, fallback, minAlpha) {
+            if (root.glassActive && root.useMaterial)
+                return root.ensureMinOpacity(
+                    Appearance.angelEverywhere ? Appearance.angel[angelToken] : Appearance.aurora[auroraToken],
+                    minAlpha)
+            return fallback
+        }
+
+        // Material-aware colors - 2 paths (see LooksColorResolver above):
         // 1. useMaterial=true → Material-derived from Appearance.colors.*
         //    (when glassActive, glass-aware surfaces from angel/aurora palette)
-        // 2. !useMaterial + glassActive + dark → Win11 *Base colors (dark greys: #2C2C2C, #313131)
-        //    with backgroundTransparency. The overlay colors (#a8a8a8, #8a8a8a) are Win11 Mica
-        //    tints designed for 13% opacity — at glass opacity levels they look blindingly bright.
-        // 3. !useMaterial + (!glass || !dark) → original Win11 colors at intended transparency
-        property color bgPanelFooterBase: root.useMaterial
-            ? Appearance.colors.colLayer0
-            : ColorUtils.transparentize(root.dark ? root.darkColors.bgPanelFooter : root.lightColors.bgPanelFooter, root.panelBackgroundTransparency)
-        property color bgPanelFooter: root.useMaterial
-            ? Appearance.colors.colLayer1
-            : ColorUtils.transparentize(root.dark ? root.darkColors.bgPanelFooter : root.lightColors.bgPanelFooter, root.panelLayerTransparency)
+        // 2. !useMaterial → Win11 Base colors (dark greys: #2C2C2C, #313131)
+        //    with backgroundTransparency. The overlay colors (#a8a8a8, #8a8a8a)
+        //    are Win11 Mica tints designed for 13% opacity.
+        property color bgPanelFooterBase: _transparent("colLayer0", root.darkColors.bgPanelFooter, root.lightColors.bgPanelFooter, root.panelBackgroundTransparency)
+        property color bgPanelFooter: _transparent("colLayer1", root.darkColors.bgPanelFooter, root.lightColors.bgPanelFooter, root.panelLayerTransparency)
         // bgPanelBody is only used inside WPane-backed panels (BodyRectangle),
         // so making it transparent when glass+material lets GlassBackground show through
         property color bgPanelBody: root.glassActive && root.useMaterial
             ? "transparent"
-            : root.useMaterial
-                ? Appearance.colors.colLayer2
-                : ColorUtils.transparentize(
-                    root.glassActive && root.dark ? root.darkColors.bg2Base : (root.dark ? root.darkColors.bgPanelBody : root.lightColors.bgPanelBody),
-                    root.panelLayerTransparency)
-        property color bgPanelSeparator: root.glassActive && root.useMaterial
-            ? (Appearance.angelEverywhere ? Appearance.angel.colBorderSubtle ?? "transparent" : Appearance.colors.colBorderSubtle ?? "transparent")
-            : root.useMaterial
-                ? Appearance.colors.colOutlineVariant
-                : ColorUtils.transparentize(
-                    root.glassActive && root.dark ? root.darkColors.bg0Border : (root.dark ? root.darkColors.bgPanelSeparator : root.lightColors.bgPanelSeparator),
-                    root.backgroundTransparency)
+            : _transparent('colLayer2', root.glassActive ? root.darkColors.bg2Base : root.darkColors.bgPanelBody, root.lightColors.bgPanelBody, root.panelLayerTransparency)
+        property color bgPanelSeparator: _border("colOutlineVariant", root.darkColors.bgPanelSeparator, root.lightColors.bgPanelSeparator, root.backgroundTransparency)
         property color bg0Opaque: root.useMaterial
             ? Appearance.m3colors.m3background
-            : (root.dark ? root.darkColors.bg0 : root.lightColors.bg0)
+            : _pick(root.darkColors.bg0, root.lightColors.bg0)
+        // bg0Opaque resolves the true Material background (opaque) rather than
+        // a transparentized surface; bg0 layers transparency on top.
         property color bg0: root.useMaterial
-            ? Appearance.colors.colLayer0 
-            : ColorUtils.transparentize(bg0Opaque, root.backgroundTransparency)
-        property color bg0Border: root.glassActive && root.useMaterial
-            ? (Appearance.angelEverywhere ? Appearance.angel.colBorderSubtle ?? "transparent" : Appearance.colors.colBorderSubtle ?? "transparent")
-            : root.useMaterial 
-                ? Appearance.colors.colLayer0Border 
-                : ColorUtils.transparentize(root.dark ? root.darkColors.bg0Border : root.lightColors.bg0Border, root.backgroundTransparency)
-        property color bg1Base: root.useMaterial 
-            ? Appearance.colors.colLayer1 
-            : ColorUtils.transparentize(root.dark ? root.darkColors.bg1Base : root.lightColors.bg1Base, root.backgroundTransparency)
-        property color bg1: root.useMaterial 
-            ? Appearance.colors.colLayer1 
-            : ColorUtils.transparentize(
-                root.glassActive && root.dark ? root.darkColors.bg1Base : (root.dark ? root.darkColors.bg1 : root.lightColors.bg1),
-                root.glassActive ? root.backgroundTransparency : root.contentTransparency)
-        property color bg1Hover: root.useMaterial 
-            ? Appearance.colors.colLayer1Hover 
-            : ColorUtils.transparentize(
-                root.glassActive && root.dark ? Qt.lighter(root.darkColors.bg1Base, 1.3) : (root.dark ? root.darkColors.bg1Hover : root.lightColors.bg1Hover),
-                root.glassActive ? root.backgroundTransparency : root.contentTransparency)
-        property color bg1Active: root.useMaterial 
-            ? Appearance.colors.colLayer1Active 
-            : ColorUtils.transparentize(
-                root.glassActive && root.dark ? Qt.darker(root.darkColors.bg1Base, 1.15) : (root.dark ? root.darkColors.bg1Active : root.lightColors.bg1Active),
-                root.glassActive ? root.backgroundTransparency : root.contentTransparency)
-        property color bg1Border: root.glassActive && root.useMaterial
-            ? (Appearance.angelEverywhere ? Appearance.angel.colBorderSubtle ?? "transparent" : Appearance.colors.colBorderSubtle ?? "transparent")
-            : root.useMaterial 
-                ? Appearance.colors.colOutlineVariant 
-                : ColorUtils.transparentize(
-                    root.glassActive && root.dark ? root.darkColors.bg0Border : (root.dark ? root.darkColors.bg1Border : root.lightColors.bg1Border),
-                    root.glassActive ? root.backgroundTransparency : root.contentTransparency)
-        property color bg2Base: root.useMaterial 
-            ? Appearance.colors.colLayer2 
-            : ColorUtils.transparentize(root.dark ? root.darkColors.bg2Base : root.lightColors.bg2Base, root.backgroundTransparency)
-        property color bg2: root.useMaterial 
-            ? Appearance.colors.colLayer2 
-            : ColorUtils.transparentize(
-                root.glassActive && root.dark ? root.darkColors.bg2Base : (root.dark ? root.darkColors.bg2 : root.lightColors.bg2),
-                root.glassActive ? root.backgroundTransparency : root.contentTransparency)
-        property color bg2Hover: root.useMaterial 
-            ? Appearance.colors.colLayer2Hover 
-            : ColorUtils.transparentize(
-                root.glassActive && root.dark ? Qt.lighter(root.darkColors.bg2Base, 1.3) : (root.dark ? root.darkColors.bg2Hover : root.lightColors.bg2Hover),
-                root.glassActive ? root.backgroundTransparency : root.contentTransparency)
-        property color bg2Active: root.useMaterial 
-            ? Appearance.colors.colLayer2Active 
-            : ColorUtils.transparentize(
-                root.glassActive && root.dark ? Qt.darker(root.darkColors.bg2Base, 1.15) : (root.dark ? root.darkColors.bg2Active : root.lightColors.bg2Active),
-                root.glassActive ? root.backgroundTransparency : root.contentTransparency)
-        property color bg2Border: root.glassActive && root.useMaterial
-            ? (Appearance.angelEverywhere ? Appearance.angel.colBorderSubtle ?? "transparent" : Appearance.colors.colBorderSubtle ?? "transparent")
-            : root.useMaterial 
-                ? Appearance.colors.colOutlineVariant 
-                : ColorUtils.transparentize(
-                    root.glassActive && root.dark ? root.darkColors.bg0Border : (root.dark ? root.darkColors.bg2Border : root.lightColors.bg2Border),
-                    root.glassActive ? root.backgroundTransparency : root.contentTransparency)
-        property color interactiveSurface: root.glassActive && root.useMaterial
-            ? root.ensureMinOpacity(Appearance.angelEverywhere ? Appearance.angel.colGlassCard : Appearance.aurora.colSubSurface, 0.72)
-            : bg1
-        property color interactiveSurfaceHover: root.glassActive && root.useMaterial
-            ? root.ensureMinOpacity(Appearance.angelEverywhere ? Appearance.angel.colGlassCardHover : Appearance.aurora.colSubSurfaceHover, 0.78)
-            : bg2Hover
-        property color interactiveSurfaceActive: root.glassActive && root.useMaterial
-            ? root.ensureMinOpacity(Appearance.angelEverywhere ? Appearance.angel.colGlassCardActive : Appearance.aurora.colSubSurfaceActive, 0.84)
-            : bg2Active
-        property color popupSurface: root.glassActive && root.useMaterial
-            ? root.ensureMinOpacity(Appearance.angelEverywhere ? Appearance.angel.colGlassPopup : Appearance.aurora.colPopupSurface, 0.85)
-            : bg2
-        property color popupSurfaceHover: root.glassActive && root.useMaterial
-            ? root.ensureMinOpacity(Appearance.angelEverywhere ? Appearance.angel.colGlassPopupHover : Appearance.aurora.colPopupSurfaceHover, 0.88)
-            : bg2Hover
-        property color popupSurfaceActive: root.glassActive && root.useMaterial
-            ? root.ensureMinOpacity(Appearance.angelEverywhere ? Appearance.angel.colGlassPopupActive : Appearance.aurora.colPopupSurfaceActive, 0.92)
-            : bg2Active
-        property color tooltipSurface: root.glassActive && root.useMaterial
-            ? root.ensureMinOpacity(Appearance.angelEverywhere ? Appearance.angel.colGlassTooltip : Appearance.aurora.colTooltipSurface, 0.90)
-            : bg2
+            ? Appearance.colors.colLayer0
+            : ColorUtils.transparentize((root.dark ? root.darkColors.bg0 : root.lightColors.bg0), root.backgroundTransparency)
+        property color bg0Border: _border("colLayer0Border", root.darkColors.bg0Border, root.lightColors.bg0Border, root.backgroundTransparency)
+        property color bg1Base: _transparent("colLayer1", root.darkColors.bg1Base, root.lightColors.bg1Base, root.backgroundTransparency)
+        property color bg1: _transparentGlass("colLayer1", root.darkColors.bg1Base, root.darkColors.bg1, root.lightColors.bg1)
+        property color bg1Hover: _transparentGlass("colLayer1Hover", Qt.lighter(root.darkColors.bg1Base, 1.3), root.darkColors.bg1Hover, root.lightColors.bg1Hover)
+        property color bg1Active: _transparentGlass("colLayer1Active", Qt.darker(root.darkColors.bg1Base, 1.15), root.darkColors.bg1Active, root.lightColors.bg1Active)
+        property color bg1Border: _border("colOutlineVariant", root.darkColors.bg1Border, root.lightColors.bg1Border, root.glassActive ? root.backgroundTransparency : root.contentTransparency)
+        property color bg2Base: _transparent("colLayer2", root.darkColors.bg2Base, root.lightColors.bg2Base, root.backgroundTransparency)
+        property color bg2: _transparentGlass("colLayer2", root.darkColors.bg2Base, root.darkColors.bg2, root.lightColors.bg2)
+        property color bg2Hover: _transparentGlass("colLayer2Hover", Qt.lighter(root.darkColors.bg2Base, 1.3), root.darkColors.bg2Hover, root.lightColors.bg2Hover)
+        property color bg2Active: _transparentGlass("colLayer2Active", Qt.darker(root.darkColors.bg2Base, 1.15), root.darkColors.bg2Active, root.lightColors.bg2Active)
+        property color bg2Border: _border("colOutlineVariant", root.darkColors.bg2Border, root.lightColors.bg2Border, root.glassActive ? root.backgroundTransparency : root.contentTransparency)
+        property color interactiveSurface: _glassSurface("colGlassCard", "colSubSurface", bg1, 0.72)
+        property color interactiveSurfaceHover: _glassSurface("colGlassCardHover", "colSubSurfaceHover", bg2Hover, 0.78)
+        property color interactiveSurfaceActive: _glassSurface("colGlassCardActive", "colSubSurfaceActive", bg2Active, 0.84)
+        property color popupSurface: _glassSurface("colGlassPopup", "colPopupSurface", bg2, 0.85)
+        property color popupSurfaceHover: _glassSurface("colGlassPopupHover", "colPopupSurfaceHover", bg2Hover, 0.88)
+        property color popupSurfaceActive: _glassSurface("colGlassPopupActive", "colPopupSurfaceActive", bg2Active, 0.92)
+        property color tooltipSurface: _glassSurface("colGlassTooltip", "colTooltipSurface", bg2, 0.90)
         property color tooltipBorder: root.glassActive && root.useMaterial
             ? (Appearance.angelEverywhere ? Appearance.angel.colBorderSubtle : Appearance.aurora.colTooltipBorder)
             : bg2Border
-        property color subfg: root.useMaterial 
-            ? Appearance.colors.colSubtext 
-            : (root.dark ? root.darkColors.subfg : root.lightColors.subfg)
-        property color fg: root.useMaterial 
-            ? Appearance.colors.colOnLayer0 
-            : (root.dark ? root.darkColors.fg : root.lightColors.fg)
-        property color fg1: root.useMaterial 
-            ? Appearance.colors.colOnLayer1 
-            : (root.dark ? root.darkColors.fg1 : root.lightColors.fg1)
-        property color inactiveIcon: root.useMaterial 
-            ? Appearance.colors.colOnLayer1Inactive 
-            : (root.dark ? root.darkColors.inactiveIcon : root.lightColors.inactiveIcon)
-        property color controlBgInactive: root.useMaterial 
-            ? Appearance.colors.colSecondaryContainer 
-            : (root.dark ? root.darkColors.controlBgInactive : root.lightColors.controlBgInactive)
-        property color controlBg: root.useMaterial 
-            ? Appearance.colors.colSecondary 
-            : (root.dark ? root.darkColors.controlBg : root.lightColors.controlBg)
-        property color controlBgHover: root.useMaterial 
-            ? Appearance.colors.colSecondaryHover 
-            : (root.dark ? root.darkColors.controlBgHover : root.lightColors.controlBgHover)
-        property color controlFg: root.useMaterial 
-            ? Appearance.colors.colOnSecondary 
-            : (root.dark ? root.darkColors.controlFg : root.lightColors.controlFg)
-        property color inputBg: root.useMaterial 
-            ? Appearance.colors.colLayer1 
-            : (root.dark ? root.darkColors.inputBg : root.lightColors.inputBg)
-        property color link: root.useMaterial 
-            ? Appearance.colors.colPrimary 
-            : (root.dark ? root.darkColors.link : root.lightColors.link)
+        property color subfg: _plain("colSubtext", root.darkColors.subfg, root.lightColors.subfg)
+        property color fg: _plain("colOnLayer0", root.darkColors.fg, root.lightColors.fg)
+        property color fg1: _plain("colOnLayer1", root.darkColors.fg1, root.lightColors.fg1)
+        property color inactiveIcon: _plain("colOnLayer1Inactive", root.darkColors.inactiveIcon, root.lightColors.inactiveIcon)
+        property color controlBgInactive: _plain("colSecondaryContainer", root.darkColors.controlBgInactive, root.lightColors.controlBgInactive)
+        property color controlBg: _plain("colSecondary", root.darkColors.controlBg, root.lightColors.controlBg)
+        property color controlBgHover: _plain("colSecondaryHover", root.darkColors.controlBgHover, root.lightColors.controlBgHover)
+        property color controlFg: _plain("colOnSecondary", root.darkColors.controlFg, root.lightColors.controlFg)
+        property color inputBg: _plain("colLayer1", root.darkColors.inputBg, root.lightColors.inputBg)
+        property color link: _plain("colPrimary", root.darkColors.link, root.lightColors.link)
         property color danger: Appearance.m3colors.m3error ?? "#C42B1C"
         property color dangerActive: Qt.darker(danger, 1.1)
         property color warning: Appearance.m3colors.m3tertiary ?? "#FF9900"
         property color accent: Appearance.colors.colPrimary
         property color accentHover: Appearance.colors.colPrimaryHover
         property color accentActive: Appearance.colors.colPrimaryActive
-        property color accentUnfocused: root.useMaterial 
-            ? Appearance.colors.colOutline 
-            : (root.dark ? root.darkColors.accentUnfocused : root.lightColors.accentUnfocused)
+        property color accentUnfocused: _plain("colOutline", root.darkColors.accentUnfocused, root.lightColors.accentUnfocused)
         property color accentFg: ColorUtils.isDark(accent) ? "#FFFFFF" : "#000000"
         property color selection: Appearance.colors.colPrimaryContainer
         property color selectionFg: Appearance.colors.colOnPrimaryContainer

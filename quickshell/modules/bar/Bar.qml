@@ -20,11 +20,12 @@ Item {
 
     readonly property var config: QsConfig.Config
     readonly property var appearance: QsConfig.AppearanceConfig
-    readonly property color pillBg: Qt.rgba(QsSingletons.Theme.cardBot.r, QsSingletons.Theme.cardBot.g, QsSingletons.Theme.cardBot.b, 0.7)
-    readonly property color pillBorder: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.10)
-    readonly property color pillSeparator: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.15)
+    readonly property bool transparencyEnabled: config.appearance.transparency.enable
+    readonly property color pillBg: Qt.rgba(QsSingletons.Theme.cardBot.r, QsSingletons.Theme.cardBot.g, QsSingletons.Theme.cardBot.b, transparencyEnabled ? config.appearance.transparency.contentTransparency : 0.7)
+    readonly property color pillBorder: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, transparencyEnabled ? config.appearance.transparency.backgroundTransparency : 0.10)
+    readonly property color pillSeparator: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, transparencyEnabled ? config.appearance.transparency.backgroundTransparency : 0.15)
 
-    readonly property color highlightTop: Qt.rgba(1, 1, 1, 0.04)
+    readonly property color highlightTop: Qt.rgba(1, 1, 1, transparencyEnabled ? config.appearance.transparency.backgroundTransparency : 0.04)
     // ═══════════════════════════════════════════════════════════════════════
     // MINIMAL AESTHETIC BAR
     // Clean, professional, beautiful - inspired by modern Linux rice

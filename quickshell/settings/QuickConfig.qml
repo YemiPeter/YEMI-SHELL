@@ -145,7 +145,7 @@ ContentPage {
                     anchors.left: parent.left
                     anchors.margins: 10
                     spacing: 6
-                    visible: (Config.options?.policies?.weeb ?? 0) === 1
+                    visible: (Config.options?.policies?.weeb ?? 1) === 1
 
                     RippleButtonWithIcon {
                         enabled: !randomWallProc.running
@@ -167,28 +167,6 @@ ContentPage {
                         }
                         StyledToolTip {
                             text: Translation.tr("Random SFW Anime wallpaper from Konachan\nImage is saved to ~/Pictures/Wallpapers").replace("~/Pictures/Wallpapers", Directories.shortHomePath(Directories.wallpapersPath))
-                        }
-                    }
-                    RippleButtonWithIcon {
-                        enabled: !randomWallProc.running
-                        buttonRadius: Appearance.rounding.full
-                        materialIcon: "ifl"
-                        mainText: randomWallProc.running ? Translation.tr("...") : Translation.tr("osu!")
-                        colBackground: Qt.rgba(Appearance.colors.colLayer1.r, Appearance.colors.colLayer1.g, Appearance.colors.colLayer1.b, 0.75)
-                        colBackgroundHover: Qt.rgba(Appearance.colors.colLayer1.r, Appearance.colors.colLayer1.g, Appearance.colors.colLayer1.b, 0.85)
-                        mainContentComponent: Component {
-                            StyledText {
-                                text: randomWallProc.running ? Translation.tr("...") : Translation.tr("osu!")
-                                font.pixelSize: Appearance.font.pixelSize.smaller
-                                color: Appearance.colors.colOnLayer0
-                            }
-                        }
-                        onClicked: {
-                            randomWallProc.scriptPath = `${Directories.scriptsPath}/colors/random/random_osu_wall.sh`;
-                            randomWallProc.running = true;
-                        }
-                        StyledToolTip {
-                            text: Translation.tr("Random osu! seasonal background\nImage is saved to ~/Pictures/Wallpapers").replace("~/Pictures/Wallpapers", Directories.shortHomePath(Directories.wallpapersPath))
                         }
                     }
                 }
@@ -233,7 +211,7 @@ ContentPage {
                 }
             }
 
-            // ── Color scheme variant chips ──
+            // ── Color scheme variant ──
             ConfigSelectionArray {
                 currentValue: Config.options?.appearance?.palette?.type ?? "auto"
                 onSelected: newValue => {
@@ -251,38 +229,6 @@ ContentPage {
                     {
                         "value": "auto",
                         "displayName": Translation.tr("Auto")
-                    },
-                    {
-                        "value": "scheme-content",
-                        "displayName": Translation.tr("Content")
-                    },
-                    {
-                        "value": "scheme-expressive",
-                        "displayName": Translation.tr("Expressive")
-                    },
-                    {
-                        "value": "scheme-fidelity",
-                        "displayName": Translation.tr("Fidelity")
-                    },
-                    {
-                        "value": "scheme-fruit-salad",
-                        "displayName": Translation.tr("Fruit Salad")
-                    },
-                    {
-                        "value": "scheme-monochrome",
-                        "displayName": Translation.tr("Monochrome")
-                    },
-                    {
-                        "value": "scheme-neutral",
-                        "displayName": Translation.tr("Neutral")
-                    },
-                    {
-                        "value": "scheme-rainbow",
-                        "displayName": Translation.tr("Rainbow")
-                    },
-                    {
-                        "value": "scheme-tonal-spot",
-                        "displayName": Translation.tr("Tonal Spot")
                     }
                 ]
             }
