@@ -8,7 +8,6 @@ import Quickshell.Services.Notifications
 import qs
 import qs.compositor
 import qs.config
-import qs.modules.settings as Settings
 import QtQuick 6.10
 import "services" as QsServices
 import "singletons" as QsSingletons
@@ -92,15 +91,12 @@ ShellRoot {
     }
 
     // === Settings IPC Handler ===
+    // Alt+S always opens the standalone settings window
     IpcHandler {
         target: "settings"
 
         function open(): void {
-            if (Config.options?.settingsUi?.overlayMode ?? false) {
-                GlobalStates.settingsOverlayOpen = !GlobalStates.settingsOverlayOpen
-            } else {
-                Quickshell.execDetached([Quickshell.shellPath("scripts/settings-window.sh")])
-            }
+            Quickshell.execDetached([Quickshell.shellPath("scripts/settings-window.sh")])
         }
         function toggle(): void { open() }
     }
@@ -318,12 +314,6 @@ ShellRoot {
     property string wallpaperPath: homePath + "/Pictures/Wallpapers"
     property string cachePath: homePath + "/.cache"
     property string statePath: configPath + "/state"
-
-    // === Full Settings Overlay (loaded on demand via Alt+S) ===
-    LazyLoader {
-        active: Config.ready && (Config.options?.settingsUi?.overlayMode ?? false)
-        Settings.SettingsOverlay {}
-    }
 
     // === Music Panel State Properties ===
     property bool musicVisible: false
