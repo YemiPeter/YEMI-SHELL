@@ -1,4 +1,3 @@
-//@ pragma UseQApplication
 //@ pragma Env QS_NO_RELOAD_POPUP=1
 //@ pragma Env INIR_STANDALONE_WINDOW=1
 //@ pragma Env QT_QUICK_CONTROLS_STYLE=Basic
@@ -22,6 +21,11 @@
 // window via Qt.createComponent()/createObject(null) instead — the documented
 // pattern for dynamically instantiating a stand-alone window.
 //
+// UseQApplication is intentionally NOT declared here: settings.qml already
+// declares it. Having UseQApplication on both this wrapper Item and the
+// ApplicationWindow causes quickshell to render two windows — a white
+// background window for the Item plus the real settings window.
+//
 // This fixes only the standalone launcher; SettingsOverlay.qml and the
 // in-shell path are untouched.
 
@@ -29,6 +33,8 @@ import QtQuick
 
 Item {
     id: root
+
+    visible: false
 
     property var settingsWindow: null
 
