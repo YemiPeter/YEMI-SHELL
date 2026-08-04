@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell.Io
 import Quickshell.Bluetooth
+import "../../services" as QsServices
 import "Singletons"
 
 /**
@@ -213,7 +214,7 @@ Item {
                 s: root.s
                 anchors.verticalCenter: parent.verticalCenter
                 on: root.adapter ? root.adapter.enabled === true : false
-                onToggled: if (root.adapter) root.adapter.enabled = !root.adapter.enabled
+                onToggled: QsServices.Bluetooth.togglePower()
             }
         }
     }

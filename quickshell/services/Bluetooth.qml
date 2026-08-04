@@ -57,8 +57,8 @@ Singleton {
     }
     
     function togglePower() {
-        const cmd = powered ? "power off" : "power on"
-        toggleProc.command = ["bluetoothctl", cmd]
+        const state = powered ? "off" : "on"
+        toggleProc.command = ["bluetoothctl", "power", state]
         toggleProc.running = true
     }
     
