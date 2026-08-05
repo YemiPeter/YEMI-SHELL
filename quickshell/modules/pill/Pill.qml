@@ -22,8 +22,6 @@ import "../../singletons" as QsSingletons
 Item {
     id: pill
 
-    onHeightChanged: {
-    }
 
     property real s: 1
     property string screenName: ""

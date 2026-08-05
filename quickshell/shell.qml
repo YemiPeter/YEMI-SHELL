@@ -34,13 +34,12 @@ ShellRoot {
             randomWallProc.running = true
         }
 
-  function toggle(mon: string): void {
-    var target = mon || (compositor.focusedMonitor?.name || "");
-    if (target.length > 0)
-      QsSingletons.PillState.toggleSurface(target, "wallpaper");
-  }
-
- }
+        function toggle(mon: string): void {
+            var target = mon || (compositor.focusedMonitor?.name || "");
+            if (target.length > 0)
+              QsSingletons.PillState.toggleSurface(target, "wallpaper");
+        }
+    }
     // === Music IPC Handler ===
     IpcHandler {
         target: "music"
@@ -50,12 +49,18 @@ ShellRoot {
         }
     }
 
-    // === Colors IPC Handler (for matugen) ===
+    // === Colors IPC Handler (Phase 0: unified pipeline) ===
+    // Calls after-wall.sh which handles color generation through wallcolors.py
     IpcHandler {
         target: "colors"
 
-        function reload(): void {
-            if (!ipcColorLoadProc.running) ipcColorLoadProc.running = true
+        function reload(wallPath: string): void {
+            // If wallPath provided, apply new wallpaper; otherwise just signal reload
+            if (wallPath && wallPath.length > 0) {
+                QsServices.Matugen.applyWallpaper(wallPath)
+            } else {
+                colorsReloadProc.running = true
+            }
         }
     }
 
@@ -453,10 +458,13 @@ ShellRoot {
     }
 
     Process {
-        id: ipcColorLoadProc
+        id: colorsReloadProc
         command: ["bash", "-c", "echo reload"]
         onExited: {
-            root.matugen.reload()
+            // Phase 0: Signal Dyn.qml to reload colors.json
+            // Dyn.qml watches the file via FileView.watchChanges, but this forces a reload
+            if (QsSingletons.Flags.debug) console.log("🔄 [Shell] colorsReloadProc triggered")
+            QsSingletons.Dyn.reload()
         }
     }
 

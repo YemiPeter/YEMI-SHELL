@@ -4,26 +4,31 @@ import Quickshell
 import QtQuick 6.10
 import "../singletons" as QsSingletons
 
+/**
+ * Color reload shim (Phase 0: dead code removal).
+ *
+ * This service is retained for IPC compatibility but its applyWallpaper()
+ * method is deprecated. The single source of truth for color generation
+ * is now after-wall.sh → wallcolors.py → colors.json → Dyn.qml.
+ *
+ * Use QsSingletons.Dyn.reload() or "qs ipc call colorsReload" instead.
+ */
 Singleton {
     id: root
 
-    // Path to the generated colors file that Matugen will create
-    readonly property string colorsPath: Quickshell.env("RICE_HOME") + "/quickshell/state/colors.qml"
+    // Deprecated: This was the dead code path. Dyn.qml now watches colors.json directly.
+    // readonly property string colorsPath: Quickshell.env("RICE_HOME") + "/quickshell/state/colors.qml"
 
-    // Function to reload colors after wallpaper change
+    /// Trigger Dyn.qml to reload colors.json (watches file changes anyway, but this forces it)
     function reload(): void {
-        // Colors will be automatically loaded from the generated file
-        if (QsSingletons.Flags.debug) console.log("🔄 [Matugen] Colors reloaded from:", colorsPath)
+        if (QsSingletons.Flags.debug) console.log("🔄 [Matugen/Phase0] Forcing Dyn.qml to reload colors.json")
+        QsSingletons.Dyn.reload()
     }
 
-    // Function to apply a new wallpaper and generate colors
+    // DEPRECATED: Use after-wall.sh instead. This is kept for API compatibility.
+    // Phase 0.4: Remove from qmldir after confirming no external callers
     function applyWallpaper(imagePath: string): void {
-        // Execute matugen to generate new colors based on the wallpaper
-        var proc = Quickshell.Process();
-        var matugenConfigPath = Quickshell.env("RICE_HOME") + "/quickshell/dist/matugen/config.toml";
-        var cmd = ["matugen", "image", imagePath, "-c", matugenConfigPath];
-
-        proc.execute(cmd);
-        if (QsSingletons.Flags.debug) console.log("🎨 [Matugen] Generating colors for:", imagePath);
+        console.warn("⚠️ [Matugen/Phase0] applyWallpaper() is deprecated. Use after-wall.sh directly.")
+        // No-op: color generation now happens through after-wall.sh
     }
 }

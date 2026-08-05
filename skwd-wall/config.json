@@ -61,7 +61,7 @@
       "hexScrollStep": 1,
       "customPresets": {
         "C1_slices": {
-          "expandedWidth": 480,
+          "expandedWidth": 800,
           "sliceHeight": 270,
           "sliceWidth": 68,
           "visibleCount": 18,
@@ -69,7 +69,7 @@
           "skewOffset": 20
         },
         "C2_slices": {
-          "expandedWidth": 480,
+          "expandedWidth": 800,
           "sliceHeight": 270,
           "sliceWidth": 68,
           "visibleCount": 18,
@@ -78,11 +78,18 @@
         }
       },
       "roundCorners": true,
-      "expandedWidth": 360,
-      "sliceHeight": 200,
-      "sliceWidth": 52,
-      "visibleCount": 20,
-      "skewOffset": 16
+      "expandedWidth": 924,
+      "sliceHeight": 520,
+      "sliceWidth": 135,
+      "visibleCount": 12,
+      "skewOffset": 35,
+      "hexRadius": 100,
+      "hexRows": 2,
+      "hexCols": 7,
+      "hexArc": true,
+      "hexArcIntensity": 1,
+      "gridThumbWidth": 200,
+      "gridThumbHeight": 100
     }
   },
   "wallpaperMute": true,

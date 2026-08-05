@@ -22,31 +22,23 @@ SettingsSurface {
     backSurface: "settings"
     implicitHeight: content.implicitHeight
 
-    function applyMode() {
-        if (Flags.paletteMode === "dynamic") {
-            dynamicProc.mood = Flags.systemMood;
-            dynamicProc.running = true;
-        } else {
-            staticProc.mood = Flags.systemMood;
-            staticProc.running = true;
-        }
-        systemThemeProc.running = true;
+    /// Single entry point for color generation - routes through after-wall.sh
+    /// which becomes the only script that calls wallcolors.py and writes colors.json
+    function applyMode(wallPath) {
+        var mode = Flags.paletteMode;
+        var mood = Flags.systemMood;
+        var args = [wallPath, mode, mood];
+        colorProc.args = args;
+        colorProc.running = true;
     }
     
+    /// Process that calls after-wall.sh (Phase 0: single writer pattern)
     Process {
-        id: staticProc
-        property string mood: "dark"
+        id: colorProc
+        property var args: []
         command: ["sh", "-c",
-            "python3 \"$HOME/.config/hypr/scripts/wallcolors.py\" --mode static --mood \"$1\" && hyprctl reload >/dev/null 2>&1; busctl --user call com.mitchellh.ghostty /com/mitchellh/ghostty org.gtk.Actions Activate \"sava{sv}\" reload-config 0 0 >/dev/null 2>&1 || true",
-            "sh", mood]
-    }
-    
-    Process {
-        id: dynamicProc
-        property string mood: "dark"
-        command: ["sh", "-c",
-            "f=\"${XDG_STATE_HOME:-$HOME/.local/state}/yemi-shell-wallpaper\"; pic=$(cat \"$f\" 2>/dev/null); [ -f \"$pic\" ] && python3 \"$HOME/.config/hypr/scripts/wallcolors.py\" --mode dynamic --mood \"$1\" \"$pic\" >/dev/null 2>&1; hyprctl reload >/dev/null 2>&1; busctl --user call com.mitchellh.ghostty /com/mitchellh/ghostty org.gtk.Actions Activate \"sava{sv}\" reload-config 0 0 >/dev/null 2>&1 || true",
-            "sh", mood]
+            "\"$HOME/.config/quickshell/scripts/after-wall.sh\" \"$1\" \"$2\" \"$3\"",
+            "sh", args[0] || "", args[1] || "dynamic", args[2] || "dark"]
     }
     
     Process {

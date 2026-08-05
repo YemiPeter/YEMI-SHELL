@@ -11,15 +11,19 @@
 set -euo pipefail
 
 WALL_PATH="${1:-}"
+MODE="${2:-dynamic}"
+MOOD="${3:-dark}"
 SCRIPTS="$(cd "$(dirname "$0")" && pwd)"
 
 [ -f "$WALL_PATH" ] || { echo "[yemi-shell] no wallpaper path given"; exit 1; }
 
 # 1 — generate colors from wallpaper
-python3 "$SCRIPTS/wallcolors.py" "$WALL_PATH"
+# Mode: dynamic (follows wallpaper) or static (uses wallpaper as accent source)
+# Mood: dark or light - controls surface lightness for contrast
+python3 "$SCRIPTS/wallcolors.py" --mode "$MODE" --mood "$MOOD" "$WALL_PATH"
 
 # 2 — fan out terminal.json to all terminal emulators
 python3 "$SCRIPTS/apply-terminal-colors.py"
 
-# 3 — signal quickshell to reload pill colors
-qs ipc call matugenReload 2>/dev/null || true
+# 3 — signal quickshell to reload pill colors (via Dyn singleton)
+qs ipc call colorsReload 2>/dev/null || true
