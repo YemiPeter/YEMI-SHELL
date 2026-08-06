@@ -6,7 +6,6 @@ import Quickshell.Io
 import Quickshell.Networking
 import Quickshell.Bluetooth
 import Quickshell.Services.Notifications
-import "../../services" as QsServices
 import "Singletons"
 
 /**
@@ -596,7 +595,7 @@ PillSurface {
                         s: root.s
                         anchors.verticalCenter: parent.verticalCenter
                         on: root.btOn
-                        onToggled: QsServices.Bluetooth.togglePower()
+                        onToggled: if (root.btAdapter) root.btAdapter.enabled = !root.btAdapter.enabled
                     }
 
                     GlyphIcon {

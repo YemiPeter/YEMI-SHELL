@@ -1,29 +1,29 @@
 #!/bin/bash
-# yemi-shell wallpaper color pipeline
-#
-# Flow:
-#   wallpaper → wallcolors.py → ~/.cache/yemi-shell/terminal.json
-#                             → ~/.cache/yemi-shell/colors.json (pill/UI)
-#             → apply-terminal-colors.py → kitty/theme.conf
-#                                        → ghostty/themes/yemi-auto
-#             → quickshell color reload
+# after-wall.sh — SINGLE WRITER of colors.json
+# Usage: after-wall.sh <mood> [wallpaper-path]
 
 set -euo pipefail
 
-WALL_PATH="${1:-}"
-MODE="${2:-dynamic}"
-MOOD="${3:-dark}"
+MOOD="${1:-dynamic}"
+WALL_PATH="${2:-}"
 SCRIPTS="$(cd "$(dirname "$0")" && pwd)"
+FLAGS_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/quickshell/flags.json"
 
-[ -f "$WALL_PATH" ] || { echo "[yemi-shell] no wallpaper path given"; exit 1; }
+# Derive mode from flags.json if not forced
+PMODE="$(jq -r '.paletteMode // "dynamic"' "$FLAGS_FILE" 2>/dev/null || echo dynamic)"
 
-# 1 — generate colors from wallpaper
-# Mode: dynamic (follows wallpaper) or static (uses wallpaper as accent source)
-# Mood: dark or light - controls surface lightness for contrast
-python3 "$SCRIPTS/wallcolors.py" --mode "$MODE" --mood "$MOOD" "$WALL_PATH"
+if [ "$PMODE" = "static" ]; then
+    python3 "$SCRIPTS/wallcolors.py" --mode static --mood "$MOOD"
+else
+    # Dynamic mode needs a wallpaper
+    if [ -z "$WALL_PATH" ]; then
+        WALL_PATH="$(cat "${XDG_STATE_HOME:-$HOME/.local/state}/quickshell-wallpaper" 2>/dev/null || true)"
+    fi
+    [ -f "$WALL_PATH" ] || { echo "[yemi-shell] no wallpaper for dynamic mode"; exit 1; }
+    python3 "$SCRIPTS/wallcolors.py" "$WALL_PATH"
+fi
 
-# 2 — fan out terminal.json to all terminal emulators
 python3 "$SCRIPTS/apply-terminal-colors.py"
 
-# 3 — signal quickshell to reload pill colors (via Dyn singleton)
-qs ipc call colorsReload 2>/dev/null || true
+# Signal quickshell to re-read (registered target, not the dead matugenReload)
+qs ipc call colors reload 2>/dev/null || true

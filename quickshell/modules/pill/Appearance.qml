@@ -13,7 +13,7 @@ import "Singletons"
  * on an empty click or the back chevron.
  *
  * Color source and system mood are independent switches — changing either
- * rebuilds the rice colour set through wallcolors.py and reloads Hyprland
+ * rebuilds the rice colour set through after-wall.sh and reloads Hyprland
  * and the terminal.
  */
 SettingsSurface {
@@ -25,26 +25,23 @@ SettingsSurface {
     /// Single entry point for color generation - routes through after-wall.sh
     /// which becomes the only script that calls wallcolors.py and writes colors.json
     function applyMode(wallPath) {
-        var mode = Flags.paletteMode;
         var mood = Flags.systemMood;
-        var args = [wallPath, mode, mood];
-        colorProc.args = args;
-        colorProc.running = true;
+        colorProc.exec(["sh", "-c",
+            'sh "$HOME/.config/quickshell/scripts/after-wall.sh" "' + mood + '" "' + (wallPath || "") + '"']);
     }
     
     /// Process that calls after-wall.sh (Phase 0: single writer pattern)
     Process {
         id: colorProc
-        property var args: []
-        command: ["sh", "-c",
-            "\"$HOME/.config/quickshell/scripts/after-wall.sh\" \"$1\" \"$2\" \"$3\"",
-            "sh", args[0] || "", args[1] || "dynamic", args[2] || "dark"]
+        onExited: (code) => {
+            if (Flags.debug) console.log("[Appearance] Color process exited with code:", code)
+        }
     }
-    
+
     Process {
         id: systemThemeProc
         command: ["sh", "-c",
-            "\"$HOME/.config/quickshell/scripts/apply-system-theme.sh\" \"$1\"",
+            "sh \"$HOME/.config/quickshell/scripts/apply-system-theme.sh\" \"$1\"",
             "sh", Flags.systemMood]
     }
 

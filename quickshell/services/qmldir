@@ -1,5 +1,4 @@
 module qs.services
-singleton Matugen Matugen.qml
 singleton Players Players.qml
 singleton Network Network.qml
 singleton Brightness Brightness.qml

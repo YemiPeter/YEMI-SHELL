@@ -22,7 +22,6 @@ ShellRoot {
 
     // Initialize services immediately
     readonly property var notifs: QsServices.Notifs
-    readonly property var matugen: QsServices.Matugen
     readonly property var audio: QsServices.Audio
     readonly property var brightness: QsServices.Brightness
 
@@ -55,12 +54,9 @@ ShellRoot {
         target: "colors"
 
         function reload(wallPath: string): void {
-            // If wallPath provided, apply new wallpaper; otherwise just signal reload
-            if (wallPath && wallPath.length > 0) {
-                QsServices.Matugen.applyWallpaper(wallPath)
-            } else {
-                colorsReloadProc.running = true
-            }
+            // Direct reload of Dyn.qml's colors.json via FileView
+            QsSingletons.Dyn.file.reload()
+            if (QsSingletons.Flags.debug) console.log("[IPC] colors reloaded")
         }
     }
 
@@ -87,12 +83,6 @@ ShellRoot {
         function previous(): void {
             if (altSwitcherLoader.item) altSwitcherLoader.item.previous()
         }
-    }
-
-    // === Settings Window State (outside IPC to avoid serialization) ===
-    QtObject {
-        id: settingsState
-        property var settingsWindow: null
     }
 
     // === Settings IPC Handler ===

@@ -3,7 +3,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell.Io
 import Quickshell.Bluetooth
-import "../../services" as QsServices
 import "Singletons"
 
 /**
@@ -92,10 +91,9 @@ Item {
             return;
         pairingAddress = d.address;
         failedAddress = "";
-        pairProc.command = ["sh", "-c",
+        pairProc.exec(["sh", "-c",
             'timeout 30 bluetoothctl pair "$1" && bluetoothctl trust "$1" && timeout 30 bluetoothctl connect "$1"',
-            "sh", d.address];
-        pairProc.running = true;
+            "sh", d.address]);
     }
 
     onActiveChanged: {
@@ -214,7 +212,7 @@ Item {
                 s: root.s
                 anchors.verticalCenter: parent.verticalCenter
                 on: root.adapter ? root.adapter.enabled === true : false
-                onToggled: QsServices.Bluetooth.togglePower()
+                onToggled: if (root.adapter) root.adapter.enabled = !root.adapter.enabled
             }
         }
     }

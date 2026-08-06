@@ -3,6 +3,7 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import "../singletons" as QsSingletons
 
 Singleton {
     id: root
@@ -57,13 +58,16 @@ Singleton {
     }
     
     function togglePower() {
+        console.log(">>> togglePower called, powered =", powered)
         const state = powered ? "off" : "on"
-        toggleProc.command = ["bluetoothctl", "power", state]
-        toggleProc.running = true
+        toggleProc.exec(["bluetoothctl", "power", state])
     }
     
     Process {
         id: toggleProc
-        onExited: statusProc.running = true
+        onExited: (code) => {
+            if (QsSingletons.Flags.debug) console.log("[Bluetooth] Power toggle exited with code:", code)
+            statusProc.running = true
+        }
     }
 }
