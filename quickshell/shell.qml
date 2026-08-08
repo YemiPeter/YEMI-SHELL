@@ -53,8 +53,10 @@ ShellRoot {
     IpcHandler {
         target: "colors"
 
-        function reload(wallPath: string): void {
-            // Direct reload of Dyn.qml's colors.json via FileView
+        function reload(): void {
+            // Direct reload of Dyn.qml's colors.json via FileView.
+            // Wallpaper path is managed by after-wall.sh → wallcolors.py;
+            // this IPC just forces Dyn's FileView to re-read the file.
             QsSingletons.Dyn.file.reload()
             if (QsSingletons.Flags.debug) console.log("[IPC] colors reloaded")
         }

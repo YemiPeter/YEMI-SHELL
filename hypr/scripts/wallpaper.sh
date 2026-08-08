@@ -88,13 +88,10 @@ awww img "$pic" \
 mkdir -p "$(dirname "$STATE")"
 printf '%s\n' "$pic" > "$STATE"
 
-flags_file="${XDG_STATE_HOME:-$HOME/.local/state}/quickshell/flags.json"
-pmode=$(jq -r '.paletteMode // "static"' "$flags_file" 2>/dev/null || echo static)
-if [ "$pmode" = "manual" ]; then
-    mh=$(jq -r '.manualHue // 30' "$flags_file" 2>/dev/null || echo 30)
-    md=$(jq -r 'if .manualDark == false then "light" else "dark" end' "$flags_file" 2>/dev/null || echo dark)
-else
-fi
+# Delegate color generation to the single quickshell writer so colors.json
+# stays in the Dyn.qml-expected schema. wallpaper.sh only sets the image +
+# state here; after-wall.sh owns the palette.
+python3 "$HOME/.config/quickshell/scripts/after-wall.sh" "dynamic" "$pic" >/dev/null 2>&1 || true
 hyprctl reload >/dev/null 2>&1 || true
 busctl --user call com.mitchellh.ghostty /com/mitchellh/ghostty org.gtk.Actions \
     Activate "sava{sv}" reload-config 0 0 >/dev/null 2>&1 || true

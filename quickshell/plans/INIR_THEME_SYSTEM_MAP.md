@@ -1,1 +1,0 @@
-docs/color-system/INIR_THEME_SYSTEM_MAP.md

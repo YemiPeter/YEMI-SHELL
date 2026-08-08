@@ -10,7 +10,6 @@ import "../../components/effects"
 PanelWindow {
     id: root
 
-    required property var matugen
     property bool showing: false
 
     // Use VolumeMonitor for reliable OSD triggering (reads from /tmp/volume_osd)

@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-MOOD="${1:-dynamic}"
+MOOD="${1:-dark}"
 WALL_PATH="${2:-}"
 SCRIPTS="$(cd "$(dirname "$0")" && pwd)"
 FLAGS_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/quickshell/flags.json"
@@ -20,7 +20,7 @@ else
         WALL_PATH="$(cat "${XDG_STATE_HOME:-$HOME/.local/state}/quickshell-wallpaper" 2>/dev/null || true)"
     fi
     [ -f "$WALL_PATH" ] || { echo "[yemi-shell] no wallpaper for dynamic mode"; exit 1; }
-    python3 "$SCRIPTS/wallcolors.py" "$WALL_PATH"
+    python3 "$SCRIPTS/wallcolors.py" --mode dynamic --mood "$MOOD" "$WALL_PATH"
 fi
 
 python3 "$SCRIPTS/apply-terminal-colors.py"

@@ -11,7 +11,6 @@ import "../../components/effects"
 PanelWindow {
     id: root
 
-    required property var matugen
     property bool showing: false
 
     // Direct brightness reading with faster polling
