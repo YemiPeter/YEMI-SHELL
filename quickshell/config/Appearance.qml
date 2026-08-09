@@ -4,6 +4,8 @@ import Quickshell
 import QtQuick 6.10
 import "../services" as QsServices
 import "../singletons" as QsSingletons
+import "functions"
+import "theme/moods"
 
 Singleton {
     // Directly expose appearance properties from Config
@@ -18,16 +20,16 @@ Singleton {
 
     // 5a — Font pixel size scale
     readonly property var fontSize: ({
-        huge: font.typography?.displayLarge?.size ?? 57,
-        normal: font.typography?.bodyLarge?.size ?? 16,
-        smaller: font.typography?.bodyMedium?.size ?? 14,
-        small: font.typography?.bodySmall?.size ?? 12,
-        smallest: font.typography?.labelSmall?.size ?? 11
+        huge: font.typography && font.typography.displayLarge ? font.typography.displayLarge.size : 57,
+        normal: font.typography && font.typography.bodyLarge ? font.typography.bodyLarge.size : 16,
+        smaller: font.typography && font.typography.bodyMedium ? font.typography.bodyMedium.size : 14,
+        small: font.typography && font.typography.bodySmall ? font.typography.bodySmall.size : 12,
+        smallest: font.typography && font.typography.labelSmall ? font.typography.labelSmall.size : 11
     })
 
     // 5b — Font family for numbers
     readonly property var fontFamily: ({
-        numbers: font.family ?? "JetBrains Mono"
+        numbers: font.family ? font.family : "JetBrains Mono"
     })
 
     // 5c — Effects enabled flag
@@ -86,4 +88,36 @@ Singleton {
         ),
         colPrimaryHover: Qt.lighter(QsSingletons.Theme.onGlow, 1.15)
     })
+
+    // === Theme Adapter (Section 8) ===
+
+    /// Resolve the active mood singleton (LightMood or DarkMood).
+    readonly property var activeMood: QsSingletons.Flags.systemMood === "light" ? LightMood : DarkMood
+
+    /// Whether the palette source is dynamic (wallpaper-derived) vs static.
+    readonly property bool isDynamic: QsSingletons.Flags.paletteMode !== "static"
+
+    /// Raw Material 3 palette — always from Dyn (accent source even in static mode).
+    readonly property var m3: QsSingletons.Dyn.active
+
+    // --- Resolved Yemi compatibility tokens ---------------------------
+    // Dynamic: wallpaper-derived via Dyn. Static: solid mood surfaces.
+    // Text colors are run through ColorUtils.ensureReadable() for contrast.
+    readonly property color yemiTileBg: isDynamic ? QsSingletons.Dyn.surface : activeMood.tileBg
+    readonly property color yemiCardTop: isDynamic ? QsSingletons.Dyn.surfaceContainerHigh : activeMood.cardTop
+    readonly property color yemiCardBot: isDynamic ? QsSingletons.Dyn.surfaceContainerLow : activeMood.cardBot
+    readonly property color yemiCream: isDynamic ? ColorUtils.ensureReadable(QsSingletons.Dyn.onSurface, yemiTileBg) : activeMood.cream
+    readonly property color yemiBright: isDynamic ? ColorUtils.ensureReadable(QsSingletons.Dyn.onSurface, yemiTileBg) : activeMood.bright
+    readonly property color yemiSubtle: isDynamic ? ColorUtils.ensureReadable(QsSingletons.Dyn.onSurfaceVariant, yemiTileBg) : activeMood.subtle
+    readonly property color yemiDim: isDynamic ? ColorUtils.ensureReadable(QsSingletons.Dyn.outline, yemiTileBg) : activeMood.dim
+    readonly property color yemiFaint: isDynamic ? ColorUtils.ensureReadable(QsSingletons.Dyn.outlineVariant, yemiTileBg) : activeMood.faint
+    readonly property color yemiBorder: isDynamic ? QsSingletons.Dyn.outlineVariant : activeMood.border
+    readonly property color yemiPrimary: QsSingletons.Dyn.primary
+    readonly property color yemiPrimaryContainer: QsSingletons.Dyn.primaryContainer
+
+    // --- Flame string tokens (always #rrggbb) -------------------------
+    readonly property string flameInk: ColorUtils.colorToHex(QsSingletons.Dyn.primary)
+    readonly property string flameEmber: ColorUtils.colorToHex(QsSingletons.Dyn.primaryContainer)
+    readonly property string flameBurn: ColorUtils.colorToHex(QsSingletons.Dyn.primaryContainer)
+    readonly property string flameTip: ColorUtils.colorToHex(QsSingletons.Dyn.onPrimaryContainer)
 }

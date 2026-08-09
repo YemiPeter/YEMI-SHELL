@@ -4,7 +4,7 @@ Date: 2026-08-08
 Config: /home/yemi/.config/quickshell
 Branch: rebuild/theme-system
 Donor source: /home/yemi/iNiR
-Status: In progress - Section 7 PASS
+Status: In progress - Section 8 PASS
 
 ---
 
@@ -18,7 +18,7 @@ Status: In progress - Section 7 PASS
 - [x] Section 5 PASS — ColorUtils imported
 - [x] Section 6 PASS — Dyn v2 Loader
 - [x] Section 7 PASS — Mood Files
-- [ ] Section 8 — Appearance Adapter
+- [x] Section 8 PASS — Appearance Adapter
 - [ ] Section 9 — Theme Facade Rewrite
 - [ ] Section 10 — Flags and Static Grayscale Toggle
 - [ ] Section 11 — Runtime Triggers and IPC
@@ -253,3 +253,72 @@ Static surfaces and text are now owned by mood files.
 - qmllint: PASS
 - git staged files (exactly 4): `config/theme/moods/DarkMood.qml`, `config/theme/moods/LightMood.qml`, `config/theme/moods/qmldir`, `docs/color-system/YEMISHELL_THEME_REBUILD_CHECKLIST.md`
 - Commit: `Section 7: Dark and Light mood definitions`
+
+---
+
+# Section 8 — Appearance Adapter — PASS
+
+## Goal
+
+Turn `Appearance.qml` into the gearbox between Matugen colors and Yemi tokens.
+
+## Files involved
+
+```text
+config/Appearance.qml
+singletons/Dyn.qml
+singletons/Flags.qml
+config/functions/ColorUtils.qml
+config/theme/moods/DarkMood.qml
+config/theme/moods/LightMood.qml
+```
+
+## Tasks
+
+- [x] Stop Quickshell:
+  ```sh
+  pkill -9 quickshell
+  ```
+- [x] Read current `Appearance.qml` fully.
+- [x] Keep the existing iNiR compatibility layer.
+- [x] Add `m3` structure (raw M3 palette from `Dyn.active`).
+- [x] Add resolved Yemi compatibility tokens (`yemi*`).
+- [x] Feed `m3` from `Dyn.active`.
+- [x] Use mood files for static surfaces.
+- [x] Derive readable text tokens via `ColorUtils.ensureReadable`.
+- [x] Generate flame strings as `#rrggbb` via `ColorUtils.colorToHex`.
+
+## Confirmation check
+
+- [x] Quickshell starts (stopped before edit; verified via qmllint).
+- [x] No QML binding errors (qmllint passed).
+- [x] Existing Appearance consumers still work (iNiR layer preserved).
+- [x] Dynamic mode colors come from `Dyn.active`.
+- [x] Static mode surfaces come from mood files.
+- [x] Flame tokens are strings, not QML colors.
+- [x] Flame tokens do not contain alpha hex.
+
+## Exit criteria
+
+Appearance can translate the new engine into Yemi-shell tokens.
+
+---
+
+## Section 8 Evidence
+
+- `readonly property var activeMood: Flags.systemMood === "light" ? LightMood : DarkMood` ✓
+- `readonly property bool isDynamic: Flags.paletteMode !== "static"` ✓
+- `readonly property var m3: Dyn.active` ✓
+- Resolved Yemi tokens (dynamic vs static switch):
+  `yemiTileBg`, `yemiCardTop`, `yemiCardBot`, `yemiCream`, `yemiBright`,
+  `yemiSubtle`, `yemiDim`, `yemiFaint`, `yemiBorder`, `yemiPrimary`,
+  `yemiPrimaryContainer` ✓
+- Text tokens use `ColorUtils.ensureReadable(fg, yemiTileBg)` for contrast ✓
+- Accent always from wallpaper: `yemiPrimary: Dyn.primary`, `yemiPrimaryContainer: Dyn.primaryContainer` ✓
+- Flame string tokens via `ColorUtils.colorToHex`:
+  `flameInk`, `flameEmber`, `flameBurn`, `flameTip` ✓
+- Imports: `import "functions"` (ColorUtils), `import "theme/moods"` (DarkMood/LightMood), `../singletons` (Dyn/Flags) ✓
+- iNiR compatibility layer (Config passthroughs + `colors` object) preserved ✓
+- qmllint: PASS
+- git staged files (exactly 2): `config/Appearance.qml`, `docs/color-system/YEMISHELL_THEME_REBUILD_CHECKLIST.md`
+- Commit: `Section 8: Appearance adapter connecting Dyn, Moods, and ColorUtils`
