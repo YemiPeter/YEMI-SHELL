@@ -6,21 +6,30 @@ import Quickshell.Io
 /**
  * Live wallpaper-derived palette (colors.json v2).
  *
- * after-wall.sh (the single writer) hands off colour generation to matugen,
- * which writes a small JSON contract to ~/.cache/yemi-shell/colors.json on
- * every wallpaper change. This singleton watches that file, parses it into the
- * two named schemes (Dyn.dark, Dyn.light) and exposes the currently active one
+ * after-wall.sh (the single writer) runs matugen and writes a v2 contract to
+ * ~/.cache/yemi-shell/colors.json:
+ *
+ *   {
+ *     "version": 2,
+ *     "generator": "matugen",
+ *     "dark":  { ... 24 material tokens ... },
+ *     "light": { ... 24 material tokens ... }
+ *   }
+ *
+ * This singleton watches that file, parses the nested dark/light objects into
+ * Dyn.darkScheme / Dyn.lightScheme and exposes the currently active one
  * (Dyn.active), which follows Flags.systemMood ("dark" or "light").
  *
- * The old flat aliases (Dyn.surface, Dyn.primary, Dyn.cream, ...) are kept and
- * resolve to the ACTIVE scheme, so existing consumers keep working while the
- * Appearance/Theme facade is migrated in later sections.
+ * The old flat aliases (Dyn.surface, Dyn.primary, Dyn.cream, ...) are kept as
+ * colour-typed properties that resolve against the ACTIVE scheme, so existing
+ * consumers keep working while the Appearance/Theme facade is migrated in
+ * later sections.
  *
- * Falls back to a warm, hand-picked palette when the file is missing or
- * corrupt so the shell never crashes and always yields a usable scheme. The
- * reload() function is re-entrant and idempotent: it reassigns the scheme
- * objects (and bumps `revision`) so QML bindings re-evaluate every time, even
- * when the mood changes with the same underlying file.
+ * Falls back to a warm, hand-picked palette when the file is missing, corrupt,
+ * or does not carry "version": 2 so the shell never crashes and always yields
+ * a usable scheme. reload() is re-entrant and idempotent: it reassigns the
+ * scheme objects (and bumps `revision`) so QML bindings re-evaluate every
+ * time, even when only the mood changes with the same underlying file.
  */
 Singleton {
     id: root
@@ -29,49 +38,63 @@ Singleton {
     readonly property int revision: _revision
     property int _revision: 0
 
-    /// Metadata from the v2 file (raw contract copy).
+    /// Raw v2 contract copy (metadata).
     readonly property var data: _data
     property var _data: ({})
 
-    /// Dark and light M3 schemes (each an object of string tokens).
-    readonly property var dark: _dark
-    property var _dark: ({})
+    /// Full dark and light M3 schemes (each an object of string tokens).
+    readonly property var darkScheme: _darkScheme
+    property var _darkScheme: ({})
 
-    readonly property var light: _light
-    property var _light: ({})
+    readonly property var lightScheme: _lightScheme
+    property var _lightScheme: ({})
 
-    /// The currently active scheme, following Flags.systemMood.
-    readonly property var active: (Flags.systemMood === "light") ? root._light : root._dark
+    /// Currently active scheme, following Flags.systemMood ("dark"/"light").
+    readonly property var active: (Flags.systemMood === "light") ? root._lightScheme : root._darkScheme
 
     // ------------------------------------------------------------------
     // Kept flat aliases — resolve against the ACTIVE scheme so existing
     // consumers (Theme, Appearance, pill/bar/osd components) keep working.
     // Touching `revision` forces these to re-evaluate on reload/mood change.
     // ------------------------------------------------------------------
-    readonly property string surface: active && active.surface !== undefined ? active.surface : "#18120b"
-    readonly property string surfaceContainer: active && active.surface_container !== undefined ? active.surface_container : "#251f17"
-    readonly property string surfaceContainerLow: active && active.surface_container_low !== undefined ? active.surface_container_low : "#211b13"
-    readonly property string surfaceContainerHigh: active && active.surface_container_high !== undefined ? active.surface_container_high : "#302921"
-    readonly property string surfaceContainerHighest: active && active.surface_container_highest !== undefined ? active.surface_container_highest : "#3b342b"
-    readonly property string primary: active && active.primary !== undefined ? active.primary : "#f5bd6f"
-    readonly property string primaryContainer: active && active.primary_container !== undefined ? active.primary_container : "#633f00"
-    readonly property string onPrimaryContainer: active && active.on_primary_container !== undefined ? active.on_primary_container : "#ffddb3"
-    readonly property string outline: active && active.outline !== undefined ? active.outline : "#9c8f80"
-    readonly property string outlineVariant: active && active.outline_variant !== undefined ? active.outline_variant : "#4f4539"
-    readonly property string onSurface: active && active.on_surface !== undefined ? active.on_surface : "#e6e2de"
-    readonly property string onSurfaceVariant: active && active.on_surface_variant !== undefined ? active.on_surface_variant : "#cbc6ba"
-    readonly property string error: active && active.error !== undefined ? active.error : "#ffb4ab"
 
-    // Derived Yemi text/accent ramp — currently mapped to surface-variant-ish
-    // tone families for contrast safety. Refined by the Appearance adapter
-    // (Section 8); these are safe fallbacks that stay readable either mood.
-    readonly property string cream: active && active.on_surface !== undefined ? active.on_surface : "#e6d6cb"
-    readonly property string bright: active && active.on_surface !== undefined ? active.on_surface : "#fff6f0"
-    readonly property string subtle: active && active.on_surface_variant !== undefined ? active.on_surface_variant : "#b9a99e"
-    readonly property string dim: active && active.outline !== undefined ? active.outline : "#8a7d74"
-    readonly property string faint: active && active.outline_variant !== undefined ? active.outline_variant : "#6f635b"
-    readonly property string iconDim: active && active.on_surface_variant !== undefined ? active.on_surface_variant : "#cdbfb4"
-    readonly property string tickRest: active && active.outline !== undefined ? active.outline : "#cbb6a3"
+    // --- Original 17 tokens -------------------------------------------
+    readonly property color surface: active && active.surface !== undefined ? active.surface : "#15130b"
+    readonly property color surfaceContainer: active && active.surface_container !== undefined ? active.surface_container : "#232016"
+    readonly property color surfaceContainerLow: active && active.surface_container_low !== undefined ? active.surface_container_low : "#1e1b12"
+    readonly property color surfaceContainerHigh: active && active.surface_container_high !== undefined ? active.surface_container_high : "#2d2a1f"
+    readonly property color surfaceContainerHighest: active && active.surface_container_highest !== undefined ? active.surface_container_highest : "#383529"
+    readonly property color primary: active && active.primary !== undefined ? active.primary : "#dac76f"
+    readonly property color primaryContainer: active && active.primary_container !== undefined ? active.primary_container : "#633f00"
+    readonly property color onPrimaryContainer: active && active.on_primary_container !== undefined ? active.on_primary_container : "#ffddb3"
+    readonly property color outline: active && active.outline !== undefined ? active.outline : "#9c8f80"
+    readonly property color outlineVariant: active && active.outline_variant !== undefined ? active.outline_variant : "#4f4539"
+
+    // Derived Yemi text/accent ramp — mapped to M3 tone families for contrast
+    // safety. Refined by the Appearance adapter (Section 8); these safe
+    // fallbacks keep text readable in either mood.
+    readonly property color cream: active && active.on_surface !== undefined ? active.on_surface : "#e6d6cb"
+    readonly property color bright: active && active.on_surface !== undefined ? active.on_surface : "#fff6f0"
+    readonly property color subtle: active && active.on_surface_variant !== undefined ? active.on_surface_variant : "#b9a99e"
+    readonly property color dim: active && active.outline !== undefined ? active.outline : "#8a7d74"
+    readonly property color faint: active && active.outline_variant !== undefined ? active.outline_variant : "#6f635b"
+    readonly property color iconDim: active && active.on_surface_variant !== undefined ? active.on_surface_variant : "#cdbfb4"
+    readonly property color tickRest: active && active.outline !== undefined ? active.outline : "#cbb6a3"
+
+    // --- New M3 flat aliases ------------------------------------------
+    readonly property color surfaceContainerLowest: active && active.surface_container_lowest !== undefined ? active.surface_container_lowest : "#100d06"
+    readonly property color onSurface: active && active.on_surface !== undefined ? active.on_surface : "#e6e2de"
+    readonly property color onSurfaceVariant: active && active.on_surface_variant !== undefined ? active.on_surface_variant : "#cbc6ba"
+    readonly property color secondary: active && active.secondary !== undefined ? active.secondary : "#e3c29c"
+    readonly property color secondaryContainer: active && active.secondary_container !== undefined ? active.secondary_container : "#453321"
+    readonly property color tertiary: active && active.tertiary !== undefined ? active.tertiary : "#e2c1a5"
+    readonly property color tertiaryContainer: active && active.tertiary_container !== undefined ? active.tertiary_container : "#3d2c1f"
+    readonly property color inverseSurface: active && active.inverse_surface !== undefined ? active.inverse_surface : "#f0e3d8"
+    readonly property color inverseOnSurface: active && active.inverse_on_surface !== undefined ? active.inverse_on_surface : "#332a20"
+    readonly property color error: active && active.error !== undefined ? active.error : "#ffb4ab"
+    readonly property color errorContainer: active && active.error_container !== undefined ? active.error_container : "#93000a"
+    readonly property color onError: active && active.on_error !== undefined ? active.on_error : "#690005"
+    readonly property color onErrorContainer: active && active.on_error_container !== undefined ? active.on_error_container : "#ffdad6"
 
     // ------------------------------------------------------------------
     // Internal state
@@ -80,7 +103,7 @@ Singleton {
 
     /// Hand-picked warm fallback used when the file is missing or corrupt.
     readonly property var fallbackDark: ({
-        "primary": "#f5bd6f",
+        "primary": "#dac76f",
         "on_primary": "#3f2d00",
         "primary_container": "#633f00",
         "on_primary_container": "#ffddb3",
@@ -88,12 +111,12 @@ Singleton {
         "secondary_container": "#453321",
         "tertiary": "#e2c1a5",
         "tertiary_container": "#3d2c1f",
-        "surface": "#18120b",
-        "surface_container_lowest": "#130d07",
-        "surface_container_low": "#211b13",
-        "surface_container": "#251f17",
-        "surface_container_high": "#302921",
-        "surface_container_highest": "#3b342b",
+        "surface": "#15130b",
+        "surface_container_lowest": "#100d06",
+        "surface_container_low": "#1e1b12",
+        "surface_container": "#232016",
+        "surface_container_high": "#2d2a1f",
+        "surface_container_highest": "#383529",
         "on_surface": "#f0e3d8",
         "on_surface_variant": "#cdbbb0",
         "outline": "#9c8f80",
@@ -136,15 +159,15 @@ Singleton {
     /// Parse a scheme object from the v2 contract, merging safe fallbacks.
     function _normalize(scheme, fallback) {
         var out = {};
-        var key, val;
-        for (key in fallback) {
+        for (var key in fallback) {
             // If the file is missing a key, carry the fallback value only.
             out[key] = (scheme && scheme[key] !== undefined) ? scheme[key] : fallback[key];
         }
         return out;
     }
 
-    /// Re-read the file. Never throws; a bad read just keeps the last good values.
+    /// Re-read the file. Never throws; a bad read just keeps the last good
+    /// values (or the warm fallback palette).
     function reload() {
         var dScheme, lScheme, obj;
         try {
@@ -161,13 +184,13 @@ Singleton {
         }
 
         if (dScheme && lScheme) {
-            root._dark = root._normalize(dScheme, root.fallbackDark);
-            root._light = root._normalize(lScheme, root.fallbackLight);
+            root._darkScheme = root._normalize(dScheme, root.fallbackDark);
+            root._lightScheme = root._normalize(lScheme, root.fallbackLight);
             root._data = obj; // keep the raw contract for metadata
         } else {
-            // Missing or corrupt: keep the safe fallback schemes.
-            root._dark = root._normalize({}, root.fallbackDark);
-            root._light = root._normalize({}, root.fallbackLight);
+            // Missing, corrupt, or not version 2: safe warm fallbacks.
+            root._darkScheme = root._normalize({}, root.fallbackDark);
+            root._lightScheme = root._normalize({}, root.fallbackLight);
             root._data = {};
         }
 
@@ -183,10 +206,7 @@ Singleton {
 
         onFileChanged: reload()
         onLoadFailed: function (error) {
-            if (error === FileViewError.FileNotFound)
-                reload(); // keep fallbacks; bump revision so bindings settle
-            else
-                reload();
+            reload(); // keep fallbacks; bump revision so bindings settle
         }
     }
 

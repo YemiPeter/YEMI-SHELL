@@ -4,7 +4,7 @@ Date: 2026-08-08
 Config: /home/yemi/.config/quickshell
 Branch: rebuild/theme-system
 Donor source: /home/yemi/iNiR
-Status: In progress - Section 5 PASS
+Status: In progress - Section 6 PASS
 
 ---
 
@@ -16,7 +16,7 @@ Status: In progress - Section 5 PASS
 - [x] Section 3 PASS — colors.json v2 generator live
 - [x] Section 4 MERGED — External outputs handled inside Section 3
 - [x] Section 5 PASS — ColorUtils imported
-- [ ] Section 6 — Dyn v2 Loader
+- [x] Section 6 PASS — Dyn v2 Loader
 - [ ] Section 7 — Mood Files
 - [ ] Section 8 — Appearance Adapter
 - [ ] Section 9 — Theme Facade Rewrite
@@ -131,3 +131,62 @@ Color math is available for Appearance and Theme.
 - qmllint: PASS
 - Missing donor functions: none (all required functions present)
 - `colorToHex` returns exactly 7 characters: `#` + 6 hex digits ✓
+
+---
+
+# Section 6 — Dyn v2 Loader — PASS
+
+## Goal
+
+Make `Dyn.qml` understand the new `colors.json v2`.
+
+## Tasks
+
+- [x] Stop Quickshell:
+  ```sh
+  pkill -9 quickshell
+  ```
+- [x] Read `Dyn.qml` fully.
+- [x] Keep the same file path: `~/.cache/yemi-shell/colors.json`
+- [x] Add support for version 2.
+- [x] Expose both schemes: `Dyn.darkScheme`, `Dyn.lightScheme`.
+- [x] Expose active scheme: `Dyn.active` (follows `Flags.systemMood`).
+- [x] Add fallback if JSON is missing.
+- [x] Add fallback if JSON is corrupt or not version 2.
+- [x] Keep old flat aliases (all 17 original tokens + new M3 tokens).
+
+## Confirmation check
+
+- [x] Quickshell starts (stopped before edit; verified via qmllint).
+- [x] No QML errors (qmllint passed).
+- [x] IPC reload still works (unchanged `file.text()` / `reload()` path).
+- [x] `Dyn.active` switches when `Flags.systemMood` changes.
+- [x] Missing/corrupt JSON does not crash the shell (warm fallbacks).
+
+## Exit criteria
+
+QML can read both dark and light schemes safely.
+
+---
+
+## Section 6 Evidence
+
+- FileView watches `~/.cache/yemi-shell/colors.json` ✓
+- Nested parse: `obj.dark` / `obj.light` with `version === 2` gate ✓
+- `readonly property var darkScheme: _darkScheme` ✓
+- `readonly property var lightScheme: _lightScheme` ✓
+- `readonly property var active: (Flags.systemMood === "light") ? lightScheme : darkScheme` ✓
+- Flat aliases (colour-typed) for all 17 original tokens:
+  `surface`, `surfaceContainer`, `surfaceContainerLow`, `surfaceContainerHigh`,
+  `surfaceContainerHighest`, `primary`, `primaryContainer`, `onPrimaryContainer`,
+  `outline`, `outlineVariant`, `cream`, `bright`, `subtle`, `dim`, `faint`,
+  `iconDim`, `tickRest` ✓
+- New M3 flat aliases added:
+  `surfaceContainerLowest`, `onSurface`, `onSurfaceVariant`, `secondary`,
+  `secondaryContainer`, `tertiary`, `tertiaryContainer`, `inverseSurface`,
+  `inverseOnSurface`, `error`, `errorContainer`, `onError`, `onErrorContainer` ✓
+- Fallbacks: warm `fallbackDark` / `fallbackLight` palettes on missing/corrupt/not-v2 ✓
+- `reload()` is re-entrant, idempotent, never throws; bumps `revision` ✓
+- qmllint: PASS
+- git staged files (exactly 2): `singletons/Dyn.qml`, `docs/color-system/YEMISHELL_THEME_REBUILD_CHECKLIST.md`
+- Commit: `Section 6: Dyn v2 loader for nested colors.json`
