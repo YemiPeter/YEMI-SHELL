@@ -23,7 +23,7 @@ SettingsSurface {
     implicitHeight: content.implicitHeight
 
     /// Single entry point for color generation - routes through after-wall.sh
-    /// which becomes the only script that calls wallcolors.py and writes colors.json
+    /// which is the only script that writes colors.json
     function applyMode(wallPath) {
         var mood = Flags.systemMood;
         colorProc.exec(["sh", "-c",

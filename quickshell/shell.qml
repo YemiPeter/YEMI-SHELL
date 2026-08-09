@@ -48,15 +48,13 @@ ShellRoot {
         }
     }
 
-    // === Colors IPC Handler (Phase 0: unified pipeline) ===
-    // Calls after-wall.sh which handles color generation through wallcolors.py
+    // === Colors IPC Handler (unified pipeline) ===
+    // after-wall.sh is the single writer; this IPC just forces Dyn's FileView
+    // to re-read colors.json.
     IpcHandler {
         target: "colors"
 
         function reload(): void {
-            // Direct reload of Dyn.qml's colors.json via FileView.
-            // Wallpaper path is managed by after-wall.sh → wallcolors.py;
-            // this IPC just forces Dyn's FileView to re-read the file.
             QsSingletons.Dyn.file.reload()
             if (QsSingletons.Flags.debug) console.log("[IPC] colors reloaded")
         }

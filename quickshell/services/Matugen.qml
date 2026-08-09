@@ -9,7 +9,7 @@ import "../singletons" as QsSingletons
  *
  * This service is retained for IPC compatibility but its applyWallpaper()
  * method is deprecated. The single source of truth for color generation
- * is now after-wall.sh → wallcolors.py → colors.json → Dyn.qml.
+ * is now after-wall.sh → colors.json → Dyn.qml.
  *
  * Use QsSingletons.Dyn.reload() or "qs ipc call colors reload" instead.
  */

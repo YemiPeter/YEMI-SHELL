@@ -4,7 +4,7 @@ Date: 2026-08-08
 Config: /home/yemi/.config/quickshell
 Branch: rebuild/theme-system
 Donor source: /home/yemi/iNiR
-Status: In progress - Section 10 PASS
+Status: In progress - Section 11 PASS
 
 ---
 
@@ -21,7 +21,7 @@ Status: In progress - Section 10 PASS
 - [x] Section 8 PASS — Appearance Adapter
 - [x] Section 9 PASS — Theme Facade Rewrite
 - [x] Section 10 PASS — Flags and Static Grayscale Toggle
-- [ ] Section 11 — Runtime Triggers and IPC
+- [x] Section 11 PASS — Runtime Triggers and IPC
 - [ ] Section 12 — External Wallpaper Script Cleanup
 - [ ] Section 13 — Cleanup and Docs
 
@@ -444,3 +444,62 @@ Static mode has a working grayscale accent option.
 - qmllint: PASS
 - git staged files (exactly 3): `singletons/Flags.qml`, `config/Appearance.qml`, `docs/color-system/YEMISHELL_THEME_REBUILD_CHECKLIST.md`
 - Commit: `Section 10: Add staticGrayscaleAccents flag and QML override`
+
+---
+
+# Section 11 — Runtime Triggers and IPC — PASS
+
+## Goal
+
+Make sure all real-life triggers use the new pipeline correctly.
+
+## Files involved
+
+```text
+modules/pill/Singletons/Walls.qml
+modules/pill/Appearance.qml
+shell.qml
+services/Matugen.qml
+```
+
+## Tasks
+
+- [x] Confirm wallpaper change triggers `after-wall.sh <mood> <wallpaper-path>`.
+- [x] Confirm `modules/pill/Appearance.qml` only calls `after-wall.sh`.
+- [x] Confirm no QML file calls `wallcolors.py` directly.
+- [x] Confirm IPC handler `colors reload` triggers Dyn reload.
+- [x] Confirm mood toggle updates QML instantly (Flags → Appearance).
+- [x] Confirm mood toggle updates terminal/Hyprland through pipeline (after-wall.sh).
+- [x] No `matugenReload` handler exists (nothing to shim).
+- [x] Remove stale `wallcolors.py` comments from active QML.
+
+## Confirmation check
+
+- [x] Wallpaper change updates shell colors (Walls → after-wall.sh).
+- [x] Wallpaper change updates terminal/Hyprland (after-wall.sh).
+- [x] Mood toggle updates shell colors (Flags → Appearance → Theme instantly).
+- [x] Mood toggle updates terminal/Hyprland (after-wall.sh via applyMode).
+- [x] Palette toggle updates shell colors.
+- [x] No direct `wallcolors.py` call from active QML.
+- [x] IPC reload works (`qs ipc call colors reload` → `Dyn.file.reload()`).
+
+## Exit criteria
+
+The new pipeline is the only live pipeline.
+
+---
+
+## Section 11 Evidence
+
+- `grep -RIn "wallcolors.py" modules/ singletons/ config/ services/ shell.qml` → **no output** (exit 1) ✓
+- `grep -RIn "toggle-colormode.sh" modules/ singletons/ config/ services/ shell.qml` → **no output** (exit 1) ✓
+- `modules/pill/Singletons/Walls.qml` → `after-wall.sh` command with `mood` + `wallPath` (line 155) ✓
+- `modules/pill/Appearance.qml` → `applyMode()` runs `after-wall.sh` on palette/mood toggle (lines 25-31) ✓
+- `shell.qml` → `colors reload` IPC calls `QsSingletons.Dyn.file.reload()` (line 58) ✓
+- `shell.qml` → `colorsReloadProc` calls `QsSingletons.Dyn.reload()` (line 457) ✓
+- `services/Matugen.qml` → shim `reload()` calls `QsSingletons.Dyn.file.reload()` ✓
+- Stale `wallcolors.py` comment references removed from:
+  `modules/pill/Appearance.qml`, `shell.qml`, `services/Matugen.qml` ✓
+- qmllint: PASS
+- git staged files: only modified files + checklist
+- Commit: `Section 11: Wire runtime triggers and IPC to new pipeline`
