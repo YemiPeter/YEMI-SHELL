@@ -97,6 +97,9 @@ Singleton {
     /// Whether the palette source is dynamic (wallpaper-derived) vs static.
     readonly property bool isDynamic: QsSingletons.Flags.paletteMode !== "static"
 
+    /// Static mode + grayscale accent toggle (forces neutral gray accents).
+    readonly property bool isGrayscaleStatic: !isDynamic && QsSingletons.Flags.staticGrayscaleAccents
+
     /// Raw Material 3 palette — always from Dyn (accent source even in static mode).
     readonly property var m3: QsSingletons.Dyn.active
 
@@ -112,12 +115,14 @@ Singleton {
     readonly property color yemiDim: isDynamic ? ColorUtils.ensureReadable(QsSingletons.Dyn.outline, yemiTileBg) : activeMood.dim
     readonly property color yemiFaint: isDynamic ? ColorUtils.ensureReadable(QsSingletons.Dyn.outlineVariant, yemiTileBg) : activeMood.faint
     readonly property color yemiBorder: isDynamic ? QsSingletons.Dyn.outlineVariant : activeMood.border
-    readonly property color yemiPrimary: QsSingletons.Dyn.primary
-    readonly property color yemiPrimaryContainer: QsSingletons.Dyn.primaryContainer
+    readonly property color yemiPrimary: isGrayscaleStatic ? "#a0a0a0" : (isDynamic ? QsSingletons.Dyn.primary : QsSingletons.Dyn.primary)
+    readonly property color yemiPrimaryContainer: isGrayscaleStatic ? "#505050" : (isDynamic ? QsSingletons.Dyn.primaryContainer : QsSingletons.Dyn.primaryContainer)
 
     // --- Flame string tokens (always #rrggbb) -------------------------
-    readonly property string flameInk: ColorUtils.colorToHex(QsSingletons.Dyn.primary)
-    readonly property string flameEmber: ColorUtils.colorToHex(QsSingletons.Dyn.primaryContainer)
-    readonly property string flameBurn: ColorUtils.colorToHex(QsSingletons.Dyn.primaryContainer)
-    readonly property string flameTip: ColorUtils.colorToHex(QsSingletons.Dyn.onPrimaryContainer)
+    // Read from yemiPrimary/yemiPrimaryContainer so the grayscale override
+    // propagates to the flame canvas too.
+    readonly property string flameInk: ColorUtils.colorToHex(yemiPrimary)
+    readonly property string flameEmber: ColorUtils.colorToHex(yemiPrimaryContainer)
+    readonly property string flameBurn: ColorUtils.colorToHex(yemiPrimaryContainer)
+    readonly property string flameTip: ColorUtils.colorToHex(yemiPrimary)
 }

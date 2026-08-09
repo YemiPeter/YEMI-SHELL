@@ -4,7 +4,7 @@ Date: 2026-08-08
 Config: /home/yemi/.config/quickshell
 Branch: rebuild/theme-system
 Donor source: /home/yemi/iNiR
-Status: In progress - Section 9 PASS
+Status: In progress - Section 10 PASS
 
 ---
 
@@ -20,7 +20,7 @@ Status: In progress - Section 9 PASS
 - [x] Section 7 PASS — Mood Files
 - [x] Section 8 PASS — Appearance Adapter
 - [x] Section 9 PASS — Theme Facade Rewrite
-- [ ] Section 10 — Flags and Static Grayscale Toggle
+- [x] Section 10 PASS — Flags and Static Grayscale Toggle
 - [ ] Section 11 — Runtime Triggers and IPC
 - [ ] Section 12 — External Wallpaper Script Cleanup
 - [ ] Section 13 — Cleanup and Docs
@@ -387,3 +387,60 @@ Old components work on top of the new engine.
 - qmllint: PASS
 - git staged files (exactly 2): `singletons/Theme.qml`, `docs/color-system/YEMISHELL_THEME_REBUILD_CHECKLIST.md`
 - Commit: `Section 9: Theme facade rewrite to use Appearance adapter`
+
+---
+
+# Section 10 — Flags and Static Grayscale Toggle — PASS
+
+## Goal
+
+Add the new static accent toggle.
+
+## Files involved
+
+```text
+singletons/Flags.qml
+config/Appearance.qml
+docs/color-system/YEMISHELL_THEME_REBUILD_CHECKLIST.md
+```
+
+## Tasks
+
+- [x] Stop Quickshell:
+  ```sh
+  pkill -9 quickshell
+  ```
+- [x] Read `Flags.qml` fully.
+- [x] Read `Appearance.qml` fully.
+- [x] Add `staticGrayscaleAccents` (bool, default `false`).
+- [x] Wire the flag into `Appearance`.
+- [x] When enabled: static mode uses gray accents, dynamic mode unaffected.
+- [x] When disabled: static mode can still use wallpaper accent.
+
+## Confirmation check
+
+- [x] Flag exists in Flags.qml (alias + JsonAdapter property).
+- [x] Toggle changes static accent visually (gray override in Appearance).
+- [x] Dynamic mode is not broken.
+- [x] Static surfaces remain solid.
+- [x] Text remains readable.
+
+## Exit criteria
+
+Static mode has a working grayscale accent option.
+
+---
+
+## Section 10 Evidence
+
+- `property alias staticGrayscaleAccents: adapter.staticGrayscaleAccents` in Flags.qml ✓
+- `property bool staticGrayscaleAccents: false` in Flags JsonAdapter ✓
+- `readonly property bool isGrayscaleStatic: !isDynamic && Flags.staticGrayscaleAccents` in Appearance ✓
+- `yemiPrimary`: `isGrayscaleStatic ? "#a0a0a0" : (isDynamic ? Dyn.primary : Dyn.primary)` ✓
+- `yemiPrimaryContainer`: `isGrayscaleStatic ? "#505050" : (isDynamic ? Dyn.primaryContainer : Dyn.primaryContainer)` ✓
+- Flame tokens now read from `yemiPrimary`/`yemiPrimaryContainer` so they turn gray too:
+  `flameInk`, `flameEmber`, `flameBurn`, `flameTip` ✓
+- Non-grayscale static still falls back to wallpaper accent (`Dyn.primary`) ✓
+- qmllint: PASS
+- git staged files (exactly 3): `singletons/Flags.qml`, `config/Appearance.qml`, `docs/color-system/YEMISHELL_THEME_REBUILD_CHECKLIST.md`
+- Commit: `Section 10: Add staticGrayscaleAccents flag and QML override`
