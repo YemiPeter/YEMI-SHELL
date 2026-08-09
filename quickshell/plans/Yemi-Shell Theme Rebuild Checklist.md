@@ -409,7 +409,7 @@ Bring iNiR color math into Yemi-shell.
 
       #rrggbb
 
-  not:
+    not:
 
       #aarrggbb
 
@@ -746,7 +746,7 @@ Make sure all real-life triggers use the new pipeline correctly.
 
       colors reload
 
-still triggers Dyn reload.
+  still triggers Dyn reload.
 - [x] Decide whether `matugenReload` should stay as a shim or be deprecated. (Kept as shim)
 - [x] Confirm mood toggle updates QML instantly.
 - [x] Confirm mood toggle updates terminal/Hyprland through pipeline.
@@ -782,27 +782,26 @@ Remove old direct `wallcolors.py` calls outside Quickshell.
 
 ## Tasks
 
-- [ ] Read the external wallpaper script fully.
-- [ ] Check for direct `wallcolors.py` calls:
+- [x] Read the external wallpaper script fully.
+- [x] Check for direct `wallcolors.py` calls:
 
       grep -n "wallcolors.py" ~/.config/hypr/scripts/wallpaper.sh
 
-- [ ] Remove or replace direct color generation.
-- [ ] Ensure the script only sets wallpaper or hands off to `after-wall.sh`.
-- [ ] Do not create double color generation.
-- [ ] Do not edit the HyDE master Hyprland file.
+- [x] Ensure the script only sets wallpaper or hands off to `after-wall.sh`.
+- [x] Do not create double color generation.
+- [x] Do not edit the HyDE master Hyprland file.
 
 ## Confirmation check
 
-- [ ] No active direct `wallcolors.py` call remains:
+- [x] No active direct `wallcolors.py` call remains:
 
       grep -n "wallcolors.py" ~/.config/hypr/scripts/wallpaper.sh
 
-Expected: no active call.
+  Expected: no active call.
 
-- [ ] Wallpaper change still works.
-- [ ] Theme still updates after wallpaper change.
-- [ ] Terminal/Hyprland still update.
+- [x] Wallpaper change still works.
+- [x] Theme still updates after wallpaper change.
+- [x] Terminal/Hyprland still update.
 
 ## Exit criteria
 
@@ -835,7 +834,7 @@ Remove dead pieces and make documentation match reality.
 
       docs/color-system/YEMISHELL_THEME_REBUILD_PLAN.md
 
-  if any decision changed.
+    if any decision changed.
 - [ ] Commit the cleanup.
 
 ## Confirmation check
