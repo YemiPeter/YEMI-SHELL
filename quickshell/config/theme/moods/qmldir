@@ -1,0 +1,2 @@
+singleton DarkMood 1.0 DarkMood.qml
+singleton LightMood 1.0 LightMood.qml

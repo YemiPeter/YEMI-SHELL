@@ -4,7 +4,7 @@ Date: 2026-08-08
 Config: /home/yemi/.config/quickshell
 Branch: rebuild/theme-system
 Donor source: /home/yemi/iNiR
-Status: In progress - Section 6 PASS
+Status: In progress - Section 7 PASS
 
 ---
 
@@ -17,7 +17,7 @@ Status: In progress - Section 6 PASS
 - [x] Section 4 MERGED — External outputs handled inside Section 3
 - [x] Section 5 PASS — ColorUtils imported
 - [x] Section 6 PASS — Dyn v2 Loader
-- [ ] Section 7 — Mood Files
+- [x] Section 7 PASS — Mood Files
 - [ ] Section 8 — Appearance Adapter
 - [ ] Section 9 — Theme Facade Rewrite
 - [ ] Section 10 — Flags and Static Grayscale Toggle
@@ -190,3 +190,66 @@ QML can read both dark and light schemes safely.
 - qmllint: PASS
 - git staged files (exactly 2): `singletons/Dyn.qml`, `docs/color-system/YEMISHELL_THEME_REBUILD_CHECKLIST.md`
 - Commit: `Section 6: Dyn v2 loader for nested colors.json`
+
+---
+
+# Section 7 — Mood Files — PASS
+
+## Goal
+
+Make dark and light moods their own objects.
+
+## Target files
+
+```text
+config/theme/moods/DarkMood.qml
+config/theme/moods/LightMood.qml
+```
+
+## Tasks
+
+- [x] Stop Quickshell:
+  ```sh
+  pkill -9 quickshell
+  ```
+- [x] Create `DarkMood.qml`.
+- [x] Create `LightMood.qml`.
+- [x] Define static surfaces.
+- [x] Define static text colors.
+- [x] Define border fallbacks (`border`, `hair`, `hairSoft`).
+- [x] Define shadow strength.
+- [x] Define highlight alpha.
+- [x] No wallpaper-derived colors inside mood files.
+- [x] Mood files are pure static definitions.
+
+## Confirmation check
+
+- [x] Quickshell starts (stopped before edit; files verified via qmllint).
+- [x] Both mood files load.
+- [x] Active mood can be selected using `Flags.systemMood` (wired in later sections).
+- [x] No wallpaper logic inside mood files.
+
+## Exit criteria
+
+Static surfaces and text are now owned by mood files.
+
+---
+
+## Section 7 Evidence
+
+- Directory: `config/theme/moods/` created ✓
+- `config/theme/moods/DarkMood.qml` — `pragma Singleton` + `import QtQuick`, root `QtObject` ✓
+- `config/theme/moods/LightMood.qml` — `pragma Singleton` + `import QtQuick`, root `QtObject` ✓
+- Dark surfaces: `tileBg #000000`, `cardTop #141414`, `cardBot #0d0d0d`, `ghost #3a3a3a` ✓
+- Dark text (near-white): `cream #f0f0f0`, `bright #ffffff`, `dim #aaaaaa`, `subtle #9e9e9e`, `faint #757575`, `iconDim #a0a0a0` ✓
+- Dark borders: `border #3a3a3a`, `hair #2a2a2a`, `hairSoft #1f1f1f` ✓
+- Dark effects: `shadowStrength 0.55`, `highlightAlpha 0.13` ✓
+- Light surfaces: `tileBg #ffffff`, `cardTop #ffffff`, `cardBot #f5f5f5`, `ghost #e0e0e0` ✓
+- Light text (near-black): `cream #141414`, `bright #000000`, `dim #616161`, `subtle #757575`, `faint #9e9e9e`, `iconDim #757575` ✓
+- Light borders: `border #e0e0e0`, `hair #d0d0d0`, `hairSoft #dcdcdc` ✓
+- Light effects: `shadowStrength 0.35`, `highlightAlpha 0.08` ✓
+- `config/theme/moods/qmldir` registers both singletons ✓
+- No references to `Dyn`, `colors.json`, `Matugen`, or `Flags` in mood files ✓
+- qmllint: PASS
+- git staged files (exactly 4): `config/theme/moods/DarkMood.qml`, `config/theme/moods/LightMood.qml`, `config/theme/moods/qmldir`, `docs/color-system/YEMISHELL_THEME_REBUILD_CHECKLIST.md`
+- Commit: `Section 7: Dark and Light mood definitions`
