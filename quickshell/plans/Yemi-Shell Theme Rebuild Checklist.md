@@ -409,9 +409,9 @@ Bring iNiR color math into Yemi-shell.
 
       #rrggbb
 
-not:
+  not:
 
-    #aarrggbb
+      #aarrggbb
 
 ## Confirmation check
 
@@ -736,31 +736,31 @@ Make sure all real-life triggers use the new pipeline correctly.
 
 ## Tasks
 
-- [ ] Confirm wallpaper change still triggers:
+- [x] Confirm wallpaper change still triggers:
 
       after-wall.sh <mood> <wallpaper-path>
 
-- [ ] Confirm `modules/pill/Appearance.qml` only calls `after-wall.sh`.
-- [ ] Confirm no QML file calls `wallcolors.py` directly.
-- [ ] Confirm IPC handler:
+- [x] Confirm `modules/pill/Appearance.qml` only calls `after-wall.sh`.
+- [x] Confirm no QML file calls `wallcolors.py` directly.
+- [x] Confirm IPC handler:
 
       colors reload
 
 still triggers Dyn reload.
-- [ ] Decide whether `matugenReload` should stay as a shim or be deprecated.
-- [ ] Confirm mood toggle updates QML instantly.
-- [ ] Confirm mood toggle updates terminal/Hyprland through pipeline.
+- [x] Decide whether `matugenReload` should stay as a shim or be deprecated. (Kept as shim)
+- [x] Confirm mood toggle updates QML instantly.
+- [x] Confirm mood toggle updates terminal/Hyprland through pipeline.
 
 ## Confirmation check
 
-- [ ] Wallpaper change updates shell colors.
-- [ ] Wallpaper change updates terminal colors.
-- [ ] Wallpaper change updates Hyprland colors.
-- [ ] Mood toggle updates shell colors.
-- [ ] Mood toggle updates terminal/Hyprland colors.
-- [ ] Palette toggle updates shell colors.
-- [ ] No direct `wallcolors.py` call from active QML.
-- [ ] IPC reload works:
+- [x] Wallpaper change updates shell colors.
+- [x] Wallpaper change updates terminal colors.
+- [x] Wallpaper change updates Hyprland colors.
+- [x] Mood toggle updates shell colors.
+- [x] Mood toggle updates terminal/Hyprland colors.
+- [x] Palette toggle updates shell colors.
+- [x] No direct `wallcolors.py` call from active QML.
+- [x] IPC reload works:
 
       qs ipc call colors reload
 
@@ -835,7 +835,7 @@ Remove dead pieces and make documentation match reality.
 
       docs/color-system/YEMISHELL_THEME_REBUILD_PLAN.md
 
-if any decision changed.
+  if any decision changed.
 - [ ] Commit the cleanup.
 
 ## Confirmation check
