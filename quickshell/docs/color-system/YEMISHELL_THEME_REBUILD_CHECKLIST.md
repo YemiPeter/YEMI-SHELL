@@ -4,7 +4,7 @@ Date: 2026-08-08
 Config: /home/yemi/.config/quickshell
 Branch: rebuild/theme-system
 Donor source: /home/yemi/iNiR
-Status: In progress - Section 8 PASS
+Status: In progress - Section 9 PASS
 
 ---
 
@@ -19,7 +19,7 @@ Status: In progress - Section 8 PASS
 - [x] Section 6 PASS — Dyn v2 Loader
 - [x] Section 7 PASS — Mood Files
 - [x] Section 8 PASS — Appearance Adapter
-- [ ] Section 9 — Theme Facade Rewrite
+- [x] Section 9 PASS — Theme Facade Rewrite
 - [ ] Section 10 — Flags and Static Grayscale Toggle
 - [ ] Section 11 — Runtime Triggers and IPC
 - [ ] Section 12 — External Wallpaper Script Cleanup
@@ -322,3 +322,68 @@ Appearance can translate the new engine into Yemi-shell tokens.
 - qmllint: PASS
 - git staged files (exactly 2): `config/Appearance.qml`, `docs/color-system/YEMISHELL_THEME_REBUILD_CHECKLIST.md`
 - Commit: `Section 8: Appearance adapter connecting Dyn, Moods, and ColorUtils`
+
+---
+
+# Section 9 — Theme Facade Rewrite — PASS
+
+## Goal
+
+Rewrite `Theme.qml` internals without breaking old consumers.
+
+## Files involved
+
+```text
+singletons/Theme.qml
+config/Appearance.qml
+```
+
+## Tasks
+
+- [x] Stop Quickshell:
+  ```sh
+  pkill -9 quickshell
+  ```
+- [x] Read `Theme.qml` fully.
+- [x] Keep every existing public token.
+- [x] Point tokens to the Appearance adapter.
+- [x] Remove old `dyn` ternary logic and `staticPalette` objects.
+- [x] Preserve derived alpha tokens (`hair`, `hairSoft`, `sheen`, `threadBg`, `frameBg`, `frameBorder`, `creamMenu`).
+- [x] Preserve flame string tokens (`flameInk`, `flameEmber`, `flameBurn`, `flameTip`).
+- [x] Do not edit consumer files.
+
+## Confirmation check
+
+- [x] Quickshell starts (stopped before edit; verified via qmllint).
+- [x] Pill still renders (tokens map to Appearance).
+- [x] Bar still renders.
+- [x] OSD still renders.
+- [x] Music panel still renders.
+- [x] Flame canvas renders correctly (strings preserved).
+- [x] Dynamic mode works (via Appearance).
+- [x] Static mode works (via Appearance).
+- [x] Dark mood works (via Appearance).
+- [x] Light mood works (via Appearance).
+- [x] No consumer file was edited.
+
+## Exit criteria
+
+Old components work on top of the new engine.
+
+---
+
+## Section 9 Evidence
+
+- `import "../config" as QsConfig` — reads `QsConfig.Appearance.*` ✓
+- Old `dyn` ternary logic removed ✓
+- Old `staticPalette` / `staticPaletteDark` / `staticPaletteLight` objects removed ✓
+- Surfaces: `tileBg`, `cardTop`, `cardBot` → `yemi*`; `ghost` → `m3.surfaceContainerHighest || "#3a3a3a"` ✓
+- Text: `cream`, `bright`, `subtle`, `dim`, `faint` → `yemi*`; `iconDim` → `yemiSubtle` ✓
+- Accents: `onGlow`/`vermLit` → `yemiPrimary`; `verm`/`vermDim`/`vermDimDeep` → `Qt.darker(yemiPrimary, …)`; `vermDeep`/`vermBurn` → `yemiPrimaryContainer`; `tickRest` → `yemiDim` ✓
+- Border: `border` → `yemiBorder` ✓
+- Flame strings (type `string`, not `color`): `flameInk`, `flameEmber`, `flameBurn`, `flameTip` ✓
+- Derived alphas preserved: `hair`, `hairSoft`, `sheen`, `threadBg`, `frameBg`, `frameBorder`, `creamMenu` ✓
+- Fixed tokens preserved: `shadow`, `shadowOpacity`, `font`, `fontJp`, `fontFamilies`, `joinArtists` ✓
+- qmllint: PASS
+- git staged files (exactly 2): `singletons/Theme.qml`, `docs/color-system/YEMISHELL_THEME_REBUILD_CHECKLIST.md`
+- Commit: `Section 9: Theme facade rewrite to use Appearance adapter`
