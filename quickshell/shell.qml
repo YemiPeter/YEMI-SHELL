@@ -1,6 +1,6 @@
-//@ pragma Env QS_NO_RELOAD_POPUP=1
-//@ pragma Env QSG_RENDER_LOOP=threaded
-//@ pragma Env QT_QUICK_FLICKABLE_WHEEL_DECELERATION=10000
+// @ pragma Env QS_NO_RELOAD_POPUP=1
+// @ pragma Env QSG_RENDER_LOOP=threaded
+// @ pragma Env QT_QUICK_FLICKABLE_WHEEL_DECELERATION=10000
 
 import Quickshell
 import Quickshell.Io
@@ -36,9 +36,10 @@ ShellRoot {
         function toggle(mon: string): void {
             var target = mon || (compositor.focusedMonitor?.name || "");
             if (target.length > 0)
-              QsSingletons.PillState.toggleSurface(target, "wallpaper");
+                QsSingletons.PillState.toggleSurface(target, "wallpaper");
         }
     }
+
     // === Music IPC Handler ===
     IpcHandler {
         target: "music"
@@ -50,13 +51,13 @@ ShellRoot {
 
     // === Colors IPC Handler (unified pipeline) ===
     // after-wall.sh is the single writer; this IPC just forces Dyn's FileView
-    // to re-read colors.json.
+    // to re-read colors.json and runs the custom parser to bump revision.
     IpcHandler {
         target: "colors"
 
         function reload(): void {
             QsSingletons.Dyn.file.reload()
-            if (QsSingletons.Flags.debug) console.log("[IPC] colors reloaded")
+            QsSingletons.Dyn.reload()  // Force the custom parser to run and bump revision
         }
     }
 
@@ -99,7 +100,7 @@ ShellRoot {
                     return;
                 }
             }
-            
+
             if (settingsState.settingsWindow) {
                 settingsState.settingsWindow.toggle();
             }
@@ -331,8 +332,8 @@ ShellRoot {
     function applyWallpaper(wallpaper) {
         root.currentWallpaper = wallpaper.path
         root.walApplying = true
- applyWallProc.command = ["bash", "-c", "skwd wall apply '{\"name\":\"'" + wallpaper.name + "'\"}'"]
- applyWallProc.running = true
+        applyWallProc.command = ["bash", "-c", "skwd wall apply '{\"name\":\"'" + wallpaper.name + "'\"}'"]
+        applyWallProc.running = true
     }
 
     function loadWallpapers() {
