@@ -18,7 +18,7 @@ Singleton {
 
     /// Trigger Dyn.qml to reload colors.json (watches file changes anyway, but this forces it)
     function reload(): void {
-        QsSingletons.Dyn.file.reload()
+        QsSingletons.Dyn.reload()
         if (QsSingletons.Flags.debug) console.log("[Matugen] Dyn reloaded")
     }
 }

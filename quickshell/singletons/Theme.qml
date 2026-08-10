@@ -17,6 +17,9 @@ import "../config" as QsConfig
 Singleton {
     // --- Surfaces -----------------------------------------------------
     readonly property color tileBg: QsConfig.Appearance.yemiTileBg
+    onTileBgChanged: {
+        console.log("[Theme] >>> tileBg CHANGED to", tileBg)
+    }
     readonly property color cardTop: QsConfig.Appearance.yemiCardTop
     readonly property color cardBot: QsConfig.Appearance.yemiCardBot
     readonly property color ghost: QsConfig.Appearance.m3.surfaceContainerHighest || "#3a3a3a"
@@ -31,6 +34,9 @@ Singleton {
 
     // --- Accents (verm family) ----------------------------------------
     readonly property color onGlow: QsConfig.Appearance.yemiPrimary
+    onOnGlowChanged: {
+        console.log("[Theme] >>> onGlow CHANGED to", onGlow)
+    }
     readonly property color verm: Qt.darker(QsConfig.Appearance.yemiPrimary, 1.18)
     readonly property color vermLit: QsConfig.Appearance.yemiPrimary
     readonly property color vermDeep: QsConfig.Appearance.yemiPrimaryContainer

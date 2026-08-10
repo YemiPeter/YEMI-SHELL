@@ -56,7 +56,13 @@ ShellRoot {
         target: "colors"
 
         function reload(): void {
-            QsSingletons.Dyn.reload()
+            console.log("[shell.qml] IPC colors.reload received")
+            try {
+                QsSingletons.Dyn.reload()
+                console.log("[shell.qml] IPC colors.reload completed")
+            } catch (e) {
+                console.log("[shell.qml] IPC colors.reload ERROR:", e)
+            }
         }
     }
 

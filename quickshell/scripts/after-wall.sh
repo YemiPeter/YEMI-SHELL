@@ -92,7 +92,7 @@ else
         --argjson light "$light_block" \
         '{version:2,generator:"matugen",wallpaper:$wallpaper,seed:$seed,scheme_type:$scheme_type,dark:$dark,light:$light}' \
         > "$CACHE/colors.json.tmp"
-    mv -f "$CACHE/colors.json.tmp" "$CACHE/colors.json"
+    cat "$CACHE/colors.json.tmp" > "$CACHE/colors.json" && rm "$CACHE/colors.json.tmp"
 
     # -------------------------------------------------------------------------
     # terminal.json — fan-out source for apply-terminal-colors.py (single source
@@ -118,7 +118,7 @@ else
           term14:.base16.base0c.dark.color,
           term15:.base16.base07.dark.color,
           primary:$primary}' > "$CACHE/terminal.json.tmp"
-    mv -f "$CACHE/terminal.json.tmp" "$CACHE/terminal.json"
+    cat "$CACHE/terminal.json.tmp" > "$CACHE/terminal.json" && rm "$CACHE/terminal.json.tmp"
 
     # -------------------------------------------------------------------------
     # hypr-colors.lua — active/inactive border colors for Hyprland.
@@ -127,11 +127,21 @@ else
     inactive="$(printf '%s' "$DARK_JSON" | jq -r '.base16.base01.dark.color')"
     printf 'return {\n    active = "%s",\n    inactive = "%s",\n}\n' "$active" "$inactive" \
         > "$CACHE/hypr-colors.lua.tmp"
-    mv -f "$CACHE/hypr-colors.lua.tmp" "$CACHE/hypr-colors.lua"
+    cat "$CACHE/hypr-colors.lua.tmp" > "$CACHE/hypr-colors.lua" && rm "$CACHE/hypr-colors.lua.tmp"
 fi
 
 # Fan terminal.json out to kitty / ghostty / etc.
 python3 "$SCRIPTS/apply-terminal-colors.py" || true
 
+# Debug logging: report file state before IPC, call IPC without hiding errors,
+# and report exit code after so we can trace failures in the IPC roundtrip.
+echo "[after-wall.sh] About to call IPC reload"
+echo "[after-wall.sh] colors.json inode: $(stat -c '%i' "$CACHE/colors.json" 2>/dev/null || echo 'unknown')"
+echo "[after-wall.sh] colors.json mtime: $(stat -c '%y' "$CACHE/colors.json" 2>/dev/null || echo 'unknown')"
+echo "[after-wall.sh] colors.json size: $(stat -c '%s' "$CACHE/colors.json" 2>/dev/null || echo 'unknown')"
+
 # Signal quickshell to re-read (registered target, not the dead matugenReload)
-qs ipc call colors reload 2>/dev/null || true
+# NOTE: intentionally not redirecting stderr/stdout or swallowing errors so we
+# can see failures during diagnosis.
+qs ipc call colors reload
+echo "[after-wall.sh] IPC call completed with exit code: $?"
