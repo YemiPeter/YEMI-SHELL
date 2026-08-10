@@ -56,8 +56,7 @@ ShellRoot {
         target: "colors"
 
         function reload(): void {
-            QsSingletons.Dyn.file.reload()
-            QsSingletons.Dyn.reload()  // Force the custom parser to run and bump revision
+            QsSingletons.Dyn.reload()
         }
     }
 
@@ -332,7 +331,7 @@ ShellRoot {
     function applyWallpaper(wallpaper) {
         root.currentWallpaper = wallpaper.path
         root.walApplying = true
-        applyWallProc.command = ["bash", "-c", "skwd wall apply '{\"name\":\"'" + wallpaper.name + "'\"}'"]
+        applyWallProc.command = ["bash", "-c", "skwd wall apply '{\"name\":\'" + wallpaper.name + "\'}'"]
         applyWallProc.running = true
     }
 

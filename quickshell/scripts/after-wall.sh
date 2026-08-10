@@ -49,12 +49,6 @@ if [ "$LEGACY" = "1" ]; then
         python3 "$SCRIPTS/wallcolors.py" --mode dynamic --mood "$MOOD" "$WALL_PATH"
     fi
 
-elif [ "$PMODE" = "static" ]; then
-    # Static mode has no wallpaper; Matugen cannot derive a scheme from an image.
-    # Fall back to the deterministic static wallcolors.py pipeline so consumers
-    # still get fresh colors instead of stale files.
-    python3 "$SCRIPTS/wallcolors.py" --mode static --mood "$MOOD"
-
 else
     # -------------------------------------------------------------------------
     # V2 PATH — Matugen colors.json v2

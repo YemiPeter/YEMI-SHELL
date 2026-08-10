@@ -204,8 +204,8 @@ Singleton {
         watchChanges: true
         printErrors: false
 
-        onLoaded: reload()
-        onFileChanged: reload()
+        onLoaded: root.reload()
+        onFileChanged: root.reload()
         onLoadFailed: function (error) {
             reload(); // keep fallbacks; bump revision so bindings settle
         }

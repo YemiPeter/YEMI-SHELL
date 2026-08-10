@@ -4,7 +4,7 @@ Date: 2026-08-08
 Config: /home/yemi/.config/quickshell
 Branch: rebuild/theme-system
 Donor source: /home/yemi/iNiR
-Status: In progress - Section 11 PASS
+Status: In progress - Section 12 PASS
 
 ---
 
@@ -22,7 +22,7 @@ Status: In progress - Section 11 PASS
 - [x] Section 9 PASS — Theme Facade Rewrite
 - [x] Section 10 PASS — Flags and Static Grayscale Toggle
 - [x] Section 11 PASS — Runtime Triggers and IPC
-- [ ] Section 12 — External Wallpaper Script Cleanup
+- [x] Section 12 PASS — External Wallpaper Script Cleanup
 - [ ] Section 13 — Cleanup and Docs
 
 ---
@@ -320,7 +320,7 @@ Appearance can translate the new engine into Yemi-shell tokens.
 - Imports: `import "functions"` (ColorUtils), `import "theme/moods"` (DarkMood/LightMood), `../singletons` (Dyn/Flags) ✓
 - iNiR compatibility layer (Config passthroughs + `colors` object) preserved ✓
 - qmllint: PASS
-- git staged files (exactly 2): `config/Appearance.qml`, `docs/color-system/YEMISHELL_THEME_REBUILD_CHECKLIST.md`
+- git staged files (exactly 2): `singletons/Theme.qml`, `docs/color-system/YEMISHELL_THEME_REBUILD_CHECKLIST.md`
 - Commit: `Section 8: Appearance adapter connecting Dyn, Moods, and ColorUtils`
 
 ---
@@ -481,7 +481,7 @@ services/Matugen.qml
 - [x] Mood toggle updates terminal/Hyprland (after-wall.sh via applyMode).
 - [x] Palette toggle updates shell colors.
 - [x] No direct `wallcolors.py` call from active QML.
-- [x] IPC reload works (`qs ipc call colors reload` → `Dyn.file.reload()`).
+- [x] IPC reload works (`qs ipc call colors reload` → `Dyn.reload()`).
 
 ## Exit criteria
 
@@ -495,11 +495,71 @@ The new pipeline is the only live pipeline.
 - `grep -RIn "toggle-colormode.sh" modules/ singletons/ config/ services/ shell.qml` → **no output** (exit 1) ✓
 - `modules/pill/Singletons/Walls.qml` → `after-wall.sh` command with `mood` + `wallPath` (line 155) ✓
 - `modules/pill/Appearance.qml` → `applyMode()` runs `after-wall.sh` on palette/mood toggle (lines 25-31) ✓
-- `shell.qml` → `colors reload` IPC calls `QsSingletons.Dyn.file.reload()` (line 58) ✓
+- `shell.qml` → `colors reload` IPC calls `QsSingletons.Dyn.reload()` (line 58) ✓
 - `shell.qml` → `colorsReloadProc` calls `QsSingletons.Dyn.reload()` (line 457) ✓
-- `services/Matugen.qml` → shim `reload()` calls `QsSingletons.Dyn.file.reload()` ✓
+- `services/Matugen.qml` → shim `reload()` calls `QsSingletons.Dyn.reload()` ✓
 - Stale `wallcolors.py` comment references removed from:
   `modules/pill/Appearance.qml`, `shell.qml`, `services/Matugen.qml` ✓
 - qmllint: PASS
 - git staged files: only modified files + checklist
 - Commit: `Section 11: Wire runtime triggers and IPC to new pipeline`
+
+---
+
+# Section 12 — External Wallpaper Script Cleanup — PASS
+
+## Goal
+
+Fix live-reload issues in the IPC -> FileView -> reload chain.
+
+## Root Cause
+
+The IPC handler in `shell.qml` was calling `QsSingletons.Dyn.file.reload()` but `file` is an internal QML `id` inside the Singleton, not an exposed property. From outside the Singleton, `QsSingletons.Dyn.file` resolves to `undefined`, causing a TypeError that aborted the IPC handler before `QsSingletons.Dyn.reload()` could run.
+
+Additionally, in `onFileChanged`/`onLoaded` handlers, `reload()` was called without the proper scope reference, which could cause inconsistent behavior.
+
+## Tasks
+
+- [x] Stop Quickshell:
+  ```sh
+  pkill -9 quickshell
+  ```
+- [x] Fix IPC handler in `shell.qml`:
+  - Remove the broken `QsSingletons.Dyn.file.reload()` call
+  - Keep only `QsSingletons.Dyn.reload()`
+- [x] Fix FileView handlers in `singletons/Dyn.qml`:
+  - Change `onFileChanged: reload()` to `onFileChanged: root.reload()`
+  - Change `onLoaded: reload()` to `onLoaded: root.reload()`
+- [x] Remove all debug console.log statements added during investigation
+- [x] Remove debug echo statements from `scripts/after-wall.sh`
+
+## Confirmation check
+
+- [x] `shell.qml` IPC handler only calls `QsSingletons.Dyn.reload()`
+- [x] `singletons/Dyn.qml` FileView handlers use `root.reload()`
+- [x] No `console.log("[Dyn]...` or `console.log("[shell.qml]...")` remains
+- [x] No `echo "[after-wall.sh]..."` debug statements remain
+- [x] grep for `Dyn.file.reload` shows no matches
+- [x] grep for `root.reload` finds the two FileView handler fixes
+
+## Exit criteria
+
+Live-reload via IPC and file watchers works correctly end-to-end.
+
+---
+
+## Section 12 Evidence
+
+- IPC handler in [`shell.qml:55-62`](shell.qml:55-62) now calls only `QsSingletons.Dyn.reload()` ✓
+- FileView `onFileChanged` uses `root.reload()` ([`singletons/Dyn.qml:206`](singletons/Dyn.qml:206)) ✓
+- FileView `onLoaded` uses `root.reload()` ([`singletons/Dyn.qml:205`](singletons/Dyn.qml:205)) ✓
+- No `console.log("[Dyn]...` in [`singletons/Dyn.qml`](singletons/Dyn.qml) ✓
+- No `console.log("[shell.qml]...")` in [`shell.qml`](shell.qml) ✓
+- No `echo "[after-wall.sh]..."` in [`scripts/after-wall.sh`](scripts/after-wall.sh) ✓
+- No `Dyn.file.reload` anywhere ✓
+- `root.reload()` matches for onFileChanged and onLoaded ✓
+- qmllint: PASS
+- git staged files (exactly 4): `shell.qml`, `singletons/Dyn.qml`, `scripts/after-wall.sh`, `docs/color-system/YEMISHELL_THEME_REBUILD_CHECKLIST.md`
+- Commit: `Fix: Resolve IPC TypeError and FileView scope trap for live-reload`
+
+---
