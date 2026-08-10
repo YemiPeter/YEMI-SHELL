@@ -55,6 +55,12 @@ Singleton {
     /// Currently active scheme, following Flags.systemMood ("dark"/"light").
     readonly property var active: (Flags.systemMood === "light") ? root._lightScheme : root._darkScheme
 
+    /// True when a real colors.json v2 scheme loaded successfully; false when
+    /// Dyn fell back to the hand-picked palette (missing/corrupt file). Consumers
+    /// can use this to switch to solid mood surfaces when the scheme is invalid.
+    readonly property bool schemeValid: _schemeValid
+    property bool _schemeValid: false
+
     // ------------------------------------------------------------------
     // Kept flat aliases — resolve against the ACTIVE scheme so existing
     // consumers (Theme, Appearance, pill/bar/osd components) keep working.
@@ -173,7 +179,7 @@ Singleton {
     /// in applyLoaded() once FileView finishes loading, so we never parse
     /// stale text here.
     function reload(): void {
-        console.log("[Dyn] reload requested")
+        if (Flags.debug) console.log("[Dyn] reload requested")
         file.reload()
     }
 
@@ -181,7 +187,7 @@ Singleton {
     /// after FileView finishes loading. Never throws; a bad read just keeps
     /// the last good values (or the warm fallback palette).
     function applyLoaded(): void {
-        console.log("[Dyn] applyLoaded called")
+        if (Flags.debug) console.log("[Dyn] applyLoaded called")
         var dScheme, lScheme, obj;
         try {
             var t = file.text();
@@ -197,11 +203,13 @@ Singleton {
         }
 
         if (dScheme && lScheme) {
+            root._schemeValid = true;
             root._darkScheme = root._normalize(dScheme, root.fallbackDark);
             root._lightScheme = root._normalize(lScheme, root.fallbackLight);
             root._data = obj; // keep the raw contract for metadata
         } else {
             // Missing, corrupt, or not version 2: safe warm fallbacks.
+            root._schemeValid = false;
             root._darkScheme = root._normalize({}, root.fallbackDark);
             root._lightScheme = root._normalize({}, root.fallbackLight);
             root._data = {};
@@ -219,7 +227,7 @@ Singleton {
 
         onLoaded: root.applyLoaded()
         onFileChanged: {
-            console.log("[Dyn] onFileChanged -> forcing file.reload")
+            if (Flags.debug) console.log("[Dyn] onFileChanged -> forcing file.reload")
             file.reload()
         }
         onLoadFailed: function (error) {

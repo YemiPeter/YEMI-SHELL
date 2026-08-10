@@ -1,0 +1,13 @@
+# Editor/agent tool state
+.codex
+.codex/
+.kiro/
+.lingma/
+.roo/
+.roomodes
+
+# Runtime logs & transient state
+*.log
+app_usage.json
+state/colormode
+watch_*

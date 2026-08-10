@@ -106,22 +106,16 @@ Singleton {
     // --- Resolved Yemi compatibility tokens ---------------------------
     // Dynamic: wallpaper-derived via Dyn. Static: solid mood surfaces.
     // Text colors are run through ColorUtils.ensureReadable() for contrast.
-    readonly property color yemiTileBg: isDynamic ? QsSingletons.Dyn.surface : activeMood.tileBg
-    onYemiTileBgChanged: {
-        console.log("[Appearance] >>> yemiTileBg CHANGED to", yemiTileBg)
-    }
-    readonly property color yemiCardTop: isDynamic ? QsSingletons.Dyn.surfaceContainerHigh : activeMood.cardTop
-    readonly property color yemiCardBot: isDynamic ? QsSingletons.Dyn.surfaceContainerLow : activeMood.cardBot
-    readonly property color yemiCream: ColorUtils.ensureReadable(QsSingletons.Dyn.onSurface, yemiTileBg)
-    readonly property color yemiBright: ColorUtils.ensureReadable(QsSingletons.Dyn.onSurface, yemiTileBg)
-    readonly property color yemiSubtle: ColorUtils.ensureReadable(QsSingletons.Dyn.onSurfaceVariant, yemiTileBg)
-    readonly property color yemiDim: ColorUtils.ensureReadable(QsSingletons.Dyn.outline, yemiTileBg)
-    readonly property color yemiFaint: ColorUtils.ensureReadable(QsSingletons.Dyn.outlineVariant, yemiTileBg)
+    readonly property color yemiTileBg: QsSingletons.Dyn.schemeValid ? (isDynamic ? QsSingletons.Dyn.surface : activeMood.tileBg) : activeMood.tileBg
+    readonly property color yemiCardTop: QsSingletons.Dyn.schemeValid ? (isDynamic ? QsSingletons.Dyn.surfaceContainerHigh : activeMood.cardTop) : activeMood.cardTop
+    readonly property color yemiCardBot: QsSingletons.Dyn.schemeValid ? (isDynamic ? QsSingletons.Dyn.surfaceContainerLow : activeMood.cardBot) : activeMood.cardBot
+    readonly property color yemiCream: QsSingletons.Dyn.schemeValid ? ColorUtils.ensureReadable(QsSingletons.Dyn.onSurface, yemiTileBg) : activeMood.cream
+    readonly property color yemiBright: QsSingletons.Dyn.schemeValid ? ColorUtils.ensureReadable(QsSingletons.Dyn.onSurface, yemiTileBg) : activeMood.bright
+    readonly property color yemiSubtle: QsSingletons.Dyn.schemeValid ? ColorUtils.ensureReadable(QsSingletons.Dyn.onSurfaceVariant, yemiTileBg) : activeMood.subtle
+    readonly property color yemiDim: QsSingletons.Dyn.schemeValid ? ColorUtils.ensureReadable(QsSingletons.Dyn.outline, yemiTileBg) : activeMood.dim
+    readonly property color yemiFaint: QsSingletons.Dyn.schemeValid ? ColorUtils.ensureReadable(QsSingletons.Dyn.outlineVariant, yemiTileBg) : activeMood.faint
     readonly property color yemiBorder: QsSingletons.Dyn.outlineVariant
     readonly property color yemiPrimary: isGrayscaleStatic ? "#a0a0a0" : (isDynamic ? QsSingletons.Dyn.primary : QsSingletons.Dyn.primary)
-    onYemiPrimaryChanged: {
-        console.log("[Appearance] >>> yemiPrimary CHANGED to", yemiPrimary)
-    }
     readonly property color yemiPrimaryContainer: isGrayscaleStatic ? "#505050" : (isDynamic ? QsSingletons.Dyn.primaryContainer : QsSingletons.Dyn.primaryContainer)
 
     // --- Flame string tokens (always #rrggbb) -------------------------
