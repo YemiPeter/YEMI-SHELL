@@ -27,9 +27,12 @@ import Quickshell.Io
  *
  * Falls back to a warm, hand-picked palette when the file is missing, corrupt,
  * or does not carry "version": 2 so the shell never crashes and always yields
- * a usable scheme. reload() is re-entrant and idempotent: it reassigns the
- * scheme objects (and bumps `revision`) so QML bindings re-evaluate every
- * time, even when only the mood changes with the same underlying file.
+ * a usable scheme. reload() just forces the FileView to reload; parsing and
+ * scheme assignment happen asynchronously in applyLoaded(), only once FileView
+ * has actually finished loading the new content. applyLoaded() is re-entrant
+ * and idempotent: it reassigns the scheme objects (and bumps `revision`) so
+ * QML bindings re-evaluate every time, even when only the mood changes with
+ * the same underlying file.
  */
 Singleton {
     id: root
@@ -182,21 +185,14 @@ Singleton {
         var dScheme, lScheme, obj;
         try {
             var t = file.text();
-            console.log("[Dyn] Raw file text length:", t ? t.length : 0)
             if (t && t.trim().length > 0) {
                 obj = JSON.parse(t);
-                console.log("[Dyn] JSON parsed successfully")
-                console.log("[Dyn] Wallpaper in JSON:", obj.wallpaper)
-                console.log("[Dyn] Dark primary in JSON:", obj.dark ? obj.dark.primary : "null")
                 if (obj && obj.version === 2 && obj.dark && obj.light) {
                     dScheme = obj.dark;
                     lScheme = obj.light;
                 }
-            } else {
-                console.log("[Dyn] File text empty or whitespace")
             }
         } catch (e) {
-            console.log("[Dyn] JSON parse/read error:", e)
             obj = undefined;
         }
 
@@ -206,15 +202,12 @@ Singleton {
             root._data = obj; // keep the raw contract for metadata
         } else {
             // Missing, corrupt, or not version 2: safe warm fallbacks.
-            console.log("[Dyn] Using fallback schemes (missing/corrupt or wrong version)")
             root._darkScheme = root._normalize({}, root.fallbackDark);
             root._lightScheme = root._normalize({}, root.fallbackLight);
             root._data = {};
         }
 
-        console.log("[Dyn] About to bump revision from", root._revision, "to", root._revision + 1)
         root._revision++; // force all bindings keyed off revision to refresh
-        console.log("[Dyn] Revision bumped to", root._revision)
     }
 
     FileView {
@@ -224,14 +217,9 @@ Singleton {
         watchChanges: true
         printErrors: false
 
-        onLoaded: {
-            console.log("[Dyn] >>> onLoaded FIRED")
-            root.applyLoaded()
-        }
+        onLoaded: root.applyLoaded()
         onFileChanged: {
-            console.log("[Dyn] >>> onFileChanged FIRED")
-            console.log("[Dyn] FileView path:", path)
-            console.log("[Dyn] FileView file exists:", Qt.resolvedUrl(path))
+            console.log("[Dyn] onFileChanged -> forcing file.reload")
             file.reload()
         }
         onLoadFailed: function (error) {
