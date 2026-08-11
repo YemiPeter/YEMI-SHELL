@@ -8,7 +8,7 @@ Status: In progress - Section 12 PASS
 
 ---
 
-## Progress Log
+## Progress Log`
 
 - [x] Section 0 PASS — Safety and Ground Truth
 - [x] Section 1 PASS — Matugen installed and verified

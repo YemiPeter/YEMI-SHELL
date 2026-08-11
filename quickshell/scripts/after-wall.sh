@@ -2,7 +2,7 @@
 # after-wall.sh — SINGLE WRITER of colors.json
 # Usage: after-wall.sh <mood> [wallpaper-path]
 #
-# v2 default path: uses Matugen to write ~/.cache/yemi-shell/colors.json in the
+# v2 default path: uses the dominance engine to write ~/.cache/yemi-shell/colors.json in the
 # v2 schema (version, generator, wallpaper, seed, scheme_type, dark.{24}, light.{24})
 # and fans out terminal.json + hypr-colors.lua from Matugen's base16 output.
 #
@@ -51,80 +51,58 @@ if [ "$LEGACY" = "1" ]; then
 
 else
     # -------------------------------------------------------------------------
-    # V2 PATH — Matugen colors.json v2
+    # V2 PATH — dominance engine colors.json v2
     # -------------------------------------------------------------------------
     WALL_PATH="$(resolve_wallpaper)"
     mkdir -p "$CACHE"
 
-    # Run Matugen once per mode so the mode-resolved `.default` token can be read
-    # directly. (A single dump also embeds both variants, but two resolved runs are
-    # unambiguous and match the documented output contract.)
-    DARK_JSON="$(matugen image "$WALL_PATH" -j hex -m dark --dry-run -t "$SCHEME_TYPE" -q --source-color-index 0 2>/dev/null || true)"
-    LIGHT_JSON="$(matugen image "$WALL_PATH" -j hex -m light --dry-run -t "$SCHEME_TYPE" -q --source-color-index 0 2>/dev/null || true)"
+    # Run the dominance engine once — it emits BOTH dark and light in one call,
+    # so the two-run Matugen + jq merge is replaced by a single capture.
+    ENGINE_JSON="$(python3 "$SCRIPTS/dominance-engine.py" "$WALL_PATH" 2>/dev/null || true)"
 
-    if [ -z "$DARK_JSON" ] || [ -z "$LIGHT_JSON" ]; then
-        echo "[yemi-shell] matugen failed to produce a color scheme" >&2
+    if [ -z "$ENGINE_JSON" ]; then
+        echo "[yemi-shell] dominance engine failed to produce a color scheme" >&2
         exit 1
     fi
 
-    # The 24 Material 3 role tokens required by the v2 schema.
-    TOKENS='{primary,on_primary,primary_container,on_primary_container,secondary,secondary_container,tertiary,tertiary_container,surface,surface_container_lowest,surface_container_low,surface_container,surface_container_high,surface_container_highest,on_surface,on_surface_variant,outline,outline_variant,inverse_surface,inverse_on_surface,error,on_error,error_container,on_error_container}'
-
-
-    # Extract a mode-resolved block object from a matugen JSON string.
-    scheme_block() { # $1 = matugen json string, $2 = mode (dark|light)
-        printf '%s' "$1" | jq -c --arg m "$2" ".colors | $TOKENS | with_entries(.value = .value[\$m].color)"
-    }
-
-    dark_block="$(scheme_block "$DARK_JSON" dark)"
-    light_block="$(scheme_block "$LIGHT_JSON" light)"
-
-    seed="$(printf '%s' "$DARK_JSON" | jq -r '.colors.source_color.default.color')"
-
     # -------------------------------------------------------------------------
-    # Write colors.json v2 ATOMICALLY (.tmp → mv) so QML never reads a half file.
+    # Write colors.json v2 ATOMICALLY (.tmp → cat > target) so QML never reads a
+    # half file and the inode stays stable for FileView live-reload.
     # -------------------------------------------------------------------------
-    jq -n \
-        --arg wallpaper "$WALL_PATH" \
-        --arg seed "$seed" \
-        --arg scheme_type "$SCHEME_TYPE" \
-        --argjson dark "$dark_block" \
-        --argjson light "$light_block" \
-        '{version:2,generator:"matugen",wallpaper:$wallpaper,seed:$seed,scheme_type:$scheme_type,dark:$dark,light:$light}' \
-        > "$CACHE/colors.json.tmp"
+    printf '%s' "$ENGINE_JSON" > "$CACHE/colors.json.tmp"
     cat "$CACHE/colors.json.tmp" > "$CACHE/colors.json" && rm "$CACHE/colors.json.tmp"
 
     # -------------------------------------------------------------------------
     # terminal.json — fan-out source for apply-terminal-colors.py (single source
-    # of truth for all terminal emulators). Rebuilt from Matugen base16 with the
-    # exact same termN mapping wallcolors.py produced.
+    # of truth for all terminal emulators). Derived from the dominance palette's
+    # dark block (Matugen base16 is gone). Basic mapping; readability polish is
+    # Phase 4.
     # -------------------------------------------------------------------------
-    printf '%s' "$DARK_JSON" | jq -c \
-        --arg primary "$(printf '%s' "$DARK_JSON" | jq -r '.colors.primary.dark.color')" \
-        '{term0:.base16.base00.dark.color,
-          term1:.base16.base08.dark.color,
-          term2:.base16.base0b.dark.color,
-          term3:.base16.base0a.dark.color,
-          term4:.base16.base0d.dark.color,
-          term5:.base16.base0e.dark.color,
-          term6:.base16.base0c.dark.color,
-          term7:.base16.base05.dark.color,
-          term8:.base16.base03.dark.color,
-          term9:.base16.base08.dark.color,
-          term10:.base16.base0b.dark.color,
-          term11:.base16.base0a.dark.color,
-          term12:.base16.base0d.dark.color,
-          term13:.base16.base0e.dark.color,
-          term14:.base16.base0c.dark.color,
-          term15:.base16.base07.dark.color,
-          primary:$primary}' > "$CACHE/terminal.json.tmp"
+    printf '%s' "$ENGINE_JSON" | jq -c \
+        '{term0:.dark.surface_container_lowest,
+          term1:.dark.error,
+          term2:.dark.tertiary,
+          term3:.dark.secondary,
+          term4:.dark.primary,
+          term5:.dark.tertiary_container,
+          term6:.dark.primary_container,
+          term7:.dark.on_surface,
+          term8:.dark.surface_container_highest,
+          term9:.dark.error_container,
+          term10:.dark.tertiary_container,
+          term11:.dark.secondary_container,
+          term12:.dark.primary_container,
+          term13:.dark.secondary_container,
+          term14:.dark.primary_container,
+          term15:.dark.on_surface_variant,
+          primary:.dark.primary}' > "$CACHE/terminal.json.tmp"
     cat "$CACHE/terminal.json.tmp" > "$CACHE/terminal.json" && rm "$CACHE/terminal.json.tmp"
 
     # -------------------------------------------------------------------------
     # hypr-colors.lua — active/inactive border colors for Hyprland.
     # -------------------------------------------------------------------------
-    active="$(printf '%s' "$DARK_JSON" | jq -r '.colors.primary.dark.color')"
-    inactive="$(printf '%s' "$DARK_JSON" | jq -r '.base16.base01.dark.color')"
+    active="$(printf '%s' "$ENGINE_JSON" | jq -r '.dark.primary')"
+    inactive="$(printf '%s' "$ENGINE_JSON" | jq -r '.dark.surface_container_high')"
     printf 'return {\n    active = "%s",\n    inactive = "%s",\n}\n' "$active" "$inactive" \
         > "$CACHE/hypr-colors.lua.tmp"
     cat "$CACHE/hypr-colors.lua.tmp" > "$CACHE/hypr-colors.lua" && rm "$CACHE/hypr-colors.lua.tmp"
@@ -136,9 +114,6 @@ python3 "$SCRIPTS/apply-terminal-colors.py" || true
 # Debug logging: report file state before IPC, call IPC without hiding errors,
 # and report exit code after so we can trace failures in the IPC roundtrip.
 echo "[after-wall.sh] About to call IPC reload"
-echo "[after-wall.sh] colors.json inode: $(stat -c '%i' "$CACHE/colors.json" 2>/dev/null || echo 'unknown')"
-echo "[after-wall.sh] colors.json mtime: $(stat -c '%y' "$CACHE/colors.json" 2>/dev/null || echo 'unknown')"
-echo "[after-wall.sh] colors.json size: $(stat -c '%s' "$CACHE/colors.json" 2>/dev/null || echo 'unknown')"
 
 # Signal quickshell to re-read (registered target, not the dead matugenReload)
 # NOTE: intentionally not redirecting stderr/stdout or swallowing errors so we
