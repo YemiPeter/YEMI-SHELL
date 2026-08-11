@@ -326,12 +326,20 @@ def derive_block(dominance, mood, use_error_fallback):
     block["on_surface_variant"] = text_on(surface, variant=True)
 
     # ---- Outlines (subtle borders, low contrast by design) ----
+    # Dark mode: darker outlines (darker than surface)
+    # Light mode: lighter outlines (lighter than surface)
     if mood == "dark":
-        ol, olv = anchor + 0.35, anchor + 0.15
+        # Dark mode: outline darker than surface
+        ol = clamp01(anchor - 0.10, 0.02, 0.98)
+        # outline_variant is even darker (or uses a different hue if at boundary)
+        olv = clamp01(anchor - 0.20, 0.02, 0.98)
     else:
-        ol, olv = anchor - 0.30, anchor - 0.12
-    block["outline"] = hls_to_rgb(h1, clamp01(ol, 0.02, 0.98), s1)
-    block["outline_variant"] = hls_to_rgb(h1, clamp01(olv, 0.02, 0.98), s1)
+        # Light mode: outline lighter than surface
+        ol = clamp01(anchor + 0.10, 0.02, 0.98)
+        # outline_variant is even lighter (or uses a different hue if at boundary)
+        olv = clamp01(anchor + 0.20, 0.02, 0.98)
+    block["outline"] = hls_to_rgb(h1, ol, s1)
+    block["outline_variant"] = hls_to_rgb(h1, olv, s1)
 
     # ---- Inverse pair (opposite lightness of surface/on_surface) ----
     inv_l = 0.93 if mood == "dark" else 0.10
@@ -476,9 +484,10 @@ def verify(dominance, dark, light, ref_keys, use_error_fallback):
                 f_ok = False
     report("F-hue-preservation", f_ok, "hue deltas: " + ", ".join(deltas))
 
-    # G. Dark vs light: tokens differ by lightness; accent hue unchanged
+    # G. Dark vs light: tokens differ by HLS lightness; accent hue unchanged
+    # Compare HLS lightness (the L value used for hue-preserving contrast)
     same_l = [k for k in ref_keys
-              if abs(rgb_to_hls(dark[k])[1] - rgb_to_hls(light[k])[1]) < 0.005]
+              if abs(rgb_to_hls(dark[k])[1] - rgb_to_hls(light[k])[1]) < 0.02]
     accent_toks = ("primary", "on_primary", "primary_container", "on_primary_container",
                    "secondary", "secondary_container", "tertiary", "tertiary_container")
     hue_drift = [f"{k}={hue_delta_deg(rgb_to_hls(dark[k])[0], rgb_to_hls(light[k])[0]):.1f}\u00b0"
