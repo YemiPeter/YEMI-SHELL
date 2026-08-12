@@ -85,13 +85,27 @@ Scope {
     }
 
     // === Selection ===
+    // select(id): focus the window and close the UI. MRU is pushed to the front
+    // by CompositorService only when focus actually lands (successful select).
+    function select(id) {
+        if (id === undefined || id === null) return
+        QsSingletons.CompositorService.focusWindow(id)
+        root.close()
+    }
+
+    // hide(): cancel the switch and close the UI without focusing.
+    function hide() {
+        root.close()
+    }
+
     function activateCurrent() {
         if (currentIndex >= 0 && currentIndex < itemSnapshot.length) {
             const item = itemSnapshot[currentIndex]
             if (item && item.id !== undefined)
-                QsSingletons.CompositorService.focusWindow(item.id)
+                root.select(item.id)
+        } else {
+            root.close()
         }
-        root.close()
     }
 
     function closeSelectedWindow() {
@@ -122,17 +136,27 @@ Scope {
         else root.open()
     }
 
-    // === IPC Handler (matches shell.qml expectations) ===
+    // === IPC Handler (master plan Section 3 trigger API) ===
     IpcHandler {
         target: "altSwitcher"
 
-        function open(): void { root.open() }
-        function close(): void { root.close() }
-        function toggle(): void { root.toggle() }
+        // Canonical trigger methods
+        function show(): void { root.open() }
         function next(): void {
             if (!root.open) root.open()
             else root.nextItem()
         }
+        function prev(): void {
+            if (!root.open) root.open()
+            else root.previousItem()
+        }
+        function select(id: string): void { root.select(id) }
+        function hide(): void { root.hide() }
+
+        // Backward-compatible aliases (shell.qml wiring)
+        function open(): void { root.open() }
+        function close(): void { root.close() }
+        function toggle(): void { root.toggle() }
         function previous(): void {
             if (!root.open) root.open()
             else root.previousItem()
