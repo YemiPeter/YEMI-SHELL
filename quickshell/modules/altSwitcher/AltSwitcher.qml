@@ -76,11 +76,17 @@ Scope {
     // === Alt-Tab cycling ===
     function nextItem() {
         if (itemSnapshot.length === 0) return
+        // Clamp against a possibly-shrunk list (a window closed mid-cycle)
+        if (currentIndex >= itemSnapshot.length)
+            currentIndex = itemSnapshot.length - 1
         currentIndex = (currentIndex + 1) % itemSnapshot.length
     }
 
     function previousItem() {
         if (itemSnapshot.length === 0) return
+        // Clamp against a possibly-shrunk list (a window closed mid-cycle)
+        if (currentIndex >= itemSnapshot.length)
+            currentIndex = itemSnapshot.length - 1
         currentIndex = (currentIndex - 1 + itemSnapshot.length) % itemSnapshot.length
     }
 
@@ -117,6 +123,8 @@ Scope {
     }
 
     function open() {
+        // No point opening a switcher when there is nothing to switch to.
+        if (QsSingletons.CompositorService.windows.length < 2) return
         root.buildItems()
         if (itemSnapshot.length === 0) return
         // Start on the second item (first is the current window)
@@ -316,13 +324,13 @@ Scope {
                                 visible: index === listView.currentIndex
                             }
 
-                            // App icon (resolved from CompositorService.windows[].icon)
+                            // App icon (resolved from CompositorService.windows[].icon).
+                            // Falls back to a generic themed icon when the app_id/icon is empty.
                             IconImage {
                                 Layout.alignment: Qt.AlignVCenter
                                 width: 28
                                 height: 28
-                                source: modelData.icon || ""
-                                visible: source.toString().length > 0
+                                source: Quickshell.iconPath(modelData.icon, "preferences-system-windows")
                             }
 
                             ColumnLayout {
