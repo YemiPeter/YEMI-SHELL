@@ -33,12 +33,15 @@ Singleton {
         onTriggered: root._flushUpdates()
     }
 
-    // Watch the underlying compositor for changes
+    // Watch the underlying compositor for changes.
+    // Hyprland models mutate in place, so also route raw events through
+    // the throttle to catch updates that don't emit property-change signals.
     Connections {
         target: Compositor
         function onToplevelsChanged() { root._scheduleUpdate() }
         function onWorkspacesChanged() { root._scheduleUpdate() }
         function onActiveToplevelChanged() { root._scheduleUpdate() }
+        function onRawEvent(event) { root._scheduleUpdate() }
     }
 
     function _scheduleUpdate() {
@@ -76,11 +79,13 @@ Singleton {
     // Map a backend window/toplevel to a unified Niri-shaped object
     function _mapWindow(w) {
         if (!w) return null
+        var appId = w.appId ?? w.app_id ?? w.class ?? ""
         return {
             id: w.id ?? w.address ?? "",
             address: w.address ?? w.id ?? "",
             title: w.title ?? "",
-            appId: w.appId ?? w.app_id ?? w.class ?? "",
+            app_id: appId,
+            icon: appId, // standard icon themes key icons by app_id
             isFocused: w.is_focused ?? (w === Compositor.activeToplevel),
             raw: w
         }
