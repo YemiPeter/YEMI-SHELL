@@ -64,30 +64,10 @@ ShellRoot {
         }
     }
 
-    // === AltSwitcher IPC Handler ===
-    IpcHandler {
-        target: "altSwitcher"
-
-        function toggle(): void {
-            if (altSwitcherLoader.item) altSwitcherLoader.item.toggle()
-        }
-
-        function open(): void {
-            if (altSwitcherLoader.item) altSwitcherLoader.item.open()
-        }
-
-        function close(): void {
-            if (altSwitcherLoader.item) altSwitcherLoader.item.close()
-        }
-
-        function next(): void {
-            if (altSwitcherLoader.item) altSwitcherLoader.item.next()
-        }
-
-        function previous(): void {
-            if (altSwitcherLoader.item) altSwitcherLoader.item.previous()
-        }
-    }
+    // AltSwitcher IPC is handled by the component's own IpcHandler inside
+    // modules/altSwitcher/AltSwitcher.qml (loaded via altSwitcherLoader).
+    // That handler exposes the canonical Section 3 trigger API:
+    //   show / next / prev / select(id) / hide  (+ aliases open/close/toggle/previous).
 
     // === Settings IPC Handler ===
     IpcHandler {
@@ -293,13 +273,14 @@ ShellRoot {
         source: "modules/music/MusicPanel.qml"
     }
 
-    // Alt+Tab window switcher (temporarily disabled — Scope has no visual surface)
-    // Next step: convert to PanelWindow, see modules/altswitcher/AltSwitcher.qml header for full status
-    // Loader {
-    //     id: altSwitcherLoader
-    //     source: "modules/altswitcher/AltSwitcher.qml"
-    // }
-    Item { id: altSwitcherLoader; property var item: null }
+    // Alt+Tab window switcher — loaded via Loader so the IpcHandler above
+    // (shell.qml lines ~67-90) can dispatch .open()/.close()/.toggle()/.next()/.previous()
+    // onto the live AltSwitcher component instance.
+    Loader {
+        id: altSwitcherLoader
+        active: true
+        source: "modules/altSwitcher/AltSwitcher.qml"
+    }
 
     // === Path Properties ===
     property string homePath: Quickshell.env("HOME")
