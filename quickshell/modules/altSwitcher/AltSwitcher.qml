@@ -16,7 +16,7 @@ import "../../config" as QsConfig
 //     - closeWindow() → route close to Hyprland or Niri
 //
 //   Styling uses Yemi-Shell's Theme singleton (Theme.surface, Theme.primary…).
-//   No iNiR config options, GlobalStates, ThemeService, or NiriService.
+//   No iNiR config options, global switcher state, theme service, or NiriService.
 // ═══════════════════════════════════════════════════════════════════════════════
 
 Scope {
@@ -47,8 +47,9 @@ Scope {
             if (w) {
                 items.push({
                     id: w.id,
-                    appId: w.appId || "",
+                    appId: w.app_id || "",
                     title: w.title || "",
+                    icon: w.icon || "",
                     isFocused: w.isFocused || false
                 })
                 used[id] = true
@@ -60,8 +61,9 @@ Scope {
             if (w && w.id !== undefined && !used[w.id]) {
                 items.push({
                     id: w.id,
-                    appId: w.appId || "",
+                    appId: w.app_id || "",
                     title: w.title || "",
+                    icon: w.icon || "",
                     isFocused: w.isFocused || false
                 })
             }
@@ -288,6 +290,15 @@ Scope {
                                     ? QsSingletons.Theme.onGlow
                                     : "transparent"
                                 visible: index === listView.currentIndex
+                            }
+
+                            // App icon (resolved from CompositorService.windows[].icon)
+                            IconImage {
+                                Layout.alignment: Qt.AlignVCenter
+                                width: 28
+                                height: 28
+                                source: modelData.icon || ""
+                                visible: source.toString().length > 0
                             }
 
                             ColumnLayout {
