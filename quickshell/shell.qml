@@ -64,11 +64,6 @@ ShellRoot {
         }
     }
 
-    // AltSwitcher IPC is handled by the component's own IpcHandler inside
-    // modules/altSwitcher/AltSwitcher.qml (loaded via altSwitcherLoader).
-    // That handler exposes the canonical Section 3 trigger API:
-    //   show / next / prev / select(id) / hide  (+ aliases open/close/toggle/previous).
-
     // === Settings IPC Handler ===
     IpcHandler {
         target: "settings"
@@ -271,15 +266,6 @@ ShellRoot {
     Loader {
         id: musicPanelLoader
         source: "modules/music/MusicPanel.qml"
-    }
-
-    // Alt+Tab window switcher — loaded via Loader so the IpcHandler above
-    // (shell.qml lines ~67-90) can dispatch .open()/.close()/.toggle()/.next()/.previous()
-    // onto the live AltSwitcher component instance.
-    Loader {
-        id: altSwitcherLoader
-        active: true
-        source: "modules/altSwitcher/AltSwitcher.qml"
     }
 
     // === Path Properties ===
