@@ -326,11 +326,12 @@ Scope {
 
                             // App icon (resolved from CompositorService.windows[].icon).
                             // Falls back to a generic themed icon when the app_id/icon is empty.
-                            IconImage {
+                            Image {
                                 Layout.alignment: Qt.AlignVCenter
                                 width: 28
                                 height: 28
                                 source: Quickshell.iconPath(modelData.icon, "preferences-system-windows")
+                                fillMode: Image.PreserveAspectFit
                             }
 
                             ColumnLayout {
