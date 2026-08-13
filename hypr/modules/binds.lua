@@ -112,9 +112,9 @@ binde = $mod CTRL, Right, resizeactive, 20 0                     # Resize window
 binde = $mod CTRL, Up, resizeactive, 0 -20                       # Resize window up
 binde = $mod CTRL, Down, resizeactive, 0 20                      # Resize window down
 
-# Cycle windows
-bind = $mod, Tab, cyclenext, next                                # Cycle windows forward
-bind = $mod SHIFT, Tab, cyclenext, prev                          # Cycle windows backward
+# Snappy Switcher (Alt+Tab)
+bind = ALT, Tab, exec, snappy-switcher next --mod alt
+bind = ALT SHIFT, Tab, exec, snappy-switcher prev --mod alt
 
 # Mouse binds
 bindm = $mod, mouse:272, movewindow
