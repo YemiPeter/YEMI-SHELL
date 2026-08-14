@@ -250,6 +250,7 @@ ShellRoot {
     Loader {
         id: barLoader
         source: "modules/bar/BarWrapper.qml"
+        active: Config.options?.panelFamily !== "waffle"
         onLoaded: root.barWindow = item
     }
 
@@ -277,12 +278,20 @@ ShellRoot {
         WaffleBackdropModule.WaffleBackdrop {}
     }
 
-    // Pill overlay windows (one per screen)
-    Variants {
-        model: Quickshell.screens
-        Pill.PillOverlay {
-            modelData: modelData
-            barWindow: root.barWindow
+    // Pill overlay windows (one per screen) — only loaded when the Pill family is active
+    Loader {
+        active: Config.options?.panelFamily !== "waffle"
+        sourceComponent: pillOverlayComponent
+    }
+
+    Component {
+        id: pillOverlayComponent
+        Variants {
+            model: Quickshell.screens
+            Pill.PillOverlay {
+                modelData: modelData
+                barWindow: root.barWindow
+            }
         }
     }
 
