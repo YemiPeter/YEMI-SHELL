@@ -20,4 +20,4 @@ singleton TrayService TrayService.qml
 singleton GameMode GameMode.qml
 singleton CompositorService CompositorService.qml
 singleton NiriService NiriService.qml
-singleton DankSocket DankSocket.qml
+DankSocket 1.0 DankSocket.qml

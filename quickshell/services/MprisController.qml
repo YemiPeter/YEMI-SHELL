@@ -5,10 +5,10 @@ import qs.services
 QtObject {
     id: root
 
-    readonly property alias activePlayer: Players.active
-    readonly property alias canChangeVolume: Players.active ? Players.active.canChangeVolume : false
-    readonly property alias canGoNext: Players.active ? Players.active.canGoNext : false
-    readonly property alias canGoPrevious: Players.active ? Players.active.canGoPrevious : false
+    readonly property var activePlayer: Players.active
+    readonly property bool canChangeVolume: Players.active ? Players.active.canChangeVolume : false
+    readonly property bool canGoNext: Players.active ? Players.active.canGoNext : false
+    readonly property bool canGoPrevious: Players.active ? Players.active.canGoPrevious : false
     readonly property bool isYtMusicActive: false
 
     function getVolume() {

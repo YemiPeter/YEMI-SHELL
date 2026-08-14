@@ -5,13 +5,34 @@ import qs.services
 QtObject {
     id: root
 
-    readonly property alias notifications: Notifs.notifications
-    readonly property alias popupList: Notifs.activeNotifications
-    readonly property alias silent: Notifs.silent
-    readonly property alias appNameList: Notifs.appNameList
-    readonly property alias groupsByAppName: Notifs.groupsByAppName
-    readonly property alias popupAppNameList: Notifs.popupAppNameList
-    readonly property alias popupGroupsByAppName: Notifs.popupGroupsByAppName
+    readonly property var notifications: Notifs.notifications
+    readonly property var popupList: Notifs.activeNotifications
+    readonly property bool silent: Notifs.silent
+    readonly property var appNameList: {
+        const names = [];
+        for (const n of Notifs.notifications) {
+            if (names.indexOf(n.appName) === -1) names.push(n.appName);
+        }
+        return names;
+    }
+    readonly property var groupsByAppName: Notifs.groupedNotifications
+    readonly property var popupAppNameList: {
+        const names = [];
+        for (const n of Notifs.activeNotifications) {
+            if (names.indexOf(n.appName) === -1) names.push(n.appName);
+        }
+        return names;
+    }
+    readonly property var popupGroupsByAppName: {
+        const groups = {};
+        for (const n of Notifs.activeNotifications) {
+            const key = n.appName || "Unknown";
+            if (!groups[key]) groups[key] = [];
+            groups[key].push(n);
+        }
+        return groups;
+    }
+    readonly property var list: Notifs.notifications
 
     function discardAllNotifications() {
         Notifs.clearAll();
