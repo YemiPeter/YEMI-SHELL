@@ -1,0 +1,6 @@
+module qs
+singleton Theme 1.0 singletons/Theme.qml
+singleton Dyn 1.0 singletons/Dyn.qml
+singleton Flags 1.0 singletons/Flags.qml
+singleton PillState 1.0 singletons/PillState.qml
+singleton Metrics 1.0 singletons/Metrics.qml
