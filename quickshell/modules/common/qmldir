@@ -1,0 +1,5 @@
+module common
+singleton Config 1.0 Config.qml
+singleton Directories 1.0 Directories.qml
+singleton FileUtils 1.0 FileUtils.qml
+singleton GlobalStates 1.0 GlobalStates.qml

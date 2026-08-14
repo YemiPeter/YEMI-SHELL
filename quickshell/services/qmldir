@@ -12,3 +12,8 @@ singleton Screenshot Screenshot.qml
 singleton Logger Logger.qml
 singleton Bluetooth Bluetooth.qml
 singleton Hyprsunset Hyprsunset.qml
+singleton Notifications Notifications.qml
+singleton MprisController MprisController.qml
+singleton Battery Battery.qml
+singleton DateTime DateTime.qml
+singleton TrayService TrayService.qml
