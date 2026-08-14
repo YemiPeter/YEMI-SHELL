@@ -1,3 +1,4 @@
+module qs.modules.pill.Singletons
 singleton Theme ../../../singletons/Theme.qml
 singleton Motion Motion.qml
 singleton Flags ../../../singletons/Flags.qml
