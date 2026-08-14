@@ -252,7 +252,7 @@ ShellRoot {
     Loader {
         id: barLoader
         source: "modules/bar/BarWrapper.qml"
-        active: Config.options?.panelFamily !== "waffle"
+        active: Config.options !== undefined && Config.options.panelFamily !== "waffle"
         onLoaded: root.barWindow = item
     }
 
@@ -260,14 +260,14 @@ ShellRoot {
     Loader {
         id: waffleBackgroundLoader
         sourceComponent: wBgPanel
-        active: Config.options?.panelFamily === "waffle" && (Config.options?.enabledPanels ?? []).includes("wBackground")
+        active: Config.options !== undefined && Config.options.panelFamily === "waffle" && (Config.options.enabledPanels ?? []).includes("wBackground")
     }
 
     // Waffle Backdrop Panel (fullscreen solid-color backdrop behind fullscreen windows)
     Loader {
         id: waffleBackdropLoader
         sourceComponent: wBackdropPanel
-        active: Config.options?.panelFamily === "waffle" && (Config.options?.enabledPanels ?? []).includes("wBackdrop")
+        active: Config.options !== undefined && Config.options.panelFamily === "waffle" && (Config.options.enabledPanels ?? []).includes("wBackdrop")
     }
 
     Component {
@@ -284,7 +284,7 @@ ShellRoot {
     Loader {
         id: waffleBarLoader
         sourceComponent: wBarPanel
-        active: Config.options?.panelFamily === "waffle" && (Config.options?.enabledPanels ?? []).includes("wBar")
+        active: Config.options !== undefined && Config.options.panelFamily === "waffle" && (Config.options.enabledPanels ?? []).includes("wBar")
     }
 
     Component {
@@ -294,7 +294,7 @@ ShellRoot {
 
     // Pill overlay windows (one per screen) — only loaded when the Pill family is active
     Loader {
-        active: Config.options?.panelFamily !== "waffle"
+        active: Config.options !== undefined && Config.options.panelFamily !== "waffle"
         sourceComponent: pillOverlayComponent
     }
 
