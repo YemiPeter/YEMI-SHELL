@@ -23,6 +23,13 @@ layer-rule {
     match namespace="quickshell:wBackdrop"
     place-within-backdrop true
     opacity 1.0
+    blur { }
+}
+
+// iNiR "waffle" family background (glass wallpaper surface).
+layer-rule {
+    match namespace="quickshell:wBackground"
+    blur { }
 }
 
 // ── Examples ────────────────────────────────────────────────────────────────
