@@ -12,6 +12,7 @@ import "singletons" as QsSingletons
 import "modules/pill" as Pill
 import "modules/waffle/background" as WaffleBackgroundModule
 import "modules/waffle/backdrop" as WaffleBackdropModule
+import "modules/waffle/bar" as WaffleBarModule
 
 ShellRoot {
     id: root
@@ -276,6 +277,18 @@ ShellRoot {
     Component {
         id: wBackdropPanel
         WaffleBackdropModule.WaffleBackdrop {}
+    }
+
+    // Waffle Bar (wBar) — only when panelFamily is "waffle" and wBar is enabled
+    Loader {
+        id: waffleBarLoader
+        sourceComponent: wBarPanel
+        active: Config.options?.panelFamily === "waffle" && (Config.options?.enabledPanels ?? []).includes("wBar")
+    }
+
+    Component {
+        id: wBarPanel
+        WaffleBarModule.WaffleBar {}
     }
 
     // Pill overlay windows (one per screen) — only loaded when the Pill family is active

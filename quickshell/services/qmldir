@@ -17,3 +17,7 @@ singleton MprisController MprisController.qml
 singleton Battery Battery.qml
 singleton DateTime DateTime.qml
 singleton TrayService TrayService.qml
+singleton GameMode GameMode.qml
+singleton CompositorService CompositorService.qml
+singleton NiriService NiriService.qml
+singleton DankSocket DankSocket.qml
