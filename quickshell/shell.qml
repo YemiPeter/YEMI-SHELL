@@ -5,6 +5,7 @@
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Notifications
+import qs.modules.common
 import qs.compositor
 import QtQuick 6.10
 import "services" as QsServices
@@ -259,14 +260,14 @@ ShellRoot {
     Loader {
         id: waffleBackgroundLoader
         sourceComponent: wBgPanel
-        active: (Config.options?.enabledPanels ?? []).includes("wBackground")
+        active: Config.options?.panelFamily === "waffle" && (Config.options?.enabledPanels ?? []).includes("wBackground")
     }
 
     // Waffle Backdrop Panel (fullscreen solid-color backdrop behind fullscreen windows)
     Loader {
         id: waffleBackdropLoader
         sourceComponent: wBackdropPanel
-        active: (Config.options?.enabledPanels ?? []).includes("wBackdrop")
+        active: Config.options?.panelFamily === "waffle" && (Config.options?.enabledPanels ?? []).includes("wBackdrop")
     }
 
     Component {
