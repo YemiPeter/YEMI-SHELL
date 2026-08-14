@@ -10,6 +10,8 @@ import QtQuick 6.10
 import "services" as QsServices
 import "singletons" as QsSingletons
 import "modules/pill" as Pill
+import "modules/waffle/background" as WaffleBackgroundModule
+import "modules/waffle/backdrop" as WaffleBackdropModule
 
 ShellRoot {
     id: root
@@ -251,6 +253,29 @@ ShellRoot {
         onLoaded: root.barWindow = item
     }
 
+    // Waffle Background Panel (glass wallpaper layer)
+    Loader {
+        id: waffleBackgroundLoader
+        sourceComponent: wBgPanel
+        active: (Config.options?.enabledPanels ?? []).includes("wBackground")
+    }
+
+    // Waffle Backdrop Panel (fullscreen solid-color backdrop behind fullscreen windows)
+    Loader {
+        id: waffleBackdropLoader
+        sourceComponent: wBackdropPanel
+        active: (Config.options?.enabledPanels ?? []).includes("wBackdrop")
+    }
+
+    Component {
+        id: wBgPanel
+        WaffleBackgroundModule.WaffleBackground {}
+    }
+
+    Component {
+        id: wBackdropPanel
+        WaffleBackdropModule.WaffleBackdrop {}
+    }
 
     // Pill overlay windows (one per screen)
     Variants {
