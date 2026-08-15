@@ -15,9 +15,15 @@ import Quickshell
 Rectangle {
     id: root
     
-    property color fallbackColor: Appearance.colors.colLayer1
-    property color inirColor: Appearance.inir.colLayer1
-    property real auroraTransparency: Appearance.aurora.popupTransparentize
+    // ORIGINAL (iNiR, restore when theme bridge is built):
+    // property color fallbackColor: Appearance.colors.colLayer1
+    property color fallbackColor: "#1e1e1e"
+    // ORIGINAL (iNiR, restore when theme bridge is built):
+    // property color inirColor: Appearance.inir.colLayer1
+    property color inirColor: "#1e1e1e"
+    // ORIGINAL (iNiR, restore when theme bridge is built):
+    // property real auroraTransparency: Appearance.aurora.popupTransparentize
+    property real auroraTransparency: 0.9
     property bool wallpaperBackdropEnabled: true
     
     // Screen-relative position for blur alignment (set by parent)
@@ -26,9 +32,13 @@ Rectangle {
     property real screenWidth: Quickshell.screens[0]?.width ?? 1920
     property real screenHeight: Quickshell.screens[0]?.height ?? 1080
     
-    readonly property bool angelEverywhere: Appearance.angelEverywhere
-    readonly property bool auroraEverywhere: Appearance.auroraEverywhere
-    readonly property bool inirEverywhere: Appearance.inirEverywhere
+    // ORIGINAL (iNiR, restore when theme bridge is built):
+    // readonly property bool angelEverywhere: Appearance.angelEverywhere
+    // readonly property bool auroraEverywhere: Appearance.auroraEverywhere
+    // readonly property bool inirEverywhere: Appearance.inirEverywhere
+    readonly property bool angelEverywhere: false
+    readonly property bool auroraEverywhere: true
+    readonly property bool inirEverywhere: false
     readonly property bool useWallpaperBackdrop: root.wallpaperBackdropEnabled && root.auroraEverywhere && !root.inirEverywhere
     
     color: root.useWallpaperBackdrop ? "transparent"
@@ -77,13 +87,21 @@ Rectangle {
         layer.effect: MultiEffect {
             source: blurredWallpaper
             anchors.fill: source
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // saturation: root.angelEverywhere
+        //     ? (Appearance.angel.blurSaturation * Appearance.angel.colorStrength)
+        //     : (Appearance.effectsEnabled ? 0.2 : 0)
             saturation: root.angelEverywhere
-                ? (Appearance.angel.blurSaturation * Appearance.angel.colorStrength)
+                ? (1.0 * 1.0)
                 : (Appearance.effectsEnabled ? 0.2 : 0)
             blurEnabled: Appearance.effectsEnabled
             blurMax: 64
+        // ORIGINAL (iNi, restore when theme bridge is built):
+        // blur: Appearance.effectsEnabled
+        //     ? (root.angelEverywhere ? Appearance.angel.blurIntensity : 1)
+        //     : 0
             blur: Appearance.effectsEnabled
-                ? (root.angelEverywhere ? Appearance.angel.blurIntensity : 1)
+                ? 1
                 : 0
         }
     }
@@ -91,8 +109,12 @@ Rectangle {
     Rectangle {
         anchors.fill: parent
         visible: root.useWallpaperBackdrop
+        // ORIGINAL (iNi, restore when theme bridge is built):
+        // color: root.angelEverywhere
+        //     ? ColorUtils.transparentize(Appearance.colors.colLayer0Base, Appearance.angel.overlayOpacity)
+        //     : ColorUtils.transparentize(Appearance.colors.colLayer0Base, root.auroraTransparency)
         color: root.angelEverywhere
-            ? ColorUtils.transparentize(Appearance.colors.colLayer0Base, Appearance.angel.overlayOpacity)
+            ? ColorUtils.transparentize(Appearance.colors.colLayer0Base, 0.15)
             : ColorUtils.transparentize(Appearance.colors.colLayer0Base, root.auroraTransparency)
     }
 
@@ -101,9 +123,13 @@ Rectangle {
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.right: parent.right
-        height: Appearance.angel.insetGlowHeight
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // height: Appearance.angel.insetGlowHeight
+        // visible: root.angelEverywhere
+        // color: Appearance.angel.colInsetGlow
+        height: 2
         visible: root.angelEverywhere
-        color: Appearance.angel.colInsetGlow
+        color: "#3a88f2"
     }
 
     // Partial border — elegant half-borders, angel only

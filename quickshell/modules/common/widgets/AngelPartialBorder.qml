@@ -19,11 +19,17 @@ Item {
 
     property bool hovered: false
     property real targetRadius: 0
-    property real coverage: Appearance.angel.borderCoverage
-    property real borderWidth: Appearance.angel.borderWidth
-    property color borderColor: hovered ? Appearance.angel.colBorderHover : Appearance.angel.colBorder
+    // ORIGINAL (iNiR, restore when theme bridge is built):
+    // property real coverage: Appearance.angel.borderCoverage
+    // property real borderWidth: Appearance.angel.borderWidth
+    // property color borderColor: hovered ? Appearance.angel.colBorderHover : Appearance.angel.colBorder
+    property real coverage: 0.7
+    property real borderWidth: 1
+    property color borderColor: hovered ? "#4a98f7" : "#3a88f2"
 
-    visible: Appearance.angelEverywhere
+    // ORIGINAL (iNiR, restore when theme bridge is built):
+    // visible: Appearance.angelEverywhere
+    visible: true
 
     // Top edge — from left, fades to transparent at right end
     Rectangle {
@@ -40,8 +46,13 @@ Item {
             GradientStop { position: 1.0; color: "transparent" }
         }
 
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // Behavior on width {
+        //     enabled: Appearance.animationsEnabled
+        //     NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
+        // }
         Behavior on width {
-            enabled: Appearance.animationsEnabled
+            enabled: true
             NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
         }
     }
@@ -61,8 +72,13 @@ Item {
             GradientStop { position: 1.0; color: "transparent" }
         }
 
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // Behavior on height {
+        //     enabled: Appearance.animationsEnabled
+        //     NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
+        // }
         Behavior on height {
-            enabled: Appearance.animationsEnabled
+            enabled: true
             NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
         }
     }
@@ -82,8 +98,13 @@ Item {
             GradientStop { position: 1.0; color: root.borderColor }
         }
 
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // Behavior on width {
+        //     enabled: Appearance.animationsEnabled
+        //     NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
+        // }
         Behavior on width {
-            enabled: Appearance.animationsEnabled
+            enabled: true
             NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
         }
     }
@@ -103,8 +124,13 @@ Item {
             GradientStop { position: 1.0; color: root.borderColor }
         }
 
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // Behavior on height {
+        //     enabled: Appearance.animationsEnabled
+        //     NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
+        // }
         Behavior on height {
-            enabled: Appearance.animationsEnabled
+            enabled: true
             NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
         }
     }

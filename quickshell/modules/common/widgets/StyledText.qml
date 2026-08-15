@@ -11,22 +11,34 @@ Text {
     renderType: Text.NativeRendering
     verticalAlignment: Text.AlignVCenter
     property bool shouldUseNumberFont: /^\d+$/.test(root.text)
-    property var defaultFont: shouldUseNumberFont ? Appearance.font.family.numbers : Appearance.font.family.main
-    
+    // ORIGINAL (iNiR, restore when theme bridge is built):
+    // property var defaultFont: shouldUseNumberFont ? Appearance.font.family.numbers : Appearance.font.family.main
+    property var defaultFont: shouldUseNumberFont ? "JetBrainsMono Nerd Font" : "Noto Sans"
+
     font {
         hintingPreference: Font.PreferDefaultHinting
         family: defaultFont
-        pixelSize: Appearance?.font.pixelSize.small ?? 15
-        variableAxes: shouldUseNumberFont ? ({}) : Appearance.font.variableAxes.main
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // pixelSize: Appearance?.font.pixelSize.small ?? 15
+        pixelSize: 15
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // variableAxes: shouldUseNumberFont ? ({}) : Appearance.font.variableAxes.main
+        variableAxes: ({})
     }
-    color: Appearance?.m3colors.m3onBackground ?? "black"
-    linkColor: Appearance?.m3colors.m3primary
+    // ORIGINAL (iNiR, restore when theme bridge is built):
+    // color: Appearance?.m3colors.m3onBackground ?? "black"
+    color: "#e6e6e6"
+    // ORIGINAL (iNiR, restore when theme bridge is built):
+    // linkColor: Appearance?.m3colors.m3primary
+    linkColor: "#3a88f2"
 
     component Anim: NumberAnimation {
         target: root
         duration: 300 / 2
         easing.type: Easing.BezierSpline
-        easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve
+        easing.bezierCurve: [0.34, 0.80, 0.34, 1.00, 1, 1]
     }
 
     Component.onCompleted: {

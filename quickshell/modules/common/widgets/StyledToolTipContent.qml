@@ -27,18 +27,31 @@ Item {
         y: root.position === "top" ? root.implicitHeight - implicitHeight
          : root.position === "bottom" ? 0
          : (root.implicitHeight - implicitHeight) / 2
-        color: Appearance.angelEverywhere ? Appearance.angel.colGlassTooltip
-             : Appearance.inirEverywhere ? Appearance.inir.colLayer2
-             : Appearance.auroraEverywhere ? Appearance.aurora.colTooltipSurface
-             : Appearance.colors.colLayer3
-        radius: Appearance.angelEverywhere ? Appearance.angel.roundingSmall
-             : Appearance.inirEverywhere ? Appearance.inir.roundingNormal
-             : Appearance.rounding.verysmall
-        border.width: Appearance.angelEverywhere ? Appearance.angel.cardBorderWidth : 1
-        border.color: Appearance.angelEverywhere ? Appearance.angel.colBorderSubtle
-                    : Appearance.inirEverywhere ? Appearance.inir.colBorder
-                    : Appearance.auroraEverywhere ? Appearance.aurora.colTooltipBorder
-                    : Appearance.colors.colLayer3Hover
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // color: Appearance.angelEverywhere ? Appearance.angel.colGlassTooltip
+        //      : Appearance.inirEverywhere ? Appearance.inir.colLayer2
+        //      : Appearance.auroraEverywhere ? Appearance.aurora.colTooltipSurface
+        //      : Appearance.colors.colLayer3
+        color: false ? "#1e1e1e"
+             : false ? "#1e1e1e"
+             : true ? "#1e1e1e"
+             : "#1e1e1e"
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // radius: Appearance.angelEverywhere ? Appearance.angel.roundingSmall
+        //      : Appearance.inirEverywhere ? Appearance.inir.roundingNormal
+        //      : Appearance.rounding.verysmall
+        radius: false ? 6
+             : false ? 8
+             : 4
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // border.width: Appearance.angelEverywhere ? Appearance.angel.cardBorderWidth : 1
+        border.width: 1
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // border.color: Appearance.angelEverywhere ? Appearance.angel.colBorderSubtle
+        //             : Appearance.inirEverywhere ? Appearance.inir.colBorder
+        //             : Appearance.auroraEverywhere ? Appearance.aurora.colTooltipBorder
+        //             : Appearance.colors.colLayer3Hover
+        border.color: "#3a88f2"
         opacity: shown ? 1 : 0
         scale: shown ? 1 : 0.94
         transformOrigin: root.position === "top" ? Item.Bottom
@@ -49,21 +62,41 @@ Item {
         implicitHeight: shown ? (tooltipTextObject.implicitHeight + 2 * root.verticalPadding) : 0
         clip: true
 
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // Behavior on opacity {
+        //     enabled: Appearance.animationsEnabled
+        //     NumberAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve }
+        // }
         Behavior on opacity {
-            enabled: Appearance.animationsEnabled
-            NumberAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve }
+            enabled: true
+            NumberAnimation { duration: 150; easing.type: Easing.BezierSpline; easing.bezierCurve: [0.34, 0.80, 0.34, 1.00, 1, 1] }
         }
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // Behavior on scale {
+        //     enabled: Appearance.animationsEnabled
+        //     NumberAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve }
+        // }
         Behavior on scale {
-            enabled: Appearance.animationsEnabled
-            NumberAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve }
+            enabled: true
+            NumberAnimation { duration: 150; easing.type: Easing.BezierSpline; easing.bezierCurve: [0.34, 0.80, 0.34, 1.00, 1, 1] }
         }
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // Behavior on implicitWidth {
+        //     enabled: Appearance.animationsEnabled
+        //     NumberAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve }
+        // }
         Behavior on implicitWidth {
-            enabled: Appearance.animationsEnabled
-            NumberAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve }
+            enabled: true
+            NumberAnimation { duration: 150; easing.type: Easing.BezierSpline; easing.bezierCurve: [0.34, 0.80, 0.34, 1.00, 1, 1] }
         }
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // Behavior on implicitHeight {
+        //     enabled: Appearance.animationsEnabled
+        //     NumberAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve }
+        // }
         Behavior on implicitHeight {
-            enabled: Appearance.animationsEnabled
-            NumberAnimation { duration: Appearance.animation.elementMoveFast.duration; easing.type: Appearance.animation.elementMoveFast.type; easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve }
+            enabled: true
+            NumberAnimation { duration: 150; easing.type: Easing.BezierSpline; easing.bezierCurve: [0.34, 0.80, 0.34, 1.00, 1, 1] }
         }
 
         AngelPartialBorder {
@@ -75,11 +108,17 @@ Item {
             id: tooltipTextObject
             anchors.centerIn: parent
             text: root.text
-            font.pixelSize: Appearance.font.pixelSize.smaller
+            // ORIGINAL (iNiR, restore when theme bridge is built):
+            // font.pixelSize: Appearance.font.pixelSize.smaller
+            font.pixelSize: 11
             font.hintingPreference: Font.PreferNoHinting // Prevent shaky text
-            color: Appearance.angelEverywhere ? Appearance.angel.colText
-                : Appearance.inirEverywhere ? Appearance.inir.colText
-                : Appearance.colors.colOnLayer3
+            // ORIGINAL (iNiR, restore when theme bridge is built):
+            // color: Appearance.angelEverywhere ? Appearance.angel.colText
+            //     : Appearance.inirEverywhere ? Appearance.inir.colText
+            //     : Appearance.colors.colOnLayer3
+            color: false ? "#e6e6e6"
+                : false ? "#e6e6e6"
+                : "#e6e6e6"
             wrapMode: Text.Wrap
         }
     }   

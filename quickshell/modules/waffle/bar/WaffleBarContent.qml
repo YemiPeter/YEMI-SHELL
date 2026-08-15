@@ -78,7 +78,9 @@ Rectangle {
         screenY: root.barAtBottom ? (root._screenH - root.height) : 0
         screenWidth: root._screenW
         screenHeight: root._screenH
-        auroraTransparency: Appearance.aurora.overlayTransparentize
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // auroraTransparency: Appearance.aurora.overlayTransparentize
+        auroraTransparency: 0.9
     }
 
     Rectangle {
@@ -89,8 +91,12 @@ Rectangle {
             top: root.barAtBottom ? parent.top : undefined
             bottom: root.barAtBottom ? undefined : parent.bottom
         }
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // color: root.glassActive
+        //     ? (Appearance.angelEverywhere ? Appearance.angel.colPanelBorder : Appearance.aurora.colTooltipBorder)
+        //     : Looks.colors.bg0Border
         color: root.glassActive
-            ? (Appearance.angelEverywhere ? Appearance.angel.colPanelBorder : Appearance.aurora.colTooltipBorder)
+            ? "#3a88f2"
             : Looks.colors.bg0Border
         implicitHeight: 1
     }
