@@ -16,7 +16,9 @@ Singleton {
     property QtObject font
     property QtObject transition
     property string iconsPath: `${Directories.assetsPath}/icons/fluent`
-    property bool dark: Appearance.m3colors.darkmode
+    // ORIGINAL (iNiR, restore when theme bridge is built):
+    // property bool dark: Appearance.m3colors.darkmode
+    property bool dark: true
     property bool auroraEverywhere: {
         const style = Config.options?.appearance?.globalStyle ?? "material"
         return style === "aurora" || style === "angel"
@@ -187,9 +189,11 @@ Singleton {
                 : ColorUtils.transparentize(
                     root.glassActive && root.dark ? root.darkColors.bg0Border : (root.dark ? root.darkColors.bgPanelSeparator : root.lightColors.bgPanelSeparator),
                     root.backgroundTransparency)
-        property color bg0Opaque: root.useMaterial
-            ? Appearance.m3colors.m3background
-            : (root.dark ? root.darkColors.bg0 : root.lightColors.bg0)
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // property color bg0Opaque: root.useMaterial
+        //     ? Appearance.m3colors.m3background
+        //     : (root.dark ? root.darkColors.bg0 : root.lightColors.bg0)
+        property color bg0Opaque: "#1e1e1e"
         property color bg0: root.useMaterial
             ? Appearance.colors.colLayer0 
             : ColorUtils.transparentize(bg0Opaque, root.backgroundTransparency)
@@ -211,11 +215,13 @@ Singleton {
             : ColorUtils.transparentize(
                 root.glassActive && root.dark ? Qt.lighter(root.darkColors.bg1Base, 1.3) : (root.dark ? root.darkColors.bg1Hover : root.lightColors.bg1Hover),
                 root.glassActive ? root.backgroundTransparency : root.contentTransparency)
-        property color bg1Active: root.useMaterial 
-            ? Appearance.colors.colLayer1Active 
-            : ColorUtils.transparentize(
-                root.glassActive && root.dark ? Qt.darker(root.darkColors.bg1Base, 1.15) : (root.dark ? root.darkColors.bg1Active : root.lightColors.bg1Active),
-                root.glassActive ? root.backgroundTransparency : root.contentTransparency)
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // property color bg1Active: root.useMaterial
+        //     ? Appearance.colors.colLayer1Active
+        //     : ColorUtils.transparentize(
+        //         root.glassActive && root.dark ? Qt.darker(root.darkColors.bg1Base, 1.15) : (root.dark ? root.darkColors.bg1Active : root.lightColors.bg1Active),
+        //         root.glassActive ? root.backgroundTransparency : root.contentTransparency)
+        property color bg1Active: "#1e1e1e"
         property color bg1Border: root.glassActive && root.useMaterial
             ? (Appearance.angelEverywhere ? Appearance.angel.colBorderSubtle ?? "transparent" : Appearance.colors.colBorderSubtle ?? "transparent")
             : root.useMaterial 
@@ -236,11 +242,13 @@ Singleton {
             : ColorUtils.transparentize(
                 root.glassActive && root.dark ? Qt.lighter(root.darkColors.bg2Base, 1.3) : (root.dark ? root.darkColors.bg2Hover : root.lightColors.bg2Hover),
                 root.glassActive ? root.backgroundTransparency : root.contentTransparency)
-        property color bg2Active: root.useMaterial 
-            ? Appearance.colors.colLayer2Active 
-            : ColorUtils.transparentize(
-                root.glassActive && root.dark ? Qt.darker(root.darkColors.bg2Base, 1.15) : (root.dark ? root.darkColors.bg2Active : root.lightColors.bg2Active),
-                root.glassActive ? root.backgroundTransparency : root.contentTransparency)
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // property color bg2Active: root.useMaterial
+        //     ? Appearance.colors.colLayer2Active
+        //     : ColorUtils.transparentize(
+        //         root.glassActive && root.dark ? Qt.darker(root.darkColors.bg2Base, 1.15) : (root.dark ? root.darkColors.bg2Active : root.lightColors.bg2Active),
+        //         root.glassActive ? root.backgroundTransparency : root.contentTransparency)
+        property color bg2Active: "#1e1e1e"
         property color bg2Border: root.glassActive && root.useMaterial
             ? (Appearance.angelEverywhere ? Appearance.angel.colBorderSubtle ?? "transparent" : Appearance.colors.colBorderSubtle ?? "transparent")
             : root.useMaterial 
@@ -275,45 +283,65 @@ Singleton {
         property color subfg: root.useMaterial 
             ? Appearance.colors.colSubtext 
             : (root.dark ? root.darkColors.subfg : root.lightColors.subfg)
-        property color fg: root.useMaterial 
-            ? Appearance.colors.colOnLayer0 
-            : (root.dark ? root.darkColors.fg : root.lightColors.fg)
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // property color fg: root.useMaterial
+        //     ? Appearance.colors.colOnLayer0
+        //     : (root.dark ? root.darkColors.fg : root.lightColors.fg)
+        property color fg: "#e6e6e6"
         property color fg1: root.useMaterial 
             ? Appearance.colors.colOnLayer1 
             : (root.dark ? root.darkColors.fg1 : root.lightColors.fg1)
-        property color inactiveIcon: root.useMaterial 
-            ? Appearance.colors.colOnLayer1Inactive 
-            : (root.dark ? root.darkColors.inactiveIcon : root.lightColors.inactiveIcon)
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // property color inactiveIcon: root.useMaterial
+        //     ? Appearance.colors.colOnLayer1Inactive
+        //     : (root.dark ? root.darkColors.inactiveIcon : root.lightColors.inactiveIcon)
+        property color inactiveIcon: "#e6e6e6"
         property color controlBgInactive: root.useMaterial 
             ? Appearance.colors.colSecondaryContainer 
             : (root.dark ? root.darkColors.controlBgInactive : root.lightColors.controlBgInactive)
         property color controlBg: root.useMaterial 
             ? Appearance.colors.colSecondary 
             : (root.dark ? root.darkColors.controlBg : root.lightColors.controlBg)
-        property color controlBgHover: root.useMaterial 
-            ? Appearance.colors.colSecondaryHover 
-            : (root.dark ? root.darkColors.controlBgHover : root.lightColors.controlBgHover)
-        property color controlFg: root.useMaterial 
-            ? Appearance.colors.colOnSecondary 
-            : (root.dark ? root.darkColors.controlFg : root.lightColors.controlFg)
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // property color controlBgHover: root.useMaterial
+        //     ? Appearance.colors.colSecondaryHover
+        //     : (root.dark ? root.darkColors.controlBgHover : root.lightColors.controlBgHover)
+        property color controlBgHover: "#3a88f2"
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // property color controlFg: root.useMaterial
+        //     ? Appearance.colors.colOnSecondary
+        //     : (root.dark ? root.darkColors.controlFg : root.lightColors.controlFg)
+        property color controlFg: "#e6e6e6"
         property color inputBg: root.useMaterial 
             ? Appearance.colors.colLayer1 
             : (root.dark ? root.darkColors.inputBg : root.lightColors.inputBg)
         property color link: root.useMaterial 
             ? Appearance.colors.colPrimary 
             : (root.dark ? root.darkColors.link : root.lightColors.link)
-        property color danger: Appearance.m3colors.m3error ?? "#C42B1C"
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // property color danger: Appearance.m3colors.m3error ?? "#C42B1C"
+        property color danger: "#C42B1C"
         property color dangerActive: Qt.darker(danger, 1.1)
-        property color warning: Appearance.m3colors.m3tertiary ?? "#FF9900"
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // property color warning: Appearance.m3colors.m3tertiary ?? "#FF9900"
+        property color warning: "#FF9900"
         property color accent: Appearance.colors.colPrimary
         property color accentHover: Appearance.colors.colPrimaryHover
-        property color accentActive: Appearance.colors.colPrimaryActive
-        property color accentUnfocused: root.useMaterial 
-            ? Appearance.colors.colOutline 
-            : (root.dark ? root.darkColors.accentUnfocused : root.lightColors.accentUnfocused)
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // property color accentActive: Appearance.colors.colPrimaryActive
+        property color accentActive: "#3a88f2"
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // property color accentUnfocused: root.useMaterial
+        //     ? Appearance.colors.colOutline
+        //     : (root.dark ? root.darkColors.accentUnfocused : root.lightColors.accentUnfocused)
+        property color accentUnfocused: "#3a88f2"
         property color accentFg: ColorUtils.isDark(accent) ? "#FFFFFF" : "#000000"
-        property color selection: Appearance.colors.colPrimaryContainer
-        property color selectionFg: Appearance.colors.colOnPrimaryContainer
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // property color selection: Appearance.colors.colPrimaryContainer
+        property color selection: "#3a88f2"
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // property color selectionFg: Appearance.colors.colOnPrimaryContainer
+        property color selectionFg: "#e6e6e6"
     }
 
     radius: QtObject {
@@ -358,7 +386,9 @@ Singleton {
         id: transition
 
         // Respect GameMode - disable animations when Appearance says so
-        readonly property bool enabled: Appearance.animationsEnabled
+        // ORIGINAL (iNiR, restore when theme bridge is built):
+        // readonly property bool enabled: Appearance.animationsEnabled
+        readonly property bool enabled: true
         
         property int velocity: 850
 
