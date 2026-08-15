@@ -714,7 +714,6 @@ Singleton {
             }
 
             property JsonObject modules: JsonObject {
-                property bool altSwitcher: true
                 property bool bar: true
                 property bool background: true
                 property bool cheatsheet: true
@@ -1585,34 +1584,6 @@ Singleton {
                 }
             }
 
-            // Settings for the custom Alt-Tab switcher in ii
-            property JsonObject altSwitcher: JsonObject {
-                // Preset style: "default" (sidebar) or "list" (centered list)
-                property string preset: "default"
-                property bool noVisualUi: false
-                // Whether to tint app icons (monochrome), similar to dock/workspaces
-                property bool monochromeIcons: false
-                // Enable/disable slide in/out animation
-                property bool enableAnimation: true
-                // Slide animation duration in milliseconds
-                property int animationDurationMs: 200
-                // Whether to order windows by most recently used (MRU) instead of by workspace/app name
-                property bool useMostRecentFirst: true
-                // Enable local glass-like blur behind the switcher panel
-                property bool enableBlurGlass: true
-                // Background opacity for the switcher panel (0-1)
-                property real backgroundOpacity: 0.9
-                // Blur strength for the glass effect (0-1, mapped from UI percentage)
-                property real blurAmount: 0.4
-                // Dim strength for the fullscreen scrim (0-100)
-                property int scrimDim: 35
-                property string panelAlignment: "right" // right | center
-                property bool useM3Layout: false
-                property bool compactStyle: false // Compact horizontal icon-only style
-                property bool showOverviewWhileSwitching: false
-                property int autoHideDelayMs: 500
-            }
-
             property JsonObject regionSelector: JsonObject {
                 property int borderSize: 4
                 property int numSize: 48
@@ -2096,28 +2067,6 @@ Singleton {
                 property JsonObject tweaks: JsonObject {
                     property bool smootherMenuAnimations: true
                     property bool switchHandlePositionFix: true
-                }
-                property JsonObject altSwitcher: JsonObject {
-                    property string preset: "thumbnails"
-                    property bool noVisualUi: false
-                    property bool monochromeIcons: false
-                    property bool enableAnimation: true
-                    property int animationDurationMs: 300
-                    property real backgroundOpacity: 1.0
-                    property real blurAmount: 0.0
-                    property int scrimDim: 0
-                    property int autoHideDelayMs: 500
-                    property bool showOverviewWhileSwitching: false
-                    property bool compactStyle: false
-                    property string panelAlignment: "center"
-                    property bool useM3Layout: false
-                    property bool useMostRecentFirst: true
-                    property bool quickSwitch: false
-                    property bool autoHide: true
-                    property bool closeOnFocus: true
-                    property int thumbnailWidth: 280
-                    property int thumbnailHeight: 180
-                    property real scrimOpacity: 0.4
                 }
                 property JsonObject background: JsonObject {
                     property string wallpaperPath: "" // Empty = use main wallpaper

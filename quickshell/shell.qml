@@ -4,6 +4,7 @@
 
 import Quickshell
 import Quickshell.Io
+import qs.modules.common
 import Quickshell.Services.Notifications
 import qs.modules.common
 import qs.compositor

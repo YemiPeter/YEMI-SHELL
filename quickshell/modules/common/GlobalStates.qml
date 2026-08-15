@@ -32,7 +32,6 @@ Singleton {
     property bool oskOpen: false
     property bool overlayOpen: false
     property bool overviewOpen: false
-    property bool altSwitcherOpen: false
     property bool clipboardOpen: false
     property bool settingsOverlayOpen: false
     property int settingsOverlayRequestedPage: -1 // Set before opening to navigate to a specific page
@@ -96,7 +95,6 @@ Singleton {
     property bool waffleActionCenterOpen: false
     property bool waffleNotificationCenterOpen: false
     property bool waffleWidgetsOpen: false
-    property bool waffleAltSwitcherOpen: false
     property bool waffleClipboardOpen: false
     property bool waffleTaskViewOpen: false
 
