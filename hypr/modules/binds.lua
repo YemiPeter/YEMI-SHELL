@@ -78,6 +78,9 @@ bind = $mod, J, layoutmsg, togglesplit                           # Toggle split
 # Skwd wall toggle
 bind = $mod SHIFT, W, exec, skwd wall toggle                     # Skwd wall toggle
 
+# Toggle desktop family (Pill ↔ Waffle)
+bind = $mod, D, exec, qs ipc call desktop toggle                # Toggle panel family
+
 # Define
 bind = , Menu, exec, ~/.config/scripts/define.sh
 
