@@ -6,6 +6,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell.Widgets
+import qs.config
 
 /**
  * Material 3 slider. See https://m3.material.io/components/sliders/overview

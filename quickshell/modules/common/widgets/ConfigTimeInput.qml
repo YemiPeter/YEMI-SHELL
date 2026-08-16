@@ -5,6 +5,7 @@ import qs.services
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import qs.config
 
 /**
  * Time input widget for HH:mm format.

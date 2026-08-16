@@ -1,6 +1,7 @@
 import QtQuick
 import qs.modules.common
 import qs.modules.common.functions
+import qs.config
 
 /*
  * Simple one value line graph

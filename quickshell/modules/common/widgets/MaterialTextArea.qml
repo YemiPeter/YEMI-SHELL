@@ -2,6 +2,7 @@ import qs.modules.common
 import QtQuick
 import QtQuick.Controls.Material
 import QtQuick.Controls
+import qs.config
 
 /**
  * Material 3 styled TextArea (filled style)

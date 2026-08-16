@@ -3,6 +3,7 @@ import QtQuick
 import qs.modules.common
 import qs.modules.common.functions
 import qs.modules.common.widgets
+import qs.config
 
 Rectangle {
     id: root

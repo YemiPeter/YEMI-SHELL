@@ -1,6 +1,7 @@
 import QtQuick
 import qs.modules.common
 import "shapes/morph.js" as Morph
+import qs.config
 
 Canvas {
     id: root

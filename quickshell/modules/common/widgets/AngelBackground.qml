@@ -1,3 +1,4 @@
+import qs.config
 import qs.modules.common
 import qs.modules.common.functions
 import qs.services

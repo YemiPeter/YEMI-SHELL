@@ -7,6 +7,7 @@ import Quickshell.Io
 import qs.modules.common
 import qs.modules.common.functions
 import qs.services
+import qs.config
 
 Singleton {
     id: root

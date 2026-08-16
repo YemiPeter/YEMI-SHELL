@@ -4,6 +4,7 @@ import qs.modules.common.functions
 import Qt5Compat.GraphicalEffects
 import QtQuick
 import QtQuick.Controls
+import qs.config
 
 /**
  * A button with ripple effect similar to in Material Design.

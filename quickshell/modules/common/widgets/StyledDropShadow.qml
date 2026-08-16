@@ -1,6 +1,7 @@
 import QtQuick
 import Qt5Compat.GraphicalEffects
 import qs.modules.common
+import qs.config
 
 DropShadow {
     required property var target

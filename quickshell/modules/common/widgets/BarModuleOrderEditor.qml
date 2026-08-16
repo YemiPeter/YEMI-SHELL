@@ -6,6 +6,7 @@ import qs.modules.common.functions
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
+import qs.config
 
 /**
  * Drag-and-drop per-zone bar layout editor.

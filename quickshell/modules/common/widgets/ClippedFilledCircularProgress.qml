@@ -3,6 +3,7 @@ import qs.modules.common.functions
 import QtQuick
 import QtQuick.Shapes
 import Qt5Compat.GraphicalEffects
+import qs.config
 
 Item {
     id: root

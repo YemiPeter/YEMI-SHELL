@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Effects
 import qs.modules.common
+import qs.config
 
 MultiEffect {
     id: root

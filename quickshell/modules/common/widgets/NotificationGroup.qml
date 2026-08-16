@@ -8,6 +8,7 @@ import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects as GE
 import Quickshell
 import Quickshell.Services.Notifications
+import qs.config
 
 /**
  * A group of notifications from the same app.

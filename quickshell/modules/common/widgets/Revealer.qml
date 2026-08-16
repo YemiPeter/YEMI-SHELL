@@ -1,5 +1,6 @@
 import qs.modules.common
 import QtQuick
+import qs.config
 
 /**
  * Recreation of GTK revealer. Expects one single child.

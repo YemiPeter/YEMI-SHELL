@@ -6,6 +6,7 @@ import qs.modules.common
 import QtQuick
 import Quickshell
 import qs.services
+import qs.config
 
 /**
  * Renders LaTeX snippets with MicroTeX.

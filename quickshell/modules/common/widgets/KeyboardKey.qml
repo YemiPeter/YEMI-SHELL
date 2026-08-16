@@ -1,5 +1,6 @@
 import qs.modules.common
 import QtQuick
+import qs.config
 
 /**
  * Keyboard key component following M3 layer color system.

@@ -2,6 +2,7 @@ import qs.modules.common
 import qs.modules.common.functions
 import qs.modules.common.widgets
 import QtQuick
+import qs.config
 
 /**
  * Material 3 dialog button. See https://m3.material.io/components/dialogs/overview

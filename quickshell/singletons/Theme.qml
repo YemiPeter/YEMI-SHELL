@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import "../config" as QsConfig
+import qs.config
 
 /**
  * Pill palette facade.

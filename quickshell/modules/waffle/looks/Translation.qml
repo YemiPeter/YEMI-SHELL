@@ -3,7 +3,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 
-Singleton {
+QtObject {
     id: root
 
     // Passthrough stub — returns the key string as-is.

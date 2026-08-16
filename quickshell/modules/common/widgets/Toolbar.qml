@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import qs.modules.common
 import qs.modules.common.widgets
+import qs.config
 
 /**
  * Material 3 expressive style toolbar.

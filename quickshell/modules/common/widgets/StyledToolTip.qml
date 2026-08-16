@@ -2,6 +2,7 @@ import qs.modules.common
 import qs.modules.common.widgets
 import QtQuick
 import Quickshell
+import qs.config
 
 PopupToolTip {
     id: root

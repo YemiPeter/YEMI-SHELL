@@ -3,6 +3,7 @@ import org.kde.kirigami as Kirigami
 import Quickshell
 import qs.modules.common
 import qs.services
+import qs.config
 
 /**
  * Intelligent icon component that handles:

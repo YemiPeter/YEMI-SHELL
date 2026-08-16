@@ -7,6 +7,7 @@ import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Services.Notifications
+import qs.config
 
 Item { // Notification item area
     id: root

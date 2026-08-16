@@ -7,6 +7,7 @@ import Qt5Compat.GraphicalEffects
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs.config
 
 Rectangle {
     id: root

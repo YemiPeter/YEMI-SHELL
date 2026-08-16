@@ -2,6 +2,7 @@ import qs.modules.common
 import qs.modules.common.widgets
 import QtQuick
 import QtQuick.Controls
+import qs.config
 
 /**
  * A ListView with animations.

@@ -5,6 +5,7 @@ import qs.modules.common.functions
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import qs.config
 
 RippleButton {
     id: lightDarkButtonRoot

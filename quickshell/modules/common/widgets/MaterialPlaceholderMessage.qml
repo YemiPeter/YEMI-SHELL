@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import qs.modules.common
 import qs.modules.common.widgets
+import qs.config
 
 Item {
     id: root

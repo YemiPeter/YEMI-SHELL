@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import qs.modules.common
 import qs.modules.common.widgets
+import qs.config
 
 TextField {
     id: filterField

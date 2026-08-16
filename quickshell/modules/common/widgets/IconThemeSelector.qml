@@ -4,6 +4,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import qs.modules.common
 import qs.services
+import qs.config
 
 Item {
     id: root

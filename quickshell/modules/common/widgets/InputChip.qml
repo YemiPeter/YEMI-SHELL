@@ -5,6 +5,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import qs.modules.common
 import qs.modules.common.widgets
+import qs.config
 
 /**
  * Material 3 Input Chip — a compact tag with optional icon, label, and removable close button.

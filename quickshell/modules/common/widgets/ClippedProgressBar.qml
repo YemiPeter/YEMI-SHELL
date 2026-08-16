@@ -4,6 +4,7 @@ import qs.modules.common.widgets
 import QtQuick
 import QtQuick.Controls
 import Qt5Compat.GraphicalEffects
+import qs.config
 
 /**
  * A progress bar with both ends rounded and text acts as clipping like OneUI 7's battery indicator.

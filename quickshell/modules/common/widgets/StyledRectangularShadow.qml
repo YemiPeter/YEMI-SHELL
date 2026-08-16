@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Effects
 import qs.modules.common
 import qs.modules.common.functions
+import qs.config
 
 // Dual-mode shadow: material blur shadow OR angel escalonado (offset golden platform).
 // When angel is active, renders as a warm golden offset rectangle behind the target,

@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Effects
 import qs.modules.common
+import qs.config
 
 /**
  * ShellDesaturationEffect - Visual desaturation/dim effect for shell components.

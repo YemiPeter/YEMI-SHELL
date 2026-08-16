@@ -7,6 +7,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell.Widgets
 import Quickshell.Services.Pipewire
+import qs.config
 
 RadioButton {
     id: root

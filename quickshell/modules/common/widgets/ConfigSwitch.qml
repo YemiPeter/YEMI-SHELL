@@ -3,6 +3,7 @@ import qs.modules.common
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
+import qs.config
 
 RippleButton {
     id: root

@@ -5,6 +5,7 @@ import qs.modules.common
 import qs.modules.common.functions
 import qs.services
 import Quickshell
+import qs.config
 
 // Escalonado shadow — a glass-backed offset rectangle behind the target element.
 // Signature angel effect: creates depth via a blurred glass layer

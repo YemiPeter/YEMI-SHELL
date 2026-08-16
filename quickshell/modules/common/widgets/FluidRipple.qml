@@ -22,6 +22,7 @@ import QtQuick
 import Quickshell
 import qs.services
 import qs.modules.common
+import qs.config
 
 Item {
     id: root
