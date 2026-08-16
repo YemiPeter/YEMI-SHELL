@@ -1,0 +1,47 @@
+import QtQuick
+import Quickshell
+import qs.modules.common
+import "modules/waffle/background" as WaffleBackgroundModule
+import "modules/waffle/backdrop" as WaffleBackdropModule
+import "modules/waffle/bar" as WaffleBarModule
+
+// Waffle family stack — parsed ONLY when panelFamily === "waffle" because
+// shell.qml loads this file via `LazyLoader { source: "ShellWafflePanels.qml" }`
+// instead of an inline `Component`, so an inactive family is never compiled.
+Item {
+    // Waffle Background Panel (glass wallpaper layer)
+    Loader {
+        id: waffleBackgroundLoader
+        sourceComponent: wBgPanel
+        active: Config.ready && Config.options.panelFamily === "waffle" && (Config.options.enabledPanels ?? []).includes("wBackground")
+    }
+
+    // Waffle Backdrop Panel (fullscreen solid-color backdrop behind fullscreen windows)
+    Loader {
+        id: waffleBackdropLoader
+        sourceComponent: wBackdropPanel
+        active: Config.ready && Config.options.panelFamily === "waffle" && (Config.options.enabledPanels ?? []).includes("wBackdrop")
+    }
+
+    Component {
+        id: wBgPanel
+        WaffleBackgroundModule.WaffleBackground {}
+    }
+
+    Component {
+        id: wBackdropPanel
+        WaffleBackdropModule.WaffleBackdrop {}
+    }
+
+    // Waffle Bar (wBar) — only when panelFamily is "waffle" and wBar is enabled
+    Loader {
+        id: waffleBarLoader
+        sourceComponent: wBarPanel
+        active: Config.ready && Config.options.panelFamily === "waffle" && (Config.options.enabledPanels ?? []).includes("wBar")
+    }
+
+    Component {
+        id: wBarPanel
+        WaffleBarModule.WaffleBar {}
+    }
+}

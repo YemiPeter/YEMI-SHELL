@@ -11,16 +11,9 @@ import qs.compositor
 import QtQuick 6.10
 import "services" as QsServices
 import "singletons" as QsSingletons
-import "modules/pill" as Pill
-import "modules/waffle/background" as WaffleBackgroundModule
-import "modules/waffle/backdrop" as WaffleBackdropModule
-import "modules/waffle/bar" as WaffleBarModule
 
 ShellRoot {
     id: root
-
-    // Reference to the bar window (set when BarWrapper loads)
-    property var barWindow: null
 
     // Compositor integration
     readonly property var compositor: Compositor
@@ -263,64 +256,17 @@ ShellRoot {
         }
     }
 
-    Loader {
-        id: barLoader
-        source: "modules/bar/BarWrapper.qml"
+    // === Panel Family Loaders ===
+    // Load ONLY the active family panels to reduce startup time.
+    // Using `source:` instead of `component:` to avoid parsing inactive family at compile time.
+    LazyLoader {
         active: Config.ready && Config.options.panelFamily !== "waffle"
-        onLoaded: root.barWindow = item
+        source: "ShellPillPanels.qml"
     }
 
-    // Waffle Background Panel (glass wallpaper layer)
-    Loader {
-        id: waffleBackgroundLoader
-        sourceComponent: wBgPanel
-        active: Config.ready && Config.options.panelFamily === "waffle" && (Config.options.enabledPanels ?? []).includes("wBackground")
-    }
-
-    // Waffle Backdrop Panel (fullscreen solid-color backdrop behind fullscreen windows)
-    Loader {
-        id: waffleBackdropLoader
-        sourceComponent: wBackdropPanel
-        active: Config.ready && Config.options.panelFamily === "waffle" && (Config.options.enabledPanels ?? []).includes("wBackdrop")
-    }
-
-    Component {
-        id: wBgPanel
-        WaffleBackgroundModule.WaffleBackground {}
-    }
-
-    Component {
-        id: wBackdropPanel
-        WaffleBackdropModule.WaffleBackdrop {}
-    }
-
-    // Waffle Bar (wBar) — only when panelFamily is "waffle" and wBar is enabled
-    Loader {
-        id: waffleBarLoader
-        sourceComponent: wBarPanel
-        active: Config.ready && Config.options.panelFamily === "waffle" && (Config.options.enabledPanels ?? []).includes("wBar")
-    }
-
-    Component {
-        id: wBarPanel
-        WaffleBarModule.WaffleBar {}
-    }
-
-    // Pill overlay windows (one per screen) — only loaded when the Pill family is active
-    Loader {
-        active: Config.ready && Config.options.panelFamily !== "waffle"
-        sourceComponent: pillOverlayComponent
-    }
-
-    Component {
-        id: pillOverlayComponent
-        Variants {
-            model: Quickshell.screens
-            Pill.PillOverlay {
-                modelData: modelData
-                barWindow: root.barWindow
-            }
-        }
+    LazyLoader {
+        active: Config.ready && Config.options.panelFamily === "waffle"
+        source: "ShellWafflePanels.qml"
     }
 
 
