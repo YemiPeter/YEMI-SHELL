@@ -7,7 +7,7 @@ import Quickshell
 import Quickshell.Services.Mpris
 import Quickshell.Networking
 import "Singletons"
-import "../../singletons" as QsSingletons
+import qs.singletons 1.0 as QsSingletons
 
 /**
  * The pill body. One element carries every state. Width/height driven by `state`

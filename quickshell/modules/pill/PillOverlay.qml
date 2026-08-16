@@ -2,8 +2,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
-import "../../singletons" as QsSingletons
-import "../../config" as QsConfig
+import qs.singletons 1.0 as QsSingletons
+import qs.config 1.0 as QsConfig
 import qs.compositor
 
 // ═══════════════════════════════════════════════════════════════════════════════
