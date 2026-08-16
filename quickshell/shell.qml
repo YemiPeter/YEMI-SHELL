@@ -233,9 +233,10 @@ ShellRoot {
     IpcHandler {
       target: "desktop"
 
-      function toggle(): void {
+      function toggle(): bool {
         Config.setNestedValue("panelFamily",
           Config.options.panelFamily === "waffle" ? "pill" : "waffle");
+        return true;
       }
     }
 
