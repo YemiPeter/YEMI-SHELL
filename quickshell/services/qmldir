@@ -20,4 +20,15 @@ singleton TrayService TrayService.qml
 singleton GameMode GameMode.qml
 singleton CompositorService CompositorService.qml
 singleton NiriService NiriService.qml
+singleton TaskbarApps TaskbarApps.qml
+singleton TimerService TimerService.qml
+singleton Updates Updates.qml
+singleton KeyboardIndicators KeyboardIndicators.qml
+singleton Privacy Privacy.qml
+singleton RecorderStatus RecorderStatus.qml
+singleton Wallpapers Wallpapers.qml
+singleton Icons Icons.qml
+singleton GlobalActions GlobalActions.qml
+singleton AppSearch AppSearch.qml
+singleton SystemInfo SystemInfo.qml
 DankSocket 1.0 DankSocket.qml
