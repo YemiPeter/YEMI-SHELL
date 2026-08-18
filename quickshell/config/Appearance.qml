@@ -18,6 +18,9 @@ Singleton {
 
     // === iNiR Compatibility Layer ===
 
+    // 5a — Global UI scale factor used by Looks.scaledBar / Looks.dp
+    readonly property real fontSizeScale: Config.options?.appearance?.typography?.sizeScale ?? 1.0
+
     // 5a — Font pixel size scale
     readonly property var fontSize: ({
         huge: font.typography && font.typography.displayLarge ? font.typography.displayLarge.size : 57,
