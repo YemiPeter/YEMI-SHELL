@@ -13,7 +13,10 @@ Singleton {
     property bool isSettingsProcess: (Quickshell.env("INIR_STANDALONE_WINDOW") ?? "") === "1"
     property int readWriteDelay: 50 // milliseconds
     property bool blockWrites: false
-    // Custom widget data stored outside JsonAdapter to avoid VME crash on property var
+    // Custom widget data lives outside the adapter's typed JsonObjects (property
+    // var inside a nested JsonObject crashes the QML VME), but is mirrored into the
+    // adapter's safe top-level `customWidgetDataRaw` string so writeAdapter() flushes
+    // it atomically and the FileView watcher stays live.
     property var customWidgetData: ({})
     property bool customWidgetDataSynced: false
 
@@ -26,11 +29,11 @@ Singleton {
     function flushWrites(): void {
         fileWriteTimer.stop();
         fileReloadTimer.stop();
-        root._prepareCustomInject();
+        root._syncCustomToAdapter();
         root._writeInFlight = true;
-        // Use mirror for flush — guaranteed to work, no onSaved dependency
-        root._writeMirrorToDisk();
-        root._writeInFlight = false;
+        // Trigger immediate write through writeAdapter path
+        fileWriteTimer.interval = 0;
+        fileWriteTimer.running = true;
     }
 
     function _applyNestedKey(nestedKey, value) {
@@ -61,13 +64,13 @@ Singleton {
             }
         }
 
-        // Route custom widget paths to standalone property (outside adapter)
+        // Route custom widget paths to standalone property (mirrored into the
+        // adapter's customWidgetDataRaw string so writeAdapter() persists them).
         if (keys.length >= 3 && keys[0] === "background" && keys[1] === "widgets" && keys[2] === "custom") {
             const subKeys = keys.slice(3);
             if (subKeys.length === 0) {
                 root.customWidgetData = (typeof convertedValue === "object" && convertedValue !== null) ? convertedValue : {};
-                root._customSnapshotForInject = root._cloneObject(root.customWidgetData);
-                root._pendingCustomInject = root._hasObjectKeys(root._customSnapshotForInject);
+                root._syncCustomToAdapter();
                 return;
             }
             let data = {};
@@ -84,8 +87,7 @@ Singleton {
             }
             obj[subKeys[subKeys.length - 1]] = convertedValue;
             root.customWidgetData = data;
-            root._customSnapshotForInject = root._cloneObject(data);
-            root._pendingCustomInject = root._hasObjectKeys(root._customSnapshotForInject);
+            root._syncCustomToAdapter();
             return;
         }
 
@@ -104,7 +106,6 @@ Singleton {
 
     function setNestedValue(nestedKey, value) {
         _applyNestedKey(nestedKey, value);
-        _applyToMirror(nestedKey, value);
         fileWriteTimer.restart();
         root._bumpRevision();
         root.configChanged();
@@ -118,27 +119,12 @@ Singleton {
         const paths = Object.keys(updates);
         for (let i = 0; i < paths.length; ++i) {
             _applyNestedKey(paths[i], updates[paths[i]]);
-            _applyToMirror(paths[i], updates[paths[i]]);
         }
         if (paths.length > 0) {
             fileWriteTimer.restart();
             root._bumpRevision();
             root.configChanged();
         }
-    }
-
-    function _applyToMirror(nestedKey, value): void {
-        let keys = Array.isArray(nestedKey) ? nestedKey : String(nestedKey).split(".");
-        if (keys.length === 0) return;
-        // Skip custom widget paths — those are handled separately
-        if (keys.length >= 3 && keys[0] === "background" && keys[1] === "widgets" && keys[2] === "custom") return;
-        let obj = root._jsonMirror;
-        for (let i = 0; i < keys.length - 1; i++) {
-            if (!obj[keys[i]] || typeof obj[keys[i]] !== "object")
-                obj[keys[i]] = {};
-            obj = obj[keys[i]];
-        }
-        obj[keys[keys.length - 1]] = value;
     }
 
     function getNestedValue(nestedKey, fallback) {
@@ -170,39 +156,53 @@ Singleton {
         return (obj === undefined || obj === null) ? fallback : obj;
     }
 
-    // Custom widget data lives outside the JsonAdapter (property var inside
-    // nested JsonObjects causes a VME segfault). Sync from raw JSON on load.
+    // Custom widget data is persisted via the adapter's customWidgetDataRaw string.
+    // On load, prefer that property; fall back to parsing raw disk JSON for migration
+    // from the old background.widgets.custom layout.
     function _syncVarProperties(): void {
-        let text = "";
+        let raw = "";
         try {
-            text = configFileView.text();
+            raw = configOptionsJsonAdapter.customWidgetDataRaw ?? "";
         } catch (e) {}
-        if (!text || text.length === 0) {
+        if (!raw || raw.length === 0 || raw === "{}") {
+            let text = "";
             try {
-                rawConfigReader.reload();
-                text = rawConfigReader.text();
+                text = configFileView.text();
             } catch (e) {}
+            if (!text || text.length === 0) {
+                try {
+                    rawConfigReader.reload();
+                    text = rawConfigReader.text();
+                } catch (e) {}
+            }
+            try {
+                const parsed = JSON.parse(text);
+                raw = parsed?.background?.widgets?.custom ? JSON.stringify(parsed.background.widgets.custom) : "{}";
+            } catch (e) { raw = "{}"; }
         }
         try {
-            const raw = JSON.parse(text);
-            root.customWidgetData = raw?.background?.widgets?.custom ?? {};
+            root.customWidgetData = raw && raw !== "{}" ? JSON.parse(raw) : {};
+            configOptionsJsonAdapter.customWidgetDataRaw = raw || "{}";
             root.customWidgetDataSynced = true;
         } catch (e) {
             root.customWidgetDataSynced = false;
         }
     }
 
+    // Mirror the in-memory customWidgetData into the adapter's string property so
+    // the next writeAdapter() call flushes it atomically (keeping the watcher live).
+    function _syncCustomToAdapter(): void {
+        try {
+            configOptionsJsonAdapter.customWidgetDataRaw =
+                root._hasObjectKeys(root.customWidgetData) ? JSON.stringify(root.customWidgetData) : "{}";
+        } catch (e) {}
+    }
+
     // writeAdapter() is async — onSaved fires when done. Suppress reloads
     // while a write is in flight so reload() doesn't drop the write op.
     property bool _writeInFlight: false
     property bool _pendingWrite: false
-    property bool _pendingCustomInject: false
     property bool _pendingReload: false
-    property var _customSnapshotForInject: ({})
-    // In-memory mirror of the disk JSON. Updated synchronously on every
-    // setNestedValue call. This is the authoritative source for writes —
-    // never read back from FileView.text() or the adapter for serialization.
-    property var _jsonMirror: ({})
 
     function _cloneObject(obj: var): var {
         try {
@@ -216,69 +216,12 @@ Singleton {
         return obj && typeof obj === "object" && Object.keys(obj).length > 0;
     }
 
-    function _customDataForWrite(): var {
-        if (root._hasObjectKeys(root.customWidgetData))
-            return root._cloneObject(root.customWidgetData);
-        try {
-            const current = JSON.parse(configFileView.text());
-            const currentCustom = current?.background?.widgets?.custom ?? {};
-            if (root._hasObjectKeys(currentCustom))
-                return root._cloneObject(currentCustom);
-        } catch (e) {}
-        try {
-            rawConfigReader.reload();
-            const raw = JSON.parse(rawConfigReader.text());
-            const diskCustom = raw?.background?.widgets?.custom ?? {};
-            if (root._hasObjectKeys(diskCustom))
-                return root._cloneObject(diskCustom);
-        } catch (e) {}
-        return {};
-    }
-
-    function _prepareCustomInject(): void {
-        root._customSnapshotForInject = root._customDataForWrite();
-        root._pendingCustomInject = root._hasObjectKeys(root._customSnapshotForInject);
-        if (root._pendingCustomInject && !root._hasObjectKeys(root.customWidgetData))
-            root.customWidgetData = root._cloneObject(root._customSnapshotForInject);
-    }
-
-    // Fallback: write the mirror directly when writeAdapter() doesn't emit onSaved.
-    function _writeMirrorToDisk(): void {
-        try {
-            let obj = root._jsonMirror;
-            if (!obj || Object.keys(obj).length === 0) return;
-            if (root._hasObjectKeys(root.customWidgetData)) {
-                if (!obj.background) obj.background = {};
-                if (!obj.background.widgets) obj.background.widgets = {};
-                obj.background.widgets.custom = root.customWidgetData;
-            }
-            configFileView.setText(JSON.stringify(obj, null, 4));
-        } catch (e) {
-            console.warn("[Config] mirror write failed:", e.message);
-        }
-    }
-
-    function _injectCustomDataSync(): void {
-        const customData = root._hasObjectKeys(root._customSnapshotForInject)
-            ? root._customSnapshotForInject : root.customWidgetData;
-        if (!root._hasObjectKeys(customData)) return;
-        try {
-            if (!root._jsonMirror.background) root._jsonMirror.background = {};
-            if (!root._jsonMirror.background.widgets) root._jsonMirror.background.widgets = {};
-            root._jsonMirror.background.widgets.custom = customData;
-            root.customWidgetData = root._cloneObject(customData);
-            root._customSnapshotForInject = ({});
-            root._writeInFlight = true;
-            configFileView.setText(JSON.stringify(root._jsonMirror, null, 4));
-        } catch (e) { root._writeInFlight = false; }
-    }
-
     Timer {
         id: fileReloadTimer
         interval: root.readWriteDelay
         repeat: false
         onTriggered: {
-            if (root._writeInFlight || customInjectTimer.running) {
+            if (root._writeInFlight) {
                 root._pendingReload = true;
                 return;
             }
@@ -301,36 +244,14 @@ Singleton {
                 root._pendingWrite = true;
                 return;
             }
-            root._prepareCustomInject();
+            root._syncCustomToAdapter();
             root._pendingWrite = false;
             root._writeInFlight = true;
             fileReloadTimer.stop();
-            // Try writeAdapter first — it properly emits QObject property signals
-            // which 2476 consumers depend on via Config.options?.x bindings.
+            // All config (including customWidgetDataRaw) is flushed through
+            // writeAdapter() — inode-safe, atomic, and keeps the watcher live.
             configFileView.writeAdapter();
-            writeFlightGuard.restart();
         }
-    }
-
-    // If writeAdapter doesn't emit onSaved within 2s (QS 0.3 dirty-detection
-    // edge case), fall back to writing the mirror directly.
-    Timer {
-        id: writeFlightGuard
-        interval: 2000
-        repeat: false
-        onTriggered: {
-            if (root._writeInFlight) {
-                root._writeInFlight = false;
-                root._writeMirrorToDisk();
-            }
-        }
-    }
-
-    Timer {
-        id: customInjectTimer
-        interval: 1
-        repeat: false
-        onTriggered: root._injectCustomDataSync()
     }
 
     // Raw reader for keys the adapter can't handle (property var in JsonObject)
@@ -346,13 +267,7 @@ Singleton {
         blockWrites: root.blockWrites
         onFileChanged: fileReloadTimer.restart()
         onSaved: {
-            writeFlightGuard.stop();
             root._writeInFlight = false;
-            if (root._pendingCustomInject) {
-                root._pendingCustomInject = false;
-                customInjectTimer.restart();
-                return;
-            }
             if (root._pendingWrite) {
                 root._pendingWrite = false;
                 fileWriteTimer.restart();
@@ -364,14 +279,7 @@ Singleton {
             }
         }
         onLoaded: {
-            // Initialize the in-memory JSON mirror from disk
-            try {
-                root._jsonMirror = JSON.parse(configFileView.text());
-            } catch (e) {
-                root._jsonMirror = {};
-            }
-            // Workaround: JsonAdapter doesn't populate property var inside nested JsonObjects.
-            // Manually sync custom widget data from the raw JSON.
+            // Manually sync custom widget data from the adapter's string property.
             root._syncVarProperties();
             root._bumpRevision();
             root.ready = true;
@@ -384,7 +292,7 @@ Singleton {
                 Quickshell.execDetached(["/usr/bin/mkdir", "-p", parentDir]);
                 root.customWidgetData = {};
                 root.customWidgetDataSynced = true;
-                writeAdapter();
+                configFileView.writeAdapter();
             }
             // Set ready even on failure so UI doesn't stay blank
             root.ready = true;
@@ -392,6 +300,12 @@ Singleton {
 
         JsonAdapter {
             id: configOptionsJsonAdapter
+
+            // Custom widget data is stored as a serialized JSON string (top-level
+            // string property is safe — unlike `property var` nested in a JsonObject,
+            // which crashes the QML VME). writeAdapter() serializes this atomically
+            // so the FileView watcher keeps firing and the UI updates.
+            property string customWidgetDataRaw: "{}"
 
             // Panel system
             property list<string> enabledPanels: ["iiBar", "iiBackground", "iiBackdrop", "iiCheatsheet", "iiControlPanel", "iiDock", "iiLock", "iiMediaControls", "iiNotificationPopup", "iiOnScreenDisplay", "iiOnScreenKeyboard", "iiOverlay", "iiOverview", "iiPolkit", "iiRegionSelector", "iiScreenCorners", "iiSessionScreen", "iiSidebarLeft", "iiSidebarRight", "iiTilingOverlay", "iiVerticalBar", "iiWallpaperSelector", "iiCoverflowSelector", "iiClipboard", "iiShellUpdate"]
