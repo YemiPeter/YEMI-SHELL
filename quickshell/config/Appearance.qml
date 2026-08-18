@@ -14,6 +14,50 @@ Singleton {
     readonly property var padding: Config.appearance.padding
     readonly property var font: Config.appearance.font
     readonly property var anim: Config.appearance.anim
+
+    // === iNiR Animation Compatibility Layer ===
+    // Ported (iNiR-derived) widgets reference Appearance.animation.<token>
+    // with { duration, type, bezierCurve }. The rewritten yemishell schema
+    // exposes durations/curves/easing instead, so map the named tokens here.
+    readonly property bool animationsEnabled: true
+    readonly property var animation: ({
+        elementMoveFast: {
+            duration: anim.durations.fast,
+            type: Easing.BezierSpline,
+            bezierCurve: anim.curves.emphasizedDecel
+        },
+        elementMove: {
+            duration: anim.durations.normal,
+            type: Easing.BezierSpline,
+            bezierCurve: anim.curves.standardDecel
+        },
+        elementResize: {
+            duration: anim.durations.normal,
+            type: Easing.BezierSpline,
+            bezierCurve: anim.curves.standard
+        },
+        elementMoveEnter: {
+            duration: anim.durations.fast,
+            type: Easing.BezierSpline,
+            bezierCurve: anim.curves.standardDecel
+        },
+        elementMoveExit: {
+            duration: anim.durations.fast,
+            type: Easing.BezierSpline,
+            bezierCurve: anim.curves.standardAccel
+        },
+        scroll: {
+            duration: anim.durations.normal,
+            type: Easing.BezierSpline,
+            bezierCurve: anim.curves.standard
+        },
+        clickBounce: {
+            duration: anim.durations.fast,
+            type: Easing.OutBack,
+            bezierCurve: anim.curves.emphasizedDecel
+        }
+    })
+
     readonly property var transparency: Config.appearance.transparency
 
     // === iNiR Compatibility Layer ===

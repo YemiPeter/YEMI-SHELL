@@ -1,7 +1,6 @@
 module qs.modules.waffle.looks
 singleton Looks 1.0 Looks.qml
 singleton WIcons 1.0 WIcons.qml
-singleton Translation 1.0 Translation.qml
 FluentIcon 1.0 FluentIcon.qml
 WButton 1.0 WButton.qml
 WBorderedButton 1.0 WBorderedButton.qml

@@ -143,15 +143,15 @@ Singleton {
     readonly property real moonIllumination: (1 - Math.cos(2 * Math.PI * (root.moonAge / 29.530588853))) / 2
     readonly property string moonPhaseName: {
         const age = root.moonAge
-        if (age < 1.84566) return Translation.tr("New Moon")
-        if (age < 5.53699) return Translation.tr("Waxing Crescent")
-        if (age < 9.22831) return Translation.tr("First Quarter")
-        if (age < 12.91963) return Translation.tr("Waxing Gibbous")
-        if (age < 16.61096) return Translation.tr("Full Moon")
-        if (age < 20.30228) return Translation.tr("Waning Gibbous")
-        if (age < 23.99361) return Translation.tr("Last Quarter")
-        if (age < 27.68493) return Translation.tr("Waning Crescent")
-        return Translation.tr("New Moon")
+        if (age < 1.84566) return "New Moon"
+        if (age < 5.53699) return "Waxing Crescent"
+        if (age < 9.22831) return "First Quarter"
+        if (age < 12.91963) return "Waxing Gibbous"
+        if (age < 16.61096) return "Full Moon"
+        if (age < 20.30228) return "Waning Gibbous"
+        if (age < 23.99361) return "Last Quarter"
+        if (age < 27.68493) return "Waning Crescent"
+        return "New Moon"
     }
 
     // ── Air quality (US/EU AQI) labels ───────────────────────────────────
