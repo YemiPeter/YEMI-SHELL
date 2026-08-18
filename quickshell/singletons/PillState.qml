@@ -12,6 +12,10 @@ QtObject {
     signal peekChanged(string mon)
 
     function toggleSurface(mon, surface) {
+        // Pill surfaces are only valid in the pill family. When the shell is in
+        // the waffle family the bar/waffle stack is active and pill keybinds
+        // must be inert (they would otherwise pop a pill over waffle).
+        if (Config.options?.panelFamily === "waffle") return;
         if (openMon === mon && openSurface === surface) {
             close();
             return;
@@ -33,6 +37,7 @@ QtObject {
     }
 
     function peek(mon) {
+        if (Config.options?.panelFamily === "waffle") return;
         peekMon = peekMon === mon ? "" : mon;
         peekChanged(mon);
     }
