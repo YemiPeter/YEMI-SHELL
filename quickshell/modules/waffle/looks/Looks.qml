@@ -373,12 +373,12 @@ Singleton {
             property int strongest: Font.Bold
         }
         property QtObject pixelSize: QtObject {
-            property real tiny: Math.round(9 * root.fontScale)
-            property real small: Math.round(10 * root.fontScale)
-            property real normal: Math.round(11 * root.fontScale)
-            property real large: Math.round(13 * root.fontScale)
-            property real larger: Math.round(15 * root.fontScale)
-            property real xlarger: Math.round(17 * root.fontScale)
+            property int tiny: Math.round(9 * root.fontScale)
+            property int small: Math.round(10 * root.fontScale)
+            property int normal: Math.round(11 * root.fontScale)
+            property int large: Math.round(13 * root.fontScale)
+            property int larger: Math.round(15 * root.fontScale)
+            property int xlarger: Math.round(17 * root.fontScale)
         }
     }
 
