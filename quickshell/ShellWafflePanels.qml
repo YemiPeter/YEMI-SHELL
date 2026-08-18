@@ -4,6 +4,7 @@ import qs.modules.common
 import "modules/waffle/background" as WaffleBackgroundModule
 import "modules/waffle/backdrop" as WaffleBackdropModule
 import "modules/waffle/bar" as WaffleBarModule
+import "modules/waffle/startMenu" as WaffleStartMenuModule
 
 // Waffle family stack — parsed ONLY when panelFamily === "waffle" because
 // shell.qml loads this file via `LazyLoader { source: "ShellWafflePanels.qml" }`
@@ -44,4 +45,8 @@ Item {
         id: wBarPanel
         WaffleBarModule.WaffleBar {}
     }
+
+    // Waffle Start Menu / Launcher (self-manages its PanelWindow on
+    // GlobalStates.searchOpen; opened by the bar Start/Search buttons).
+    WaffleStartMenuModule.WaffleStartMenu {}
 }
