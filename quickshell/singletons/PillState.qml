@@ -1,5 +1,6 @@
 pragma Singleton
 import QtQuick
+import qs.modules.common
 
 QtObject {
     property string openMon: ""
