@@ -31,4 +31,6 @@ singleton Icons Icons.qml
 singleton GlobalActions GlobalActions.qml
 singleton AppSearch AppSearch.qml
 singleton SystemInfo SystemInfo.qml
+singleton Weather Weather.qml
+singleton BluetoothStatus BluetoothStatus.qml
 DankSocket 1.0 DankSocket.qml
