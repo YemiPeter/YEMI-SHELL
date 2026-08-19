@@ -27,68 +27,57 @@ Scope {
         }
     }
 
-    // Click-outside-to-close overlay
-    LazyLoader {
-        active: GlobalStates.searchOpen
-        component: PanelWindow {
-            anchors { top: true; bottom: true; left: true; right: true }
-            WlrLayershell.namespace: "quickshell:wStartMenuBg"
-            WlrLayershell.layer: WlrLayer.Top
-            color: "transparent"
-            MouseArea {
-                anchors.fill: parent
-                onClicked: GlobalStates.searchOpen = false
-            }
-        }
-    }
-
+    // Single fullscreen transparent Overlay window holding the menu. It is the
+    // ONLY surface granted WlrKeyboardFocus.Exclusive, so on Hyprland (which
+    // implements the exclusive seat/pointer grab) its internal MouseArea keeps
+    // receiving pointer input while open — fixing tap-outside and tap-Start
+    // close. iNiR only works because Niri does not implement this grab.
     Loader {
         id: panelLoader
         active: GlobalStates.searchOpen
         sourceComponent: PanelWindow {
             id: panelWindow
+            anchors { top: true; bottom: true; left: true; right: true }
             exclusiveZone: 0
             WlrLayershell.namespace: "quickshell:wStartMenu"
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
             color: "transparent"
 
-            // Adaptive minimum size based on preset
-            property string preset: Config.options.waffles?.startMenu?.sizePreset ?? "normal"
-            property int minW: preset === "mini" ? 200 : preset === "compact" ? 280 : 360
-            property int minH: preset === "mini" ? 200 : preset === "compact" ? 280 : 300
-
-            // Lift the menu clear of the bar so the Start button (and the
-            // full-screen outside-catcher) stays tappable — otherwise the
-            // Overlay menu physically covers the button and a 2nd tap does
-            // nothing. Offset by the scaled bar height on the bar's side.
-            readonly property bool _barAtBottom: Config.options?.waffles?.bar?.bottom ?? true
-            anchors {
-                bottom: panelWindow._barAtBottom
-                top: !panelWindow._barAtBottom
-                left: Config.options?.waffles?.bar?.leftAlignApps ?? false
-                bottomMargin: panelWindow._barAtBottom ? Looks.scaledBar(48, panelWindow.screen) : 0
-                topMargin: panelWindow._barAtBottom ? 0 : Looks.scaledBar(48, panelWindow.screen)
+            // Full-screen click-catcher, behind the panel. A tap anywhere
+            // outside the panel — including the bar's Start-button location —
+            // lands here and closes the launcher.
+            MouseArea {
+                anchors.fill: parent
+                z: 0
+                onClicked: GlobalStates.searchOpen = false
             }
 
-            implicitWidth: Math.max(minW, content.implicitWidth)
-            implicitHeight: Math.max(minH, content.implicitHeight)
+            StartMenuContent {
+                id: content
+                z: 1
+                focus: true
+
+                readonly property bool _barAtBottom: Config.options?.waffles?.bar?.bottom ?? true
+                anchors {
+                    top: _barAtBottom ? undefined : parent.top
+                    bottom: _barAtBottom ? parent.bottom : undefined
+                    left: parent.left
+                    topMargin: _barAtBottom ? 0 : Looks.scaledBar(48, panelWindow.screen)
+                    bottomMargin: _barAtBottom ? Looks.scaledBar(48, panelWindow.screen) : 0
+                }
+
+                onClosed: {
+                    GlobalStates.searchOpen = false
+                    panelLoader.active = false
+                    LauncherSearch.query = ""
+                }
+            }
 
             Connections {
                 target: GlobalStates
                 function onSearchOpenChanged() {
                     if (!GlobalStates.searchOpen) content.close()
-                }
-            }
-
-            StartMenuContent {
-                id: content
-                anchors.fill: parent
-                focus: true
-                onClosed: {
-                    GlobalStates.searchOpen = false
-                    panelLoader.active = false
-                    LauncherSearch.query = ""
                 }
             }
         }
