@@ -242,16 +242,26 @@ earlier "Option B everywhere" approach.
 
 **Principle (Bible §9 + `WAFFLE_SETTINGS_AND_SERVICES.md`):**
 yemishell-owned QML Settings for **both** families, built on the **unified
-`qs.services` source**, **not** iNiR's app architecture. iNiR-only singletons
-(`ThemeService`, `MaterialThemeLoader`, `AppLauncher`, `ShellUpdates`, `Idle`)
-are **NOT** being ported.
+`qs.services` source`. Waffle is now being made a **fully-functional standalone
+family**, so the iNiR-only theme singletons ARE being ported (see reversal
+below) — `AppLauncher` was already present.
+
+**THEME DECISION REVERSED (2026-08-19):** the earlier "do NOT port iNiR-only
+singletons" stance is overridden. `ThemeService`, `MaterialThemeLoader`,
+`ShellUpdates`, `Idle`, `YtMusic` are copied from iNiR into `services/` and
+registered as `qs.services.*` so Waffle (settings UI + left widgets panel) runs
+standalone. quickshell's `Appearance` uses the Dominance/`Dyn` pipeline, not
+iNiR's `m3colors` schema — so `MaterialThemeLoader`'s scheme-apply is a guarded
+no-op (no crash, no visual Material re-skin).
 
 **Current state:**
-- `modules/waffle/settings/` (16 + 12 pages) **copied but PARKED** — needs the
-  iNiR-only singletons above → will not run standalone.
-- `waffleSettings.qml` (root) **PARKED** (same reason).
+- `modules/waffle/settings/` (16 + 12 pages) **copied but PARKED** — now that the
+  5 singletons are ported, this can be un-parked as Waffle's standalone settings.
+- `waffleSettings.qml` (root) **PARKED** (same — now unblocked).
 - `modules/settings/WaffleConfig.qml` **exists** (registered in `modules/settings/qmldir`) — the waffle config binding point.
-- Bar's settings actions currently call `scripts/inir settings` (external).
+- Bar's settings actions: `scripts/inir settings` calls are being repointed to
+  the unified settings IPC (`qs ipc call settings toggle`); left-widget
+  Settings/Wallpaper quick actions already repointed.
 
 **Placement plan (evolves as panels land):**
 - [ ] Each ported panel's config lives under `Config.options.waffles.*` (already the schema: `actionCenter`, `bar`, `background`, `notifications`, `taskView`, `widgetsPanel`, `theming`, …).
@@ -288,3 +298,5 @@ are **NOT** being ported.
 | 2026-08-19 | Inventory + plan created | B0–B12 mapped; sequence set; settings track scaffolded |
 | 2026-08-19 | Launcher root cause found | B1/B2 caused by `WlrKeyboardFocus.Exclusive` seat grab on Hyprland (not B0). Chosen fix = Option B (merge catcher into menu window). B0 demoted to hygiene-only. |
 | 2026-08-19 | Launcher fix re-scoped | Replaced "Option B everywhere" with **compositor-aware** design: Niri = iNiR verbatim two-window; Hyprland = single-window Option B. Select via `Compositor.runningCompositor`. Session switching to Niri → verify `niriMenu` branch first. |
+| 2026-08-19 | LEFT side (Widgets) wired | `WaffleWidgets` instantiated in `ShellWafflePanels.qml`; WeatherButton → `waffleWidgetsOpen` opens the panel. Settings/Wallpaper quick actions repointed from missing `scripts/inir` to unified `settings` IPC. |
+| 2026-08-19 | Theme decision reversed | Waffle made standalone: ported 5 iNiR-only singletons (`ThemeService`, `MaterialThemeLoader`, `ShellUpdates`, `Idle`, `YtMusic`) into `services/` + registered `qs.services.*`. `m3colors` guarded no-op (Dominance/Dyn pipeline). Bible §6 + this §4 updated. |

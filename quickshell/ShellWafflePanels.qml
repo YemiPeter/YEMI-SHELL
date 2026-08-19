@@ -5,6 +5,7 @@ import "modules/waffle/background" as WaffleBackgroundModule
 import "modules/waffle/backdrop" as WaffleBackdropModule
 import "modules/waffle/bar" as WaffleBarModule
 import "modules/waffle/startMenu" as WaffleStartMenuModule
+import "modules/waffle/widgets" as WaffleWidgetsModule
 
 // Waffle family stack — parsed ONLY when panelFamily === "waffle" because
 // shell.qml loads this file via `LazyLoader { source: "ShellWafflePanels.qml" }`
@@ -49,4 +50,8 @@ Item {
     // Waffle Start Menu / Launcher (self-manages its PanelWindow on
     // GlobalStates.searchOpen; opened by the bar Start/Search buttons).
     WaffleStartMenuModule.WaffleStartMenu {}
+
+    // Waffle Widgets surface (LEFT WeatherButton / RIGHT TimerButton →
+    // GlobalStates.waffleWidgetsOpen; self-managed PanelWindow + click-outside).
+    WaffleWidgetsModule.WaffleWidgets {}
 }

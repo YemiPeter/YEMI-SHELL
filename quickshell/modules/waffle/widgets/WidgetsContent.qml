@@ -54,12 +54,12 @@ WBarAttachedPanelContent {
             AppLauncher.launch("terminal")
             break
         case "settings":
-            ShellExec.execDetachedArgs([Quickshell.shellPath("scripts/inir"), "settings"], "Open iNiR settings")
+            // Unified settings (no iNiR launcher script in quickshell).
+            ShellExec.execDetachedArgs(["qs", "ipc", "call", "settings", "toggle"], "Open settings")
             break
         case "wallpaper": {
-            const useMain = Config.options?.waffles?.background?.useMainWallpaper ?? true
-            Config.setNestedValue("wallpaperSelector.selectionTarget", useMain ? "main" : "waffle")
-            Quickshell.execDetached([Quickshell.shellPath("scripts/inir"), "wallpaperSelector", "toggle"])
+            // No waffle wallpaper-selector surface yet; open unified settings (wallpaper config lives there).
+            ShellExec.execDetachedArgs(["qs", "ipc", "call", "settings", "toggle"], "Open wallpaper settings")
             break
         }
         case "screenshot":
@@ -144,7 +144,7 @@ WBarAttachedPanelContent {
                             implicitSize: Looks.dp(16)
                         }
                         onClicked: {
-                            Quickshell.execDetached([Quickshell.shellPath("scripts/inir"), "settings"])
+                            ShellExec.execDetachedArgs(["qs", "ipc", "call", "settings", "toggle"], "Open settings")
                             GlobalStates.waffleWidgetsOpen = false
                         }
                     }
@@ -588,9 +588,12 @@ WBarAttachedPanelContent {
                     clip: true
 
                     readonly property MprisPlayer activePlayer: MprisController.activePlayer
-                    readonly property string effectiveArtUrl: MprisController.isYtMusicActive ? YtMusic.currentThumbnail : (activePlayer?.trackArtUrl ?? "")
-                    readonly property string effectiveTitle: MprisController.isYtMusicActive ? YtMusic.currentTitle : (activePlayer?.trackTitle ?? "")
-                    readonly property string effectiveArtist: MprisController.isYtMusicActive ? YtMusic.currentArtist : (activePlayer?.trackArtist ?? "")
+                    // YtMusic is an iNiR-only media singleton absent in quickshell; fall back to the
+                    // player's own track art/title/artist when it is unavailable.
+                    readonly property bool ytMusicActive: (typeof YtMusic !== "undefined") && MprisController.isYtMusicActive
+                    readonly property string effectiveArtUrl: ytMusicActive ? YtMusic.currentThumbnail : (activePlayer?.trackArtUrl ?? "")
+                    readonly property string effectiveTitle: ytMusicActive ? YtMusic.currentTitle : (activePlayer?.trackTitle ?? "")
+                    readonly property string effectiveArtist: ytMusicActive ? YtMusic.currentArtist : (activePlayer?.trackArtist ?? "")
 
                     // Blurred album art background
                     Image {
@@ -809,9 +812,11 @@ WBarAttachedPanelContent {
                             currentValue: Config.options?.appearance?.palette?.type ?? "auto"
                             onSelected: newValue => {
                                 Config.setNestedValue("appearance.palette.type", newValue)
-                                if (ThemeService.isAutoTheme) {
+                                // ThemeService is now ported; MaterialThemeLoader's m3colors schema
+                                // is absent in quickshell (Dominance/Dyn pipeline instead), so guard it.
+                                if (typeof ThemeService !== "undefined" && ThemeService.isAutoTheme) {
                                     Quickshell.execDetached(["/usr/bin/bash", "-c", `${Directories.wallpaperSwitchScriptPath} --noswitch --type ${newValue}`]);
-                                } else {
+                                } else if (typeof MaterialThemeLoader !== "undefined" && typeof Appearance.m3colors !== "undefined") {
                                     const hex = MaterialThemeLoader.colorToHex(Appearance.m3colors.m3primary)
                                     const mode = Appearance.m3colors.darkmode ? "dark" : "light"
                                     MaterialThemeLoader.applySchemeVariant(hex, newValue, mode)
