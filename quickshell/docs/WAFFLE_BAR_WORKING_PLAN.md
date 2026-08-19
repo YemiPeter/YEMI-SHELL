@@ -62,6 +62,46 @@ catcher — so porting is mostly a **copy + import-resolution** job.
 
 ---
 
+### 1.1 Bar sides — components & connection checklist
+
+The bar is one `PanelWindow` whose children are laid out in three
+`BarGroupRow` groups (**LEFT** `bloatRow` / **CENTER** `appsRow` / **RIGHT**
+`systemRow`). For the bar to be **fully connected**, every button on a side must
+open/close its backing panel correctly and have no broken dependency. Checklist
+per side (maps to the B0–B12 inventory above):
+
+**LEFT side — `bloatRow` (`WeatherButton`)**
+- [ ] `WeatherButton` → `waffleWidgetsOpen` → `WaffleWidgets`.
+- [ ] `WaffleWidgets.qml` + `WidgetsContent.qml` copied into `modules/waffle/widgets/` (done 2026-08-19).
+- [ ] Instantiated in `ShellWafflePanels.qml` (self-managed on `waffleWidgetsOpen`).
+- [ ] `Weather` service resolves for the weather readout.
+- [ ] Click Weather → widgets surface opens; click-outside / its own close closes.
+- [ ] `leftAlignApps` toggle hides LEFT weather and shows it in RIGHT `systemRow` (`FadeLoader`).
+
+**CENTER side — `appsRow` (`StartButton`, `SearchButton`, `TaskViewButton`, `WTaskbarSeparator`, `Tasks`)**
+- [ ] `StartButton` + `SearchButton` → `searchOpen` → `WaffleStartMenu` (B1/B2).
+- [ ] Compositor-aware launcher fix landed (Niri two-window / Hyprland single-window) so tap-outside + tap-Start close work and the bar keeps its clicks.
+- [ ] `TaskViewButton` → `waffleTaskViewOpen` → `WaffleTaskView` (B3).
+- [ ] `WaffleTaskView.qml` + content copied (done 2026-08-19); instantiated in `ShellWafflePanels.qml`.
+- [ ] `WindowPreviewService` + `NiriService` resolve for live previews (Niri); Hyprland gap documented.
+- [ ] `WTaskbarSeparator` renders (visual only, no state).
+- [ ] `Tasks` → `TaskbarApps` live model (✅ works; no action).
+
+**RIGHT side — `systemRow` (`Tray`, `TimerButton`, `UpdatesButton`, `SystemButton`, `TimeButton`, `DesktopPeekButton` + optional `WeatherButton`)**
+- [ ] `Tray` → `TrayService` (✅ works).
+- [ ] `TimerButton` → `waffleWidgetsOpen` (altAction) + sets `Persistent.states.sidebar.bottomGroup.tab` (verify `Persistent` exists or adapt).
+- [ ] `UpdatesButton` → `Updates` (✅ works).
+- [ ] `SystemButton` → `waffleActionCenterOpen` → `WaffleActionCenter` (B9). Copied (done 2026-08-19); instantiated; `Audio`/`Network`/`Brightness`/`Bluetooth`/`Battery` resolve; `common.models.quickToggles` present.
+- [ ] `TimeButton` → `waffleNotificationCenterOpen` → `WaffleNotificationCenter` (B10). Copied (done 2026-08-19); instantiated; `Notifications.ensureInitialized()`; DND wiring matches `Notifs`.
+- [ ] `DesktopPeekButton` → `overviewOpen` / `NiriService.toggleOverview` (✅ Niri; ⚠️ Hyprland no panel).
+
+**Cross-side wiring**
+- [ ] `ShellWafflePanels.qml` imports + instantiates all four copied panels (widgets / taskview / actionCenter / notificationCenter).
+- [ ] Each ported panel's `IpcHandler` (`wwidgets`, `taskview`, `wactionCenter`, `wnotificationCenter`) registered so keybinds work (per `waffle-keybinds-plan.md`).
+- [ ] `allowMultiplePanels` gating closes sibling centers when one opens (already in panel code).
+
+---
+
 ## 2. Fix sequence (one at a time)
 
 Order is chosen so each step unblocks the next and the bar gets more "complete"
@@ -104,19 +144,49 @@ open; a catcher on the same `Overlay` layer stacked *above* the menu is still
 starved → only a seat-level grab explains it. `WlrKeyboardFocus.Exclusive`
 appears exactly once in the waffle tree (the start menu).
 
-**Chosen fix: Option B — merge the catcher into the menu window.**
-- [ ] Make `wStartMenu` PanelWindow fullscreen (transparent) on `Overlay`; keep `WlrKeyboardFocus.Exclusive`.
-- [ ] Add a full-size transparent `MouseArea` **behind** the visible panel; `onClicked` → `searchOpen = false` (tap-outside AND tap-at-the-Start-location both land here, because the fullscreen exclusive surface geometrically covers the bar rect).
-- [ ] Keep the panel content above that MouseArea (z-order) so panel clicks still work and typing is preserved.
-- [ ] Remove the separate `wStartMenuBg` catcher window (now redundant).
-- [ ] Smoke: open via keybind → type in search (must still work) → tap outside closes → tap Start-button location closes.
+**Fix strategy: compositor-aware launcher (mirrors the Pill pattern).**
+The two working designs already exist — the fix is to *select* between them by
+compositor, not to invent new code. This maps exactly to how
+`modules/pill/PillOverlay.qml` branches on `Compositor.runningCompositor` while
+`modules/pill/Launcher.qml` stays agnostic: `StartMenuContent.qml` must remain
+compositor-agnostic, and **`WaffleStartMenu.qml` (the launcher's "overlay" /
+window-manager) owns the split.**
+
+- **Niri (and unknown compositors):** iNiR's **verbatim two-window** design —
+  a separate `Top`-layer `wStartMenuBg` catcher `LazyLoader` + a self-sized
+  `Overlay` menu `PanelWindow` (`Exclusive` focus, `implicitWidth/Height`,
+  `leftAlignApps` anchor, no `Looks.scaledBar` margin). Works natively on Niri
+  because Niri does not implement the exclusive seat/pointer grab.
+- **Hyprland:** the **single-window Option B** — fullscreen `Overlay`
+  `PanelWindow` with the click-catcher *inside* the exclusive surface (a
+  full-size `MouseArea` behind `StartMenuContent`), centered with a
+  `Looks.scaledBar(48)` lift, `Exclusive` focus kept. The only shape that closes
+  on Hyprland (a separate catcher window is starved of pointer input there).
+
+**Selection:** add `import qs.compositor`; `readonly property bool isHyprland:
+Compositor.runningCompositor === "hyprland"`. The `Loader`'s `sourceComponent`
+picks `hyprlandMenu` vs `niriMenu` `Component`s. Default (unknown `null`) → Niri
+path (safest compatibility fallback = iNiR's native design).
+
+**Checklist:**
+- [ ] `WaffleStartMenu.qml`: add `import qs.compositor`; add `isHyprland`.
+- [ ] Add `Component { id: niriMenu }` = verbatim iNiR two-window design
+      (`wStartMenuBg` `Top` catcher + self-sized `Overlay` menu).
+- [ ] Add `Component { id: hyprlandMenu }` = current centered single-window Option B.
+- [ ] `Loader { sourceComponent: root.isHyprland ? hyprlandMenu : niriMenu }`;
+      keep `allowMultiplePanels` gating, `searchOpenChanged → panelLoader.active`,
+      and the `search` IpcHandler untouched.
+- [ ] `StartMenuContent.qml` + sub-content: **NO changes** (compositor-agnostic).
+- [ ] **Starting point (session now on Niri):** implement the split, verify the
+      `niriMenu` branch first (iNiR verbatim already works on Niri), then confirm
+      `hyprlandMenu` in a Hyprland session.
 
 **Why not Option A (drop Exclusive → OnDemand):** the launcher is opened by
 keybind, not a click, so `OnDemand` likely won't grant keyboard focus → the
 search box could stop receiving typing (almost certainly why iNiR uses
-`Exclusive`). A cheap 60s probe (flip to `OnDemand`, click-test, revert) is fine
-to *confirm* the hypothesis, but **B is the committed fix** because it can't
-break typing.
+`Exclusive`). Both the iNiR Niri path and the Hyprland Option B keep
+`Exclusive`, so typing is preserved. The compositor split supersedes the
+earlier "Option B everywhere" approach.
 
 **Note:** B0 (pin bar layer) is unrelated hygiene — it does **not** fix this.
 
@@ -217,3 +287,4 @@ are **NOT** being ported.
 |------|------|-------|
 | 2026-08-19 | Inventory + plan created | B0–B12 mapped; sequence set; settings track scaffolded |
 | 2026-08-19 | Launcher root cause found | B1/B2 caused by `WlrKeyboardFocus.Exclusive` seat grab on Hyprland (not B0). Chosen fix = Option B (merge catcher into menu window). B0 demoted to hygiene-only. |
+| 2026-08-19 | Launcher fix re-scoped | Replaced "Option B everywhere" with **compositor-aware** design: Niri = iNiR verbatim two-window; Hyprland = single-window Option B. Select via `Compositor.runningCompositor`. Session switching to Niri → verify `niriMenu` branch first. |
