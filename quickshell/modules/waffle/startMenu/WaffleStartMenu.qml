@@ -58,13 +58,22 @@ Scope {
                 z: 1
                 focus: true
 
+                // Adaptive minimum size based on preset (mirrors pre-Option-B layout)
+                readonly property string preset: Config.options.waffles?.startMenu?.sizePreset ?? "normal"
+                readonly property int minW: preset === "mini" ? 200 : preset === "compact" ? 280 : 360
+                readonly property int minH: preset === "mini" ? 200 : preset === "compact" ? 280 : 300
+                width: Math.max(minW, implicitWidth)
+                height: Math.max(minH, implicitHeight)
+
                 readonly property bool _barAtBottom: Config.options?.waffles?.bar?.bottom ?? true
+                readonly property bool _leftAlign: Config.options?.waffles?.bar?.leftAlignApps ?? false
                 anchors {
-                    top: _barAtBottom ? undefined : parent.top
-                    bottom: _barAtBottom ? parent.bottom : undefined
-                    left: parent.left
-                    topMargin: _barAtBottom ? 0 : Looks.scaledBar(48, panelWindow.screen)
-                    bottomMargin: _barAtBottom ? Looks.scaledBar(48, panelWindow.screen) : 0
+                    horizontalCenter: !content._leftAlign ? parent.horizontalCenter : undefined
+                    left: content._leftAlign ? parent.left : undefined
+                    bottom: content._barAtBottom ? parent.bottom : undefined
+                    top: !content._barAtBottom ? parent.top : undefined
+                    bottomMargin: content._barAtBottom ? Looks.scaledBar(48, panelWindow.screen) : 0
+                    topMargin: !content._barAtBottom ? Looks.scaledBar(48, panelWindow.screen) : 0
                 }
 
                 onClosed: {
