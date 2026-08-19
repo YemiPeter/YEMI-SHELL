@@ -62,4 +62,22 @@ Triggers a fullscreen state check for the current monitor. On Niri, it launches 
 
 ## 8. Usage Example
 
-PillOverlay is instantiated by shell.qml and is not directly reusable. Its two-window pattern is specific to the pill system architecture.
+PillOverlay is instantiated by `ShellPillPanels.qml` (loaded by `shell.qml`) and is not directly reusable. Its two-window pattern is specific to the pill system architecture.
+
+## 9. Safety Guard — Waffle Family Exclusivity
+
+Pill and waffle are intended to be **mutually exclusive** panel families:
+
+- `ShellPillPanels` is `active` only when `panelFamily !== "waffle"` (`shell.qml:263-264`)
+- `ShellWafflePanels` is `active` only when `panelFamily === "waffle"` (`shell.qml:268-269`)
+
+These are strict inverses, so both stacks should never be live at once. The `PillState` singleton already early-returns when `panelFamily === "waffle"` (`singletons/PillState.qml:19,41`).
+
+**Risk:** The overlay window is a full-screen `WlrLayer.Overlay` surface (`PillOverlay.qml:60-68`). `wStartMenu` also lives on `WlrLayer.Overlay`. If both families are ever loaded simultaneously (e.g. a stuck `panelFamily` toggle, an edited loader, or a future refactor that loads both), the pill overlay would share the Overlay layer with the waffle start-menu panel and intercept waffle clicks:
+
+- idle → `mask: pillRegion` (small top-center rect) — could swallow the waffle start button if it sits under that rect
+- surface open → `mask: fullRegion` (whole screen) + the close `MouseArea` (`PillOverlay.qml:277-286`) — would grab every waffle click above the Top-layer `wStartMenuBg` catcher
+
+**Recommended guard (deferred):** Add a hard, self-contained check inside `PillOverlay.qml` so the overlay (and reserve) auto-disable/unload when `Config.options?.panelFamily === "waffle"`, mirroring the `PillState` early-return. This makes the exclusivity robust regardless of the shell loader state, so a coexisting waffle stack can never be affected by the pill's Overlay surface.
+
+> Note: under normal operation (waffle family active) `ShellPillPanels` is inactive and the pill overlay is destroyed, so this guard is a safety net, not a fix for current behavior.

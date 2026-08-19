@@ -1,133 +1,171 @@
-# Waffle Bar — Functional Composition Map
+# Waffle Bar — Complete Reference (Files & Services)
 
-**Purpose:** Inventory of every file/subsystem that makes the Niri-focused **Waffle bar** run.
-This is the pre-fix baseline (see §5 for blockers). Waffle is a *copy* of iNiR, never modify iNiR source.
+**Scope:** Every file and service that makes the Niri-focused **Waffle bar** run.
+Waffle is a *copy* of iNiR; never modify iNiR source. All paths below are
+verified to exist in this repo (`OK` = present as of 2026-08-18).
 
 ## 1. Load Chain (how the bar gets on screen)
 
 ```
 shell.qml
-  └─ LazyLoader { source: "ShellWafflePanels.qml" }   (shell.qml:269)
+  └─ LazyLoader { source: "ShellWafflePanels.qml" }        (shell.qml:269)
        └─ ShellWafflePanels.qml
-            └─ WaffleBarModule.WaffleBar {}            (ShellWafflePanels.qml:45)
-                 └─ WaffleBarContent {}                (the actual bar UI)
+            └─ WaffleBarModule.WaffleBar {}                (ShellWafflePanels.qml:45)
+                 └─ WaffleBarContent {}                    (the actual bar UI)
 ```
 
-- `WaffleBar.qml` is a `Scope` that spawns a `PanelWindow` per screen (`Variants` over `Quickshell.screens`, filtered by `Config.options.waffles.bar.screenList`).
-- Exposes IPC handler `target: "wbar"` → `toggle()` / `close()` / `open()` (drives `GlobalStates.barOpen`).
+- `WaffleBar.qml` is a `Scope` that spawns a `PanelWindow` per screen (`Variants`
+  over `Quickshell.screens`, filtered by `Config.options.waffles.bar.screenList`).
+- Exposes IPC handler `target: "wbar"` → `toggle()` / `close()` / `open()`
+  (drives `GlobalStates.barOpen`).
 
-## 2. Waffle-Owned Component Tree (the bar's own files)
+## 2. Complete File Inventory (verified)
 
-### Entry / shell wiring
-| File | Role |
-|------|------|
-| `modules/waffle/bar/WaffleBar.qml` | Screen-scoped `PanelWindow` host + IPC `wbar`. |
-| `modules/waffle/bar/WaffleBarContent.qml` | The bar layout: left apps group, center taskbar, right system tray group, right-click `BarMenu`, glass background. |
+### 2.1 Load / wiring
+| File | Role | Status |
+|------|------|--------|
+| `shell.qml` | Root shell; lazy-loads Waffle panels | OK |
+| `ShellWafflePanels.qml` | Instantiates `WaffleBar` | OK |
 
-### Bar buttons & primitives (`modules/waffle/bar/`)
-| File | Role |
-|------|------|
-| `AppButton.qml` | Generic app-launch button. |
-| `BarButton.qml` | Base bar button. |
-| `BarIconButton.qml` | Icon-only bar button. |
-| `BarMenu.qml` | Right-click context menu (task manager / settings). |
-| `BarPopup.qml` | Popup container. |
-| `BarToolTip.qml` | Tooltip. |
-| `DesktopPeekButton.qml` | Niri desktop-peek toggle. |
-| `SearchButton.qml` | Search launcher. |
-| `StartButton.qml` | Start/menu button. |
-| `SystemButton.qml` | System menu button. |
-| `TaskViewButton.qml` | Task-view / overview. |
-| `TimeButton.qml` | Clock. |
-| `TimerButton.qml` | Timer. |
-| `UpdatesButton.qml` | Update indicator. |
-| `WeatherButton.qml` | Weather. |
-| `WidgetsButton.qml` | Widgets panel toggle. |
+### 2.2 Bar core — `modules/waffle/bar/`
+| File | Role | Status |
+|------|------|--------|
+| `WaffleBar.qml` | Screen-scoped `PanelWindow` host + IPC `wbar` | OK |
+| `WaffleBarContent.qml` | Bar layout: app group, taskbar, tray group, right-click menu, glass bg | OK |
+| `AppButton.qml` | Generic app-launch button | OK |
+| `BarButton.qml` | Base bar button | OK |
+| `BarIconButton.qml` | Icon-only bar button | OK |
+| `BarMenu.qml` | Right-click context menu (task manager / settings) | OK |
+| `BarPopup.qml` | Popup container | OK |
+| `BarToolTip.qml` | Tooltip | OK |
+| `DesktopPeekButton.qml` | Niri desktop-peek toggle | OK |
+| `SearchButton.qml` | Search launcher | OK |
+| `StartButton.qml` | Start/menu button | OK |
+| `SystemButton.qml` | System menu button (GlobalActions) | OK |
+| `TaskViewButton.qml` | Task-view / overview | OK |
+| `TimeButton.qml` | Clock | OK |
+| `TimerButton.qml` | Timer | OK |
+| `UpdatesButton.qml` | Update indicator | OK |
+| `WeatherButton.qml` | Weather | OK |
+| `WidgetsButton.qml` | Widgets panel toggle | OK |
 
-### Taskbar (`modules/waffle/bar/tasks/`) — needs `WindowPreviewService`
-| File | Role |
-|------|------|
-| `Tasks.qml` | Taskbar app list. |
-| `TaskAppButton.qml` | Per-running-app button. |
-| `TaskPreview.qml` | Hover preview shell. |
-| `WindowPreview.qml` | Window thumbnail (uses `WindowPreviewService` + `scripts/capture-windows.*`). |
+### 2.3 Taskbar — `modules/waffle/bar/tasks/`
+| File | Role | Status |
+|------|------|--------|
+| `Tasks.qml` | Taskbar app list | OK |
+| `TaskAppButton.qml` | Per-running-app button | OK |
+| `TaskPreview.qml` | Hover preview shell | OK |
+| `WindowPreview.qml` | Window thumbnail (uses `WindowPreviewService` + `scripts/capture-windows.*`) | OK |
 
-### System tray (`modules/waffle/bar/tray/`) — needs `TrayService`
-| File | Role |
-|------|------|
-| `Tray.qml` | Tray host. |
-| `TrayButton.qml` | Tray item button. |
-| `TrayOverflowMenu.qml` | Overflow menu. |
-| `WaffleTrayMenu.qml` | Tray context menu. |
-| `WaffleTrayMenuEntry.qml` | Menu entry. |
+### 2.4 System tray — `modules/waffle/bar/tray/`
+| File | Role | Status |
+|------|------|--------|
+| `Tray.qml` | Tray host | OK |
+| `TrayButton.qml` | Tray item button | OK |
+| `TrayOverflowMenu.qml` | Overflow menu | OK |
+| `WaffleTrayMenu.qml` | Tray context menu | OK |
+| `WaffleTrayMenuEntry.qml` | Menu entry | OK |
 
-### Looks primitives used by the bar (`modules/waffle/looks/`)
-**Singletons (must be registered in `looks/qmldir`):**
-- `Looks.qml` — colors, scaling, transitions, glass state.
-- `WIcons.qml` — icon name → Fluent icon map.
-- `Translation.qml` — `Translation.tr()` strings.
+### 2.5 Looks primitives used — `modules/waffle/looks/`
+| File | Role | Status |
+|------|------|--------|
+| `Looks.qml` | Singleton: colors, scaling, transitions, glass state | OK |
+| `WIcons.qml` | Singleton: Fluent icon name map | OK |
+| `FluentIcon.qml` | Icon renderer | OK |
+| `WTaskbarSeparator.qml` | Taskbar separator | OK |
+| `WFadeLoader.qml` | Fade-in loader | OK |
 
-**Types referenced by the bar/tasks/tray:**
-- `FluentIcon.qml`, `WTaskbarSeparator.qml`, `WFadeLoader.qml` (looks), plus `GlassBackground.qml` and `FadeLoader.qml` from **`qs.modules.common.widgets`** (see §4).
+### 2.6 Shared widgets the bar needs — `modules/common/widgets/`
+| File | Role | Status |
+|------|------|--------|
+| `GlassBackground.qml` | Glass/aurora background (imported by `WaffleBarContent`) | OK |
+| `FadeLoader.qml` | Generic fade loader (imported by `WaffleBarContent`) | OK |
 
-### Separate Waffle windows (NOT required for the bar to display)
-`modules/waffle/background/` (`WaffleBackground.qml`, `WaffleBackgroundClock.qml`) and `modules/waffle/backdrop/` (`WaffleBackdrop.qml`) are independent windows. They share `Looks`/`NiriService` but the bar renders without them.
+### 2.7 Shared i18n — `modules/common/`
+| File | Role | Status |
+|------|------|--------|
+| `Translation.qml` | Singleton `Translation.tr()` passthrough stub (moved here from `waffle.looks` in commit `78426bd`) | OK |
 
 ## 3. Shared Modules the Bar Imports
+| Module | Provides |
+|--------|----------|
+| `qs` (root) | `Quickshell` global, `Config` shortcuts |
+| `qs.config` | `Config` (`waffles.bar.*` options), `Appearance`, `BarConfig`, `AppearanceConfig` |
+| `qs.services` | All runtime singletons in §4 |
+| `qs.modules.common` | `GlobalStates` (`barOpen`), `Directories`, `FileUtils`, `Config`, `Translation` |
+| `qs.modules.common.widgets` | `GlassBackground`, `FadeLoader`, `ContextMenu`, … |
+| `qs.modules.common.functions` | `Session` (launchTaskManager), `ShellExec`, … |
+| `qs.singletons` | `Theme`, `Dyn`, `Flags`, `PillState`, `Metrics` |
 
-| Module | Provides what the bar needs |
-|--------|----------------------------|
-| `qs` (root) | `Quickshell` global, `Config` shortcuts. |
-| `qs.config` | `Config` (bar options: `waffles.bar.{bottom,leftAlignApps,screenList}`), `Appearance`, `BarConfig`, `AppearanceConfig`. |
-| `qs.services` | All runtime singletons below (§4). |
-| `qs.modules.common` | `GlobalStates` (`barOpen`), `Directories`, `FileUtils`, `Config`. |
-| `qs.modules.common.widgets` | `GlassBackground`, `FadeLoader`, `ContextMenu`, etc. |
-| `qs.modules.common.functions` | `Session` (launchTaskManager), `ShellExec`, `ColorUtils`, etc. |
-| `qs.singletons` | `Theme`, `Dyn`, `Flags`, `PillState`, `Metrics`. |
-
-## 4. Specific Services / Singletons the Bar Reads (from `services/`)
-
-Confirmed referenced inside `modules/waffle/bar|looks|background|backdrop`:
-
+## 4. Services the Bar Consumes (`services/`, registered in `services/qmldir`)
 | Service | Used for |
 |---------|----------|
-| `GlobalStates` (common) | `barOpen` toggle, panel state. |
-| `NiriService` | Niri-focused: workspaces, layers, desktop-peek, focus. **Hard dependency — bar is Niri-only.** |
-| `GameMode` | `shouldHidePanels` (hide bar in game mode). |
-| `TimerService` | Timer button. |
-| `Audio` | Volume in system button. |
-| `WindowPreviewService` | Window thumbnails in taskbar hover. |
-| `Battery` | Battery indicator. |
-| `Weather` | Weather button. |
-| `TrayService` | System tray. |
-| `Network` | Network state. |
-| `KeyboardIndicators` | Keyboard layout LED. |
-| `CompositorService` | Multi-compositor bridge (live one in `services/`). |
-| `AppSearch` | Search button. |
-| `Updates` | Update count. |
-| `Notifications` / `Notifs` | Notification dot. |
-| `DateTime` | Clock. |
-| `TaskbarApps` | Running apps list. |
-| `BluetoothStatus` | BT indicator. |
-| `Wallpapers` | Wallpaper control. |
-| `RecorderStatus` | Screen-rec indicator. |
-| `Privacy`, `PowerProfiles`, `Icons`, `Hyprsunset` | Misc indicators. |
+| `GlobalStates` (common) | `barOpen` toggle, panel state |
+| `NiriService` | Niri workspaces, layers, desktop-peek, focus — **bar is Niri-only** |
+| `GameMode` | `shouldHidePanels` (hide bar in game mode) |
+| `TimerService` | Timer button |
+| `Audio` | Volume in system button |
+| `WindowPreviewService` | Window thumbnails on taskbar hover (capture scripts) |
+| `Battery` | Battery indicator |
+| `Weather` | Weather button |
+| `TrayService` | System tray |
+| `Network` | Network state |
+| `KeyboardIndicators` | Keyboard layout LED |
+| `CompositorService` | Multi-compositor bridge (live one in `services/`) |
+| `AppSearch` | Search button |
+| `Updates` | Update count |
+| `Notifications` / `Notifs` | Notification dot |
+| `DateTime` | Clock |
+| `TaskbarApps` | Running apps list |
+| `BluetoothStatus` | BT indicator |
+| `Wallpapers` | Wallpaper control |
+| `RecorderStatus` | Screen-rec indicator |
+| `Privacy`, `PowerProfiles`, `Icons`, `Hyprsunset` | Misc indicators |
 
-All are registered in `services/qmldir` (incl. `WindowPreviewService 1.0`, added this commit). No missing registration for the bar.
+All listed services are registered in `services/qmldir` (incl.
+`WindowPreviewService 1.0`, added in commit `93049ba`). No missing registration
+for the bar.
 
-## 5. Blockers to "Fully Functional" (fix before/with Waffle work)
+## 5. Singletons & Config the Bar Reads
+- `qs.singletons`: `Theme` (facade), `Dyn` (colors.json watcher, async reload),
+  `Flags` (mood/palette mode), `PillState`, `Metrics`.
+- `qs.config`: `Config` (bar options), `Appearance` (colors + **`animation`
+  compat layer added in `78426bd`**, `animationsEnabled`).
 
-From the Project Bible (CONTEXT.md §6) and this audit:
-1. **Niri required.** Bar is Niri-focused; under Hyprland the taskbar/desktop-peek paths (`NiriService`) are inert. Verify on the Niri compositor.
-2. **`WindowPreviewService` capture scripts** (`scripts/capture-windows.sh`/`.fish`) must be present & executable (committed this pass) and have their deps (`Cliphist`, `ShellExec`, `FileUtils`, `Directories`, `NiriService`). If capture fails, previews degrade but bar still shows.
-3. **`AltSwitcher` is a separate component** (`modules/altSwitcher/AltSwitcher.qml`) still throwing `IconImage is not a type` on boot — fix independently; it is not part of the bar tree but shares the Waffle/looks stack.
-4. **Glass/aurora theme bridge is stubbed.** In `WaffleBarContent.qml` the border + glass transparency are hardcoded (`"#3a88f2"`, `auroraTransparency: 0.9`) with `ORIGINAL (iNiR, restore when theme bridge is built)` comments — visual only, not a crash.
-5. **Bar settings UI is PARKED** (standalone launcher needs iNiR-only singletons we are NOT porting). In-bar settings access via right-click → `Quickshell.execDetached([Quickshell.shellPath("scripts/inir"), "settings"])` assumes an `inir` script — verify that launcher path exists in yemishell.
+## 6. What "Fully Functional" Requires
+1. **Niri compositor** — bar is Niri-focused; under Hyprland the NiriService
+   paths are inert.
+2. **Window-preview capture scripts** present & executable:
+   `scripts/capture-windows.sh` / `.fish` (committed `93049ba`), with deps
+   `Cliphist`, `ShellExec`, `FileUtils`, `Directories`, `NiriService`.
+3. **Settings launch** wired — currently the right-click → Settings action calls
+   `Quickshell.execDetached([Quickshell.shellPath("scripts/inir"), "settings"])`,
+   but `scripts/inir` does **not** exist. Settings UI is PARKED (bar-tied, not a
+   merged app). See §8.
 
-## 6. Verification Checklist (when fixing)
-- [ ] `qs ipc` shows `Target not found`? → bar failed to load silently; check log `/run/user/1004/quickshell/by-id/*/log.qslog` (`grep -a`).
-- [ ] On Niri: `wbar toggle` opens/closes bar.
-- [ ] Taskbar lists running apps; hover shows `WindowPreview`.
-- [ ] Tray populates (`TrayService`).
-- [ ] Right-click → Task Manager / Settings actions fire.
-- [ ] Game mode hides bar (`GameMode.shouldHidePanels`).
+## 7. Known Gaps / Blockers
+- **`scripts/inir` missing** → bar's Settings launcher fails. Settings UI is
+  PARKED; either wire to `waffleSettings.qml` or leave parked.
+- **Glass/aurora theme bridge stubbed** in `WaffleBarContent.qml` (border +
+  `auroraTransparency: 0.9` hardcoded, with `ORIGINAL … restore when theme
+  bridge is built` comments) — visual only, not a crash.
+- **Missing fluent asset** `assets/icons/fluent/alert-snooze.svg` — cosmetic;
+  `FluentIcon` falls back to the icon name text.
+- **AltSwitcher** `IconImage is not a type` bug from the bible is **stale**:
+  `modules/altSwitcher/AltSwitcher.qml` no longer exists, so it is not a current
+  boot blocker.
+
+## 8. Verification Status
+- All **36 bar-related files** verified present (see §2, every row `OK`).
+- Two load-blocking errors from the live log are **fixed & committed**
+  (`78426bd`):
+  - `MaterialSymbol` / `elementMoveFast of undefined` → `Appearance.animation`
+    compat layer + `animationsEnabled`.
+  - `services/Weather.qml` `ReferenceError: Translation is not defined` →
+    `Translation` moved to `qs.modules.common`.
+- **Live test not possible in this environment**: the active `quickshell`
+  process here runs a different config (`/usr/share/skwd-wall/shell.qml`), not
+  our `~/.config/quickshell/shell.qml`. On the target machine, reload yemishell
+  and confirm with:
+  `grep -aE "elementMoveFast|Translation is not defined|is not a type" /run/user/1004/quickshell/by-id/*/log.qslog`
+  (clean output = bar loads).

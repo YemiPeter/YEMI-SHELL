@@ -14,7 +14,7 @@ AppButton {
     id: root
 
     leftInset: (Config.options?.waffles?.bar?.leftAlignApps ?? false) ? 12 : 0
-    iconName: down ? "start-here-pressed" : "start-here"
+    iconName: "start-here"
 
     checked: GlobalStates.searchOpen && LauncherSearch.query === ""
     onClicked: {
