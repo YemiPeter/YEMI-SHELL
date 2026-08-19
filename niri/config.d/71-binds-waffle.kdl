@@ -1,0 +1,18 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// 71 — Waffle-family key bindings
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// Sourced AFTER 70-binds.kdl so waffle binds override matching pill binds.
+// Each waffle component registers an IpcHandler target (see bar button QML
+// files under modules/waffle/bar/). Keybinds below call those IPC targets
+// via `qs ipc call <target> <function>`.
+//
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 1 — LAUNCHER (Start Menu / Search)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Same key as the pill launcher in 70-binds.kdl (Mod+Space) so there is no
+// keybind mismatch between the two panel families.
+// In waffle mode: opens/toggles the start menu (GlobalStates.searchOpen).
+// The `search` IpcHandler is registered by WaffleStartMenu.qml.
+Mod+Space repeat=false { spawn "qs" "ipc" "call" "search" "toggle"; }                          // Start menu / search
