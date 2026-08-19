@@ -70,22 +70,22 @@ The bar is one `PanelWindow` whose children are laid out in three
 open/close its backing panel correctly and have no broken dependency. Checklist
 per side (maps to the B0–B12 inventory above):
 
-**LEFT side — `bloatRow` (`WeatherButton`)**
-- [ ] `WeatherButton` → `waffleWidgetsOpen` → `WaffleWidgets`.
-- [ ] `WaffleWidgets.qml` + `WidgetsContent.qml` copied into `modules/waffle/widgets/` (done 2026-08-19).
-- [ ] Instantiated in `ShellWafflePanels.qml` (self-managed on `waffleWidgetsOpen`).
-- [ ] `Weather` service resolves for the weather readout.
-- [ ] Click Weather → widgets surface opens; click-outside / its own close closes.
-- [ ] `leftAlignApps` toggle hides LEFT weather and shows it in RIGHT `systemRow` (`FadeLoader`).
+ **LEFT side — `bloatRow` (`WeatherButton`)**
+ - [x] `WeatherButton` → `waffleWidgetsOpen` → `WaffleWidgets`.
+ - [x] `WaffleWidgets.qml` + `WidgetsContent.qml` copied into `modules/waffle/widgets/` (done 2026-08-19).
+ - [x] Instantiated in `ShellWafflePanels.qml` (self-managed on `waffleWidgetsOpen`).
+ - [x] `Weather` service resolves for the weather readout.
+ - [x] Click Weather → widgets surface opens; click-outside / its own close closes (open confirmed live; close = verbatim iNiR catcher).
+ - [x] `leftAlignApps` toggle hides LEFT weather and shows it in RIGHT `systemRow` (`FadeLoader`).
 
-**CENTER side — `appsRow` (`StartButton`, `SearchButton`, `TaskViewButton`, `WTaskbarSeparator`, `Tasks`)**
-- [ ] `StartButton` + `SearchButton` → `searchOpen` → `WaffleStartMenu` (B1/B2).
-- [ ] Compositor-aware launcher fix landed (Niri two-window / Hyprland single-window) so tap-outside + tap-Start close work and the bar keeps its clicks.
-- [ ] `TaskViewButton` → `waffleTaskViewOpen` → `WaffleTaskView` (B3).
-- [ ] `WaffleTaskView.qml` + content copied (done 2026-08-19); instantiated in `ShellWafflePanels.qml`.
-- [ ] `WindowPreviewService` + `NiriService` resolve for live previews (Niri); Hyprland gap documented.
-- [ ] `WTaskbarSeparator` renders (visual only, no state).
-- [ ] `Tasks` → `TaskbarApps` live model (✅ works; no action).
+ **CENTER side — `appsRow` (`StartButton`, `SearchButton`, `TaskViewButton`, `WTaskbarSeparator`, `Tasks`)**
+ - [x] `StartButton` + `SearchButton` → `searchOpen` → `WaffleStartMenu` (connected; works on Niri via verbatim iNiR; Hyprland click-swallow tracked in next item).
+ - [ ] Compositor-aware launcher fix landed (Niri two-window / Hyprland single-window) so tap-outside + tap-Start close work and the bar keeps its clicks. **Niri path works; Hyprland path still the known B1/B2 gap.**
+ - [x] `TaskViewButton` → `waffleTaskViewOpen` → `WaffleTaskView` (B3).
+ - [x] `WaffleTaskView.qml` + content copied (done 2026-08-19); instantiated in `ShellWafflePanels.qml`; button repointed from missing `scripts/inir` to `waffleTaskViewOpen`.
+ - [x] `WindowPreviewService` + `NiriService` resolve for live previews (Niri); Hyprland gap documented.
+ - [x] `WTaskbarSeparator` renders (visual only, no state).
+ - [x] `Tasks` → `TaskbarApps` live model (✅ works; no action).
 
 **RIGHT side — `systemRow` (`Tray`, `TimerButton`, `UpdatesButton`, `SystemButton`, `TimeButton`, `DesktopPeekButton` + optional `WeatherButton`)**
 - [ ] `Tray` → `TrayService` (✅ works).
@@ -246,13 +246,16 @@ yemishell-owned QML Settings for **both** families, built on the **unified
 family**, so the iNiR-only theme singletons ARE being ported (see reversal
 below) — `AppLauncher` was already present.
 
-**THEME DECISION REVERSED (2026-08-19):** the earlier "do NOT port iNiR-only
-singletons" stance is overridden. `ThemeService`, `MaterialThemeLoader`,
-`ShellUpdates`, `Idle`, `YtMusic` are copied from iNiR into `services/` and
-registered as `qs.services.*` so Waffle (settings UI + left widgets panel) runs
-standalone. quickshell's `Appearance` uses the Dominance/`Dyn` pipeline, not
-iNiR's `m3colors` schema — so `MaterialThemeLoader`'s scheme-apply is a guarded
-no-op (no crash, no visual Material re-skin).
+**THEME DIRECTION (2026-08-20):** Waffle uses iNiR's theme system **byte-for-byte**
+and Dominance is **disconnected** for waffle. So `Appearance.aurora.*`,
+`Appearance.angel.*`, `Appearance.inirEverywhere`, `m3colors`, `MaterialThemeLoader`,
+`ThemeService`, and the `Looks.glassActive` (`auroraEverywhere && !Appearance.inirEverywhere`)
+pipeline are all used verbatim. The `WaffleBarContent.qml` stubs (`auroraTransparency: 0.9`,
+hardcoded `#3a88f2` border) and the `MaterialThemeLoader` guarded no-op are **temporary**
+and get restored to iNiR originals once waffle's theme objects exist. Reconciling
+Dominance with waffle (so they can share a theme) is **deferred** and will be done
+**smartly** later — see Bible §6 THEME DIRECTION for the open crux (shared vs
+waffle-scoped `Appearance`).
 
 **Current state:**
 - `modules/waffle/settings/` (16 + 12 pages) **copied but PARKED** — now that the
