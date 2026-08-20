@@ -32,10 +32,6 @@ Singleton {
     // ── Public API ──────────────────────────────────────────────────────
     readonly property var allActions: _rebuildActions()
 
-    function runLauncher(args): void {
-        Quickshell.execDetached([Quickshell.shellPath("scripts/inir")].concat(args ?? []))
-    }
-
     function fuzzyQuery(query: string): list<var> {
         if (!query || query.trim() === "") return allActions
         const q = query.toLowerCase().trim()
@@ -113,7 +109,7 @@ Singleton {
         }
 
         function open(): void {
-            root.runLauncher(["overview", "actionOpen"])
+            GlobalStates.overviewOpen = true
         }
     }
 
@@ -176,7 +172,7 @@ Singleton {
             category: "system",
             keywords: ["lock", "security", "screen"],
             execute: () => {
-                root.runLauncher(["lock", "activate"])
+                Session.lock()
             }
         },
         {
@@ -187,7 +183,7 @@ Singleton {
             category: "system",
             keywords: ["power", "shutdown", "reboot", "logout", "suspend", "session"],
             execute: () => {
-                root.runLauncher(["session", "open"])
+                GlobalStates.sessionOpen = true
             }
         },
         {
@@ -277,8 +273,8 @@ Singleton {
             category: "appearance",
             keywords: ["wallpaper", "background", "wall", "image", "grid"],
             execute: () => {
-                root.runLauncher(["coverflowSelector", "close"])
-                root.runLauncher(["wallpaperSelector", "open"])
+                GlobalStates.coverflowSelectorOpen = false
+                GlobalStates.wallpaperSelectorOpen = true
             }
         },
         {
@@ -289,8 +285,8 @@ Singleton {
             category: "appearance",
             keywords: ["wallpaper", "background", "wall", "coverflow", "carousel"],
             execute: () => {
-                root.runLauncher(["wallpaperSelector", "close"])
-                root.runLauncher(["coverflowSelector", "open"])
+                GlobalStates.wallpaperSelectorOpen = false
+                GlobalStates.coverflowSelectorOpen = true
             }
         },
         {
@@ -361,7 +357,7 @@ Singleton {
             category: "tools",
             keywords: ["screenshot", "snip", "capture", "screen", "region"],
             execute: () => {
-                root.runLauncher(["region", "screenshot"])
+                Screenshot.takeScreenshot("region")
             }
         },
         {
@@ -399,7 +395,7 @@ Singleton {
             category: "tools",
             keywords: ["clipboard", "paste", "history", "cliphist", "copy"],
             execute: () => {
-                root.runLauncher(["clipboard", "open"])
+                GlobalStates.clipboardOpen = true
             }
         },
         {
@@ -422,10 +418,7 @@ Singleton {
                 const enabledWidgets = Config.options?.sidebar?.right?.enabledWidgets ?? ["calendar", "todo", "notepad", "calculator", "sysmon", "timer"]
                 const notepadIndex = Math.max(0, enabledWidgets.indexOf("notepad"))
                 GlobalStates.sidebarRightOpen = true
-                if (Persistent?.states?.sidebar?.bottomGroup) {
-                    Persistent.states.sidebar.bottomGroup.collapsed = false
-                    Persistent.states.sidebar.bottomGroup.tab = notepadIndex
-                }
+                GlobalStates.sidebarRightRequestedWidget = "notepad"
             }
         },
         {
@@ -483,7 +476,7 @@ Singleton {
             category: "tools",
             keywords: ["keyboard", "shortcuts", "cheatsheet", "keybinds", "hotkeys"],
             execute: () => {
-                root.runLauncher(["cheatsheet", "open"])
+                GlobalStates.cheatsheetOpen = true
             }
         },
         {
@@ -507,7 +500,7 @@ Singleton {
             category: "media",
             keywords: ["play", "pause", "media", "music", "player", "mpris"],
             execute: () => {
-                root.runLauncher(["mpris", "playPause"])
+                MprisController.playPause()
             }
         },
         {
@@ -518,7 +511,7 @@ Singleton {
             category: "media",
             keywords: ["next", "skip", "track", "media", "forward"],
             execute: () => {
-                root.runLauncher(["mpris", "next"])
+                MprisController.next()
             }
         },
         {
@@ -529,7 +522,7 @@ Singleton {
             category: "media",
             keywords: ["previous", "back", "track", "media", "rewind"],
             execute: () => {
-                root.runLauncher(["mpris", "previous"])
+                MprisController.previous()
             }
         },
         {
@@ -655,7 +648,7 @@ Singleton {
             category: "settings",
             keywords: ["overview", "windows", "workspace"],
             execute: () => {
-                root.runLauncher(["overview", "toggle"])
+                GlobalStates.overviewOpen = !GlobalStates.overviewOpen
             }
         },
         {
@@ -666,7 +659,7 @@ Singleton {
             category: "settings",
             keywords: ["sidebar", "left", "panel"],
             execute: () => {
-                root.runLauncher(["sidebarLeft", "open"])
+                GlobalStates.sidebarLeftOpen = true
             }
         },
         {
@@ -677,7 +670,7 @@ Singleton {
             category: "settings",
             keywords: ["sidebar", "right", "panel"],
             execute: () => {
-                root.runLauncher(["sidebarRight", "open"])
+                GlobalStates.sidebarRightOpen = true
             }
         },
         {
@@ -688,7 +681,7 @@ Singleton {
             category: "settings",
             keywords: ["osk", "keyboard", "onscreen", "virtual"],
             execute: () => {
-                root.runLauncher(["osk", "toggle"])
+                GlobalStates.oskOpen = !GlobalStates.oskOpen
             }
         },
         {
@@ -726,7 +719,7 @@ Singleton {
             category: "settings",
             keywords: ["family", "panel", "ii", "material", "layout"],
             execute: () => {
-                root.runLauncher(["panelFamily", "set", "ii"])
+                Config.setNestedValue("panelFamily", "ii")
             }
         },
         {
@@ -737,7 +730,7 @@ Singleton {
             category: "settings",
             keywords: ["family", "panel", "waffle", "win11", "windows", "layout"],
             execute: () => {
-                root.runLauncher(["panelFamily", "set", "waffle"])
+                Config.setNestedValue("panelFamily", "waffle")
             }
         },
         {
@@ -748,7 +741,7 @@ Singleton {
             category: "system",
             keywords: ["control", "panel", "quick", "settings", "toggles", "wifi", "bluetooth"],
             execute: () => {
-                root.runLauncher(["controlPanel", "toggle"])
+                GlobalStates.controlPanelOpen = !GlobalStates.controlPanelOpen
             }
         },
         {
@@ -759,7 +752,7 @@ Singleton {
             category: "media",
             keywords: ["media", "controls", "fullscreen", "player", "music", "album"],
             execute: () => {
-                root.runLauncher(["mediaControls", "toggle"])
+                GlobalStates.mediaControlsOpen = !GlobalStates.mediaControlsOpen
             }
         },
         {
@@ -770,7 +763,7 @@ Singleton {
             category: "tools",
             keywords: ["tiling", "layout", "grid", "snap", "window", "arrange"],
             execute: () => {
-                root.runLauncher(["tiling", "toggle"])
+                GlobalStates.overviewOpen = !GlobalStates.overviewOpen
             }
         },
     ]

@@ -26,7 +26,7 @@ BarIconButton {
     onClicked: runUpdate()
 
     altAction: () => {
-        menu.active = true
+        GlobalStates.waffleWidgetsOpen = !GlobalStates.waffleWidgetsOpen
     }
 
     overlayingItems: Rectangle {
@@ -102,11 +102,11 @@ BarIconButton {
                 contentItem: RowLayout {
                     spacing: 8
                     FluentIcon { icon: "settings"; implicitSize: 16 }
-                    WText { text: Translation.tr("Settings") }
+                    WText { text: Translation.tr("Unified Settings") }
                 }
                 onClicked: {
                     menu.close()
-                    Quickshell.execDetached([Quickshell.shellPath("scripts/inir"), "settings"])
+                    ShellExec.execDetachedArgs(["qs", "ipc", "call", "settings", "toggle"], "Open settings")
                 }
             }
         }

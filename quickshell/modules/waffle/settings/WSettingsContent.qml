@@ -436,7 +436,7 @@ Item {
                     WBorderlessButton {
                         implicitWidth: 28
                         implicitHeight: 28
-                        onClicked: Quickshell.execDetached([Quickshell.shellPath("scripts/inir"), "lock", "activate"])
+                        onClicked: CF.Session.lock()
 
                         contentItem: FluentIcon {
                             anchors.centerIn: parent

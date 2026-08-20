@@ -37,6 +37,7 @@ singleton Weather Weather.qml
 singleton BluetoothStatus BluetoothStatus.qml
 DankSocket 1.0 DankSocket.qml
 singleton WindowPreviewService 1.0 WindowPreviewService.qml
+singleton ScreenTime 1.0 ScreenTime.qml
 singleton ThemeService 1.0 ThemeService.qml
 singleton MaterialThemeLoader 1.0 MaterialThemeLoader.qml
 singleton ShellUpdates 1.0 ShellUpdates.qml

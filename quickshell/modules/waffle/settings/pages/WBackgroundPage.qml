@@ -749,7 +749,7 @@ WSettingsPage {
                                     if (mon) {
                                         Config.setNestedValue("wallpaperSelector.selectionTarget", "main")
                                         Config.setNestedValue("wallpaperSelector.targetMonitor", mon)
-                                        Quickshell.execDetached([Quickshell.shellPath("scripts/inir"), "wallpaperSelector", "toggle"])
+                                        Quickshell.execDetached(["qs", "ipc", "call", "pill", "wallpaper"])
                                     }
                                 }
                             }
@@ -785,7 +785,7 @@ WSettingsPage {
                                 colForeground: Looks.colors.accentFg
                                 onClicked: {
                                     Config.setNestedValue("wallpaperSelector.selectionTarget", "waffle-backdrop")
-                                    Quickshell.execDetached([Quickshell.shellPath("scripts/inir"), "wallpaperSelector", "toggle"])
+                                    Quickshell.execDetached(["qs", "ipc", "call", "pill", "wallpaper"])
                                 }
                             }
                             WButton {
@@ -1179,7 +1179,7 @@ WSettingsPage {
                     buttonText: Translation.tr("Change")
                     onButtonClicked: {
                         Config.setNestedValue("wallpaperSelector.selectionTarget", "waffle-backdrop")
-                        Quickshell.execDetached([Quickshell.shellPath("scripts/inir"), "wallpaperSelector", "toggle"])
+                        Quickshell.execDetached(["qs", "ipc", "call", "pill", "wallpaper"])
                     }
                 }
 

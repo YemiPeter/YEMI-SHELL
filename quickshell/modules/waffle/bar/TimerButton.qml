@@ -62,9 +62,6 @@ BarButton {
 
     altAction: () => {
         GlobalStates.waffleWidgetsOpen = true
-        if (Persistent?.states?.sidebar?.bottomGroup) {
-            Persistent.states.sidebar.bottomGroup.tab = 3
-        }
     }
 
     contentItem: Item {

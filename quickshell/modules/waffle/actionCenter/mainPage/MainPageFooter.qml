@@ -43,7 +43,7 @@ FooterRectangle {
 
         onClicked: {
             GlobalStates.waffleActionCenterOpen = false;
-            Quickshell.execDetached([Quickshell.shellPath("scripts/inir"), "settings"]);
+            ShellExec.execDetachedArgs(["qs", "ipc", "call", "settings", "toggle"], "Open settings");
         }
 
         contentItem: FluentIcon {

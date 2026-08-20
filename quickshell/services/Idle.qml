@@ -15,7 +15,6 @@ Singleton {
     readonly property int screenOffTimeout: Config.options?.idle?.screenOffTimeout ?? 300
     readonly property int lockTimeout: Config.options?.idle?.lockTimeout ?? 600
     readonly property int suspendTimeout: Config.options?.idle?.suspendTimeout ?? 0
-    readonly property string launcherPath: Quickshell.shellPath("scripts/inir")
 
     onScreenOffTimeoutChanged: _restartSwayidle()
     onLockTimeoutChanged: _restartSwayidle()
@@ -28,7 +27,6 @@ Singleton {
         } else {
             inhibit = !inhibit;
         }
-        Persistent.states.idle.inhibit = inhibit;
     }
 
     function _restartSwayidle() {
@@ -62,7 +60,7 @@ Singleton {
         }
 
         if (effectiveLockTimeout > 0) {
-            cmd.push("timeout", effectiveLockTimeout.toString(), `'${StringUtils.shellSingleQuoteEscape(root.launcherPath)}' lock activate`)
+            cmd.push("timeout", effectiveLockTimeout.toString(), "/usr/bin/loginctl lock-session")
         }
 
         if (suspendTimeout > 0) {
@@ -70,7 +68,7 @@ Singleton {
         }
 
         if (lockBeforeSleep) {
-            cmd.push("before-sleep", `'${StringUtils.shellSingleQuoteEscape(root.launcherPath)}' lock activate`)
+            cmd.push("before-sleep", "/usr/bin/loginctl lock-session")
         }
 
         if (Quickshell.env("QS_DEBUG") === "1") console.log("[Idle] Starting swayidle")
@@ -87,14 +85,6 @@ Singleton {
         target: Config
         function onReadyChanged() {
             if (Config.ready) root._restartSwayidle()
-        }
-    }
-
-    Connections {
-        target: Persistent
-        function onReadyChanged() {
-            if (Persistent.ready && Persistent.states?.idle?.inhibit)
-                root.inhibit = true
         }
     }
 

@@ -61,9 +61,9 @@ Rectangle {
             { type: "separator" },
             {
                 iconName: "settings",
-                text: Translation.tr("Taskbar settings"),
+                text: Translation.tr("Unified taskbar settings"),
                 action: () => {
-                    Quickshell.execDetached([Quickshell.shellPath("scripts/inir"), "settings"])
+                    ShellExec.execDetachedArgs(["qs", "ipc", "call", "settings", "toggle"], "Open settings")
                 }
             }
         ]

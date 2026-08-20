@@ -79,7 +79,7 @@ Singleton {
     }
 
     function lock() {
-        Quickshell.execDetached([Quickshell.shellPath("scripts/inir"), "lock", "activate"]);
+        Quickshell.execDetached(["/usr/bin/loginctl", "lock-session"]);
     }
 
     function suspend() {

@@ -14,7 +14,7 @@ AppButton {
     id: root
 
     leftInset: (Config.options?.waffles?.bar?.leftAlignApps ?? false) ? 12 : 0
-    iconName: "start-here"
+    iconName: down ? "start-here-pressed" : "start-here"
 
     checked: GlobalStates.searchOpen && LauncherSearch.query === ""
     onClicked: {
@@ -48,9 +48,9 @@ AppButton {
                 }
             },
             {
-                text: Translation.tr("Settings"),
+                text: Translation.tr("Unified Settings"),
                 action: () => {
-                    ShellExec.execDetachedArgs([Quickshell.shellPath("scripts/inir"), "settings"], "Open iNiR settings");
+                    ShellExec.execDetachedArgs(["qs", "ipc", "call", "settings", "toggle"], "Open settings");
                 }
             },
             {
@@ -62,7 +62,7 @@ AppButton {
             {
                 text: Translation.tr("Search"),
                 action: () => {
-                    Quickshell.execDetached([Quickshell.shellPath("scripts/inir"), "overview", "toggle"]);
+                    GlobalStates.overviewOpen = !GlobalStates.overviewOpen;
                 }
             },
         ]
