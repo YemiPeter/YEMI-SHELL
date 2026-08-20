@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Io
+import qs.config
 import qs.modules.common
 import qs.modules.common.functions
 import qs.modules.waffle.looks
@@ -1114,7 +1115,7 @@ WSettingsPage {
                             Qt.openUrlExternally(Directories.shellConfigPath)
                             break
                         case "shortcuts":
-                            Quickshell.execDetached(["qs", "ipc", "call", "pill", "keybinds"])
+                            root.navigateRequested(9)
                             break
                         }
                     }

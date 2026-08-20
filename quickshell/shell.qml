@@ -63,23 +63,19 @@ ShellRoot {
     }
 
     // === Settings IPC Handler ===
+    // Opens/toggles the standalone Waffle settings window (waffleSettings.qml)
+    // as its own process. The toggle-waffle-settings.sh script checks for an
+    // existing instance and kills it (toggle off) or launches a new one
+    // (toggle on). waffleSettings.qml must NOT contain an IpcHandler because
+    // it runs as a standalone QML file (`qs -p`), where Quickshell types like
+    // IpcHandler are not available. See scripts/toggle-waffle-settings.sh.
     IpcHandler {
         target: "settings"
 
         function toggle(): void {
-            if (!settingsState.settingsWindow) {
-                var component = Qt.createComponent("modules/settings/SettingsWindow.qml");
-                if (component.status === Component.Ready) {
-                    settingsState.settingsWindow = component.createObject(root);
-                } else {
-                    console.error("❌ Failed to load SettingsWindow:", component.errorString());
-                    return;
-                }
-            }
-
-            if (settingsState.settingsWindow) {
-                settingsState.settingsWindow.toggle();
-            }
+            Quickshell.execDetached([
+                Quickshell.shellPath("scripts/toggle-waffle-settings.sh")
+            ]);
         }
     }
 
