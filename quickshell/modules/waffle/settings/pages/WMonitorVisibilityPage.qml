@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import Quickshell
 import qs.services
 import qs.modules.common
+import qs.modules.common.settings
 import qs.modules.waffle.looks
 import qs.modules.waffle.settings
 
@@ -18,131 +19,9 @@ WSettingsPage {
     readonly property var waffleSurfaces: [
         { title: Translation.tr("Taskbar"), description: Translation.tr("Windows 11 taskbar and its hit target"), icon: "desktop", path: "waffles.bar.screenList" }
     ]
-    readonly property var sharedSurfaces: [
-        { title: Translation.tr("Notification popups"), description: Translation.tr("Transient notification toasts"), icon: "alert-filled", path: "notifications.screenList" },
-        { title: Translation.tr("OSD indicators"), description: Translation.tr("Volume, brightness, media, and keyboard feedback"), icon: "speaker", path: "osd.screenList" },
-        { title: Translation.tr("Desktop widgets"), description: Translation.tr("Clock, media, visualizer, and custom widgets"), icon: "widgets", path: "background.widgets.screenList" }
-    ]
+    MonitorVisibilityCore { id: core }
 
-    function connectedScreenNames(): var {
-        const screens = Quickshell.screens
-        let names = []
-        for (let i = 0; i < screens.length; i++) {
-            const name = String(screens[i]?.name ?? "")
-            if (name.length > 0 && !names.includes(name))
-                names.push(name)
-        }
-        return names
-    }
 
-    function primaryScreenName(): string {
-        const preferred = Config.options?.display?.primaryMonitor ?? ""
-        const names = connectedScreenNames()
-        if (preferred && names.includes(preferred))
-            return preferred
-        return names.length > 0 ? names[0] : ""
-    }
-
-    function monitorOptions(): var {
-        let opts = [{ value: "", displayName: Translation.tr("Auto (first available)") }]
-        const names = connectedScreenNames()
-        for (let i = 0; i < names.length; i++)
-            opts.push({ value: names[i], displayName: names[i] })
-        return opts
-    }
-
-    function monitorResolution(screen: var): string {
-        const width = screen?.width ?? 0
-        const height = screen?.height ?? 0
-        if (width <= 0 || height <= 0)
-            return Translation.tr("Resolution unknown")
-        return width + "×" + height
-    }
-
-    function configuredScreens(path: string): var {
-        const raw = Config.getNestedValue(path, [])
-        const names = connectedScreenNames()
-        let selected = []
-        for (let i = 0; i < (raw?.length ?? 0); i++) {
-            const name = String(raw[i] ?? "")
-            if (name.length > 0 && names.includes(name) && !selected.includes(name))
-                selected.push(name)
-        }
-        return selected
-    }
-
-    function allScreensEnabled(path: string): bool {
-        const raw = Config.getNestedValue(path, [])
-        return !raw || raw.length === 0
-    }
-
-    function surfaceEnabled(path: string, screenName: string): bool {
-        if (allScreensEnabled(path))
-            return true
-        return configuredScreens(path).includes(screenName)
-    }
-
-    function visibilitySummary(path: string): string {
-        if (allScreensEnabled(path))
-            return Translation.tr("All monitors")
-        const selected = configuredScreens(path)
-        if (selected.length === 0)
-            return Translation.tr("Saved outputs missing")
-        if (selected.length === 1)
-            return selected[0]
-        return selected.length + Translation.tr(" monitors")
-    }
-
-    function setSurfaceAll(path: string): void {
-        Config.setNestedValue(path, [])
-    }
-
-    function setSurfaceScreen(path: string, screenName: string, enabled: bool): void {
-        const names = connectedScreenNames()
-        if (!screenName || names.length === 0)
-            return
-
-        let current = configuredScreens(path)
-        if (current.length === 0 && !enabled)
-            current = names.slice()
-
-        if (enabled) {
-            if (!current.includes(screenName))
-                current.push(screenName)
-        } else {
-            if (current.length <= 1 && current.includes(screenName))
-                return
-            current = current.filter(name => name !== screenName)
-        }
-
-        if (names.length > 0 && names.every(name => current.includes(name)))
-            current = []
-        Config.setNestedValue(path, current)
-    }
-
-    function setPathsToPrimary(paths: var): void {
-        const primary = primaryScreenName()
-        if (!primary)
-            return
-        let updates = {}
-        for (let i = 0; i < paths.length; i++)
-            updates[paths[i]] = [primary]
-        Config.setNestedValues(updates)
-    }
-
-    function setPathsToAll(paths: var): void {
-        let updates = {}
-        for (let i = 0; i < paths.length; i++)
-            updates[paths[i]] = []
-        Config.setNestedValues(updates)
-    }
-
-    function surfacePaths(surfaces: var): var {
-        let paths = []
-        for (let i = 0; i < surfaces.length; i++)
-            paths.push(surfaces[i].path)
-        return paths
-    }
 
     component InfoBanner: Rectangle {
         property string iconName: "info"
@@ -204,14 +83,14 @@ WSettingsPage {
             Layout.fillWidth: true
             text: Translation.tr("Primary only")
             icon.name: "eye-off"
-            onClicked: root.setPathsToPrimary(paths)
+            onClicked: core.setPathsToPrimary(paths)
         }
 
         WButton {
             Layout.fillWidth: true
             text: Translation.tr("Show everywhere")
             icon.name: "eye"
-            onClicked: root.setPathsToAll(paths)
+            onClicked: core.setPathsToAll(paths)
         }
     }
 
@@ -230,7 +109,7 @@ WSettingsPage {
         required property var monitor
         required property int index
         readonly property string screenName: monitor?.name ?? ""
-        readonly property bool primary: screenName === root.primaryScreenName()
+        readonly property bool primary: screenName === core.primaryScreenName()
 
         Layout.fillWidth: true
         Layout.leftMargin: Looks.dp(14)
@@ -278,7 +157,7 @@ WSettingsPage {
 
                 WText {
                     Layout.fillWidth: true
-                    text: root.monitorResolution(monitor)
+                    text: core.monitorResolution(monitor)
                     font.pixelSize: Looks.font.pixelSize.small
                     color: Looks.colors.subfg
                     elide: Text.ElideRight
@@ -305,7 +184,7 @@ WSettingsPage {
 
     component SurfaceVisibilityBlock: Rectangle {
         required property var surface
-        readonly property bool allOutputs: root.allScreensEnabled(surface.path)
+        readonly property bool allOutputs: core.allScreensEnabled(surface.path)
         readonly property int leadingWidth: Looks.dp(34)
 
         Layout.fillWidth: true
@@ -370,7 +249,7 @@ WSettingsPage {
                             WText {
                                 id: summaryText
                                 anchors.centerIn: parent
-                                text: root.visibilitySummary(surface.path)
+                                text: core.visibilitySummary(surface.path)
                                 font.pixelSize: Looks.font.pixelSize.small
                                 font.weight: Looks.font.weight.strong
                                 color: allOutputs ? Looks.colors.fg1 : Looks.colors.accentFg
@@ -411,23 +290,23 @@ WSettingsPage {
                     font.pixelSize: Looks.font.pixelSize.small
                     horizontalPadding: Looks.dp(10)
                     verticalPadding: Looks.dp(5)
-                    onClicked: root.setSurfaceAll(surface.path)
+                    onClicked: core.setSurfaceAll(surface.path)
                 }
 
                 Repeater {
-                    model: root.connectedScreenNames()
+                    model: core.connectedScreenNames()
 
                     WButton {
                         required property var modelData
                         readonly property string screenName: String(modelData ?? "")
                         text: screenName
                         icon.name: "desktop"
-                        checked: root.surfaceEnabled(surface.path, screenName)
+                        checked: core.surfaceEnabled(surface.path, screenName)
                         checkable: false
                         font.pixelSize: Looks.font.pixelSize.small
                         horizontalPadding: Looks.dp(10)
                         verticalPadding: Looks.dp(5)
-                        onClicked: root.setSurfaceScreen(surface.path, screenName, !checked)
+                        onClicked: core.setSurfaceScreen(surface.path, screenName, !checked)
                     }
                 }
             }
@@ -448,7 +327,7 @@ WSettingsPage {
             icon: "desktop"
             description: Translation.tr("Fallback output for popups when the focused monitor is unknown")
             currentValue: Config.options?.display?.primaryMonitor ?? ""
-            options: root.monitorOptions()
+            options: core.monitorOptions()
             onSelected: newValue => Config.setNestedValue("display.primaryMonitor", newValue)
         }
 
@@ -475,7 +354,7 @@ WSettingsPage {
         }
 
         PresetActions {
-            paths: root.surfacePaths(root.waffleSurfaces)
+            paths: core.surfacePaths(root.waffleSurfaces)
         }
 
         Repeater {
@@ -497,11 +376,11 @@ WSettingsPage {
         }
 
         PresetActions {
-            paths: root.surfacePaths(root.sharedSurfaces)
+            paths: core.surfacePaths(core.sharedSurfaces)
         }
 
         Repeater {
-            model: root.sharedSurfaces
+            model: core.sharedSurfaces
             SurfaceVisibilityBlock {
                 required property var modelData
                 surface: modelData
