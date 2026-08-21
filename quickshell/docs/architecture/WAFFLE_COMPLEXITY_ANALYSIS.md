@@ -19,10 +19,10 @@ that make it complex and where the risk concentrates.
 | `modules/waffle/bar/` (taskbar) | ✅ | ✅ 28 files |
 | `modules/waffle/background/` (glass wallpaper) | ✅ | ✅ 2 files |
 | `modules/waffle/backdrop/` (solid backdrop) | ✅ | ✅ 1 file |
-| `modules/waffle/settings/` (standalone settings app) | ✅ ~30 files | ❌ **not ported** |
-| `modules/settings/WaffleConfig.qml` (style page) | ✅ | ❌ **not ported** |
-| `waffleSettings.qml` (standalone launcher) | ✅ | ❌ **not ported** |
-| Full feature set (action center, start menu, alt-switcher, task view, clipboard, notification center, OSD, lock, polkit, session, widgets) | ✅ ~250 files / 34,375 LOC | ❌ **not ported** |
+| `modules/waffle/settings/` (standalone settings app) | ✅ ~30 files | ✅ ported & wired (bar opens `waffleSettings.qml`; see §11) |
+| `modules/settings/WaffleConfig.qml` (style page) | ✅ | ✅ ported (THEME section deferred) |
+| `waffleSettings.qml` (standalone launcher) | ✅ | ✅ ported (launched/toggled by the `settings` IPC, 2026-08-20) |
+| Full feature set (action center, start menu, alt-switcher, task view, clipboard, notification center, OSD, lock, polkit, session, widgets) | ✅ ~250 files / 34,375 LOC | ❌ **not ported** (bar right-cluster panels still absent; see WAFFLE_BAR_WORKING_PLAN) |
 
 **Port total:** 70 QML files, ~6,720 LOC (just `bar`, `background`, `backdrop`, `looks`).
 **Source total:** ~34,375 LOC across the full module.
@@ -128,12 +128,31 @@ for the framework**, plus heavy pages:
 - `WInterfacePage.qml` 731 LOC
 - `WWaffleStylePage.qml` 517 LOC + `modules/settings/WaffleConfig.qml`
 
-**This layer is absent in quickshell.** Consequences:
-- No standalone Waffle settings window can run in quickshell today.
-- Waffle is currently configured only through the `waffles.*` Config keys
-  (e.g. `Config.setNestedValue("waffles.background.widgets.clock.x", …)` in
-  `WaffleBackground.qml`), edited directly or via the host `Config` UI, not the
-  dedicated Waffle settings pages.
+**This layer is now *present* in quickshell (2026-08-20), but gated on two
+still-missing pieces:**
+- The standalone `waffleSettings.qml` launcher is **live**: the bar's "Unified
+  Settings" action (`qs ipc call settings toggle`) probe-launches it as a
+  standalone `qs` process; clicking opens it, a second click toggles it closed via
+  the `waffleSettings` IPC target. Dead `scripts/inir`/`Persistent` references
+  were removed from the bar and shared services; `GlobalActions`/`Idle`/`Session`
+  /`ScreenSnip` are ported.
+- `modules/waffle/settings/` reaches for `ThemeService`, `MaterialThemeLoader`,
+  `AppLauncher`, `ShellUpdates`, `Idle` inside the deeper pages (themes / gowall /
+  updates). Those iNiR-app singletons are **already ported** into `qs.services`
+  (registered in `services/qmldir`, per WAFFLE_BAR_WORKING_PLAN §4) — so the page
+  imports resolve and the launcher opens — but they are guarded/stubbed where the
+  iNiR host-only behavior is unavailable (e.g. `m3colors` no-op; `ThemeService`
+  facade without a live Aurora pipeline), hence the `WThemesPage` theme-bridge is
+  deferred (see §11).
+- `services/Wallpapers.qml` is a **9-line stub** → the wallpaper picker pages
+  (`WQuickPage` left column, `WBackgroundPage` "Pick/Change") are non-functional
+  (dead calls) until it is implemented. **Deferred, not dead.**
+
+**Consequence:** Waffle is configured through the `waffles.*` Config keys
+(e.g. `Config.setNestedValue("waffles.background.widgets.clock.x", …)` in
+`WaffleBackground.qml`) for the areas whose service backing exists; the dedicated
+Waffle settings pages exist and the launcher opens, but only the pages whose
+singletons/services resolve are fully functional today.
 
 ---
 
@@ -195,31 +214,37 @@ The live-preview path (`WindowPreviewService` + `NiriService`) is therefore the
 part that breaks when Waffle is run outside a Niri session, and
 `WindowPreviewService` is additionally missing from the quickshell port.
 
-## 11. Port status (2026-08-18)
+## 11. Port status (2026-08-20)
 
-Both missing gaps were copied from `/home/yemi/iNiR` into quickshell:
+Both original gaps were copied from `/home/yemi/iNiR` into quickshell on 2026-08-18, and the
+settings launcher wiring was completed on 2026-08-20:
 
 **Gap B — live previews (done):**
 - `services/WindowPreviewService.qml` (copied; registered `singleton WindowPreviewService 1.0` in `services/qmldir`)
 - `scripts/capture-windows.fish`, `scripts/capture-windows.sh` (copied)
 - Its deps (`Cliphist`, `ShellExec`, `Directories`, `FileUtils`, `NiriService`) were already present.
 
-**Gap A — Waffle settings UI (done, structural):**
+**Gap A — Waffle settings UI (done, wired):**
 - `modules/waffle/settings/` (entire folder incl. `WSettingsContent.qml` + 12 pages) copied.
-- `waffleSettings.qml` (standalone launcher) copied to repo root.
-- `modules/settings/WaffleConfig.qml` copied; `modules/settings/qmldir` created exporting it.
+- `waffleSettings.qml` (standalone launcher) copied to repo root; now **live** — the
+  `settings` IPC in `shell.qml` probe-launches it (toggle via the `waffleSettings` IPC
+  target, else `execDetached`).
+- `modules/settings/WaffleConfig.qml` copied; `modules/settings/qmldir` exports it.
+- The 5 iNiR-only singletons the settings pages import (`ThemeService`,
+  `MaterialThemeLoader`, `AppLauncher`, `ShellUpdates`, `Idle`) were **ported into
+  `qs.services`** and registered (see WAFFLE_BAR_WORKING_PLAN §4) — so page imports
+  resolve and the launcher opens.
 
-**Known remaining blockers for the standalone `waffleSettings.qml` launcher:**
-the copied settings pages still reference iNiR-app-only singletons that were
-**not** part of Waffle and remain absent in quickshell:
-- `ThemeService` (used by `waffleSettings.qml` `onReadyChanged`)
-- `MaterialThemeLoader`, `AppLauncher`, `ShellUpdates`, `Idle` (used by deeper
-  settings pages: themes/gowall/updates).
+**Remaining blockers (none are dead links — all are *absent dependencies*, deferred):**
+- `services/Wallpapers.qml` is a **9-line stub** → `WQuickPage`/`WBackgroundPage`
+  wallpaper picker pages are non-functional until implemented. (The bar's
+  "Unified Settings" *opens* fine; only the wallpaper sub-pages don't work yet.)
+- `WThemesPage` / the `WaffleConfig.qml` THEME section — deferred per Bible §6
+  (theme-bridge built later; Dominance disconnected for Waffle).
+- The deeper iNiR host-only singletons are guarded no-ops where the host pipeline is
+  absent (e.g. `m3colors`), so themes/gowall/updates pages may load but not fully run.
 
-These are iNiR-app features, not Waffle essentials. The files now *exist* and
-resolve as modules; the standalone launcher will only fully run once those
-transitive services are also ported. The Waffle bar/background/backdrop code and
-`WindowPreviewService` are unaffected by these gaps.
+The Waffle bar/background/backdrop code and `WindowPreviewService` are unaffected by these gaps.
 
 ## 12. Cross-reference
 

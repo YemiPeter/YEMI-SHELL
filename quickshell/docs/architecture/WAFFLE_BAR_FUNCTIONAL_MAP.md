@@ -138,17 +138,22 @@ for the bar.
 2. **Window-preview capture scripts** present & executable:
    `scripts/capture-windows.sh` / `.fish` (committed `93049ba`), with deps
    `Cliphist`, `ShellExec`, `FileUtils`, `Directories`, `NiriService`.
-3. **Settings launch** wired — currently the right-click → Settings action calls
-   `Quickshell.execDetached([Quickshell.shellPath("scripts/inir"), "settings"])`,
-   but `scripts/inir` does **not** exist. Settings UI is PARKED (bar-tied, not a
-   merged app). See §8.
+3. **Settings launch** wired — the right-click → Settings action calls
+   `qs ipc call settings toggle`, which probe-launches `waffleSettings.qml`
+   (toggle if running via its `waffleSettings` IPC target, else `execDetached`).
+   `scripts/inir` is gone. Waffle settings UI is **live** (not PARKED). See §8.
 
 ## 7. Known Gaps / Blockers
-- **`scripts/inir` missing** → bar's Settings launcher fails. Settings UI is
-  PARKED; either wire to `waffleSettings.qml` or leave parked.
+- **`scripts/inir` missing** → bar's Settings launcher fails.
+  **RESOLVED (2026-08-20):** `scripts/inir` removed; settings action now opens
+  `waffleSettings.qml` via the `settings` IPC (probe-launch + toggle).
+- **`services/Wallpapers.qml` is a 9-line stub** → `WQuickPage` / `WBackgroundPage`
+  wallpaper picker pages are non-functional (dead `Wallpapers.*` calls). Implementing
+  the service is required before those pages work. **Deferred, not dead.**
 - **Glass/aurora theme bridge stubbed** in `WaffleBarContent.qml` (border +
-  `auroraTransparency: 0.9` hardcoded, with `ORIGINAL … restore when theme
-  bridge is built` comments) — visual only, not a crash.
+  `auroraTransparency: 0.9` hardcoded, with `ORIGINAL ... restore when theme
+  bridge is built` comments) — visual only, not a crash. `WThemesPage` / the
+  `WaffleConfig.qml` THEME section are deferred per Bible §6.
 - **Missing fluent asset** `assets/icons/fluent/alert-snooze.svg` — cosmetic;
   `FluentIcon` falls back to the icon name text.
 - **AltSwitcher** `IconImage is not a type` bug from the bible is **stale**:

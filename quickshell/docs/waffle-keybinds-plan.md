@@ -1,6 +1,12 @@
 # Waffle Keybinds — Component Coverage Plan
 
-> Status: **Phase 1 — Launcher only** (Mod+Space → `qs ipc call search toggle`)
+> Status: **Phase 1 (2026-08-20):** Launcher (`Mod+Space → qs ipc call search toggle`)
+> is wired and toggles. The bar's "Unified Settings" action targets the `settings`
+> IPC (probe-launches `waffleSettings.qml`), not a keybind target. Non-launcher
+> waffle IPC targets below (`wactionCenter`, `wnotificationCenter`, `wwidgets`,
+> `taskview`, `overview`) are still **PENDING** — their bar panels haven't been
+> ported yet. The in-panel keybinds nav (cheatsheet → Shortcuts via
+> `navigateRequested(9)`) is wired inside `WQuickPage`, not an IPC target.
 > File: `binds-waffle.lua` (Hyprland) / `71-binds-waffle.kdl` (Niri)
 
 ## IPC Registry Reference

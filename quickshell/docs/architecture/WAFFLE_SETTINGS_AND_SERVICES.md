@@ -7,9 +7,12 @@ feeding Waffle (and, by the unified-services rule, Pill too). See `WAFFLE_BAR_FU
 
 ## A. SETTINGS Subsystem
 
-### 1. Waffle settings UI (`modules/waffle/settings/`) — PARKED
+### 1. Waffle settings UI (`modules/waffle/settings/`) — LIVE (2026-08-20)
 Copied from iNiR. Bar-tied, **NOT** a standalone app (the standalone launcher needed iNiR-only
 singletons `ThemeService`, `MaterialThemeLoader`, `AppLauncher`, `ShellUpdates`, `Idle` we are NOT porting).
+Now wired: bar's "Unified Settings" action calls `qs ipc call settings toggle`, which probe-launches
+`waffleSettings.qml` as a standalone `qs` process (toggle if running via its `waffleSettings` IPC
+target, else `execDetached`). Pages resolve via `qs.modules.*`.
 
 | File | Role |
 |------|------|
@@ -44,10 +47,14 @@ singletons `ThemeService`, `MaterialThemeLoader`, `AppLauncher`, `ShellUpdates`,
 ### 3. Root settings entry
 | File | Role |
 |------|------|
-| `waffleSettings.qml` | Top-level Waffle settings window/sheet (loaded by the bar's settings action). |
+| `waffleSettings.qml` | Top-level Waffle settings window/sheet. Standalone `ApplicationWindow` launched/toggled by the bar's settings action via the `settings` IPC (probe-launch, see WAFFLE_BAR_WORKING_PLAN §4). |
 
 > NOTE: These settings read/write via `Config`/`Appearance` (unified `qs.config`), not a merged app.
-> They are currently **PARKED** pending the theme-bridge work noted in the bar map (§5.4).
+> Per `WaffleConfig.qml` this also exposes the **waffle style** config keys.
+> Theme-bridge section (`WaffleConfig.qml` THEME) is **deferred** (see Bible §6);
+> `services/Wallpapers.qml` is a 9-line **stub**, so the wallpaper picker pages in
+> `WQuickPage`/`WBackgroundPage` are non-functional until it is implemented — they are
+> *blocked dependencies*, not dead links.
 
 ---
 
@@ -62,6 +69,11 @@ PowerProfiles, PowerProfile, Screenshot, Logger, Bluetooth, Hyprsunset, Notifica
 MprisController, Battery, DateTime, TrayService, GameMode, CompositorService, NiriService,
 TaskbarApps, TimerService, Updates, KeyboardIndicators, Privacy, RecorderStatus, Wallpapers,
 Icons, GlobalActions, AppSearch, SystemInfo, Weather, BluetoothStatus, WindowPreviewService`
+
+> - **`Wallpapers`** — consumed by `WQuickPage.qml` / `WBackgroundPage.qml` (folder list,
+>   thumbnails, apply, per-monitor config, color-only, video frames). In quickshell this is a
+>   **9-line stub** (`services/Wallpapers.qml`); those 30+ methods are dead calls today.
+>   Implementing it is required before the wallpaper picker pages work. **Deferred**, not dead.
 
 Plus the non-singleton helper: `DankSocket 1.0 DankSocket.qml`.
 `deferred/` holds `HyprlandKeybinds.qml`, `HyprlandXkb.qml` (lazy Hyprland-only binds).

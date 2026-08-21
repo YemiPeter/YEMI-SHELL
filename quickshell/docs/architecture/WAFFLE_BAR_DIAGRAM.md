@@ -62,7 +62,7 @@ Anchored to an invisible `contextMenuAnchor` (right-click MouseArea, `z:-1`):
 ┌─ Taskbar context menu ───────┐
 │ 🔘 Task Manager              │ → Session.launchTaskManager()
 │ ───────────────────────────  │
-│ ⚙ Taskbar settings           │ → script "scripts/inir" "settings"
+│ ⚙ Taskbar settings           │ → qs ipc call settings toggle (launches/toggles waffleSettings.qml)
 └──────────────────────────────┘
 ```
 

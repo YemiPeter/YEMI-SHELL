@@ -257,22 +257,49 @@ Dominance with waffle (so they can share a theme) is **deferred** and will be do
 **smartly** later — see Bible §6 THEME DIRECTION for the open crux (shared vs
 waffle-scoped `Appearance`).
 
-**Current state:**
-- `modules/waffle/settings/` (16 + 12 pages) **copied but PARKED** — now that the
-  5 singletons are ported, this can be un-parked as Waffle's standalone settings.
-- `waffleSettings.qml` (root) **PARKED** (same — now unblocked).
-- `modules/settings/WaffleConfig.qml` **exists** (registered in `modules/settings/qmldir`) — the waffle config binding point.
-- Bar's settings actions: `scripts/inir settings` calls are being repointed to
-  the unified settings IPC (`qs ipc call settings toggle`); left-widget
-  Settings/Wallpaper quick actions already repointed.
+**Current state (2026-08-20):**
+- `waffleSettings.qml` launcher **live**: the bar's "Unified Settings" action now
+  opens/toggles it as a standalone `qs` process. The `settings` IPC handler in
+  `shell.qml` probe-launches `waffleSettings.qml` — if its `waffleSettings` IPC
+  target is registered it toggles the open window, otherwise it `execDetached`s a
+  new process. `onClosing: Qt.quit()` is intact so each launcher run is its own
+  process.
+- Settings UI **un-parked**: `modules/waffle/settings/` (16 + 12 pages) copied &
+  wired; the bar's `scripts/inir settings` calls were replaced by
+  `qs ipc call settings toggle`.
+- `modules/settings/WaffleConfig.qml` **exists** (registered in
+  `modules/settings/qmldir`) — the waffle config binding point; its THEME section
+  is deferred per §4 THEME DIRECTION.
+- **Bar dead-refs removed** (committed `3fb020a`, plus this commit): zero
+  `scripts/inir`, `runLauncher`, or `Persistent.` references remain in the bar or
+  in the shared services it reaches. `GlobalActions.qml` fully ported:
+  overview→`GlobalStates.overviewOpen`, lock→`Session.lock()` (`loginctl lock-session`),
+  lock-screen idle path via `loginctl`, region screenshot→`Screenshot.takeScreenshot("region")`,
+  mpris→`MprisController`, sidebars→`GlobalStates.*sidebar*Open`, osk→`GlobalStates.oskOpen`,
+  panelFamily→`Config.setNestedValue("panelFamily", value)`, control/media/tiling→`GlobalStates.*Open`.
+  `Idle.qml` lock paths → `loginctl lock-session`; `ScreenSnipToggle.qml` →
+  `Screenshot.takeScreenshot("region")`.
+- `WQuickPage.qml` cheatsheet quick-action (`Ctrl+/`, line 1117) → `navigateRequested(9)`
+  (the native `WShortcutsPage`) instead of a no-op `pill keybinds` hop.
+- **Still blocked (deferred, not dead):** `services/Wallpapers.qml` is a 9-line stub,
+  so the `WQuickPage` / `WBackgroundPage` wallpaper picker pages are non-functional
+  until it is implemented; the `WThemesPage` (`WaffleConfig.qml` THEME section)
+  theme-bridge is deferred. These are *absent dependencies*, not broken links.
 
 **Placement plan (evolves as panels land):**
 - [ ] Each ported panel's config lives under `Config.options.waffles.*` (already the schema: `actionCenter`, `bar`, `background`, `notifications`, `taskView`, `widgetsPanel`, `theming`, …).
 - [ ] As each panel (B7–B10) is ported, note its config keys and confirm they map to `WaffleConfig.qml` / `Config.qml` (no new iNiR-only singletons).
-- [ ] Decide the **unified settings host**: a single settings window (under `modules/settings/`) with a Waffle section + a Pill section, both reading unified services. The parked `modules/waffle/settings/` pages become reference, not the runtime.
-- [ ] Replace bar's `scripts/inir settings` calls with the unified settings toggle (reuse `shell.qml` `settings` IPC → `SettingsWindow.qml`).
-- [ ] When the unified settings is stood up, wire `WaffleConfig.qml` as the waffle binding layer and retire the parked standalone launcher.
-- [ ] Update `WAFFLE_SETTINGS_AND_SERVICES.md` "PARKED" notes as items graduate.
+- [ ] Decide the **unified settings host** — **DEFERRED** (per current directive: no
+  unified host yet; Waffle settings is being made functional as its **standalone**
+  `waffleSettings.qml`). The earlier vision of retiring the standalone launcher in
+  favor of one unified `SettingsWindow.qml` host is on hold.
+- [x] Bar's settings action uses the `settings` IPC (`qs ipc call settings toggle`),
+  which now launches/toggles `waffleSettings.qml` — NOT the non-existent
+  `SettingsWindow.qml` (the `SettingsWindow.qml` unified host is deferred).
+- [ ] When/if the unified host is stood up: wire `WaffleConfig.qml` as the waffle
+  binding layer and retire the standalone launcher.
+- [x] `WAFFLE_SETTINGS_AND_SERVICES.md` "PARKED" notes updated (settings UI
+  un-parked 2026-08-20).
 
 **Settings checklist (to fill in as we reach each area):**
 
@@ -302,4 +329,5 @@ waffle-scoped `Appearance`).
 | 2026-08-19 | Launcher root cause found | B1/B2 caused by `WlrKeyboardFocus.Exclusive` seat grab on Hyprland (not B0). Chosen fix = Option B (merge catcher into menu window). B0 demoted to hygiene-only. |
 | 2026-08-19 | Launcher fix re-scoped | Replaced "Option B everywhere" with **compositor-aware** design: Niri = iNiR verbatim two-window; Hyprland = single-window Option B. Select via `Compositor.runningCompositor`. Session switching to Niri → verify `niriMenu` branch first. |
 | 2026-08-19 | LEFT side (Widgets) wired | `WaffleWidgets` instantiated in `ShellWafflePanels.qml`; WeatherButton → `waffleWidgetsOpen` opens the panel. Settings/Wallpaper quick actions repointed from missing `scripts/inir` to unified `settings` IPC. |
+| 2026-08-20 | Settings launcher fixed | `settings` IPC handler probe-launches `waffleSettings.qml` (toggle via `waffleSettings` IPC target, else `execDetached`). Bar "Unified Settings" now opens/toggles the Waffle settings window. All dead `scripts/inir`/`runLauncher`/`Persistent.` refs removed from the bar and shared services (GlobalActions/Idle/Session/ScreenSnip ported). `WQuickPage.qml:1117` cheatsheet → `navigateRequested(9)` (Shortcuts). `services/Wallpapers.qml` still a stub → wallpaper picker pages non-functional (deferred); `WThemesPage` theme-bridge deferred. |
 | 2026-08-19 | Theme decision reversed | Waffle made standalone: ported 5 iNiR-only singletons (`ThemeService`, `MaterialThemeLoader`, `ShellUpdates`, `Idle`, `YtMusic`) into `services/` + registered `qs.services.*`. `m3colors` guarded no-op (Dominance/Dyn pipeline). Bible §6 + this §4 updated. |
