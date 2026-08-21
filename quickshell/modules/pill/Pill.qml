@@ -125,7 +125,7 @@ Item {
     readonly property real lookW: 392 * s
     readonly property real idlelockW: 392 * s
     readonly property real fontpickerW: 360 * s
-    readonly property real monitorvisibilityW: 392 * s
+    readonly property real monitorvisibilityW: settingsW
     readonly property real toastW: 342 * s
     readonly property real quickChooseW: 344 * s
     readonly property real quickChooseH: 76 * s
@@ -165,7 +165,7 @@ Item {
         look:       { size: () => Qt.size(lookW, look.implicitHeight + 29 * s), ame: look },
         idlelock:   { size: () => Qt.size(idlelockW, idlelock.implicitHeight + 29 * s), ame: idlelock },
         fontpicker: { size: () => Qt.size(fontpickerW, fontpicker.implicitHeight + 29 * s), ame: fontpicker },
-        monitorvisibility: { size: () => Qt.size(monitorvisibilityW, monitorvisibility.implicitHeight + 29 * s), ame: monitorvisibility }
+        monitorvisibility: { size: () => Qt.size(monitorvisibilityW, settings.implicitHeight + 29 * s), ame: monitorvisibility }
     })
 
     readonly property string mode: surfaceOpen && surfaces[surface] !== undefined ? surface

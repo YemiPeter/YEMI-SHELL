@@ -21,7 +21,7 @@ SettingsSurface {
     id: root
 
     backSurface: "settings"
-    implicitHeight: content.implicitHeight
+    clip: true
     rows: []
 
     MonitorVisibilityCore { id: core }
@@ -103,21 +103,19 @@ SettingsSurface {
         }
     }
 
-    component MonitorInfoRow: Rectangle {
+    component MonitorInfoRow: Item {
         required property var monitor
         required property int index
+        property bool isLast: false
         readonly property string screenName: monitor?.name ?? ""
         readonly property bool primary: screenName === core.primaryScreenName()
         width: parent.width
-        radius: Motion.rTile * root.s
-        color: primary ? Qt.alpha(Theme.vermLit, 0.14) : Theme.cardTop
-        border.width: 1
-        border.color: primary ? Theme.vermLit : Theme.hairSoft
-        implicitHeight: miRow.implicitHeight + 16 * root.s
+        height: miRow.implicitHeight + 18 * root.s
         Row {
             id: miRow
-            anchors.fill: parent
-            anchors.margins: 9 * root.s
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
             spacing: 10 * root.s
             Rectangle {
                 width: 28 * root.s
@@ -139,7 +137,7 @@ SettingsSurface {
                 Text {
                     width: parent.width
                     text: screenName || ("Monitor " + (index + 1))
-                    color: Theme.cream
+                    color: primary ? Theme.vermLit : Theme.cream
                     font.family: Theme.font
                     font.pixelSize: 12 * root.s
                     font.weight: Font.DemiBold
@@ -172,6 +170,13 @@ SettingsSurface {
                     onActivate: Config.setNestedValue("display.primaryMonitor", screenName)
                 }
             }
+        }
+        Rectangle {
+            anchors.bottom: parent.bottom
+            width: parent.width
+            height: 1
+            color: Theme.hairSoft
+            visible: !isLast
         }
     }
 
@@ -283,18 +288,24 @@ SettingsSurface {
         }
     }
 
-    Column {
-        id: content
-        anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.right: parent.right
-        spacing: 0
+    Flickable {
+        id: flick
+        anchors.fill: parent
+        contentWidth: width
+        contentHeight: content.implicitHeight
+        clip: true
+        boundsBehavior: Flickable.StopAtBounds
 
-        SettingsHeader {
-            s: root.s
-            title: "MONITORS"
-            showBack: true
-        }
+        Column {
+            id: content
+            width: flick.width
+            spacing: 0
+
+            SettingsHeader {
+                s: root.s
+                title: "MONITORS"
+                showBack: true
+            }
 
         Item { width: 1; height: 12 * root.s }
 
@@ -305,67 +316,62 @@ SettingsSurface {
             anchors.rightMargin: 12 * root.s
             spacing: 12 * root.s
 
+            InfoBanner {
+                iconName: "monitor"
+                message: "This page controls where Yemishell surfaces appear. It does not change monitor resolution, scale, rotation, or physical output layout."
+            }
+
+            Item { width: 1; height: 8 * root.s }
+
+            Item {
+                width: parent.width
+                height: 44 * root.s
+                Text {
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "Primary monitor"
+                    color: Theme.cream
+                    font.family: Theme.font
+                    font.pixelSize: 12 * root.s
+                    font.weight: Font.DemiBold
+                }
+                SettingsSeg {
+                    id: pmSeg
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    s: root.s
+                    options: core.monitorOptions().map(function (o) { return { label: o.displayName, value: o.value }; })
+                    value: Config.options?.display?.primaryMonitor ?? ""
+                    onPicked: function (v) { Config.setNestedValue("display.primaryMonitor", v); }
+                }
+            }
+
             Rectangle {
                 width: parent.width
-                radius: Motion.rTile * root.s
-                color: Theme.cardTop
-                border.width: 1
-                border.color: Theme.hairSoft
-                implicitHeight: cv1.implicitHeight + 22 * root.s
-                Column {
-                    id: cv1
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.top: parent.top
-                    anchors.leftMargin: 13 * root.s
-                    anchors.rightMargin: 13 * root.s
-                    anchors.topMargin: 11 * root.s
-                    spacing: 9 * root.s
+                height: 1
+                color: Theme.hairSoft
+            }
 
-                    InfoBanner {
-                        iconName: "monitor"
-                        message: "This page controls where Yemishell surfaces appear. It does not change monitor resolution, scale, rotation, or physical output layout."
-                    }
+            Item { width: 1; height: 12 * root.s }
 
-                    Row {
-                        width: parent.width
-                        spacing: 12 * root.s
-                        Text {
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: 110 * root.s
-                            text: "Primary monitor"
-                            color: Theme.cream
-                            font.family: Theme.font
-                            font.pixelSize: 12 * root.s
-                            font.weight: Font.DemiBold
-                        }
-                        SettingsSeg {
-                            anchors.verticalCenter: parent.verticalCenter
-                            s: root.s
-                            options: core.monitorOptions().map(function (o) { return { label: o.displayName, value: o.value }; })
-                            value: Config.options?.display?.primaryMonitor ?? ""
-                            onPicked: function (v) { Config.setNestedValue("display.primaryMonitor", v); }
-                        }
-                    }
+            Text {
+                width: parent.width
+                text: "CONNECTED OUTPUTS"
+                color: Theme.subtle
+                font.family: Theme.font
+                font.pixelSize: 9.5 * root.s
+                font.weight: Font.Bold
+                font.capitalization: Font.AllUppercase
+                font.letterSpacing: 1.2 * root.s
+            }
 
-                    Text {
-                        width: parent.width
-                        text: "CONNECTED OUTPUTS"
-                        color: Theme.subtle
-                        font.family: Theme.font
-                        font.pixelSize: 9.5 * root.s
-                        font.weight: Font.Bold
-                        font.capitalization: Font.AllUppercase
-                        font.letterSpacing: 1.2 * root.s
-                    }
-
-                    Repeater {
-                        model: Quickshell.screens
-                        MonitorInfoRow {
-                            required property var modelData
-                            monitor: modelData
-                        }
-                    }
+            Repeater {
+                id: screenRep
+                model: Quickshell.screens
+                MonitorInfoRow {
+                    required property var modelData
+                    monitor: modelData
+                    isLast: index === screenRep.count - 1
                 }
             }
 
@@ -417,6 +423,7 @@ SettingsSurface {
             }
 
             Item { width: 1; height: 4 * root.s }
+        }
         }
     }
 }

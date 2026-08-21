@@ -15,4 +15,11 @@
 // keybind mismatch between the two panel families.
 // In waffle mode: opens/toggles the start menu (GlobalStates.searchOpen).
 // The `search` IpcHandler is registered by WaffleStartMenu.qml.
-Mod+Space repeat=false { spawn "qs" "ipc" "call" "search" "toggle"; }                          // Start menu / search
+binds {
+    Mod+Space repeat=false { spawn "qs" "ipc" "call" "search" "toggle"; }                          // Start menu / search
+
+    // Toggle between the Pill and Waffle panel families.
+    // The `desktop` IpcHandler is defined in shell.qml (target "desktop",
+    // function toggle()) and flips panelFamily pill <-> waffle.
+    Mod+P repeat=false { spawn "qs" "ipc" "call" "desktop" "toggle"; }                            // Toggle Pill / Waffle
+}
