@@ -15,6 +15,12 @@
 // keybind mismatch between the two panel families.
 // In waffle mode: opens/toggles the start menu (GlobalStates.searchOpen).
 // The `search` IpcHandler is registered by WaffleStartMenu.qml.
+//
+// SECTION 2 — ALT+SWITCHER (Windows-style Alt+Tab)
+// Overrides pill's Alt+Tab (70-binds.kdl) while waffle is the active family.
+// `waffleAltSwitcher` IpcHandler is registered by WaffleAltSwitcher.qml (loaded
+// only under panelFamily === "waffle"). Under pill this target is absent, so
+// keep pill's Alt+Tab by NOT extending Shift here unless you want it overridden.
 binds {
     Mod+Space repeat=false { spawn "qs" "ipc" "call" "search" "toggle"; }                          // Start menu / search
 
@@ -22,4 +28,7 @@ binds {
     // The `desktop` IpcHandler is defined in shell.qml (target "desktop",
     // function toggle()) and flips panelFamily pill <-> waffle.
     Mod+P repeat=false { spawn "qs" "ipc" "call" "desktop" "toggle"; }                            // Toggle Pill / Waffle
+
+    Alt+Tab { spawn "qs" "ipc" "call" "waffleAltSwitcher" "next"; }                                 // Alt+Tab switcher (next) — repeat=true so holding keeps it open
+    Alt+Shift+Tab { spawn "qs" "ipc" "call" "waffleAltSwitcher" "previous"; }                       // Alt+Shift+Tab (previous)
 }

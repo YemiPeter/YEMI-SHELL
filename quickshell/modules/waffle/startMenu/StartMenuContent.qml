@@ -16,6 +16,7 @@ WBarAttachedPanelContent {
     property bool searching: false
     property string searchText: LauncherSearch.query
     property bool showAllApps: false
+    readonly property real textScale: Config.options?.waffles?.startMenu?.scale ?? 1.0
 
     StartMenuContext { id: context }
 
@@ -66,7 +67,14 @@ WBarAttachedPanelContent {
         screenY: root.panelScreenY + root.visualMargin
         screenWidth: root._screenW
         screenHeight: root._screenH
-        contentItem: WPanelPageColumn {
+        contentItem: Item {
+            id: scaleWrapper
+            scale: root.textScale
+            transformOrigin: Item.TopLeft
+            implicitWidth: col.implicitWidth * root.textScale
+            implicitHeight: col.implicitHeight * root.textScale
+            WPanelPageColumn {
+                id: col
             SearchBar {
                 id: searchBar
                 Layout.fillWidth: true
@@ -109,6 +117,7 @@ WBarAttachedPanelContent {
                     sourceComponent: AllAppsContent { onBack: root.showAllApps = false }
                 }
             }
+        }
         }
     }
 

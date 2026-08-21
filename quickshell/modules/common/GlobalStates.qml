@@ -98,6 +98,7 @@ Singleton {
     property bool waffleWidgetsOpen: false
     property bool waffleClipboardOpen: false
     property bool waffleTaskViewOpen: false
+    property bool waffleAltSwitcherOpen: false
 
     // Panel family transition animation state
     property bool familyTransitionActive: false

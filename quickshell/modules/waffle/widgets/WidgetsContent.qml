@@ -12,6 +12,7 @@ import qs.modules.common
 import qs.modules.common.functions
 import qs.modules.common.widgets
 import qs.modules.waffle.looks
+import qs.config
 
 WBarAttachedPanelContent {
     id: root
@@ -231,7 +232,7 @@ WBarAttachedPanelContent {
                                 font.weight: Font.DemiBold
                             }
                             WText {
-                                text: Weather.showVisibleCity ? Weather.visibleCity : Translation.tr("Weather")
+                                text: (Config.options?.waffles?.widgetsPanel?.weatherHideLocation ?? false) ? Translation.tr("Weather") : (Weather.showVisibleCity ? Weather.visibleCity : Translation.tr("Weather"))
                                 color: Looks.colors.fg1
                             }
                         }

@@ -7,6 +7,7 @@ import "modules/waffle/bar" as WaffleBarModule
 import "modules/waffle/startMenu" as WaffleStartMenuModule
 import "modules/waffle/widgets" as WaffleWidgetsModule
 import "modules/waffle/taskview" as WaffleTaskViewModule
+import "modules/waffle/altSwitcher" as WaffleAltSwitcherModule
 
 // Waffle family stack — parsed ONLY when panelFamily === "waffle" because
 // shell.qml loads this file via `LazyLoader { source: "ShellWafflePanels.qml" }`
@@ -59,4 +60,8 @@ Item {
     // Waffle Task View (CENTER TaskViewButton → GlobalStates.waffleTaskViewOpen;
     // self-managed PanelWindow with live window previews via WindowPreviewService).
     WaffleTaskViewModule.WaffleTaskView {}
+
+    // Waffle Alt+Tab Switcher (self-managed overlay PanelWindows; opened via the
+    // "waffleAltSwitcher" IPC target — wire Alt+Tab in the compositor keybinds).
+    WaffleAltSwitcherModule.WaffleAltSwitcher {}
 }

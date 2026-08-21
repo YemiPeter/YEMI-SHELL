@@ -79,3 +79,22 @@ surface in Pill, confirm Waffle reflects it (same session).
 - Pill `screenList` path: none exists today → Pill face has no family card.
 - Does Pill want per-monitor filtering of its own surfaces, or only the shared
   ones? (Decide in Phase 4.)
+
+## 🔴 Follow-up: Wire actual display components (post-Phase 6)
+The Brain + Face UI is complete, but the **actual surface renderers** don't yet consume the per-monitor lists:
+
+| Component | Config Path | Status |
+|-----------|-------------|--------|
+| `modules/pill/Osd.qml` | `osd.screenList` | ❌ No filtering — shows on all monitors |
+| `modules/pill/Toast.qml` | `notifications.screenList` | ❌ No filtering — shows on all monitors |
+| Waffle notification popups | `notifications.screenList` | ❌ Not implemented |
+| Waffle OSD | `osd.screenList` | ❌ Not implemented |
+
+**Fix pattern** (for each renderer):
+```qml
+MonitorVisibilityCore { id: core }
+// In flash()/show logic:
+if (!core.surfaceEnabled("osd.screenList", screenName)) return;
+```
+
+Deferred until feature-rich OSD/notification popups are built.
