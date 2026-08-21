@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 import qs.services
 import qs.modules.common
 import qs.modules.common.functions
@@ -15,7 +16,20 @@ WSettingsPage {
     pageTitle: Translation.tr("About")
     pageIcon: "info"
     pageDescription: Translation.tr("Project information and links")
-    
+
+    readonly property string repoDir: Quickshell.env("HOME") + "/YEMI-SHELL"
+    property string version: ""
+
+    Process {
+        id: verProc
+        command: ["sh", "-c", "git -C \"" + root.repoDir + "\" describe --tags --always 2>/dev/null || git -C \"" + root.repoDir + "\" log -1 --format='%h %cs' 2>/dev/null || echo ''"]
+        stdout: StdioCollector {
+            onStreamFinished: root.version = (text ?? "").trim()
+        }
+    }
+
+    Component.onCompleted: verProc.running = true
+
     // Hero card — project identity
     WSettingsCard {
         RowLayout {
@@ -34,7 +48,7 @@ WSettingsPage {
                 
                 WText {
                     anchors.centerIn: parent
-                    text: "iN"
+                    text: "YS"
                     font.pixelSize: 30
                     font.weight: Font.Bold
                     color: Looks.colors.accentFg
@@ -46,13 +60,13 @@ WSettingsPage {
                 spacing: 4
                 
                 WText {
-                    text: "iNiR"
+                    text: "YemiShell"
                     font.pixelSize: Looks.font.pixelSize.xlarger * 1.4
                     font.weight: Looks.font.weight.stronger
                 }
                 
                 WText {
-                    text: Translation.tr("Quickshell desktop shell for Niri")
+                    text: Translation.tr("Yemishell desktop environment")
                     font.pixelSize: Looks.font.pixelSize.normal
                     color: Looks.colors.subfg
                 }
@@ -71,7 +85,7 @@ WSettingsPage {
                         WText {
                             id: versionLabel
                             anchors.centerIn: parent
-                            text: "v" + (ShellUpdates.localVersion || "?")
+                            text: root.version.length ? (root.version[0] === "v" || root.version[0] === "V" ? root.version : "v" + root.version.replace(" ", " · ")) : "?"
                             font.pixelSize: Looks.font.pixelSize.small
                             font.weight: Looks.font.weight.strong
                             color: Looks.colors.accentFg
@@ -88,7 +102,7 @@ WSettingsPage {
                         WText {
                             id: compLabel
                             anchors.centerIn: parent
-                            text: CompositorService.isNiri ? "Niri" : (CompositorService.isHyprland ? "Hyprland" : "Unknown")
+                            text: "Niri · Hyprland"
                             font.pixelSize: Looks.font.pixelSize.small
                             color: Looks.colors.subfg
                         }
@@ -121,26 +135,18 @@ WSettingsPage {
         
         WSettingsButton {
             label: Translation.tr("GitHub Repository")
-            description: "github.com/snowarch/inir"
+            description: "github.com/YemiPeter/YEMI-SHELL"
             icon: "globe-search"
             buttonText: Translation.tr("Open")
-            onButtonClicked: Qt.openUrlExternally("https://github.com/snowarch/inir")
+            onButtonClicked: Qt.openUrlExternally("https://github.com/YemiPeter/YEMI-SHELL")
         }
 
         WSettingsButton {
             label: Translation.tr("Documentation")
-            description: "snowarch.github.io/iNiR/docs"
+            description: "github.com/YemiPeter/YEMI-SHELL"
             icon: "library"
             buttonText: Translation.tr("Open")
-            onButtonClicked: Qt.openUrlExternally("https://snowarch.github.io/iNiR/docs/")
-        }
-        
-        WSettingsButton {
-            label: Translation.tr("Original Project (end-4)")
-            description: "github.com/end-4/dots-hyprland"
-            icon: "open"
-            buttonText: Translation.tr("Open")
-            onButtonClicked: Qt.openUrlExternally("https://github.com/end-4/dots-hyprland")
+            onButtonClicked: Qt.openUrlExternally("https://github.com/YemiPeter/YEMI-SHELL")
         }
         
         WSettingsButton {
@@ -157,30 +163,47 @@ WSettingsPage {
         title: Translation.tr("Credits")
         icon: "people"
         
-        ColumnLayout {
-            Layout.fillWidth: true
-            Layout.leftMargin: 16
-            Layout.rightMargin: 16
-            Layout.bottomMargin: 6
-            spacing: 12
-            
-            WText {
-                Layout.fillWidth: true
-                text: Translation.tr("Based on illogical-impulse by end-4, adapted for the Niri compositor.")
-                wrapMode: Text.WordWrap
-                font.pixelSize: Looks.font.pixelSize.normal
-                color: Looks.colors.subfg
-                lineHeight: 1.3
-            }
-            
-            WText {
-                Layout.fillWidth: true
-                text: Translation.tr("Special thanks to the Quickshell and Niri communities.")
-                wrapMode: Text.WordWrap
-                font.pixelSize: Looks.font.pixelSize.normal
-                color: Looks.colors.subfg
-                lineHeight: 1.3
-            }
+        WSettingsButton {
+            label: Translation.tr("Ricelin")
+            description: "github.com/Gakuseei/Ricelin"
+            icon: "open"
+            buttonText: Translation.tr("Open")
+            onButtonClicked: Qt.openUrlExternally("https://github.com/Gakuseei/Ricelin")
+        }
+        WSettingsButton {
+            label: Translation.tr("iNiR (Yemi's Niri rice)")
+            description: "github.com/YemiPeter/iNiR"
+            icon: "open"
+            buttonText: Translation.tr("Open")
+            onButtonClicked: Qt.openUrlExternally("https://github.com/YemiPeter/iNiR")
+        }
+        WSettingsButton {
+            label: Translation.tr("qylock")
+            description: "github.com/Darkkal44/qylock"
+            icon: "open"
+            buttonText: Translation.tr("Open")
+            onButtonClicked: Qt.openUrlExternally("https://github.com/Darkkal44/qylock")
+        }
+        WSettingsButton {
+            label: Translation.tr("skwd-wall")
+            description: "github.com/liixini/skwd-wall"
+            icon: "open"
+            buttonText: Translation.tr("Open")
+            onButtonClicked: Qt.openUrlExternally("https://github.com/liixini/skwd-wall")
+        }
+        WSettingsButton {
+            label: Translation.tr("quickshell (YemiPeter)")
+            description: "github.com/YemiPeter/quickshell"
+            icon: "open"
+            buttonText: Translation.tr("Open")
+            onButtonClicked: Qt.openUrlExternally("https://github.com/YemiPeter/quickshell")
+        }
+        WSettingsButton {
+            label: Translation.tr("quickshell (tripathiji)")
+            description: "github.com/tripathiji1312/quickshell"
+            icon: "open"
+            buttonText: Translation.tr("Open")
+            onButtonClicked: Qt.openUrlExternally("https://github.com/tripathiji1312/quickshell")
         }
     }
     
@@ -191,19 +214,19 @@ WSettingsPage {
         
         WSettingsRow {
             label: Translation.tr("Config path")
-            description: FileUtils.trimFileProtocol(`${Directories.config}/illogical-impulse/`)
+            description: FileUtils.trimFileProtocol(Directories.config)
             icon: "folder"
         }
         
         WSettingsRow {
             label: Translation.tr("Shell path")
-            description: FileUtils.trimFileProtocol(`${Directories.config}/quickshell/inir/`)
+            description: FileUtils.trimFileProtocol(root.repoDir)
             icon: "folder"
         }
         
         WSettingsRow {
             label: Translation.tr("Panel family")
-            description: Config.options?.panelFamily === "waffle" ? "Waffle (Windows 11)" : "ii (Material)"
+            description: Config.options?.panelFamily === "waffle" ? "Waffle (Windows 11)" : "Pill (impulse)"
             icon: "app-generic"
         }
     }

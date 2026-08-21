@@ -13,7 +13,8 @@ import "Singletons"
 SettingsSurface {
     id: root
 
-    implicitHeight: content.implicitHeight
+    readonly property real capH: 500 * root.s
+    implicitHeight: Math.min(content.implicitHeight, capH)
 
     rows: [
         { item: appearanceRow, kind: "nav", surface: "appearance" },
@@ -23,15 +24,22 @@ SettingsSurface {
         { item: inputRow, kind: "nav", surface: "input" },
         { item: keybindsRow, kind: "nav", surface: "keybinds" },
         { item: idleRow, kind: "nav", surface: "idlelock" },
-        { item: updatesRow, kind: "nav", surface: "updates" }
+        { item: updatesRow, kind: "nav", surface: "updates" },
+        { item: aboutRow, kind: "nav", surface: "about" }
     ]
 
-    Column {
-        id: content
-        anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.right: parent.right
-        spacing: 0
+    Flickable {
+        anchors.fill: parent
+        contentWidth: width
+        contentHeight: content.implicitHeight
+        clip: true
+
+        Column {
+            id: content
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+            spacing: 0
 
         SettingsHeader {
             s: root.s
@@ -190,7 +198,6 @@ SettingsSurface {
             icon: "download"
             name: "Updates"
             sub: "Version and check for updates"
-            last: true
 
             GlyphIcon {
                 width: 16 * root.s
@@ -200,5 +207,24 @@ SettingsSurface {
                 stroke: 2.2
             }
         }
+
+        SettingsRow {
+            id: aboutRow
+            surface: root
+            captionOnFocus: true
+            icon: "info"
+            name: "About"
+            sub: "Version, links, credits"
+            last: true
+
+            GlyphIcon {
+                width: 16 * root.s
+                height: 16 * root.s
+                name: "chevron-right"
+                color: root.focusRowItem === aboutRow ? Theme.cream : Theme.iconDim
+                stroke: 2.2
+            }
+        }
+    }
     }
 }
