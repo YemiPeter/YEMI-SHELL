@@ -63,46 +63,6 @@ SettingsSurface {
         }
     }
 
-    component InfoBanner: Rectangle {
-        property string iconName: "monitor"
-        property string message: ""
-        width: parent.width
-        radius: Motion.rTile * root.s
-        color: Theme.cardTop
-        border.width: 1
-        border.color: Theme.hairSoft
-        implicitHeight: ibRow.implicitHeight + 18 * root.s
-        Row {
-            id: ibRow
-            anchors.fill: parent
-            anchors.margins: 11 * root.s
-            spacing: 10 * root.s
-            Rectangle {
-                width: 26 * root.s
-                height: 26 * root.s
-                radius: 7 * root.s
-                color: Qt.alpha(Theme.vermLit, 0.12)
-                GlyphIcon {
-                    anchors.centerIn: parent
-                    width: 14 * root.s
-                    height: 14 * root.s
-                    name: iconName
-                    color: Theme.vermLit
-                    stroke: 1.8
-                }
-            }
-            Text {
-                width: parent.width - 36 * root.s
-                text: message
-                color: Theme.faint
-                font.family: Theme.font
-                font.pixelSize: 10.5 * root.s
-                wrapMode: Text.WordWrap
-                lineHeight: 1.25
-            }
-        }
-    }
-
     component MonitorInfoRow: Item {
         required property var monitor
         required property int index
@@ -316,13 +276,6 @@ SettingsSurface {
             anchors.rightMargin: 12 * root.s
             spacing: 12 * root.s
 
-            InfoBanner {
-                iconName: "monitor"
-                message: "This page controls where Yemishell surfaces appear. It does not change monitor resolution, scale, rotation, or physical output layout."
-            }
-
-            Item { width: 1; height: 8 * root.s }
-
             Item {
                 width: parent.width
                 height: 44 * root.s
@@ -391,11 +344,6 @@ SettingsSurface {
                     anchors.rightMargin: 13 * root.s
                     anchors.topMargin: 11 * root.s
                     spacing: 10 * root.s
-
-                    InfoBanner {
-                        iconName: "sparkles"
-                        message: "These surfaces are shared by both families, so the same monitor choices apply in Material and Waffle."
-                    }
 
                     Row {
                         width: parent.width
