@@ -19,6 +19,7 @@ SettingsSurface {
         { item: appearanceRow, kind: "nav", surface: "appearance" },
         { item: lookRow, kind: "nav", surface: "look" },
         { item: displayRow, kind: "nav", surface: "display" },
+        { item: monitorRow, kind: "nav", surface: "monitorvisibility" },
         { item: inputRow, kind: "nav", surface: "input" },
         { item: keybindsRow, kind: "nav", surface: "keybinds" },
         { item: idleRow, kind: "nav", surface: "idlelock" },
@@ -97,6 +98,23 @@ SettingsSurface {
                 height: 16 * root.s
                 name: "chevron-right"
                 color: root.focusRowItem === displayRow ? Theme.cream : Theme.iconDim
+                stroke: 2.2
+            }
+        }
+
+        SettingsRow {
+            id: monitorRow
+            surface: root
+            captionOnFocus: true
+            icon: "monitor"
+            name: "Monitor visibility"
+            sub: "Where panels and surfaces appear"
+
+            GlyphIcon {
+                width: 16 * root.s
+                height: 16 * root.s
+                name: "chevron-right"
+                color: root.focusRowItem === monitorRow ? Theme.cream : Theme.iconDim
                 stroke: 2.2
             }
         }

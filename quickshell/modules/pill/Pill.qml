@@ -54,6 +54,7 @@ Item {
     readonly property bool lookOpen: surface === "look"
     readonly property bool idlelockOpen: surface === "idlelock"
     readonly property bool fontpickerOpen: surface === "fontpicker"
+    readonly property bool monitorvisibilityOpen: surface === "monitorvisibility"
     readonly property bool settingsLike: settingsOpen || appearanceOpen || updatesOpen
     readonly property bool hasMedia: Mpris.players.values.length > 0
 
@@ -124,6 +125,7 @@ Item {
     readonly property real lookW: 392 * s
     readonly property real idlelockW: 392 * s
     readonly property real fontpickerW: 360 * s
+    readonly property real monitorvisibilityW: 392 * s
     readonly property real toastW: 342 * s
     readonly property real quickChooseW: 344 * s
     readonly property real quickChooseH: 76 * s
@@ -162,7 +164,8 @@ Item {
         input:      { size: () => Qt.size(inputW, input.implicitHeight + 29 * s), ame: input },
         look:       { size: () => Qt.size(lookW, look.implicitHeight + 29 * s), ame: look },
         idlelock:   { size: () => Qt.size(idlelockW, idlelock.implicitHeight + 29 * s), ame: idlelock },
-        fontpicker: { size: () => Qt.size(fontpickerW, fontpicker.implicitHeight + 29 * s), ame: fontpicker }
+        fontpicker: { size: () => Qt.size(fontpickerW, fontpicker.implicitHeight + 29 * s), ame: fontpicker },
+        monitorvisibility: { size: () => Qt.size(monitorvisibilityW, monitorvisibility.implicitHeight + 29 * s), ame: monitorvisibility }
     })
 
     readonly property string mode: surfaceOpen && surfaces[surface] !== undefined ? surface
@@ -324,7 +327,7 @@ Item {
             pill.requestSurface("appearance");
             return;
         }
-        if (pill.appearanceOpen || pill.updatesOpen || pill.displayOpen || pill.inputOpen || pill.lookOpen || pill.idlelockOpen) {
+        if (pill.appearanceOpen || pill.updatesOpen || pill.displayOpen || pill.inputOpen || pill.lookOpen || pill.idlelockOpen || pill.monitorvisibilityOpen) {
             pill.requestSurface("settings");
             return;
         }
@@ -1345,6 +1348,15 @@ Item {
         id: fontpicker
         s: pill.s
         open: pill.fontpickerOpen
+        morphCloseness: pill.morphCloseness
+        onRequestClose: pill.requestClose()
+        onRequestSurface: (name) => pill.requestSurface(name)
+    }
+
+    MonitorVisibility {
+        id: monitorvisibility
+        s: pill.s
+        open: pill.monitorvisibilityOpen
         morphCloseness: pill.morphCloseness
         onRequestClose: pill.requestClose()
         onRequestSurface: (name) => pill.requestSurface(name)
