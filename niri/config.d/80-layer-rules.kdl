@@ -25,6 +25,32 @@ layer-rule {
     opacity 1.0
 }
 
+// Waffle family overlay surfaces — keep them uncaptured and above windows.
+// These match iNiR's waffle namespaces. (The ii/iiBackdrop rule above still
+// governs the pill family's backdrop; the two families never coexist.)
+layer-rule {
+    match namespace="quickshell:wOnScreenDisplay"
+    block-out-from "screencast"
+}
+layer-rule {
+    match namespace="quickshell:wNotificationPopup"
+    block-out-from "screencast"
+}
+layer-rule {
+    match namespace="quickshell:wClipboard"
+    block-out-from "screencast"
+}
+layer-rule {
+    match namespace="quickshell:wSession"
+    block-out-from "screencast"
+}
+
+// Real lock screen (modules/lock/Lock.qml via WlSessionLock).
+layer-rule {
+    match namespace="quickshell:lock"
+    block-out-from "screencast"
+}
+
 // ── Examples ────────────────────────────────────────────────────────────────
 // Make a specific layer surface semi-transparent:
 // layer-rule {

@@ -18,10 +18,12 @@ spawn-at-startup "bash" "-c" "systemctl --user import-environment XDG_MENU_PREFI
 spawn-at-startup "bash" "-c" "wl-paste --type text --watch cliphist store &"
 spawn-at-startup "bash" "-c" "wl-paste --type image --watch cliphist store &"
 
-// Polkit authentication agent — needed for GUI sudo prompts (software install,
-// disk mount, etc.). iNiR's setup auto-detects which agent is installed and
-// patches this line accordingly (KDE, GNOME, MATE, LXQt, or lxpolkit).
-spawn-at-startup "/usr/lib/mate-polkit/polkit-mate-authentication-agent-1"
+// Polkit authentication agent — handled by the shell's own PolkitService
+// (services/PolkitService.qml), which best-effort registers Quickshell's agent
+// and backs off if another agent (mate-polkit, polkit-kde, etc.) is already
+// running. Launching mate-polkit here too creates a duplicate authority, so it
+// is disabled in favour of the shell-managed agent.
+// spawn-at-startup "/usr/lib/mate-polkit/polkit-mate-authentication-agent-1"
 
 // ── YemiShell (quickshell) ─────────────────────────────────────────────────
 // Started here via niri's spawn-at-startup. (The old iNiR setup referenced an

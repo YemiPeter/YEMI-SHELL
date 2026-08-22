@@ -229,6 +229,25 @@ ShellRoot {
       }
     }
 
+    // === PanelFamily IPC Handler ===
+    // iNiR-parity target so `qs ipc call panelFamily cycle` / `set <family>`
+    // works (wired from 71-binds-waffle.kdl as Mod+Shift+W). Kept additive
+    // alongside the `desktop` target above; both flip panelFamily pill<->waffle.
+    IpcHandler {
+      target: "panelFamily"
+
+      function cycle(): void {
+        root.setPanelFamily(
+          Config.options.panelFamily === "waffle" ? "pill" : "waffle");
+      }
+
+      function set(family: string): void {
+        if (family === "pill" || family === "waffle")
+          root.setPanelFamily(family);
+      }
+    }
+
+
     // === App IPC Handler ===
     // Family-aware launcher so one keybind works for both panel families:
     // pill opens the pill launcher, waffle opens the waffle start menu (search).
@@ -304,6 +323,15 @@ ShellRoot {
     property real savedMusicX: 100
     property real savedMusicY: 50
     function toggleMusic() { musicVisible = !musicVisible }
+
+    // Set the active panel family (pill | waffle). Persisted via Config so the
+    // choice survives reloads. The LazyLoaders in this file mount the matching
+    // Shell*Panels.qml the next time the shell re-evaluates Config.ready.
+    function setPanelFamily(family: string): void {
+        if (family !== "pill" && family !== "waffle")
+            return;
+        Config.setNestedValue("panelFamily", family);
+    }
     property string wallSearchTerm: ""
     property var wallpaperList: []
     property var filteredWallpapers: {

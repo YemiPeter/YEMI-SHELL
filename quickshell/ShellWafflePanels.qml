@@ -8,6 +8,10 @@ import "modules/waffle/startMenu" as WaffleStartMenuModule
 import "modules/waffle/widgets" as WaffleWidgetsModule
 import "modules/waffle/taskview" as WaffleTaskViewModule
 import "modules/waffle/altSwitcher" as WaffleAltSwitcherModule
+import "modules/waffle/actionCenter" as WaffleActionCenterModule
+import "modules/waffle/notificationCenter" as WaffleNotificationCenterModule
+import "modules/waffle/clipboard" as WaffleClipboardModule
+import "modules/lock" as LockModule
 
 // Waffle family stack — parsed ONLY when panelFamily === "waffle" because
 // shell.qml loads this file via `LazyLoader { source: "ShellWafflePanels.qml" }`
@@ -61,7 +65,30 @@ Item {
     // self-managed PanelWindow with live window previews via WindowPreviewService).
     WaffleTaskViewModule.WaffleTaskView {}
 
-    // Waffle Alt+Tab Switcher (self-managed overlay PanelWindows; opened via the
-    // "waffleAltSwitcher" IPC target — wire Alt+Tab in the compositor keybinds).
-    WaffleAltSwitcherModule.WaffleAltSwitcher {}
+    // Waffle Alt+Tab Switcher - handles the "waffleAltSwitcher" IPC target only
+    // when panelFamily === "waffle".
+    Loader {
+        active: Config.ready && Config.options.panelFamily === "waffle"
+        sourceComponent: WaffleAltSwitcherModule.WaffleAltSwitcher {}
+    }
+
+    // Waffle Action Center (SystemButton → GlobalStates.waffleActionCenterOpen;
+    // self-managed PanelWindow + click-outside).
+    WaffleActionCenterModule.WaffleActionCenter {}
+
+    // Waffle Notification Center (TimeButton →
+    // GlobalStates.waffleNotificationCenterOpen; self-managed PanelWindow).
+    WaffleNotificationCenterModule.WaffleNotificationCenter {}
+
+    // Waffle Clipboard - handles the "clipboard" IPC target only when
+    // panelFamily === "waffle" (so it does not clash with the pill clipboard).
+    Loader {
+        active: Config.ready && Config.options.panelFamily === "waffle"
+        sourceComponent: WaffleClipboardModule.WaffleClipboard {}
+    }
+
+    // Waffle Lock - WlSessionLock host that picks the waffle (or, on Hyprland,
+    // Material) lock surface. Registers the global "lock" IPC target and is the
+    // shell-side real lock screen for both families.
+    LockModule.Lock {}
 }

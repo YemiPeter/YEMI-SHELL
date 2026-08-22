@@ -4,3 +4,9 @@ submodule looks
 submodule backdrop
 submodule background
 submodule startMenu
+submodule actionCenter
+submodule notificationCenter
+submodule widgets
+submodule taskview
+submodule altSwitcher
+submodule settings

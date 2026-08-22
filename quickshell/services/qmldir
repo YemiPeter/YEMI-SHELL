@@ -44,3 +44,8 @@ singleton MaterialThemeLoader 1.0 MaterialThemeLoader.qml
 singleton ShellUpdates 1.0 ShellUpdates.qml
 singleton Idle 1.0 Idle.qml
 singleton YtMusic 1.0 YtMusic.qml
+singleton Events 1.0 Events.qml
+singleton CalendarSync 1.0 CalendarSync.qml
+singleton MinimizedWindows 1.0 MinimizedWindows.qml
+singleton PolkitService 1.0 PolkitService.qml
+singleton HyprlandData 1.0 HyprlandData.qml

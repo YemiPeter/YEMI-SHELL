@@ -4,3 +4,6 @@ singleton Directories 1.0 Directories.qml
 singleton FileUtils 1.0 FileUtils.qml
 singleton GlobalStates 1.0 GlobalStates.qml
 singleton Translation 1.0 Translation.qml
+singleton Images 1.0 Images.qml
+singleton ThemePresets 1.0 ThemePresets.qml
+singleton Persistent 1.0 Persistent.qml

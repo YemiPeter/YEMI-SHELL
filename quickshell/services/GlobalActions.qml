@@ -719,7 +719,7 @@ Singleton {
             category: "settings",
             keywords: ["family", "panel", "ii", "material", "layout"],
             execute: () => {
-                Config.setNestedValue("panelFamily", "ii")
+                Config.setNestedValue("panelFamily", "pill")
             }
         },
         {

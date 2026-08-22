@@ -32,4 +32,39 @@ binds {
 
     Alt+Tab { spawn "qs" "ipc" "call" "waffleAltSwitcher" "next"; }                                 // Alt+Tab switcher (next) — repeat=true so holding keeps it open
     Alt+Shift+Tab { spawn "qs" "ipc" "call" "waffleAltSwitcher" "previous"; }                       // Alt+Shift+Tab (previous)
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // SECTION 3 — WAFFLE PANEL IPC TARGETS
+    // Each target is registered by its waffle component (loaded only under
+    // panelFamily === "waffle"), so these binds are inert while pill is active.
+    // ─────────────────────────────────────────────────────────────────────────
+
+    // Taskbar cluster (wired in waffle mode; the same keys already drive pill
+    // surfaces under 70-binds.kdl, so muscle memory carries across families).
+    Mod+A          { spawn "qs" "ipc" "call" "wactionCenter" "toggle"; }           // Action Center (SystemButton)
+    Mod+N          { spawn "qs" "ipc" "call" "wnotificationCenter" "toggle"; }     // Notification Center (TimeButton)
+    Mod+Z          { spawn "qs" "ipc" "call" "wwidgets" "toggle"; }                // Widgets (Weather/Timer buttons)
+    Mod+Tab        { spawn "qs" "ipc" "call" "taskview" "toggle"; }               // Task View (TaskViewButton)
+    Mod+B          { spawn "qs" "ipc" "call" "wbar" "toggle"; }                   // Bar show/hide
+
+    // Clipboard picker (also Mod+C like iNiR; overrides pill's Mod+C clipboard
+    // bind while waffle is active since 71 is sourced after 70).
+    Mod+C          { spawn "qs" "ipc" "call" "clipboard" "toggle"; }              // Clipboard (waffle)
+
+    // Session / power screen.
+    Mod+Shift+Q    { spawn "qs" "ipc" "call" "session" "toggle"; }                // Session screen
+
+    // Lock screen. allow-when-locked lets the key work on the lock surface too.
+    Mod+Alt+L      allow-when-locked=true  { spawn "qs" "ipc" "call" "lock" "activate"; }
+    Mod+Ctrl+Shift+L allow-when-locked=true { spawn "qs" "ipc" "call" "lock" "focus"; }
+
+    // Region / screenshot toolbar (waffle variant).
+    Mod+Shift+S    { spawn "qs" "ipc" "call" "region" "screenshot"; }             // Screenshot
+    Mod+Shift+X    { spawn "qs" "ipc" "call" "region" "ocr"; }                    // OCR
+    Mod+Shift+A    { spawn "qs" "ipc" "call" "region" "search"; }                 // Visual search
+
+    // Cycle panel family (waffle <-> pill). Added by the `panelFamily` IpcHandler
+    // in shell.qml (GATE-2, Phase F). If that target is not yet present this bind
+    // is a no-op until the handler lands.
+    Mod+Shift+W    { spawn "qs" "ipc" "call" "panelFamily" "cycle"; }             // Cycle Pill / Waffle
 }
