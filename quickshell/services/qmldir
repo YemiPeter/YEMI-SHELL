@@ -17,6 +17,7 @@ singleton Hyprsunset Hyprsunset.qml
 singleton Notifications Notifications.qml
 singleton MprisController MprisController.qml
 singleton Battery Battery.qml
+singleton CloseConfirm CloseConfirm.qml
 singleton DateTime DateTime.qml
 singleton TrayService TrayService.qml
 singleton GameMode GameMode.qml

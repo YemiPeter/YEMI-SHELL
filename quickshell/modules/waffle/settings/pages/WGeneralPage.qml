@@ -34,7 +34,10 @@ WSettingsPage {
             suffix: "%"
             from: 50; to: 150; stepSize: 5
             value: Config.options?.audio?.protection?.maxAllowed ?? 99
-            onValueChanged: Config.setNestedValue("audio.protection.maxAllowed", value)
+            onValueChanged: {
+                console.log("[AUDIOTRACE] maxAllowed changed to", value, "key=audio.protection.maxAllowed");
+                Config.setNestedValue("audio.protection.maxAllowed", value);
+            }
         }
         
         WSettingsSpinBox {

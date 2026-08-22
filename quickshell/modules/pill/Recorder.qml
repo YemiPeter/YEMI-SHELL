@@ -3,7 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Shapes
 import Quickshell.Widgets
-import Quickshell.Services.Pipewire
+import qs.services
 import "Singletons"
 
 /**
@@ -42,8 +42,8 @@ PillSurface {
 
     property string screenName: ""
 
-    readonly property var sink: Pipewire.defaultAudioSink
-    readonly property var source: Pipewire.defaultAudioSource
+    readonly property var sink: Audio.sink
+    readonly property var source: Audio.source
 
     readonly property int countdown: ScreenRec.countdown
     readonly property bool counting: ScreenRec.counting
@@ -134,11 +134,11 @@ PillSurface {
      */
     function stepFocused(deltaPct) {
         if (faderFocus === 0 && ScreenRec.micOn && root.source && root.source.audio) {
-            root.source.audio.volume = Math.max(0, Math.min(1, root.source.audio.volume + deltaPct / 100));
+            Audio.setSourceVolume(Math.max(0, Math.min(1, root.source.audio.volume + deltaPct / 100)));
             return true;
         }
         if (faderFocus === 1 && ScreenRec.desktopOn && root.sink && root.sink.audio) {
-            root.sink.audio.volume = Math.max(0, Math.min(1, root.sink.audio.volume + deltaPct / 100));
+            Audio.setSinkVolume(Math.max(0, Math.min(1, root.sink.audio.volume + deltaPct / 100)));
             return true;
         }
         return false;
@@ -969,7 +969,7 @@ PillSurface {
             on: ScreenRec.micOn
             faderIndex: 0
             level: root.source && root.source.audio ? root.source.audio.volume : 0
-            onFaderMoved: (v) => { if (root.source && root.source.audio) root.source.audio.volume = v; }
+            onFaderMoved: (v) => Audio.setSourceVolume(v)
 
             MouseArea {
                 anchors.left: parent.left
@@ -987,7 +987,7 @@ PillSurface {
             on: ScreenRec.desktopOn
             faderIndex: 1
             level: root.sink && root.sink.audio ? root.sink.audio.volume : 0
-            onFaderMoved: (v) => { if (root.sink && root.sink.audio) root.sink.audio.volume = v; }
+            onFaderMoved: (v) => Audio.setSinkVolume(v)
 
             MouseArea {
                 anchors.left: parent.left

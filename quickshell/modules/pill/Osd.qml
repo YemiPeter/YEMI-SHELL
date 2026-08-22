@@ -1,8 +1,8 @@
 import QtQuick
 import Quickshell.Widgets
-import Quickshell.Services.Pipewire
 import Quickshell.Services.Mpris
 import Quickshell.Io
+import qs.services
 import qs.compositor
 import "Singletons"
 
@@ -24,7 +24,7 @@ Item {
     property int lastBrightness: -1
     property bool recordStarted: false
 
-    readonly property var sink: Pipewire.defaultAudioSink
+    readonly property var sink: Audio.sink
     readonly property bool muted: sink && sink.audio ? sink.audio.muted : false
     readonly property real volume: sink && sink.audio ? Math.max(0, Math.min(1, sink.audio.volume)) : 0
 

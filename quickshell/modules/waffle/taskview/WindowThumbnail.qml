@@ -383,7 +383,7 @@ Item {
 
                     // Middle-click to close window
                     if (mouse.button === Qt.MiddleButton) {
-                        NiriService.closeWindow(root.windowData?.id)
+                        CloseConfirm.requestClose(root.windowData?.id)
                         return
                     }
 
@@ -486,7 +486,7 @@ Item {
                     hoverEnabled: true
                     onEntered: { root.hovered = true; root.closeHovered = true }
                     onExited: root.closeHovered = false
-                    onClicked: NiriService.closeWindow(root.windowData?.id)
+                    onClicked: CloseConfirm.requestClose(root.windowData?.id)
                 }
             }
 
@@ -523,7 +523,7 @@ Item {
                     text: Translation.tr("Close Window"),
                     action: () => {
                         contextMenu.active = false
-                        NiriService.closeWindow(root.windowData?.id)
+                        CloseConfirm.requestClose(root.windowData?.id)
                     }
                 }
             ]

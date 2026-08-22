@@ -1,1 +1,2 @@
 singleton WaffleConfig 1.0 WaffleConfig.qml
+AudioConfig 1.0 AudioConfig.qml

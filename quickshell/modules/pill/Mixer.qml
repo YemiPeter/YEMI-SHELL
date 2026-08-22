@@ -1,6 +1,6 @@
 import QtQuick
 import Quickshell.Io
-import Quickshell.Services.Pipewire
+import qs.services
 import "Singletons"
 
 /**
@@ -16,8 +16,8 @@ PillSurface {
     mRight: 14
     mBottom: 12
 
-    readonly property var sink: Pipewire.defaultAudioSink
-    readonly property var source: Pipewire.defaultAudioSource
+    readonly property var sink: Audio.sink
+    readonly property var source: Audio.source
 
     property int focusIndex: -1
     readonly property int faderCount: faders.length
@@ -367,7 +367,7 @@ PillSurface {
           valueLabel: (root.sink && root.sink.audio && root.sink.audio.muted)
             ? "off"
             : (Math.round((root.sink && root.sink.audio ? root.sink.audio.volume : 0) * 100) + "%")
-          onMoved: (v) => { if (root.sink && root.sink.audio) root.sink.audio.volume = v; }
+          onMoved: (v) => Audio.setSinkVolume(v)
         
           MouseArea {
             id: volMute
@@ -376,10 +376,7 @@ PillSurface {
             width: 24 * root.s
             height: 22 * root.s
             cursorShape: Qt.PointingHandCursor
-            onClicked: {
-              if (root.sink && root.sink.audio)
-                root.sink.audio.muted = !root.sink.audio.muted
-            }
+            onClicked: Audio.toggleMute()
         
             Tooltip {
               s: root.s
@@ -399,7 +396,7 @@ PillSurface {
             valueLabel: (root.source && root.source.audio && root.source.audio.muted)
                 ? "off"
                 : (Math.round((root.source && root.source.audio ? root.source.audio.volume : 0) * 100) + "%")
-            onMoved: (v) => { if (root.source && root.source.audio) root.source.audio.volume = v; }
+            onMoved: (v) => Audio.setSourceVolume(v)
 
             MouseArea {
                 id: micMute
@@ -408,7 +405,7 @@ PillSurface {
                 width: 24 * root.s
                 height: 22 * root.s
                 cursorShape: Qt.PointingHandCursor
-                onClicked: { if (root.source && root.source.audio) root.source.audio.muted = !root.source.audio.muted; }
+                onClicked: Audio.toggleMicMute()
 
                 Tooltip {
                     s: root.s

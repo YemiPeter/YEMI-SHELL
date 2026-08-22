@@ -167,11 +167,11 @@ ShellRoot {
       target: "audio"
 
       function volumeUp(): void {
-        QsServices.Audio.increaseVolume()
+        QsServices.Audio.incrementVolume()
       }
 
       function volumeDown(): void {
-        QsServices.Audio.decreaseVolume()
+        QsServices.Audio.decrementVolume()
       }
 
       function mute(): void {
@@ -179,7 +179,7 @@ ShellRoot {
       }
 
       function micMute(): void {
-        QsServices.Audio.toggleSourceMute()
+        QsServices.Audio.toggleMicMute()
       }
     }
 

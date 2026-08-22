@@ -36,16 +36,87 @@ Item {
                     id: flickable
                     Layout.fillHeight: true
                     Layout.fillWidth: true
-                    contentHeight: contentLoader.item?.implicitHeight ?? 0
+                    contentHeight: contentLayout.implicitHeight
                     contentWidth: width
                     clip: true
+                    bottomMargin: 12
 
-                    Loader {
-                        id: contentLoader
+                    ColumnLayout {
+                        id: contentLayout
                         width: flickable.width
-                        active: true
-                        asynchronous: true
-                        sourceComponent: AudioChoicesComponent {}
+                        spacing: 4
+
+                        SectionText {
+                            Layout.fillWidth: true
+                            text: root.output ? Translation.tr("Output device") : Translation.tr("Input device")
+                        }
+
+                        Repeater {
+                            model: root.output ? Audio.outputDevices : Audio.inputDevices
+                            delegate: WChoiceButton {
+                                required property var modelData
+                                Layout.fillWidth: true
+                                icon.name: WIcons.audioDeviceIcon(modelData)
+                                text: Audio.friendlyDeviceName(modelData)
+                                checked: modelData.id === (root.output ? Audio.sink : Audio.source)?.id
+                                onClicked: {
+                                    if (root.output) Audio.setDefaultSink(modelData);
+                                    else Audio.setDefaultSource(modelData);
+                                }
+                            }
+                        }
+
+                        WPanelSeparator {
+                            visible: EasyEffects.available && root.output
+                            color: Looks.colors.bg2Hover
+                        }
+
+                        SectionText {
+                            visible: EasyEffects.available && root.output
+                            Layout.fillWidth: true
+                            text: Translation.tr("Sound effects")
+                        }
+
+                        WChoiceButton {
+                            visible: EasyEffects.available && root.output
+                            Layout.fillWidth: true
+                            text: Translation.tr("Off")
+                            checked: !EasyEffects.active
+                            onClicked: EasyEffects.disable()
+                        }
+
+                        WChoiceButton {
+                            visible: EasyEffects.available && root.output
+                            Layout.fillWidth: true
+                            text: Translation.tr("EasyEffects")
+                            checked: EasyEffects.active
+                            onClicked: EasyEffects.enable()
+                        }
+
+                        WPanelSeparator {
+                            color: Looks.colors.bg2Hover
+                        }
+
+                        SectionText {
+                            Layout.fillWidth: true
+                            text: Translation.tr("Volume mixer")
+                        }
+
+                        VolumeEntry {
+                            Layout.fillWidth: true
+                            node: root.output ? Audio.sink : Audio.source
+                            icon: root.output ? "speaker" : "mic-on"
+                            monochrome: true
+                        }
+
+                        Repeater {
+                            model: root.output ? Audio.outputAppNodes : Audio.inputAppNodes
+                            delegate: VolumeEntry {
+                                required property var modelData
+                                Layout.fillWidth: true
+                                node: modelData
+                            }
+                        }
                     }
                 }
             }
@@ -64,74 +135,6 @@ Item {
                     GlobalStates.waffleActionCenterOpen = false
                     AppLauncher.launch("volumeMixer")
                 }
-            }
-        }
-    }
-
-    component AudioChoicesComponent: ColumnLayout {
-        spacing: 4
-
-        SectionText {
-            text: root.output ? Translation.tr("Output device") : Translation.tr("Input device")
-        }
-
-        Repeater {
-            model: root.output ? Audio.outputDevices : Audio.inputDevices
-            delegate: WChoiceButton {
-                required property var modelData
-                icon.name: WIcons.audioDeviceIcon(modelData)
-                text: Audio.friendlyDeviceName(modelData)
-                checked: modelData.id === (root.output ? Audio.sink : Audio.source)?.id
-                onClicked: {
-                    if (root.output) Audio.setDefaultSink(modelData);
-                    else Audio.setDefaultSource(modelData);
-                }
-            }
-        }
-
-        WPanelSeparator {
-            visible: EasyEffects.available && root.output
-            color: Looks.colors.bg2Hover
-        }
-
-        SectionText {
-            visible: EasyEffects.available && root.output
-            text: Translation.tr("Sound effects")
-        }
-
-        WChoiceButton {
-            visible: EasyEffects.available && root.output
-            text: Translation.tr("Off")
-            checked: !EasyEffects.active
-            onClicked: EasyEffects.disable()
-        }
-
-        WChoiceButton {
-            visible: EasyEffects.available && root.output
-            text: Translation.tr("EasyEffects")
-            checked: EasyEffects.active
-            onClicked: EasyEffects.enable()
-        }
-
-        WPanelSeparator {
-            color: Looks.colors.bg2Hover
-        }
-
-        SectionText {
-            text: Translation.tr("Volume mixer")
-        }
-
-        VolumeEntry {
-            node: root.output ? Audio.sink : Audio.source
-            icon: root.output ? "speaker" : "mic-on"
-            monochrome: true
-        }
-
-        Repeater {
-            model: root.output ? Audio.outputAppNodes : Audio.inputAppNodes
-            delegate: VolumeEntry {
-                required property var modelData
-                node: modelData
             }
         }
     }
