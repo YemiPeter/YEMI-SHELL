@@ -1,8 +1,8 @@
 # QuickShell Documentation Index
 
-> **Repository:** `/home/yemi/.config/quickshell`  
-> **Framework:** Quickshell / Qt 6.10 QML  
-> **Last Updated:** 2026-08-05
+> **Repository:** `/home/yemi/.config/quickshell`
+> **Framework:** Quickshell / Qt 6.10 QML
+> **Last Updated:** 2026-08-22
 
 ---
 
@@ -10,26 +10,34 @@
 
 ```
 docs/
-├── INDEX.md                    # This index file
-├── README.md                   # Project overview
+├── INDEX.md                              # This index file
+├── PROJECT_MAP.md                        # High-level project map / generated-doc manifest
 │
-├── color-system/               # Color and wallpaper system documentation
-│   ├── INIR_THEME_SYSTEM_MAP.md
-│   ├── YEMI_COLOR_WALLPAPER_AUDIT.md
-│   ├── UNIFIED_PIPELINE.md
-│   └── COLOR_FIX_PLAN.md
+├── color-system/                         # Color + wallpaper (Dominance) engine docs
+│   ├── THEME_SYSTEM_MAP_CURRENT.md
+│   ├── MATUGEN_CLI_NOTES.md
+│   ├── MATUGEN_OUTPUT_CONTRACT.md
+│   ├── YEMISHELL_THEME_REBUILD_CHECKLIST.md
+│   └── matugen-samples/                  # Sample matugen outputs (dark.json, light.json)
 │
-├── architecture/               # Architecture and system blueprints
-│   ├── INIR_SETTINGS_BLUEPRINT_MASTER.md
-│   └── INIR_THEME_SYSTEM_MAP.md (copy / symlink)
+├── architecture/                         # System blueprints (iNiR-inspired)
+│   └── INIR_SETTINGS_BLUEPRINT_MASTER.md
 │
-├── audit/                      # Audit reports and findings
-│   └── audit-report.md
+├── components/                           # Per-component reference docs (auto-generated)
+│   ├── index.md                          # Component index
+│   ├── Appearance.md  Audio.md  Bar.md  Battery.md  ...
+│   └── (one .md per QML component)
 │
-├── config/                     # Configuration documentation (to be added)
+├── plans/                                # Active planning docs
+│   ├── YEMISHELL_THEME_REBUILD_PLAN.md
+│   └── Yemi-Shell Theme Rebuild Checklist.md
 │
-└── .kiro/, .lingma/, .roo/     # Agent configuration (not user docs)
+└── reference/                            # External / scope reference material
+    ├── INIR_WAFFLE_SCOPE.md              # Waffle porting scope (see `whole-waffle` branch)
+    └── iNiR-settings-General-section.md
 ```
+
+> Project overview lives at `quickshell/README.md` (repo root of the shell).
 
 ---
 
@@ -37,31 +45,34 @@ docs/
 
 | Category | Document | Description |
 |----------|----------|-------------|
-| **Color System** | [color-system/INIR_THEME_SYSTEM_MAP.md](color-system/INIR_THEME_SYSTEM_MAP.md) | Color token hierarchy, Theme/Dyn/Flags singletons |
-| **Color System** | [color-system/YEMI_COLOR_WALLPAPER_AUDIT.md](color-system/YEMI_COLOR_WALLPAPER_AUDIT.md) | Wallpaper color extraction pipeline audit |
-| **Color System** | [color-system/UNIFIED_PIPELINE.md](color-system/UNIFIED_PIPELINE.md) | Single-source-of-truth color architecture |
-| **Color System** | [color-system/COLOR_FIX_PLAN.md](color-system/COLOR_FIX_PLAN.md) | Incremental color system fix plan |
+| **Color System** | [color-system/THEME_SYSTEM_MAP_CURRENT.md](color-system/THEME_SYSTEM_MAP_CURRENT.md) | Current theme token map (Theme/Dyn/Flags + Dominance) |
+| **Color System** | [color-system/YEMISHELL_THEME_REBUILD_CHECKLIST.md](color-system/YEMISHELL_THEME_REBUILD_CHECKLIST.md) | Dominance engine rebuild checklist |
+| **Color System** | [color-system/MATUGEN_CLI_NOTES.md](color-system/MATUGEN_CLI_NOTES.md) | Matugen CLI notes |
+| **Color System** | [color-system/MATUGEN_OUTPUT_CONTRACT.md](color-system/MATUGEN_OUTPUT_CONTRACT.md) | Matugen output contract |
 | **Architecture** | [architecture/INIR_SETTINGS_BLUEPRINT_MASTER.md](architecture/INIR_SETTINGS_BLUEPRINT_MASTER.md) | iNiR settings system blueprint |
-| **Audit** | [audit/audit-report.md](audit/audit-report.md) | Comprehensive codebase audit report |
+| **Components** | [components/index.md](components/index.md) | Index of per-component reference docs |
+| **Plans** | [plans/YEMISHELL_THEME_REBUILD_PLAN.md](plans/YEMISHELL_THEME_REBUILD_PLAN.md) | Theme rebuild plan |
+| **Reference** | [reference/INIR_WAFFLE_SCOPE.md](reference/INIR_WAFFLE_SCOPE.md) | Waffle port scope (reference only) |
 
 ---
 
 ## Overview
 
-This project is a Quickshell-based dynamic shell interface for Linux desktops (Hyprland/Niri). Key systems documented:
+Quickshell-based dynamic shell for Linux (Hyprland/Niri). Documented systems:
 
 ### 1. Color System (`docs/color-system/`)
-- **Theme Singleton**: 31 color tokens with dynamic/static toggle (`singletons/Theme.qml`)
-- **Dyn Singleton**: Wallpaper-derived colors from `colors.json` (`singletons/Dyn.qml`)
-- **Flags Singleton**: Session flags including `paletteMode` and `systemMood` (`singletons/Flags.qml`)
-- **Wallpaper Processing**: `wallcolors.py` extracts colors via ImageMagick histogram
+- **Dominance engine** — `scripts/dominance-extract.py` + `scripts/dominance-engine.py` → `~/.cache/yemi-shell/colors.json`
+- **Theme / Dyn / Flags** singletons consume that palette
+- Matugen retained only as legacy/reference
 
-### 2. Configuration (`config/`)
-- **Config.qml**: Main configuration singleton (37 lines - simplified from iNiR's 2282 lines)
-- **Appearance.qml**: Appearance singleton with color tokens
+### 2. Components (`docs/components/`)
+Auto-generated reference for each QML component (Bar, Pill, Mixer, Battery, etc.). Start at `components/index.md`.
 
 ### 3. Architecture (`docs/architecture/`)
-Documentation from the iNiR project, showing the more complete feature set that inspired this workspace
+Blueprints from the iNiR project that inspired this workspace.
+
+### 4. Reference (`docs/reference/`)
+External scope material. `INIR_WAFFLE_SCOPE.md` describes the Waffle port; the actual Waffle code is preserved on the **`whole-waffle`** branch for reference and must NOT be merged.
 
 ---
 
@@ -75,7 +86,6 @@ Documentation from the iNiR project, showing the more complete feature set that 
 | Theme singleton | `singletons/Theme.qml` |
 | Dyn singleton | `singletons/Dyn.qml` |
 | Flags singleton | `singletons/Flags.qml` |
-| Bar panel | `modules/bar/Bar.qml` |
 | Pill UI | `modules/pill/` |
 | OSD | `modules/osd/` |
 | Services | `services/` |
@@ -85,12 +95,9 @@ Documentation from the iNiR project, showing the more complete feature set that 
 
 ## Recent Changes
 
-### 2026-08-05 - Documentation Organization
-- Created `docs/` directory structure
-- Organized markdown files by category
-- Added this INDEX.md for navigation
-
-### 2026-08-05 - Color System Audit Complete
-- Updated `INIR_THEME_SYSTEM_MAP.md` with actual workspace state
-- Documented missing `AdaptedMaterialScheme.qml` file
-- Identified schema path discrepancy between Matugen and Dyn.qml
+### 2026-08-22 - Documentation Reorganization
+- Moved `YEMI SHELL DOC/doc/` → `docs/components/`
+- Moved `YEMI SHELL DOC/PROJECT_MAP.md` → `docs/PROJECT_MAP.md`
+- Moved `quickshell/plans/` → `docs/plans/`
+- Moved root `INIR_WAFFLE_SCOPE.md` + `docs/iNiR-settings-General-section.md` → `docs/reference/`
+- Rewrote this INDEX to match the real layout
