@@ -1,4 +1,16 @@
 pragma ComponentBehavior: Bound
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Effects
+import Qt5Compat.GraphicalEffects as GE
+import Quickshell
+import Quickshell.Io
+import Quickshell.Services.Mpris
+import qs.modules.common
+import qs.modules.common.widgets
+import qs.modules.common.functions
+import qs.modules.common.models
+import qs.services
 import qs.config
 
 /**

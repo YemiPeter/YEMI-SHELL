@@ -1,4 +1,16 @@
 pragma ComponentBehavior: Bound
+import qs
+import qs.services
+import qs.services.deferred
+import qs.modules.common
+import qs.modules.common.functions
+import qs.modules.lock
+import qs.modules.waffle.lock
+import QtQuick
+import Quickshell
+import Quickshell.Io
+import Quickshell.Wayland
+import Quickshell.Hyprland
 import qs.config
 
 Scope {
