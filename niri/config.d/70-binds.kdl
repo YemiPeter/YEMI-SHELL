@@ -1,13 +1,12 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // 70 — Key bindings
 // ─────────────────────────────────────────────────────────────────────────────
-// Docs: https://niri-wm.github.io/niri/Configuration:-Key-Bindings
-//
+
 // "Mod" = Super on bare metal, Alt inside a nested Niri window.
 // Use `wev` to discover XKB key names.
 // Most actions here can also be triggered via `niri msg action <name>`.
 //
-// iNiR binds route through the `inir` launcher which talks to Quickshell
+// YEMI-SHELL route through the `YEMI-SHELL` launcher which talks to Quickshell
 // via IPC. Niri-native actions (focus, move, resize…) go directly to Niri.
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -17,8 +16,9 @@ binds {
     // Session & compositor
     // ═══════════════════════════════════════════════════════════════════════
 
-    // Niri's built-in overview (zoomed-out workspace view).
-    Mod+Tab repeat=false { toggle-overview; }
+    // YEMI-SHELL built-in overview (zoomed-out workspace view).
+    // Mod+Tab repeat=false { toggle-overview; }
+     
 
     // Quit Niri (shows confirmation dialog).
     Mod+Shift+E { quit; }
@@ -30,58 +30,76 @@ binds {
     Mod+Shift+O { power-off-monitors; }
 
     // ═══════════════════════════════════════════════════════════════════════
-    // iNiR shell overlays & tools
+    // YEMI-SHELL overlays & tools
     // ═══════════════════════════════════════════════════════════════════════
 
-    // Alt-Tab window switcher (iNiR's animated switcher).
-    Alt+Tab { spawn "inir" "altSwitcher" "next"; }
-    Alt+Shift+Tab { spawn "inir" "altSwitcher" "previous"; }
+    // Alt-Tab window switcher (YEMI-SHELL's animated switcher).
+    Alt+Tab { spawn "qs" "ipc" "call" "altSwitcher" "next"; }
+    Alt+Shift+Tab { spawn "qs" "ipc" "call" "altSwitcher" "previous"; }
 
     // Crosshair overlay toggle.
-    Super+G { spawn "inir" "overlay" "toggle"; }
+    // Call Yemi's custom shell script for crosshair overlay
+    Super+G { spawn "$HOME/.config/quickshell/shell" "overlay" "toggle"; }
 
-    // iNiR app launcher / overview.
-    Mod+Space repeat=false { spawn "inir" "overview" "toggle"; }
+    // YEMI-SHELL app launcher (via QuickShell IPC).
+    Mod+Space repeat=false { spawn "qs" "ipc" "call" "pill" "launcher" "eDP-1"; }
 
     // Clipboard history overlay.
-    Mod+V { spawn "inir" "clipboard" "toggle"; }
+    // Call Yemi's custom shell script for clipboard
+    Mod+V { spawn "$HOME/.config/quickshell/shell" "clipboard" "toggle"; }
 
     // Lock screen.
-    Mod+Alt+L allow-when-locked=true { spawn "inir" "lock" "activate"; }
+    // Call Yemi's custom shell script for lock screen
+    Mod+X allow-when-locked=true { spawn "$HOME/.config/quickshell/shell" "lock" "activate"; }
+    Mod+Alt+L allow-when-locked=true { spawn "$HOME/.config/quickshell/shell" "lock" "activate"; }
     // Re-focus the lock surface (workaround when input feels dead after suspend/resume).
-    Mod+Ctrl+Shift+L allow-when-locked=true { spawn "inir" "lock" "focus"; }
+    // Call Yemi's custom shell script for lock focus
+    Mod+Ctrl+Shift+L allow-when-locked=true { spawn "$HOME/.config/quickshell/shell" "lock" "focus"; }
 
     // Region selector: screenshot / OCR / Google Lens search.
-    Mod+Shift+S { spawn "inir" "region" "screenshot"; }
-    Mod+Shift+X { spawn "inir" "region" "ocr"; }
-    Mod+Shift+A { spawn "inir" "region" "search"; }
+    // Call Yemi's custom shell script for region selection
+    Mod+S { spawn "$HOME/.config/quickshell/shell" "region" "screenshot"; }
+    Mod+Shift+S { spawn "$HOME/.config/quickshell/shell" "region" "screenshot"; }
+    // Call Yemi's custom shell script for OCR
+    Mod+Shift+X { spawn "$HOME/.config/quickshell/shell" "region" "ocr"; }
+    // Call Yemi's custom shell script for search
+    Mod+Shift+A { spawn "$HOME/.config/quickshell/shell" "region" "search"; }
     // Unified snip menu (pick action/scope from the in-overlay toolbar).
-    Ctrl+Shift+S { spawn "inir" "region" "menu"; }
+    // Call Yemi's custom shell script for region menu
+    Ctrl+Shift+S { spawn "$HOME/.config/quickshell/shell" "region" "menu"; }
 
-    // Wallpaper picker, settings, cheatsheet, panel family switch.
-    Ctrl+Alt+T { spawn "inir" "wallpaperSelector" "toggle"; }
-    Mod+Comma { spawn "inir" "settings"; }
-    Mod+Slash { spawn "inir" "cheatsheet" "toggle"; }
-    Mod+Shift+W { spawn "inir" "panelFamily" "cycle"; }
+    // Wallpaper picker (via QuickShell IPC).
+    Ctrl+Alt+T { spawn "qs" "ipc" "call" "wallpaper" "toggle" "eDP-1"; }
+    // Call Yemi's custom shell script for settings
+    Mod+Comma { spawn "$HOME/.config/quickshell/shell" "settings"; }
+    // Call Yemi's custom shell script for cheatsheet
+    Mod+Slash { spawn "$HOME/.config/quickshell/shell" "cheatsheet" "toggle"; }
+    // Call Yemi's custom shell script for panel family
+    // Mod+Shift+W { spawn "$HOME/.config/quickshell/shell" "panelFamily" "cycle"; }
 
     // Session / power dialog.
-    Mod+Shift+Q { spawn "inir" "session" "toggle"; }
+    // Call Yemi's custom shell script for session
+    Mod+Shift+Q { spawn "$HOME/.config/quickshell/shell" "session" "toggle"; }
 
     // ═══════════════════════════════════════════════════════════════════════
     // App launchers
     // ═══════════════════════════════════════════════════════════════════════
 
-    Mod+T { spawn "inir" "terminal"; }
-    Mod+Return { spawn "inir" "terminal"; }
-    Super+E { spawn "nautilus"; }
-    Super+W { spawn "inir" "browser"; }
+    // Terminal (direct spawn, matching Hyprland pattern).
+    Mod+T { spawn "ghostty"; }
+    // Terminal (direct spawn, matching Hyprland pattern).
+    Mod+Return { spawn "kitty"; }
+    Super+E { spawn "bash" "-c" "~/.config/hypr/scripts/file-manager.sh"; }
+    // Call Yemi's custom shell script for browser
+    Super+W { spawn "$HOME/.config/quickshell/shell" "browser"; }
 
     // ═══════════════════════════════════════════════════════════════════════
     // Window management
     // ═══════════════════════════════════════════════════════════════════════
 
     // Close window (iNiR's close with confirmation dialog for unsaved work).
-    Mod+Q repeat=false { spawn "inir" "close-window"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
+    // Mod+Q repeat=false { spawn "inir" "close-window"; }
 
     // Maximize column (fills screen width, keeps gaps/bar).
     Mod+D { maximize-column; }
@@ -103,19 +121,20 @@ binds {
     // ═══════════════════════════════════════════════════════════════════════
 
     // Cycle through preset column widths (1/3 → 1/2 → 2/3, set in layout).
-    Mod+R { switch-preset-column-width; }
+    // Mod+R { switch-preset-column-width; }
 
     // Screen recording — region select with audio.
-    Mod+Shift+R { spawn "inir" "region" "recordWithSound"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
+    // Mod+Shift+R { spawn "inir" "region" "recordWithSound"; }
 
     // Reset window height to default.
     Mod+Ctrl+R { reset-window-height; }
 
-    // Center the focused column on screen.
-    Mod+C { center-column; }
+    // Clipboard history overlay (Hyprland parity: Mod+C).
+    Mod+C { spawn "qs" "ipc" "call" "pill" "clipboard" "eDP-1"; }
 
-    // Center all fully visible columns.
-    // Mod+Ctrl+C { center-visible-columns; }
+    // Center the focused column on screen.
+    Mod+Ctrl+C { center-column; }
 
     // Expand column to fill space not used by other visible columns.
     // Mod+Ctrl+F { expand-column-to-available-width; }
@@ -174,10 +193,10 @@ binds {
     // Multi-monitor
     // ═══════════════════════════════════════════════════════════════════════
     // Focus the monitor in the given direction.
-    Mod+Ctrl+Left  { focus-monitor-left; }
-    Mod+Ctrl+Right { focus-monitor-right; }
-    Mod+Ctrl+Up    { focus-monitor-up; }
-    Mod+Ctrl+Down  { focus-monitor-down; }
+    // Mod+Ctrl+Left  { focus-monitor-left; }
+    // Mod+Ctrl+Right { focus-monitor-right; }
+    // Mod+Ctrl+Up    { focus-monitor-up; }
+    // Mod+Ctrl+Down  { focus-monitor-down; }
 
     // Move the focused column to the monitor in the given direction.
     Mod+Ctrl+Shift+Left  { move-column-to-monitor-left; }
@@ -247,27 +266,110 @@ binds {
     // ═══════════════════════════════════════════════════════════════════════
 
     // Volume (routed through iNiR for OSD + EasyEffects-aware sink resolution).
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     XF86AudioRaiseVolume allow-when-locked=true { spawn "inir" "audio" "volumeUp"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     XF86AudioLowerVolume allow-when-locked=true { spawn "inir" "audio" "volumeDown"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     XF86AudioMute        allow-when-locked=true { spawn "inir" "audio" "mute"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     XF86AudioMicMute     allow-when-locked=true { spawn "inir" "audio" "micMute"; }
 
     // Brightness.
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     XF86MonBrightnessUp   allow-when-locked=true { spawn "inir" "brightness" "increment"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     XF86MonBrightnessDown allow-when-locked=true { spawn "inir" "brightness" "decrement"; }
 
     // Media playback (MPRIS — works with any player: Spotify, Firefox, mpv…).
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     XF86AudioPlay  { spawn "inir" "mpris" "playPause"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     XF86AudioPause { spawn "inir" "mpris" "playPause"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     XF86AudioNext  { spawn "inir" "mpris" "next"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     XF86AudioPrev  { spawn "inir" "mpris" "previous"; }
 
     // Keyboard shortcuts for media (when no media keys are available).
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Ctrl+Mod+Space { spawn "inir" "mpris" "playPause"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Mod+Alt+N      { spawn "inir" "mpris" "next"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Mod+Alt+P      { spawn "inir" "mpris" "previous"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Mod+Shift+M    { spawn "inir" "audio" "mute"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Mod+Shift+P    { spawn "inir" "mpris" "playPause"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Mod+Shift+N    { spawn "inir" "mpris" "next"; }
+    // TODO(yemi): this calls iNiR's own IPC target, not Shell by Yemi's — decide what this should call instead
     Mod+Shift+B    { spawn "inir" "mpris" "previous"; }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Hyprland parity — exact key match from binds.lua
+    // ═══════════════════════════════════════════════════════════════════════
+
+    // Close window (Hyprland: Mod+Q → killactive).
+    // Overrides Niri's inir close-window IPC.
+    Mod+Q { close-window; }
+
+    // Wallpaper (Hyprland: Mod+W).
+    // Overrides Niri's Super+W browser.
+    Mod+W { spawn "qs" "ipc" "call" "wallpaper" "toggle" "eDP-1"; }
+
+    // Music toggle (Hyprland: Mod+M).
+    Mod+M { spawn "qs" "ipc" "call" "music" "toggle"; }
+
+    // Floating terminal (Hyprland: Mod+Shift+Return).
+    Mod+Shift+Return { spawn "kitty"; }
+
+    // Full screenshot (Hyprland: Ctrl+S).
+    Ctrl+S { spawn "qs" "ipc" "call" "pill" "screenshot" "full"; }
+
+    // Region screenshot alternate (Hyprland: Mod+Ctrl+S).
+    Mod+Ctrl+S { spawn "$HOME/.config/quickshell/shell" "region" "screenshot"; }
+
+    // Screen recording start (Hyprland: Mod+R).
+    // Overrides Niri's switch-preset-column-width.
+    Mod+R { spawn "bash" "-c" "gpu-screen-recorder -w screen -f 30 -a default_output -o ~/screen-recordings/$(date +%Y-%m-%d_%H-%M-%S).mp4"; }
+
+    // Stop recording (Hyprland: Mod+Shift+R).
+    // Overrides Niri's inir region recordWithSound.
+    Mod+Shift+R { spawn "killall" "-SIGINT" "gpu-screen-recorder"; }
+
+    // Skwd wall toggle (Hyprland: Mod+Shift+W).
+    // Overrides Niri's panelFamily cycle.
+    Mod+Shift+W { spawn "skwd" "wall" "toggle"; }
+
+    // Toggle floating (Hyprland: Mod+Shift+Space).
+    // Overrides Niri's Mod+A toggle-window-floating.
+    Mod+Shift+Space { toggle-window-floating; }
+
+    // Resize window (Hyprland: Mod+Ctrl+Arrow).
+    // Overrides Niri's focus-monitor-* bindings.
+    Mod+Ctrl+Left  { set-column-width "-10%"; }
+    Mod+Ctrl+Right { set-column-width "+10%"; }
+    Mod+Ctrl+Up    { set-window-height "-10%"; }
+    Mod+Ctrl+Down  { set-window-height "+10%"; }
+
+    // Workspace overview (zoomed-out view). Canonical Mod+Tab behavior.
+    Mod+Tab repeat=false { toggle-overview; }
+    Mod+Shift+Tab { toggle-overview; }
+
+    // Audio via F-keys (Hyprland: F1/F2/F3).
+    F1 { spawn "amixer" "set" "Master" "toggle"; }
+    F2 { spawn "amixer" "set" "Master" "1%-"; }
+    F3 { spawn "amixer" "set" "Master" "1%+"; }
+
+    // Define word (Hyprland: Menu key).
+    Menu { spawn "bash" "-c" "~/.config/scripts/define.sh"; }
+
+    // Debug (Hyprland: Super+F12).
+    Super+F12 { spawn "bash" "-c" "niri msg --socket $(niri --session-socket) windows > /tmp/fs-debug.log 2>&1"; }
+
+    // Mouse binds (Hyprland-style side buttons). This Niri 26.04 validator rejects them.
+    // Mod+Mouse:272 { move-window; }
+    // Mod+Mouse:273 { resize-window; }
 }

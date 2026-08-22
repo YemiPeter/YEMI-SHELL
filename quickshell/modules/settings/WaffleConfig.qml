@@ -503,13 +503,13 @@ ContentPage {
         SettingsGroup {
             SettingsSwitch {
                 enabled: {
-                    const preset = Config.options?.waffles?.altSwitcher?.preset ?? "thumbnails"
+                    const preset = Config.getNestedValue("waffles.altSwitcher.preset", "thumbnails")
                     return preset !== "skew" && preset !== "none"
                 }
                 buttonIcon: "visibility_off"
                 text: Translation.tr("No visual UI (cycle windows only)")
                 checked: {
-                    const preset = Config.options?.waffles?.altSwitcher?.preset ?? "thumbnails"
+                    const preset = Config.getNestedValue("waffles.altSwitcher.preset", "thumbnails")
                     if (preset === "none")
                         return true
                     if (preset === "skew")
@@ -529,7 +529,7 @@ ContentPage {
                     { displayName: Translation.tr("Skew previews"), icon: "view_in_ar", value: "skew" },
                     { displayName: Translation.tr("None (no UI)"), icon: "visibility_off", value: "none" }
                 ]
-                currentValue: Config.options?.waffles?.altSwitcher?.preset ?? "thumbnails"
+                currentValue: Config.getNestedValue("waffles.altSwitcher.preset", "thumbnails")
                 onSelected: (newValue) => {
                     Config.setNestedValue("waffles.altSwitcher.preset", newValue)
                     Config.setNestedValue("waffles.altSwitcher.noVisualUi", newValue === "none")
@@ -575,7 +575,7 @@ ContentPage {
             }
 
             ConfigSpinBox {
-                visible: (Config.options?.waffles?.altSwitcher?.preset ?? "thumbnails") === "thumbnails"
+                visible: (Config.getNestedValue("waffles.altSwitcher.preset", "thumbnails")) === "thumbnails"
                 icon: "width"
                 text: Translation.tr("Thumbnail width")
                 from: 150; to: 500; stepSize: 20
@@ -584,7 +584,7 @@ ContentPage {
             }
 
             ConfigSpinBox {
-                visible: (Config.options?.waffles?.altSwitcher?.preset ?? "thumbnails") === "thumbnails"
+                visible: (Config.getNestedValue("waffles.altSwitcher.preset", "thumbnails")) === "thumbnails"
                 icon: "height"
                 text: Translation.tr("Thumbnail height")
                 from: 100; to: 400; stepSize: 20
@@ -594,7 +594,7 @@ ContentPage {
 
             // List width option disabled - WPane doesn't support dynamic width properly
             // ConfigSpinBox {
-            //     visible: (Config.options?.waffles?.altSwitcher?.preset ?? "thumbnails") === "list"
+            //     visible: (Config.getNestedValue("waffles.altSwitcher.preset", "thumbnails")) === "list"
             //     icon: "width"
             //     text: Translation.tr("List width")
             //     from: 350; to: 800; stepSize: 25

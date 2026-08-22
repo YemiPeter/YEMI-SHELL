@@ -12,12 +12,20 @@ WSettingsRow {
     property bool checked: false
     
     clickable: true
-    onClicked: root.checked = !root.checked
+    onClicked: {
+        console.log("[WSettingsSwitch] MouseArea onClicked - root.checked before:", root.checked);
+        root.checked = !root.checked;
+        console.log("[WSettingsSwitch] MouseArea onClicked - root.checked after:", root.checked);
+    }
     
     control: Component {
         WSwitch {
             checked: root.checked
-            onClicked: root.checked = !root.checked
+            onClicked: {
+                console.log("[WSettingsSwitch] WSwitch onClicked - root.checked before:", root.checked);
+                root.checked = !root.checked;
+                console.log("[WSettingsSwitch] WSwitch onClicked - root.checked after:", root.checked);
+            }
         }
     }
 }

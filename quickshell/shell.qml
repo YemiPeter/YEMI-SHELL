@@ -229,6 +229,24 @@ ShellRoot {
       }
     }
 
+    // === App IPC Handler ===
+    // Family-aware launcher so one keybind works for both panel families:
+    // pill opens the pill launcher, waffle opens the waffle start menu (search).
+    // Registered globally so it is always available regardless of active family.
+    // Usage: qs ipc call app launcher <monitor>
+    IpcHandler {
+      target: "app"
+
+      function launcher(mon: string): void {
+        var target = mon || (compositor.focusedMonitor?.name || "");
+        if (Config.options.panelFamily === "waffle") {
+          GlobalStates.searchOpen = !GlobalStates.searchOpen;
+        } else if (target.length > 0) {
+          QsSingletons.PillState.toggleSurface(target, "launcher");
+        }
+      }
+    }
+
 
     // Direct NotificationServer to ensure it starts
     NotificationServer {

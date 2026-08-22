@@ -16,3 +16,6 @@ fnm env --use-on-cd | source
 
 # kilo
 fish_add_path /home/yemi/.kilo/bin
+
+# OpenClaw Completion
+test -f "/home/yemi/.openclaw/completions/openclaw.fish"; and source "/home/yemi/.openclaw/completions/openclaw.fish"

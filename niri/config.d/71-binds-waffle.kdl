@@ -13,8 +13,9 @@
 
 // Same key as the pill launcher in 70-binds.kdl (Mod+Space) so there is no
 // keybind mismatch between the two panel families.
-// In waffle mode: opens/toggles the start menu (GlobalStates.searchOpen).
-// The `search` IpcHandler is registered by WaffleStartMenu.qml.
+// Routes through the family-aware `app` IpcHandler in shell.qml:
+//   pill   -> pill launcher (PillState.toggleSurface)
+//   waffle -> waffle start menu (GlobalStates.searchOpen)
 //
 // SECTION 2 — ALT+SWITCHER (Windows-style Alt+Tab)
 // Overrides pill's Alt+Tab (70-binds.kdl) while waffle is the active family.
@@ -22,7 +23,7 @@
 // only under panelFamily === "waffle"). Under pill this target is absent, so
 // keep pill's Alt+Tab by NOT extending Shift here unless you want it overridden.
 binds {
-    Mod+Space repeat=false { spawn "qs" "ipc" "call" "search" "toggle"; }                          // Start menu / search
+    Mod+Space repeat=false { spawn "qs" "ipc" "call" "app" "launcher"; }                            // Start menu / launcher (family-aware: pill launcher / waffle search)
 
     // Toggle between the Pill and Waffle panel families.
     // The `desktop` IpcHandler is defined in shell.qml (target "desktop",

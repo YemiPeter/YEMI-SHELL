@@ -37,28 +37,19 @@ Item {
     readonly property int skewCardWidth: 1600
     readonly property int skewCardHeight: root.skewSliceHeight + 40
 
-    // Config getters for live updates
-    function cfg() { return Config.options?.waffles?.altSwitcher ?? {} }
-    function getPreset() { return cfg().preset ?? "thumbnails" }
-    function getThumbnailWidth() { return cfg().thumbnailWidth ?? 280 }
-    function getThumbnailHeight() { return cfg().thumbnailHeight ?? 180 }
-
-    // Reactive properties that update when config changes
-    property string preset: getPreset()
-    property int thumbnailWidth: getThumbnailWidth()
-    property int thumbnailHeight: getThumbnailHeight()
+    // Alt+Tab style properties — bound LIVE to Config so the switcher re-layouts
+    // the instant the Waffle Style → "Style" dropdown changes. Quickshell
+    // JsonObject nested bindings are live, so this removes the reliance on a
+    // manually-emitted signal reaching this component (which is what left the
+    // overlay stuck on one style no matter what was selected).
+    // Read via getNestedValue so the binding depends on Config.revision and
+    // re-evaluates on every setNestedValue (direct Config.options nested bindings
+    // are NOT reactive in Quickshell's JsonAdapter).
+    property string preset: Config.getNestedValue("waffles.altSwitcher.preset", "thumbnails")
+    property int thumbnailWidth: Config.getNestedValue("waffles.altSwitcher.thumbnailWidth", 280)
+    property int thumbnailHeight: Config.getNestedValue("waffles.altSwitcher.thumbnailHeight", 180)
 
     property int columns: Math.min(5, Math.max(1, itemSnapshot?.length ?? 1))
-
-    // Update properties when config changes
-    Connections {
-        target: Config
-        function onConfigChanged() {
-            root.preset = root.getPreset()
-            root.thumbnailWidth = root.getThumbnailWidth()
-            root.thumbnailHeight = root.getThumbnailHeight()
-        }
-    }
 
     implicitWidth: contentLoader.item?.implicitWidth ?? 400
     implicitHeight: contentLoader.item?.implicitHeight ?? 300

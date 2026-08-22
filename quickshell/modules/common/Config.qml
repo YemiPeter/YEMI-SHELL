@@ -2127,6 +2127,22 @@ Singleton {
                     property string mode: "centered" // "carousel" or "centered"
                     property bool closeOnSelect: false // Close TaskView when clicking a window
                 }
+                // Alt+Tab switcher — declared so Config.options.waffles.altSwitcher exists
+                // and nested setNestedValue() writes persist (previously missing, so every
+                // "Style" change was discarded and the switcher stayed on the fallback).
+                property JsonObject altSwitcher: JsonObject {
+                    property string preset: "thumbnails" // thumbnails | cards | compact | list | skew | none
+                    property bool noVisualUi: false // Switch windows without showing the overlay
+                    property bool quickSwitch: false // Single Alt+Tab switches instantly without UI
+                    property bool autoHide: true // Hide after releasing the Alt key
+                    property bool closeOnFocus: true // Close the switcher when a window is focused
+                    property bool useMostRecentFirst: true // Order windows by most recently used
+                    property int autoHideDelayMs: 500 // Delay before auto-hiding (ms)
+                    property bool showOverviewWhileSwitching: false // Open compositor overview alongside the switcher
+                    property real scrimOpacity: 0.4 // Scrim opacity behind the switcher (0.0 - 1.0)
+                    property int thumbnailWidth: 280 // Thumbnail width (px)
+                    property int thumbnailHeight: 180 // Thumbnail height (px)
+                }
             }
             property JsonObject workSafety: JsonObject {
                 property JsonObject enable: JsonObject {
