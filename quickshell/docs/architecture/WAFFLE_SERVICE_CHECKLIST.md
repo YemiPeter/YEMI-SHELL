@@ -17,9 +17,9 @@ Upgraded so far (commits on `pill-upgrade-inir-niri`):
 - [x] **Network** — `services/Network.qml` — native `Quickshell.Networking`, nmcli only for connect (commit `e3ab085`)
 - [x] **Notifications** — `modules/pill/Singletons/Notifs.qml` — reconciled singleton, config timeouts + `toggleSilent`, Hyprland focus guarded (commit `b1b3750`)
 - [x] **ResourceUsage** — `modules/pill/Singletons/Sysmon.qml` — history buffers (`cpuUsageHistory`/`memoryUsageHistory`/`swapUsageHistory`/`gpuUsageHistory`, capped `historyLength: 60`, reassignment-based updates), persistent-consumer model (`keepAlive`/`releaseKeepAlive`/`ensureRunning`/`stop` + `_persistentConsumers` + `autoStopTimer` with safe default `_autoStopDelayMs: 15000`), `kbToGbString` + KB totals `memoryTotal`/`memoryFree`/`swapTotal`. Existing sampling/timers preserved. Commit pending.
-- [ ] **SystemInfo** — `services/`? — distro/kernel/cpu/mem/gpu info
+- [x] **SystemInfo** — `services/SystemInfo.qml` — static identity: distro (`distroName`/`distroId`/`distroIcon`/`logo` from `/etc/os-release`), user (`username`/`displayName` via `id`+`getent`), session (`desktopEnvironment`/`windowingSystem`), links (`homeUrl`/`documentationUrl`/`supportUrl`/`bugReportUrl`/`privacyPolicyUrl`), `refreshIdentity()`. Registered `singleton SystemInfo` in `services/qmldir`. Commit pending.
 - [ ] **Updates** — package update checks
-- [ ] **ShellUpdates** — self-update of shell
+- [x] **ShellUpdates** — self-update of shell — already implemented by `modules/pill/Updates.qml` (git-based: check-update.sh + `git pull --ff-only` + `qs ipc call reload`)
 - [ ] **Privacy** — mic/screen-share detection
 - [ ] **ScreenTime** — per-app screen-time tracking
 - [ ] **MemoryPressureService** — memory-pressure monitor
