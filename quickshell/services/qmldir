@@ -13,3 +13,4 @@ singleton Bluetooth Bluetooth.qml
 singleton Hyprsunset Hyprsunset.qml
 singleton SystemInfo SystemInfo.qml
 singleton Updates Updates.qml
+singleton Privacy Privacy.qml

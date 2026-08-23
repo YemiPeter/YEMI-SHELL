@@ -20,7 +20,7 @@ Upgraded so far (commits on `pill-upgrade-inir-niri`):
 - [x] **SystemInfo** — `services/SystemInfo.qml` — static identity: distro (`distroName`/`distroId`/`distroIcon`/`logo` from `/etc/os-release`), user (`username`/`displayName` via `id`+`getent`), session (`desktopEnvironment`/`windowingSystem`), links (`homeUrl`/`documentationUrl`/`supportUrl`/`bugReportUrl`/`privacyPolicyUrl`), `refreshIdentity()`. Registered `singleton SystemInfo` in `services/qmldir`. Commit pending.
 - [x] **Updates** — package update checks — `services/Updates.qml`: `available`/`count` via `checkupdates` (Arch/CachyOS), `updateAdvised` (>75)/`updateStronglyAdvised` (>200), periodic 120-min re-check. Thresholds/interval are safe defaults (no Config).
 - [x] **ShellUpdates** — self-update of shell — already implemented by `modules/pill/Updates.qml` (git-based: check-update.sh + `git pull --ff-only` + `qs ipc call reload`)
-- [ ] **Privacy** — mic/screen-share detection
+- [x] **Privacy** — mic/screen-share detection — `services/Privacy.qml`: `micActive` (PipeWire link inspection), `screenSharing` stub (real detection in UI, matching Waffle). Registered `singleton Privacy` in `services/qmldir`.
 - [ ] **ScreenTime** — per-app screen-time tracking
 - [ ] **MemoryPressureService** — memory-pressure monitor
 - [ ] **RecorderStatus** — screen recorder status
