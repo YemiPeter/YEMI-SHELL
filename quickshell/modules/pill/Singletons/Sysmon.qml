@@ -57,6 +57,89 @@ Singleton {
     property real prevTx: 0
     property real prevNetTime: 0
 
+    // ===== iNiR/Waffle parity: history buffers + persistent-consumer model =====
+    // History ring buffers (fractions 0..1); length capped by historyLength.
+    property int historyLength: 60
+
+    property var cpuUsageHistory: []
+    property var memoryUsageHistory: []
+    property var swapUsageHistory: []
+    property var gpuUsageHistory: []
+
+    // Persistent-consumer lifecycle (replaces Waffle's Config-driven auto-stop).
+    property bool _runningRequested: false
+    property bool _initRequested: false
+    property bool _primed: false
+    property int _persistentConsumers: 0
+    readonly property int _autoStopDelayMs: 15000
+
+    // KB-based totals for Waffle/SystemUsage compatibility.
+    property real memoryTotal: 0
+    property real memoryFree: 0
+    property real swapTotal: 0
+    readonly property string maxAvailableMemoryString: kbToGbString(memoryTotal)
+    readonly property string maxAvailableSwapString: kbToGbString(swapTotal)
+
+    function kbToGbString(kb) {
+        return (kb / (1024 * 1024)).toFixed(1) + " GB"
+    }
+
+    // Reassign (never mutate the list reference) so the change signal fires.
+    function updateCpuUsageHistory() {
+        cpuUsageHistory = [...cpuUsageHistory, root.cpu / 100].slice(-historyLength)
+    }
+
+    function updateMemoryUsageHistory() {
+        memoryUsageHistory = [...memoryUsageHistory, root.memPct / 100].slice(-historyLength)
+    }
+
+    function updateSwapUsageHistory() {
+        var ratio = root.swapTotal > 0 ? root.swapUsedGb / (root.swapTotal / 1048576) : 0
+        swapUsageHistory = [...swapUsageHistory, ratio].slice(-historyLength)
+    }
+
+    function updateGpuUsageHistory() {
+        if (!root.hasGpu)
+            return
+        gpuUsageHistory = [...gpuUsageHistory, root.gpu / 100].slice(-historyLength)
+    }
+
+    function updateHistories() {
+        updateCpuUsageHistory()
+        updateMemoryUsageHistory()
+        updateSwapUsageHistory()
+        updateGpuUsageHistory()
+    }
+
+    // Start polling (idempotent). Primes once, then keeps the timers alive.
+    function ensureRunning() {
+        root._runningRequested = true
+        if (!root._primed) {
+            root._primed = true
+            primeAll()
+        }
+        autoStopTimer.restart()
+    }
+
+    // Register an always-visible consumer (e.g. bar) that disables auto-stop.
+    function keepAlive() {
+        root._persistentConsumers++
+        autoStopTimer.stop()
+        ensureRunning()
+    }
+
+    function releaseKeepAlive() {
+        root._persistentConsumers = Math.max(0, root._persistentConsumers - 1)
+        if (root._persistentConsumers === 0 && !root.open && root._runningRequested)
+            autoStopTimer.restart()
+    }
+
+    function stop() {
+        root._runningRequested = false
+        root._primed = false
+        autoStopTimer.stop()
+    }
+
     function primeAll() {
         if (tempPath.length === 0 || gpuVendor.length === 0) {
             detectProc.running = true;
@@ -71,7 +154,14 @@ Singleton {
         slowProc.running = true;
     }
 
-    onOpenChanged: if (open) primeAll()
+    onOpenChanged: {
+        if (open) {
+            root._runningRequested = true
+            primeAll()
+        } else if (root._persistentConsumers === 0) {
+            root.stop()
+        }
+    }
 
     function fmtUptime(sec) {
         var d = Math.floor(sec / 86400);
@@ -152,6 +242,9 @@ Singleton {
                         root.memUsedGb = (mt - ma) / 1048576;
                         root.memPct = mt > 0 ? Math.round(100 * (mt - ma) / mt) : 0;
                         root.swapUsedGb = (st - sf) / 1048576;
+                        root.memoryTotal = mt;
+                        root.memoryFree = ma;
+                        root.swapTotal = st;
                     } else if (p[0] === "NET") {
                         var rx = parseFloat(p[1]);
                         var tx = parseFloat(p[2]);
@@ -168,6 +261,9 @@ Singleton {
                         root.cpuTemp = p[1] === "-" ? -1 : Math.round(parseFloat(p[1]) / 1000);
                     }
                 }
+                root.updateCpuUsageHistory()
+                root.updateMemoryUsageHistory()
+                root.updateSwapUsageHistory()
             }
         }
     }
@@ -191,6 +287,7 @@ Singleton {
                         root.vramUsedGb = (parseFloat(c[2]) || 0) / 1024;
                         root.vramTotalGb = (parseFloat(c[3]) || 0) / 1024;
                     }
+                    root.updateGpuUsageHistory();
                     return;
                 }
                 var lines = this.text.split("\n");
@@ -205,6 +302,7 @@ Singleton {
                     else if (p[0] === "VT")
                         root.vramTotalGb = (parseFloat(p[1]) || 0) / 1073741824;
                 }
+                root.updateGpuUsageHistory();
             }
         }
     }
@@ -229,22 +327,33 @@ Singleton {
 
     Timer {
         interval: 500
-        running: root.open
+        running: root.open || root._runningRequested
         repeat: true
         onTriggered: if (!fastProc.running) fastProc.running = true
     }
 
     Timer {
         interval: 1000
-        running: root.open && root.hasGpu
+        running: (root.open || root._runningRequested) && root.hasGpu
         repeat: true
         onTriggered: if (!gpuProc.running) gpuProc.running = true
     }
 
     Timer {
         interval: 5000
-        running: root.open
+        running: root.open || root._runningRequested
         repeat: true
         onTriggered: if (!slowProc.running) slowProc.running = true
+    }
+
+    // Auto-stop polling after a delay when no consumer keeps it alive.
+    Timer {
+        id: autoStopTimer
+        interval: root._autoStopDelayMs
+        repeat: false
+        onTriggered: {
+            if (root._persistentConsumers === 0)
+                root.stop()
+        }
     }
 }
