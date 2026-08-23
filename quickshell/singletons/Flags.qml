@@ -50,6 +50,7 @@ Singleton {
     property alias recordMic: adapter.recordMic
     property alias recordDesktop: adapter.recordDesktop
     property alias recordClearedBefore: adapter.recordClearedBefore
+    property alias altSwitcherEnabled: adapter.altSwitcherEnabled
 
     FileView {
         id: file
@@ -94,6 +95,7 @@ Singleton {
             property int idleSuspendMin: 0
             property string weatherCity: ""
             property real recordClearedBefore: 0
+            property bool altSwitcherEnabled: true
         }
     }
 }

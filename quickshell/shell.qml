@@ -272,13 +272,12 @@ ShellRoot {
         source: "modules/music/MusicPanel.qml"
     }
 
-    // Alt+Tab window switcher (temporarily disabled — Scope has no visual surface)
-    // Next step: convert to PanelWindow, see modules/altswitcher/AltSwitcher.qml header for full status
-    // Loader {
-    //     id: altSwitcherLoader
-    //     source: "modules/altswitcher/AltSwitcher.qml"
-    // }
-    Item { id: altSwitcherLoader; property var item: null }
+    // Alt+Tab window overview (see modules/altswitcher/AltSwitcher.qml).
+    // Driven by the `altSwitcher` IpcHandler below; niri Alt+Tab / Alt+Shift+Tab binds call next/previous.
+    Loader {
+        id: altSwitcherLoader
+        source: "modules/altswitcher/AltSwitcher.qml"
+    }
 
     // === Path Properties ===
     property string homePath: Quickshell.env("HOME")

@@ -17,7 +17,9 @@ binds {
     // ─────────────────────────────────────────────────────────────────────────────
 
     // Session & compositor
-    Mod+Tab repeat=false { toggle-overview; }                                                            // Toggle overview
+    Mod+Tab repeat=false { toggle-overview; }                                                            // Toggle niri overview
+    Alt+Tab repeat=false { spawn "qs" "ipc" "call" "altSwitcher" "next"; }                              // Open / cycle YemiShell Overview (Alt+Tab)
+    Alt+Shift+Tab repeat=false { spawn "qs" "ipc" "call" "altSwitcher" "previous"; }                     // Prev in YemiShell Overview
     Mod+Shift+E { quit;  }                                                                               // Quit Niri
     Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }                             // Re-enable keybinds if inhibited
     Mod+Shift+O { power-off-monitors; }                                                                  // Power off monitors
@@ -34,9 +36,11 @@ binds {
     // Mod+R { spawn "bash" "-c" "gpu-screen-recorder -w screen -f 30 -a default_output -o ~/screen-recordings/$(date +%Y-%m-%d_%H-%M-%S).mp4 & notify-send 'Recording Started'"; }  // Screen recording (Mod+R conflicts with switch-preset-column-width)
     // Mod+Shift+R { spawn "bash" "-c" "killall -SIGINT gpu-screen-recorder && notify-send 'Recording Stopped'"; }  // Stop recording (Mod+Shift+R conflicts with switch-preset-column-width)
 
-    // Window switcher
-    Alt+Tab { focus-window-down; }                                                                       // Focus window down
-    Alt+Shift+Tab { focus-window-up; }                                                                   // Focus window up
+    // Window switcher — Alt+Tab is now the YemiShell Overview (see quickshell altSwitcher).
+    // Native niri focus-window is remapped below to avoid a duplicate Alt+Tab bind,
+    // which makes niri reject the whole config (killing Mod+Tab too).
+    Mod+Slash { focus-window-down; }                                                                     // Focus window down
+    Mod+Shift+Slash { focus-window-up; }                                                                 // Focus window up
 
     // App launchers
     Mod+T { spawn "ghostty"; }                                                                           // Terminal (ghostty)
@@ -132,5 +136,15 @@ binds {
     Mod+WheelScrollRight { focus-column-right; }                                                         // Focus column right
     Mod+WheelScrollLeft  { focus-column-left; }                                                          // Focus column left
 
+    // ─────────────────────────────────────────────────────────────────────────────
+    // SECTION — AUDIO (physical volume / mic keys → QuickShell Audio service)
+    // Routes through `qs ipc call audio …` so volume protection + ramp logic apply
+    // to keyboard volume changes. (Previous wpctl-direct binds only existed in the
+    // inactive niri default config.kdl.d, never in this active file.)
+    // ─────────────────────────────────────────────────────────────────────────────
+    XF86AudioRaiseVolume allow-when-locked=true { spawn "qs" "ipc" "call" "audio" "volumeUp"; }           // Volume up (protected/ramped)
+    XF86AudioLowerVolume allow-when-locked=true { spawn "qs" "ipc" "call" "audio" "volumeDown"; }         // Volume down (protected/ramped)
+    XF86AudioMute        allow-when-locked=true { spawn "qs" "ipc" "call" "audio" "mute"; }               // Toggle output mute
+    XF86AudioMicMute     allow-when-locked=true { spawn "qs" "ipc" "call" "audio" "micMute"; }            // Toggle mic mute
 
 }

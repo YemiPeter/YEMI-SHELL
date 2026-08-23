@@ -8,6 +8,7 @@ import Quickshell.Services.Mpris
 import Quickshell.Networking
 import "Singletons"
 import "../../singletons" as QsSingletons
+import qs.services as QsServices
 
 /**
  * The pill body. One element carries every state. Width/height driven by `state`
@@ -701,6 +702,26 @@ Item {
                 font.weight: Font.DemiBold
                 font.features: { "tnum": 1 }
             }
+          Item {
+            id: restMicDot
+            anchors.verticalCenter: parent.verticalCenter
+            width: QsServices.Privacy.micActive ? 14 * pill.s : 0
+            height: 9 * pill.s
+            visible: QsServices.Privacy.micActive
+            Rectangle {
+                x: 6 * pill.s
+                width: 9 * pill.s
+                height: 9 * pill.s
+                radius: width / 2
+                color: Theme.verm
+                SequentialAnimation on opacity {
+                    running: QsServices.Privacy.micActive
+                    loops: Animation.Infinite
+                    NumberAnimation { to: 0.4; duration: 500; easing.type: Easing.InOutSine }
+                    NumberAnimation { to: 1; duration: 500; easing.type: Easing.InOutSine }
+                }
+            }
+          }
         }
     }
 
@@ -1112,6 +1133,35 @@ Item {
                                 ScreenRec.stop();
                         }
                         onContainsMouseChanged: if (containsMouse) pill.soulTarget = "recorder"
+                    }
+                }
+
+                Item {
+                    id: micIcon
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 17 * pill.s
+                    height: 17 * pill.s
+
+                    GlyphIcon {
+                        anchors.fill: parent
+                        name: "mic"
+                        color: QsServices.Privacy.micActive ? Theme.verm : Theme.iconDim
+                        stroke: 1.7
+                    }
+
+                    Rectangle {
+                        anchors.centerIn: parent
+                        visible: QsServices.Privacy.micActive
+                        width: 12 * pill.s
+                        height: 12 * pill.s
+                        radius: width / 2
+                        color: Theme.verm
+                        SequentialAnimation on opacity {
+                            running: QsServices.Privacy.micActive
+                            loops: Animation.Infinite
+                            NumberAnimation { to: 0.4; duration: 500; easing.type: Easing.InOutSine }
+                            NumberAnimation { to: 1; duration: 500; easing.type: Easing.InOutSine }
+                        }
                     }
                 }
 

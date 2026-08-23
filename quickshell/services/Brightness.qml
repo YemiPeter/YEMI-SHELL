@@ -13,8 +13,6 @@ import QtQuick
 Singleton {
     id: root
 
-    signal brightnessChanged()
-
     // ===== Existing laptop backlight (preserved) =====
     property real brightness: 0.5
     property real maxBrightness: 1.0
@@ -69,8 +67,6 @@ Singleton {
     onMaxValueChanged: {
         if (maxValue > 0) root.rawMaxBrightness = maxValue
     }
-
-    onBrightnessChanged: root.brightnessChanged()
 
     // Discover backlight device
     Process {

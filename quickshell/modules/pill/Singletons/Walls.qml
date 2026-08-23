@@ -2,7 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import "../../singletons" as QsSingletons
+import "../../../singletons" as QsSingletons
 
 /**
  * Wallpaper bridge: keeps a warm in-memory snapshot of ~/Pictures/Wallpapers so

@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Services.Notifications
+import "../../../singletons" as QsSingletons
 
 Singleton {
     id: root
@@ -23,9 +24,9 @@ Singleton {
     property int criticalTimeout: 6000
     property var ignoreAppTimeout: []
 
-    // Waffle API parity: DND toggle + `silent` alias
-    readonly property alias silent: Flags.dnd
-    function toggleSilent() { Flags.dnd = !Flags.dnd }
+    // Waffle API parity: DND toggle + `silent` mirror of Flags.dnd
+    readonly property bool silent: QsSingletons.Flags.dnd
+    function toggleSilent() { QsSingletons.Flags.dnd = !QsSingletons.Flags.dnd }
 
     readonly property var tracked: server.trackedNotifications.values
     readonly property int count: tracked.length + history.length
@@ -283,7 +284,7 @@ Singleton {
             n.tracked = true;
             root.hookClosed(n);
             var critical = n.urgency === NotificationUrgency.Critical;
-            if (!Flags.dnd || critical)
+            if (!QsSingletons.Flags.dnd || critical)
                 root.popups = root.popups.concat([n]).slice(-3);
         }
     }
