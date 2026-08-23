@@ -14,3 +14,5 @@ singleton Hyprsunset Hyprsunset.qml
 singleton SystemInfo SystemInfo.qml
 singleton Updates Updates.qml
 singleton Privacy Privacy.qml
+singleton ScreenTime ScreenTime.qml
+singleton MemoryPressureService MemoryPressureService.qml

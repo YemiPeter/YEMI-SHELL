@@ -21,8 +21,8 @@ Upgraded so far (commits on `pill-upgrade-inir-niri`):
 - [x] **Updates** — package update checks — `services/Updates.qml`: `available`/`count` via `checkupdates` (Arch/CachyOS), `updateAdvised` (>75)/`updateStronglyAdvised` (>200), periodic 120-min re-check. Thresholds/interval are safe defaults (no Config).
 - [x] **ShellUpdates** — self-update of shell — already implemented by `modules/pill/Updates.qml` (git-based: check-update.sh + `git pull --ff-only` + `qs ipc call reload`)
 - [x] **Privacy** — mic/screen-share detection — `services/Privacy.qml`: `micActive` (PipeWire link inspection), `screenSharing` stub (real detection in UI, matching Waffle). Registered `singleton Privacy` in `services/qmldir`.
-- [ ] **ScreenTime** — per-app screen-time tracking
-- [ ] **MemoryPressureService** — memory-pressure monitor
+- [x] **ScreenTime** — per-app screen-time tracking — `services/ScreenTime.qml`: Niri-only port (polls `niri msg -j windows`, attributes time to `app_id` + hourly buckets), persists per-day JSON under `~/.cache/quickshell/screenTime`, `enabled`/`pollIntervalSeconds` as safe defaults (no Config), drops `Directories`/`AppSearch`/`CompositorService`. Signals `dataChanged`/`rangeLoaded` retained.
+- [x] **MemoryPressureService** — memory-pressure monitor — `services/MemoryPressureService.qml`: polls `/proc/self/maps` for `JSGCHeap` deleted/total mappings (5-min timer), notifies on `deletedMappingsThreshold` (300), `forceGc`/`restart`/`dismiss`/`reset`/`getStats` + `memory` IPC handlers (`collect`/`stats`/`restart`/`dismiss`/`reset`). `restart()` uses `qs ipc call reload`; Config→safe defaults; Translation→plain English; notifications via `Quickshell.Services.Notifications`.
 - [ ] **RecorderStatus** — screen recorder status
 - [ ] **WidgetPowerManager** — widget power/suspend helpers
 - [ ] **Events** — `modules/pill/Singletons/Events.qml` — calendar/event feed
