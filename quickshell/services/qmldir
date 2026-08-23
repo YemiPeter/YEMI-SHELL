@@ -6,7 +6,6 @@ singleton Audio Audio.qml
 singleton VolumeMonitor VolumeMonitor.qml
 singleton SystemUsage SystemUsage.qml
 singleton IdleInhibitor IdleInhibitor.qml
-singleton Notifs Notifs.qml
 singleton PowerProfiles PowerProfiles.qml
 singleton Screenshot Screenshot.qml
 singleton Logger Logger.qml

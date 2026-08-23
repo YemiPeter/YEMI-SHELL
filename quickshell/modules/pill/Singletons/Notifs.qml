@@ -16,6 +16,17 @@ Singleton {
     property var expireAt: ({})
     property var hookedIds: ({})
 
+    // Configurable popup timeouts (Waffle: Normal / Low / Critical / Ignore-app).
+    // Defaults mirror the previous hardcoded values; bind to a Config service later.
+    property int lowTimeout: 4000
+    property int normalTimeout: 6000
+    property int criticalTimeout: 6000
+    property var ignoreAppTimeout: []
+
+    // Waffle API parity: DND toggle + `silent` alias
+    readonly property alias silent: Flags.dnd
+    function toggleSilent() { Flags.dnd = !Flags.dnd }
+
     readonly property var tracked: server.trackedNotifications.values
     readonly property int count: tracked.length + history.length
 
@@ -112,9 +123,11 @@ Singleton {
 
     /**
      * Open the app behind a notification entry: invoke its default action when
-     * present, then focus the app's Hyprland window (workspace switch included)
-     * by matching desktopEntry/appName against window classes. The entry is
-     * dismissed afterwards, mirroring stock notification-center behavior.
+     * present, then (on Hyprland) focus the app's window by matching
+     * desktopEntry/appName against window classes. On Niri or any other
+     * compositor the focus step is skipped gracefully — no crash, the default
+     * action still fires and the entry is dismissed, mirroring stock
+     * notification-center behavior.
      */
     function activateEntry(e) {
         if (!e || !e.n) return;
@@ -128,11 +141,13 @@ Singleton {
         }
         var token = String(n.desktopEntry && n.desktopEntry.length ? n.desktopEntry : (n.appName || "")).toLowerCase();
         // Window-focus-on-click is Hyprland-only (uses `hyprctl clients`).
-        // On Niri there is no equivalent, so skip the call entirely.
-        if (token.length > 0 && (Quickshell.env("XDG_CURRENT_DESKTOP") || "").toLowerCase().indexOf("hyprland") >= 0)
+        // Niri and other compositors have no equivalent, so skip gracefully.
+        var desktop = (Quickshell.env("XDG_CURRENT_DESKTOP") || "").toLowerCase();
+        if (token.length > 0 && desktop.indexOf("hyprland") >= 0) {
             Quickshell.execDetached(["sh", "-c",
                 "addr=$(hyprctl clients -j | jq -r --arg q \"$1\" '[.[] | select((.class // \"\") | ascii_downcase | contains($q)) or ((.initialClass // \"\") | ascii_downcase | contains($q))][0].address // empty'); [ -n \"$addr\" ] && hyprctl dispatch \"hl.dsp.focus({ window = \\\"address:$addr\\\" })\"",
                 "sh", token]);
+        }
         dismissEntry(e);
     }
 
@@ -256,9 +271,15 @@ Singleton {
             var a = Object.assign({}, root.arrivalMs);
             a[n.id] = Date.now();
             root.arrivalMs = a;
-            var e = Object.assign({}, root.expireAt);
-            e[n.id] = Date.now() + (n.urgency === NotificationUrgency.Low ? 4000 : 6000);
-            root.expireAt = e;
+            var app = (n.appName && n.appName.length) ? n.appName : "System";
+            if (root.ignoreAppTimeout.indexOf(app) < 0) {
+                var ttl = (n.urgency === NotificationUrgency.Low) ? root.lowTimeout
+                        : (n.urgency === NotificationUrgency.Critical) ? root.criticalTimeout
+                        : root.normalTimeout;
+                var e = Object.assign({}, root.expireAt);
+                e[n.id] = Date.now() + ttl;
+                root.expireAt = e;
+            }
             n.tracked = true;
             root.hookClosed(n);
             var critical = n.urgency === NotificationUrgency.Critical;

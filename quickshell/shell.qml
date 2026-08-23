@@ -21,7 +21,6 @@ ShellRoot {
     readonly property var compositor: Compositor
 
     // Initialize services immediately
-    readonly property var notifs: QsServices.Notifs
     readonly property var audio: QsServices.Audio
     readonly property var brightness: QsServices.Brightness
 
@@ -248,27 +247,7 @@ ShellRoot {
     }
 
 
-    // Direct NotificationServer to ensure it starts
-    NotificationServer {
-        id: notificationServer
 
-        keepOnReload: false
-        actionsSupported: true
-        bodyHyperlinksSupported: true
-        bodyMarkupSupported: true
-        imageSupported: true
-        persistenceSupported: true
-
-        onNotification: notif => {
-            if (QsSingletons.Flags.debug) console.log("📬 [ShellRoot] Notification received:", notif.appName, notif.summary);
-            notif.tracked = true;
-            notifs.addNotification(notif);
-        }
-
-        Component.onCompleted: {
-            if (QsSingletons.Flags.debug) console.log("🔔 NotificationServer registered on D-Bus");
-        }
-    }
 
     Loader {
         id: barLoader
