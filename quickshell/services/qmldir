@@ -16,3 +16,4 @@ singleton Updates Updates.qml
 singleton Privacy Privacy.qml
 singleton ScreenTime ScreenTime.qml
 singleton MemoryPressureService MemoryPressureService.qml
+singleton TimerService TimerService.qml

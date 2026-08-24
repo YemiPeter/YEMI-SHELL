@@ -695,8 +695,8 @@ Item {
           spacing: 0
           Text {
             anchors.verticalCenter: parent.verticalCenter
-            text: clock.hhmm
-                color: Theme.cream
+            text: (QsServices.TimerService.pomodoroRunning && !QsServices.TimerService.pomodoroPaused) ? QsServices.TimerService.countdownString : clock.hhmm
+                color: (QsServices.TimerService.pomodoroRunning && !QsServices.TimerService.pomodoroPaused) ? Theme.vermLit : Theme.cream
                 font.family: Theme.font
                 font.pixelSize: 16 * pill.s
                 font.weight: Font.DemiBold
