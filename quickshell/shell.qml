@@ -23,6 +23,8 @@ ShellRoot {
     // Initialize services immediately
     readonly property var audio: QsServices.Audio
     readonly property var brightness: QsServices.Brightness
+    readonly property var conflictKiller: QsServices.ConflictKiller
+    readonly property var firstRun: QsServices.FirstRunExperience
 
     // === Wallpaper IPC Handler ===
     IpcHandler {

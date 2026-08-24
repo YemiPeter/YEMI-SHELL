@@ -17,3 +17,5 @@ singleton Privacy Privacy.qml
 singleton ScreenTime ScreenTime.qml
 singleton MemoryPressureService MemoryPressureService.qml
 singleton TimerService TimerService.qml
+singleton ConflictKiller ConflictKiller.qml
+singleton FirstRunExperience FirstRunExperience.qml

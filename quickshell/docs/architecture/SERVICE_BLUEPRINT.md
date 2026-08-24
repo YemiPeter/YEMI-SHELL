@@ -1,40 +1,33 @@
-# Waffle Service Blueprint (iNiR Reference)
+# Service Blueprint — Shell by Yemi
 
-> **Source of truth:** iNiR reference copies staged at commit `3b501a3`
-> (branch `settings-modified-backup`). Service registry: `quickshell/inir/qmldir`
-> (module `qs.services`). Waffle UI: `quickshell/waffle/`.
-> **Note:** Waffle currently consumes iNiR's `Appearance`/`ThemeService`/`m3colors`
-> (NOT the Yemi-Shell Dominance/`Dyn` pipeline). See §5.
+> **Source of truth:** the shell's own service layer under `services/`
+> (QML module `qs.services`) plus shared singletons in `singletons/`. UI
+> surfaces live in `modules/` (pill, bar, …). This blueprint maps every
+> reference service the shell provides or wraps, and the settings/panel
+> surface, so features can be located and reused.
 
-This blueprint maps **every** iNiR service the Waffle shell depends on, the full
-Waffle settings UI, and the Waffle module/panel surface — so the Pill/Niri upgrade
-can reuse the right services.
+This blueprint maps **every** service the shell depends on, the full
+settings UI, and the module/panel surface — so features can reuse the
+right services.
 
 ---
 
 ## 1. Architecture Overview
 
-```
-┌──────────────────────────── Waffle UI (quickshell/waffle/) ───────────────────────────┐
-│ bar · taskview · actionCenter · startMenu · widgets · background · backdrop · lock ·    │
-│ notificationCenter · onScreenDisplay · clipboard · regionSelector · sessionScreen ·     │
-│ altSwitcher · polkit · looks · settings                                              │
-└───────────────┬───────────────────────────────────────────────────────────────────────┘
-                │ reads/writes config + binds to singletons
-                ▼
-┌──────────────────────────── iNiR Services (qs.services) ──────────────────────────────┐
-│ Audio Battery Network Notifications TrayService WindowPreviewService CompositorService │
-│ NiriService Wallpapers ThemeService MaterialThemeLoader GameMode Idle MprisController …│
-│ (+ deferred/* and ai/ + network/ submodules)                                          │
-└───────────────┬───────────────────────────────────────────────────────────────────────┘
-                │ IPC / D-Bus / PulseAudio / files
-                ▼
-        Hyprland · Niri · PipeWire · NetworkManager · systemd · wallpaper engine
-```
+- **UI surfaces** (`modules/`): the pill (launcher, mixer, calendar, clipboard,
+  power, settings, keybinds, wallpaper, link, media, sysmon), the bar, the music
+  panel, and the alt-tab switcher. They read/write config and bind to singletons.
+- **Services** (`services/`, QML module `qs.services`) plus shared singletons
+  (`singletons/`): Audio, Battery, Network, Notifications, TrayService,
+  WindowPreviewService, CompositorService, NiriService, Wallpapers, ThemeService,
+  GameMode, Idle, MprisController, and the ported services (ConflictKiller,
+  FirstRunExperience, TimerService, MemoryPressureService).
+- **Backends** reached over IPC / D-Bus / PulseAudio / files: Hyprland, Niri,
+  PipeWire, NetworkManager, systemd, and the wallpaper engine.
 
 ---
 
-## 2. Waffle Module / Panel Map
+## 2. Shell Module / Panel Map
 
 | Module | Role |
 |--------|------|
@@ -59,9 +52,9 @@ can reuse the right services.
 
 ---
 
-## 3. iNiR Service Catalog (complete)
+## 3. Service Catalog (complete)
 
-Every service registered in `quickshell/inir/qmldir` plus deferred + submodules.
+Every service in the shell's `services/` module plus shared singletons.
 "compact API" lists representative `property` / `function` / `signal` members.
 
 ### 3.x Core & System
@@ -629,7 +622,7 @@ _Wallhaven wallpaper source_
 
 #### ThemeService
 
-_iNiR theme service: palette + scheme source_
+_shell theme service: palette + scheme source_
 
 ```qml
 - property bool ready: false
@@ -1204,9 +1197,9 @@ _no public members extracted_
 
 ---
 
-## 4. Waffle Settings UI → Service Map
+## 4. Shell Settings UI → Service Map
 
-12 pages (`WSettingsContent.qml`). Each setting below is backed by an iNiR service
+The settings window (`modules/settings/SettingsWindow.qml`). Each setting below is backed by a shell service
 (see §3 for the service's API). Format: **Page › Section › Setting**.
 
 
@@ -1289,7 +1282,7 @@ _no public members extracted_
 
 **Background › Wallpaper**
 - Use Material ii wallpaper
-- Waffle wallpaper
+- Shell wallpaper
 - Per-monitor wallpapers
 - Hide when fullscreen
 - Wallpaper scaling
@@ -1347,7 +1340,7 @@ _no public members extracted_
 **Themes › Color Scheme**
 - Palette type
 
-**Themes › Waffle Typography**
+**Themes › Shell Typography**
 - Font family
 - Font scale
 
@@ -1364,7 +1357,7 @@ _no public members extracted_
 
 **Gowall › Color Scheme Source**
 - Built-in theme
-- iNiR theme
+- shell theme
 - Custom palette
 
 **Gowall › Output**
@@ -1397,45 +1390,45 @@ _no public members extracted_
 **Modules › Panel Style**
 - Panel family
 
-**Modules › Material Modules in Waffle**
+**Modules › Material Modules in Shell**
 - Left Sidebar
 - Right Sidebar
 - Dock
 - Media Controls Overlay
 - Screen Corners
 
-**Modules › Waffle Modules**
+**Modules › Shell Modules**
 - Widgets Panel
 - Desktop Backdrop
 
-**Waffle Style › Theming**
+**Shell Style › Theming**
 - Use Material colors
 
-**Waffle Style › Alt+Tab Switcher**
+**Shell Style › Alt+Tab Switcher**
 - Style
 - Quick switch
 - Most recent first
 - Auto-hide
 - Auto-hide delay
 
-**Waffle Style › Behavior**
+**Shell Style › Behavior**
 - Allow multiple panels open
 - Smoother menu animations
 
-**Waffle Style › Widgets Panel**
+**Shell Style › Widgets Panel**
 - Show date & time
 - Show weather
 - Show system info
 - Show media controls
 - Show quick actions
 
-**Waffle Style › Calendar**
+**Shell Style › Calendar**
 - Force 2-char day names
 
 **Monitors › Shell visibility**
 - Primary monitor
 
-**Monitors › Waffle shell surfaces**
+**Monitors › Shell shell surfaces**
 - Taskbar
 
 **Monitors › Shared popups and widgets**
@@ -1445,21 +1438,22 @@ _no public members extracted_
 
 ---
 
-## 5. Theme Seam (Dominance vs iNiR)
+## 5. Theme Pipeline
 
-- Waffle's `looks/` + `WSettings*` read iNiR `Appearance` (`aurora.*`, `angel.*`,
-  `m3colors`, `MaterialThemeLoader`, `ThemeService`) — **byte-for-byte iNiR**.
-- Yemi-Shell's active `main` uses the **Dominance** engine (`Dyn` → `colors.json`),
-  which Waffle does **not** consume.
-- The `whole-waffle` branch is the frozen reference for the Waffle port (DO NOT MERGE).
-- To eventually bridge Dominance → Waffle, the seam is `config/Appearance.qml`
-  (see `quickshell/docs/reference/INIR_WAFFLE_SCOPE.md`).
+- The shell themes itself with the **Dominance** engine: `singletons/Dyn.qml`
+  reads `colors.json` (written by `after-wall.sh`) and exposes palette state to
+  every surface via the `Theme` singleton.
+- `Appearance.qml` / `AppearanceConfig.qml` expose the user-facing theme toggles
+  (dark mode, palette, color scheme) consumed directly by the shell — there is no
+  separate external appearance layer.
+- To add a themed service, read `Theme`/`Dyn` state and re-emit on `Dyn`'s
+  revision change rather than spinning up a second theme source.
 
 ---
 
-## 6. How to reuse for the Pill/Niri upgrade
+## 6. How to reuse services
 
-1. Pull needed services from §3 into `quickshell/services/` (register in `services/qmldir`).
-2. Map each Waffle setting (§4) to a Yemi-Shell config key; keep `qs.services.*` URIs.
+1. Pull needed services from §3 into `services/` (register in `services/qmldir`).
+2. Map each setting (§4) to a shell config key; keep `qs.services.*` URIs.
 3. For Niri, prefer `NiriService` + `CompositorService` over Hyprland-specific paths.
-4. Re-theme via Dominance by replacing `MaterialThemeLoader`/`m3colors` with `Dyn`.
+4. Theme via the Dominance/`Dyn` pipeline, not a separate theme source.

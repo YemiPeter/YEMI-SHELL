@@ -1,6 +1,6 @@
-# Waffle → Pill iNiR Service Upgrade Checklist
+# Service Upgrade Checklist — Shell by Yemi
 
-Source of truth: `docs/architecture/WAFFLE_SERVICE_BLUEPRINT.md`
+Source of truth: `docs/architecture/SERVICE_BLUEPRINT.md`
 Legend: `[x]` done · `[ ]` pending · `[~]` skipped (redundant/covered) · Pill location = where it lives in this repo (if known).
 
 Upgraded so far (commits on `pill-upgrade-inir-niri`):
@@ -20,7 +20,7 @@ Upgraded so far (commits on `pill-upgrade-inir-niri`):
 - [x] **SystemInfo** — `services/SystemInfo.qml` — static identity: distro (`distroName`/`distroId`/`distroIcon`/`logo` from `/etc/os-release`), user (`username`/`displayName` via `id`+`getent`), session (`desktopEnvironment`/`windowingSystem`), links (`homeUrl`/`documentationUrl`/`supportUrl`/`bugReportUrl`/`privacyPolicyUrl`), `refreshIdentity()`. Registered `singleton SystemInfo` in `services/qmldir`. Commit pending.
 - [x] **Updates** — package update checks — `services/Updates.qml`: `available`/`count` via `checkupdates` (Arch/CachyOS), `updateAdvised` (>75)/`updateStronglyAdvised` (>200), periodic 120-min re-check. Thresholds/interval are safe defaults (no Config).
 - [x] **ShellUpdates** — self-update of shell — already implemented by `modules/pill/Updates.qml` (git-based: check-update.sh + `git pull --ff-only` + `qs ipc call reload`)
-- [x] **Privacy** — mic/screen-share detection — `services/Privacy.qml`: `micActive` (PipeWire link inspection), `screenSharing` stub (real detection in UI, matching Waffle). Registered `singleton Privacy` in `services/qmldir`.
+- [x] **Privacy** — mic/screen-share detection — `services/Privacy.qml`: `micActive` (PipeWire link inspection), `screenSharing` stub (real detection in UI, matching Shell). Registered `singleton Privacy` in `services/qmldir`.
 - [x] **ScreenTime** — per-app screen-time tracking — `services/ScreenTime.qml`: Niri-only port (polls `niri msg -j windows`, attributes time to `app_id` + hourly buckets), persists per-day JSON under `~/.cache/quickshell/screenTime`, `enabled`/`pollIntervalSeconds` as safe defaults (no Config), drops `Directories`/`AppSearch`/`CompositorService`. Signals `dataChanged`/`rangeLoaded` retained.
 - [x] **MemoryPressureService** — memory-pressure monitor — `services/MemoryPressureService.qml`: polls `/proc/self/maps` for `JSGCHeap` deleted/total mappings (5-min timer), notifies on `deletedMappingsThreshold` (300), `forceGc`/`restart`/`dismiss`/`reset`/`getStats` + `memory` IPC handlers (`collect`/`stats`/`restart`/`dismiss`/`reset`). `restart()` uses `qs ipc call reload`; Config→safe defaults; Translation→plain English; notifications via `Quickshell.Services.Notifications`.
 - [~] **RecorderStatus** — screen recorder status — SKIPPED: redundant, fully covered by `modules/pill/Singletons/ScreenRec.qml` (pgrep gpu-screen-recorder) + `Recorder.qml`
@@ -28,9 +28,9 @@ Upgraded so far (commits on `pill-upgrade-inir-niri`):
 - [x] **Events** — `modules/pill/Singletons/Events.qml` — calendar/event feed — already implemented (no port needed)
 - [x] **TimerService** — timer / pomodoro — `services/TimerService.qml` + `Pill.qml` rest-clock hook: `timer` IPC (start/pause/reset/status), safe defaults (focusTime 1500/breakTime 300/longBreakTime 900/cyclesBeforeLongBreak 4), own 1s tick drives `countdownString`; rest clock swaps to countdown (Theme.vermLit, tabular nums) when running & not paused; real time kept in hover; finishes notify via `Quickshell.Services.Notifications`.
 - [ ] **GlobalActions** — global action + hotkey registry
-- [ ] **ConflictKiller** — resolve conflicting keybinds/settings
-- [ ] **FirstRunExperience** — first-run onboarding
-- [ ] **CustomWidgets** — shared custom widget library
+- [x] **ConflictKiller** — resolve conflicting keybinds/settings — `services/ConflictKiller.qml` (registered in `services/qmldir`; eager-init in `shell.qml`): scans `binds.lua` for duplicate chords (via `Binds.parse`) into `keybindConflicts`, plus a `claim()`/`release()` registry that trips `_traysConflict`/`_notifsConflict`; `killDialogQmlPath` → `modules/pill/ConflictKillDialog.qml`; `conflict` IPC (scan/status/claim/release); notifies on conflicts.
+- [x] **FirstRunExperience** — first-run onboarding — `services/FirstRunExperience.qml` (registered in `services/qmldir`; eager-init in `shell.qml`): marker file in state dir gates onboarding; `handleFirstRun()` sends welcome notification + `welcomeQmlPath` → `modules/pill/WelcomeDialog.qml`; `enableNextTime()`/`disableNextTime()` toggle the marker; `firstrun` IPC (status/enable/disable).
+- [~] **CustomWidgets** — shared custom widget library — SKIPPED: not useful here (no swappable user widgets to mount).
 
 ## Power / Session / Input
 
@@ -55,7 +55,7 @@ Upgraded so far (commits on `pill-upgrade-inir-niri`):
 - [ ] **Wallpapers** — `modules/pill/Singletons/Walls.qml` — wallpaper management
 - [ ] **WallpaperListener** — watch wallpaper change events
 - [ ] **Wallhaven** — Wallhaven source
-- [ ] **ThemeService** — iNiR theme service
+- [ ] **ThemeService** — shell theme service
 - [ ] **MaterialThemeLoader** — Material You (m3colors)
 - [ ] **CavaTheme** — Cava visualizer bridge
 - [ ] **FontSyncService** — font sync

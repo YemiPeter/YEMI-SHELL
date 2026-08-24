@@ -86,6 +86,7 @@ Scope {
             return
         root.currentIndex = 0
         root.open = true
+        cardHolder.forceActiveFocus()
     }
     function close(): void { root.open = false }
     function next(): void {
@@ -103,6 +104,26 @@ Scope {
         }
         if (root.count > 0)
             root.currentIndex = (root.currentIndex - 1 + root.count) % root.count
+    }
+
+    // ── Keyboard grid navigation (arrows + Enter/Esc) ──────────────────────────
+    readonly property int _cols: Math.max(1, Math.floor((flow.width + root.tileGap * root.s) / (root.tileWidth * root.s + root.tileGap * root.s)))
+
+    function moveLeft(): void {
+        if (root.count === 0) return
+        root.currentIndex = Math.max(0, root.currentIndex - 1)
+    }
+    function moveRight(): void {
+        if (root.count === 0) return
+        root.currentIndex = Math.min(root.count - 1, root.currentIndex + 1)
+    }
+    function moveUp(): void {
+        if (root.count === 0) return
+        root.currentIndex = Math.max(0, root.currentIndex - root._cols)
+    }
+    function moveDown(): void {
+        if (root.count === 0) return
+        root.currentIndex = Math.min(root.count - 1, root.currentIndex + root._cols)
     }
 
     function selectAndFocus(index: int): void {
@@ -155,7 +176,7 @@ Scope {
         exclusionMode: ExclusionMode.Ignore
         WlrLayershell.namespace: "quickshell:altSwitcher"
         WlrLayershell.layer: WlrLayer.Overlay
-        WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+        WlrLayershell.keyboardFocus: root.open ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
         anchors {
             top: true
             bottom: true
@@ -171,6 +192,7 @@ Scope {
         Region {
             id: blurRegion
             item: cardHolder
+            radius: 20 * root.s
         }
 
         // Dim everything behind the glass.
@@ -190,14 +212,29 @@ Scope {
             anchors.centerIn: parent
             width: Math.min(parent.width * 0.82, 960)
             height: Math.min(parent.height * 0.82, 600)
+            focus: true
+            Keys.onPressed: (event) => {
+                if (!root.open)
+                    return
+                switch (event.key) {
+                case Qt.Key_Left: root.moveLeft(); event.accepted = true; break
+                case Qt.Key_Right: root.moveRight(); event.accepted = true; break
+                case Qt.Key_Up: root.moveUp(); event.accepted = true; break
+                case Qt.Key_Down: root.moveDown(); event.accepted = true; break
+                case Qt.Key_Return:
+                case Qt.Key_Enter: root.selectAndFocus(root.currentIndex); event.accepted = true; break
+                case Qt.Key_Escape: root.close(); event.accepted = true; break
+                }
+            }
 
-            Rectangle {
-                id: card
-                anchors.fill: parent
-                radius: 20
-                color: Qt.alpha(root.cSurface, 0.72)
-                border.color: root.cBorder
-                border.width: 1
+                Rectangle {
+                    id: card
+                        anchors.fill: parent
+                        radius: 20
+                        color: Qt.alpha(root.cSurface, 0.72)
+                        border.color: root.cBorder
+                        border.width: 1
+                        clip: true
 
                 ColumnLayout {
                     anchors.fill: parent
@@ -224,7 +261,7 @@ Scope {
                         }
                         Item { Layout.fillWidth: true }
                         Text {
-                                text: "Alt+Tab next · Alt+Shift+Tab prev · click to focus"
+                                text: "↑ ↓ ← → navigate · Enter focus · Esc close"
                             color: root.cSubText
                             font.family: QsSingletons.Theme.font
                             font.pixelSize: 11 * root.s
