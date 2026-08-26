@@ -222,6 +222,13 @@ SettingsSurface {
             clip: true
             boundsBehavior: Flickable.StopAtBounds
 
+            onContentYChanged: {
+                if (backdropGroup.y + backdropGroup.height < contentY && !backdropGroup.collapsed)
+                    backdropGroup.collapsed = true
+                if (parallaxGroup.y + parallaxGroup.height < contentY && !parallaxGroup.collapsed)
+                    parallaxGroup.collapsed = true
+            }
+
             Column {
                 id: innerColumn
                 width: parent.width
