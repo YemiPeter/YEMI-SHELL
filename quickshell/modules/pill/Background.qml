@@ -15,7 +15,7 @@ SettingsSurface {
     id: root
 
     backSurface: "settings"
-    property real maxSurfaceH: 460 * root.s
+    property real maxSurfaceH: settings.implicitHeight
     implicitHeight: Math.min(settingsHeader.implicitHeight + innerColumn.implicitHeight, maxSurfaceH)
     rows: []
 
