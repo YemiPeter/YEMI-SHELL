@@ -42,6 +42,11 @@ Singleton {
     // --- Borders ------------------------------------------------------
     readonly property color border: QsConfig.Appearance.yemiBorder
 
+    // --- Aurora style facade -----------------------------------------
+    // Mirrors iNiR's Appearance.aurora color object so cards can opt into
+    // explicit aurora glass colors (Theme.aurora.colSubSurface, etc.).
+    readonly property var aurora: QsConfig.Appearance.aurora
+
     // --- Flame Canvas Strings (MUST remain strings, not colors) -------
     readonly property string flameInk: QsConfig.Appearance.flameInk
     readonly property string flameEmber: QsConfig.Appearance.flameEmber

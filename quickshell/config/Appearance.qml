@@ -100,15 +100,56 @@ Singleton {
     /// Static mode + grayscale accent toggle (forces neutral gray accents).
     readonly property bool isGrayscaleStatic: !isDynamic && QsSingletons.Flags.staticGrayscaleAccents
 
+    // --- Aurora glass style (ported from iNiR) ------------------------
+    // When active, layer surfaces become translucent so the wallpaper shows
+    // through (the "aurora" look). Driven by Flags.themeStyle === "aurora".
+    readonly property bool auroraEverywhere: QsSingletons.Flags.themeStyle === "aurora"
+    readonly property real _auroraLightFactor: auroraEverywhere && QsSingletons.Flags.systemMood !== "dark" ? 0.75 : 1.0
+
+    readonly property var aurora: {
+        const overlay = 0.30 * _auroraLightFactor;
+        const subSurface = 0.42 * _auroraLightFactor;
+        const popup = 0.32 * _auroraLightFactor;
+        const tooltip = 0.28 * _auroraLightFactor;
+        const layer = 0.32 * _auroraLightFactor;
+        return {
+            overlay: overlay,
+            subSurface: subSurface,
+            popup: popup,
+            tooltip: tooltip,
+            layer: layer,
+            layerTransparentize: layer,
+            colOverlay: ColorUtils.transparentize(yemiTileBgBase, overlay),
+            colSubSurface: ColorUtils.transparentize(yemiCardTopBase, subSurface),
+            colSubSurfaceHover: ColorUtils.transparentize(ColorUtils.mix(yemiCardTopBase, yemiCreamBase, 0.92), subSurface),
+            colElevatedSurface: ColorUtils.transparentize(yemiCardBotBase, subSurface * 0.9),
+            colElevatedSurfaceHover: ColorUtils.transparentize(ColorUtils.mix(yemiCardBotBase, yemiCreamBase, 0.92), subSurface * 0.9),
+            colPopupSurface: ColorUtils.transparentize(yemiCardBotBase, popup),
+            colPopupSurfaceHover: ColorUtils.transparentize(ColorUtils.mix(yemiCardBotBase, yemiCreamBase, 0.92), popup),
+            colTooltipSurface: ColorUtils.transparentize(Qt.lighter(yemiCardBotBase, 1.15), tooltip),
+            colTooltipBorder: ColorUtils.transparentize(ColorUtils.mix(Qt.lighter(yemiCardBotBase, 1.15), yemiCreamBase, 0.85), tooltip * 0.8),
+            colDialogSurface: ColorUtils.transparentize(Qt.lighter(yemiCardBotBase, 1.15), popup * 0.85),
+            colPopupBorder: ColorUtils.transparentize(yemiBorder, 0.7),
+            colTextSecondary: ColorUtils.transparentize(yemiCreamBase, 0.3)
+        };
+    }
+
     /// Raw Material 3 palette — always from Dyn (accent source even in static mode).
     readonly property var m3: QsSingletons.Dyn.active
 
     // --- Resolved Yemi compatibility tokens ---------------------------
     // Dynamic: wallpaper-derived via Dyn. Static: solid mood surfaces.
     // Text colors are run through ColorUtils.ensureReadable() for contrast.
-    readonly property color yemiTileBg: QsSingletons.Dyn.schemeValid ? (isDynamic ? QsSingletons.Dyn.surface : activeMood.tileBg) : activeMood.tileBg
-    readonly property color yemiCardTop: QsSingletons.Dyn.schemeValid ? (isDynamic ? QsSingletons.Dyn.surfaceContainerHigh : activeMood.cardTop) : activeMood.cardTop
-    readonly property color yemiCardBot: QsSingletons.Dyn.schemeValid ? (isDynamic ? QsSingletons.Dyn.surfaceContainerLow : activeMood.cardBot) : activeMood.cardBot
+    readonly property color yemiTileBgBase: QsSingletons.Dyn.schemeValid ? (isDynamic ? QsSingletons.Dyn.surface : activeMood.tileBg) : activeMood.tileBg
+    readonly property color yemiCardTopBase: QsSingletons.Dyn.schemeValid ? (isDynamic ? QsSingletons.Dyn.surfaceContainerHigh : activeMood.cardTop) : activeMood.cardTop
+    readonly property color yemiCardBotBase: QsSingletons.Dyn.schemeValid ? (isDynamic ? QsSingletons.Dyn.surfaceContainerLow : activeMood.cardBot) : activeMood.cardBot
+    // Aurora-independent text color so the aurora object can blend hovers without a cycle.
+    readonly property color yemiCreamBase: QsSingletons.Dyn.schemeValid ? ColorUtils.ensureReadable(QsSingletons.Dyn.onSurface, yemiTileBgBase) : activeMood.cream
+
+    // Aurora transparentizes the base surfaces so the wallpaper shows through.
+    readonly property color yemiTileBg: auroraEverywhere ? ColorUtils.transparentize(yemiTileBgBase, aurora.layerTransparentize) : yemiTileBgBase
+    readonly property color yemiCardTop: auroraEverywhere ? ColorUtils.transparentize(yemiCardTopBase, aurora.layerTransparentize) : yemiCardTopBase
+    readonly property color yemiCardBot: auroraEverywhere ? ColorUtils.transparentize(yemiCardBotBase, aurora.layerTransparentize) : yemiCardBotBase
     readonly property color yemiCream: QsSingletons.Dyn.schemeValid ? ColorUtils.ensureReadable(QsSingletons.Dyn.onSurface, yemiTileBg) : activeMood.cream
     readonly property color yemiBright: QsSingletons.Dyn.schemeValid ? ColorUtils.ensureReadable(QsSingletons.Dyn.onSurface, yemiTileBg) : activeMood.bright
     readonly property color yemiSubtle: QsSingletons.Dyn.schemeValid ? ColorUtils.ensureReadable(QsSingletons.Dyn.onSurfaceVariant, yemiTileBg) : activeMood.subtle

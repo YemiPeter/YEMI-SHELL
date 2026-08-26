@@ -49,6 +49,7 @@ SettingsSurface {
         { item: timeRow, kind: "seg", vals: [false, true], get: function () { return Flags.time12h; }, set: function (v) { Flags.time12h = v; } },
         { item: secRow, kind: "toggle", get: function () { return Flags.clockSeconds; }, set: function (v) { Flags.clockSeconds = v; } },
         { item: paletteRow, kind: "seg", vals: ["static", "dynamic"], get: function () { return Flags.paletteMode; }, set: function (v) { Flags.paletteMode = v; root.applyMode(); } },
+        { item: themeRow, kind: "seg", vals: ["yemi", "aurora"], get: function () { return Flags.themeStyle; }, set: function (v) { Flags.themeStyle = v; } },
         { item: moodRow, kind: "seg", vals: ["dark", "light"], get: function () { return Flags.systemMood; }, set: function (v) { Flags.systemMood = v; root.applyMode(); } },
         { item: scaleRow, kind: "seg", vals: [0.9, 1.0, 1.1, 1.25], get: function () { return Flags.uiScale; }, set: function (v) { Flags.uiScale = v; } },
         { item: motionRow, kind: "toggle", get: function () { return Flags.reduceMotion; }, set: function (v) { Flags.reduceMotion = v; } },
@@ -123,6 +124,20 @@ SettingsSurface {
                 options: [{ label: "Dark", value: "dark" }, { label: "Light", value: "light" }]
                 value: Flags.systemMood
                 onPicked: (v) => { Flags.systemMood = v; root.applyMode(); }
+            }
+        }
+
+        SettingsRow {
+            id: themeRow
+            surface: root
+            name: "Theme style"
+            icon: "blur_on"
+
+            SettingsSeg {
+                s: root.s
+                options: [{ label: "Yemi", value: "yemi" }, { label: "Aurora", value: "aurora" }]
+                value: Flags.themeStyle
+                onPicked: (v) => { Flags.themeStyle = v; }
             }
         }
 
