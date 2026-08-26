@@ -7,6 +7,7 @@ import Quickshell
 import Quickshell.Services.Mpris
 import Quickshell.Networking
 import "Singletons"
+import "../common"
 import "../../singletons" as QsSingletons
 import qs.services as QsServices
 
@@ -489,6 +490,11 @@ Item {
     Behavior on width { NumberAnimation { duration: Motion.morph; easing.type: Motion.easeMorph; easing.bezierCurve: Motion.morphCurve } }
     Behavior on height { NumberAnimation { duration: Motion.morph; easing.type: Motion.easeMorph; easing.bezierCurve: Motion.morphCurve } }
     Behavior on morphRadius { NumberAnimation { duration: Motion.morph; easing.type: Motion.easeMorph; easing.bezierCurve: Motion.morphCurve } }
+
+    Glass {
+        anchors.fill: parent
+        radius: pill.morphRadius
+    }
 
     Rectangle {
         id: bud

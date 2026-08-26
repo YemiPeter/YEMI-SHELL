@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Effects
+import "../common"
 import "Singletons"
 
 /**
@@ -58,6 +59,7 @@ Item {
 
     Rectangle {
         id: bubble
+        Glass { anchors.fill: parent; radius: bubble.radius }
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: root.below ? undefined : parent.top
         anchors.bottom: root.below ? parent.bottom : undefined
