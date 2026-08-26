@@ -267,6 +267,12 @@ SettingsSurface {
                 }
             }
 
+            Rectangle {
+                width: parent.width
+                height: 1 * root.s
+                color: Theme.hairSoft
+            }
+
             Group {
                 title: "Parallax"
                 collapsed: false
