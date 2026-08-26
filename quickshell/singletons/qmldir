@@ -4,3 +4,4 @@ singleton Dyn 1.0 Dyn.qml
 singleton Flags 1.0 Flags.qml
 singleton PillState 1.0 PillState.qml
 singleton Metrics 1.0 Metrics.qml
+singleton WallpaperState 1.0 WallpaperState.qml

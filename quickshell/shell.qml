@@ -10,6 +10,7 @@ import QtQuick 6.10
 import "services" as QsServices
 import "singletons" as QsSingletons
 import "modules/pill" as Pill
+import "modules/background" as Background
 
 ShellRoot {
     id: root
@@ -264,6 +265,14 @@ ShellRoot {
         Pill.PillOverlay {
             modelData: modelData
             barWindow: root.barWindow
+        }
+    }
+
+    // Background renderer windows (one per screen) — Gate 0
+    Variants {
+        model: Quickshell.screens
+        Background.Backdrop {
+            modelData: modelData
         }
     }
 

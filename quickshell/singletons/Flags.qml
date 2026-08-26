@@ -51,6 +51,12 @@ Singleton {
     property alias recordDesktop: adapter.recordDesktop
     property alias recordClearedBefore: adapter.recordClearedBefore
     property alias altSwitcherEnabled: adapter.altSwitcherEnabled
+    property alias backdropEffects: adapter.backdropEffects
+    property alias backdropDim: adapter.backdropDim
+    property alias backdropVignette: adapter.backdropVignette
+    property alias parallaxEnable: adapter.parallaxEnable
+    property alias parallaxZoom: adapter.parallaxZoom
+    property alias parallaxStrength: adapter.parallaxStrength
 
     FileView {
         id: file
@@ -96,6 +102,12 @@ Singleton {
             property string weatherCity: ""
             property real recordClearedBefore: 0
             property bool altSwitcherEnabled: true
+            property bool backdropEffects: true
+            property real backdropDim: 0.12
+            property real backdropVignette: 0.35
+            property bool parallaxEnable: true
+            property real parallaxZoom: 1.08
+            property real parallaxStrength: 0.5
         }
     }
 }

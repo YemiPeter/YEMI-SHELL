@@ -1,0 +1,104 @@
+import QtQuick
+import Quickshell
+import Quickshell.Wayland
+import qs.compositor
+import "../../singletons" as QsSingletons
+
+PanelWindow {
+    id: root
+
+    required property var modelData
+    screen: root.modelData
+
+    anchors {
+        top: true
+        left: true
+        right: true
+        bottom: true
+    }
+
+    color: "transparent"
+    WlrLayershell.layer: WlrLayer.Background
+    exclusionMode: ExclusionMode.Ignore
+
+    mask: Region { width: 0; height: 0 }
+
+    readonly property real parallaxScale: 1.08
+    readonly property int wsId: {
+        const m = Compositor.monitorFor(root.screen)
+        return (m && m.activeWorkspace) ? m.activeWorkspace.id : 1
+    }
+    readonly property real maxShift: root.parallaxScale > 1
+        ? (root.parallaxScale - 1) / 2 * 0.9 * root.width
+        : 0
+    readonly property real parallaxStep: root.width * 0.018
+    readonly property real shift: Math.min(
+        Math.max((root.wsId - 1) * root.parallaxStep, 0),
+        root.maxShift
+    )
+
+    readonly property real dim: QsSingletons.Flags.backdropEffects ? QsSingletons.Flags.backdropDim : 0
+    readonly property real vignette: QsSingletons.Flags.backdropEffects ? QsSingletons.Flags.backdropVignette : 0
+
+    Image {
+        id: wall
+        width: parent.width
+        height: parent.height
+        x: -root.shift
+        scale: root.parallaxScale
+        transformOrigin: Transform.Center
+        source: QsSingletons.WallpaperState.current !== "" ? "file://" + QsSingletons.WallpaperState.current : ""
+        fillMode: Image.PreserveAspectCrop
+        asynchronous: true
+        smooth: true
+
+        Behavior on x { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+    }
+
+    Rectangle {
+        anchors.fill: parent
+        color: "black"
+        opacity: root.dim
+        visible: root.dim > 0
+    }
+
+    Item {
+        anchors.fill: parent
+        visible: root.vignette > 0
+
+        Rectangle {
+            anchors.fill: parent
+            gradient: Gradient {
+                orientation: Gradient.Vertical
+                GradientStop { position: 0.0; color: Qt.rgba(0, 0, 0, root.vignette) }
+                GradientStop { position: 0.22; color: "transparent" }
+                GradientStop { position: 1.0; color: "transparent" }
+            }
+        }
+        Rectangle {
+            anchors.fill: parent
+            gradient: Gradient {
+                orientation: Gradient.Vertical
+                GradientStop { position: 0.78; color: "transparent" }
+                GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, root.vignette) }
+            }
+        }
+        Rectangle {
+            anchors.fill: parent
+            gradient: Gradient {
+                orientation: Gradient.Horizontal
+                GradientStop { position: 0.0; color: Qt.rgba(0, 0, 0, root.vignette) }
+                GradientStop { position: 0.22; color: "transparent" }
+                GradientStop { position: 1.0; color: "transparent" }
+            }
+        }
+        Rectangle {
+            anchors.fill: parent
+            gradient: Gradient {
+                orientation: Gradient.Horizontal
+                GradientStop { position: 0.78; color: "transparent" }
+                GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, root.vignette) }
+            }
+        }
+    }
+}
