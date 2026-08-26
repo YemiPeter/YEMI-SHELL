@@ -15,7 +15,8 @@ SettingsSurface {
     id: root
 
     backSurface: "settings"
-    implicitHeight: content.implicitHeight
+    property real maxSurfaceH: 460 * root.s
+    implicitHeight: Math.min(settingsHeader.implicitHeight + innerColumn.implicitHeight, maxSurfaceH)
     rows: []
 
     component Stepper: Row {
@@ -206,19 +207,35 @@ SettingsSurface {
         clip: true
 
         SettingsHeader {
+            id: settingsHeader
             s: root.s
             title: "BACKGROUND"
             showBack: true
         }
 
-        Column {
+        Flickable {
+            id: scroller
             anchors.left: parent.left
             anchors.right: parent.right
-            anchors.leftMargin: 12 * root.s
-            anchors.rightMargin: 12 * root.s
-            spacing: 10 * root.s
+            height: Math.max(0, content.height - settingsHeader.height)
+            contentHeight: innerColumn.implicitHeight
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
+
+            onContentYChanged: {
+                if (backdropGroup.y + backdropGroup.height < contentY && !backdropGroup.collapsed)
+                    backdropGroup.collapsed = true
+                if (parallaxGroup.y + parallaxGroup.height < contentY && !parallaxGroup.collapsed)
+                    parallaxGroup.collapsed = true
+            }
+
+            Column {
+                id: innerColumn
+                width: parent.width
+                spacing: 10 * root.s
 
             Group {
+                id: backdropGroup
                 title: "Backdrop"
                 collapsed: false
 
@@ -274,6 +291,7 @@ SettingsSurface {
             }
 
             Group {
+                id: parallaxGroup
                 title: "Parallax"
                 collapsed: false
 
@@ -321,6 +339,8 @@ SettingsSurface {
                     }
                 }
             }
+
+            WheelScroller { flick: scroller }
         }
     }
 }
