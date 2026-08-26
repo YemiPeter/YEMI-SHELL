@@ -217,7 +217,7 @@ SettingsSurface {
             id: scroller
             anchors.left: parent.left
             anchors.right: parent.right
-            height: Math.max(0, content.height - settingsHeader.height)
+            height: Math.max(0, root.height - settingsHeader.height)
             contentHeight: innerColumn.implicitHeight
             clip: true
             boundsBehavior: Flickable.StopAtBounds
@@ -226,6 +226,7 @@ SettingsSurface {
                 id: innerColumn
                 width: parent.width
                 spacing: 10 * root.s
+                bottomPadding: 12 * root.s
 
             Group {
                 title: "Backdrop"
