@@ -95,15 +95,63 @@ SettingsSurface {
         }
     }
 
-    component GroupLabel: Text {
-        topPadding: 16 * root.s
-        bottomPadding: 6 * root.s
-        color: Theme.faint
-        font.family: Theme.font
-        font.pixelSize: 8.5 * root.s
-        font.weight: Font.Bold
-        font.capitalization: Font.AllUppercase
-        font.letterSpacing: 1.2 * root.s
+    component Group: Column {
+        id: g
+        property string title: ""
+        property bool collapsed: false
+        default property alias content: bodyColumn.data
+
+        spacing: 0
+        width: parent ? parent.width : 0
+
+        Row {
+            id: header
+            width: g.width
+            height: 30 * root.s
+            spacing: 6 * root.s
+
+            GlyphIcon {
+                width: 14 * root.s
+                height: 14 * root.s
+                anchors.verticalCenter: parent.verticalCenter
+                name: "chevron-down"
+                rotation: g.collapsed ? -90 : 0
+                color: Theme.faint
+                stroke: 2.2
+
+                Behavior on rotation { NumberAnimation { duration: 150 } }
+            }
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: g.title
+                color: Theme.faint
+                font.family: Theme.font
+                font.pixelSize: 8.5 * root.s
+                font.weight: Font.Bold
+                font.capitalization: Font.AllUppercase
+                font.letterSpacing: 1.2 * root.s
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: g.collapsed = !g.collapsed
+            }
+        }
+
+        Column {
+            id: bodyColumn
+            width: g.width
+            clip: true
+            enabled: !g.collapsed
+            opacity: g.collapsed ? 0 : 1
+            height: g.collapsed ? 0 : implicitHeight
+
+            Behavior on height { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+            Behavior on opacity { NumberAnimation { duration: 160 } }
+        }
     }
 
     component FieldRow: Item {
@@ -168,55 +216,105 @@ SettingsSurface {
             anchors.right: parent.right
             anchors.leftMargin: 12 * root.s
             anchors.rightMargin: 12 * root.s
-            spacing: 0
+            spacing: 10 * root.s
 
-            GroupLabel { text: "Backdrop" }
+            Group {
+                title: "Backdrop"
+                collapsed: false
 
-            FieldRow {
-                label: "Effects"
-                caption: "Dim and vignette behind the UI"
-                LinkToggle {
-                    s: root.s
-                    on: Flags.backdropEffects
-                    onToggled: Flags.backdropEffects = !Flags.backdropEffects
+                FieldRow {
+                    label: "Effects"
+                    caption: "Dim and vignette behind the UI"
+                    LinkToggle {
+                        s: root.s
+                        on: Flags.backdropEffects
+                        onToggled: Flags.backdropEffects = !Flags.backdropEffects
+                    }
                 }
-            }
 
-            FieldRow {
-                label: "Dim"
-                caption: "How much the wallpaper darkens"
-                visible: Flags.backdropEffects
-                height: Flags.backdropEffects ? 34 * root.s : 0
-                Stepper {
-                    value: Flags.backdropDim
-                    display: (Flags.backdropDim * 100).toFixed(0) + "%"
-                    onStepped: (dir) => {
-                        var next = Math.max(0, Math.min(1, Math.round((Flags.backdropDim + dir * 0.05) * 100) / 100));
-                        if (next === Flags.backdropDim)
-                            return;
-                        Flags.backdropDim = next;
+                FieldRow {
+                    label: "Dim"
+                    caption: "How much the wallpaper darkens"
+                    visible: Flags.backdropEffects
+                    height: Flags.backdropEffects ? 34 * root.s : 0
+                    Stepper {
+                        value: Flags.backdropDim
+                        display: (Flags.backdropDim * 100).toFixed(0) + "%"
+                        onStepped: (dir) => {
+                            var next = Math.max(0, Math.min(1, Math.round((Flags.backdropDim + dir * 0.05) * 100) / 100));
+                            if (next === Flags.backdropDim)
+                                return;
+                            Flags.backdropDim = next;
+                        }
+                    }
+                }
+
+                FieldRow {
+                    label: "Vignette"
+                    caption: "Darken the screen edges"
+                    visible: Flags.backdropEffects
+                    height: Flags.backdropEffects ? 34 * root.s : 0
+                    Stepper {
+                        value: Flags.backdropVignette
+                        display: (Flags.backdropVignette * 100).toFixed(0) + "%"
+                        onStepped: (dir) => {
+                            var next = Math.max(0, Math.min(1, Math.round((Flags.backdropVignette + dir * 0.05) * 100) / 100));
+                            if (next === Flags.backdropVignette)
+                                return;
+                            Flags.backdropVignette = next;
+                        }
                     }
                 }
             }
 
-            FieldRow {
-                label: "Vignette"
-                caption: "Darken the screen edges"
-                visible: Flags.backdropEffects
-                height: Flags.backdropEffects ? 34 * root.s : 0
-                Stepper {
-                    value: Flags.backdropVignette
-                    display: (Flags.backdropVignette * 100).toFixed(0) + "%"
-                    onStepped: (dir) => {
-                        var next = Math.max(0, Math.min(1, Math.round((Flags.backdropVignette + dir * 0.05) * 100) / 100));
-                        if (next === Flags.backdropVignette)
-                            return;
-                        Flags.backdropVignette = next;
+            Group {
+                title: "Parallax"
+                collapsed: false
+
+                FieldRow {
+                    label: "Parallax"
+                    caption: "Slide the wallpaper between workspaces"
+                    LinkToggle {
+                        s: root.s
+                        on: Flags.parallaxEnable
+                        onToggled: Flags.parallaxEnable = !Flags.parallaxEnable
+                    }
+                }
+
+                FieldRow {
+                    label: "Zoom"
+                    caption: "How much the wallpaper scales to free edge pixels"
+                    visible: Flags.parallaxEnable
+                    height: Flags.parallaxEnable ? 34 * root.s : 0
+                    Stepper {
+                        value: Flags.parallaxZoom
+                        display: (Flags.parallaxZoom * 100).toFixed(0) + "%"
+                        onStepped: (dir) => {
+                            var next = Math.max(1.0, Math.min(1.2, Math.round((Flags.parallaxZoom + dir * 0.01) * 100) / 100));
+                            if (next === Flags.parallaxZoom)
+                                return;
+                            Flags.parallaxZoom = next;
+                        }
+                    }
+                }
+
+                FieldRow {
+                    label: "Strength"
+                    caption: "How far it glides per workspace"
+                    visible: Flags.parallaxEnable
+                    height: Flags.parallaxEnable ? 34 * root.s : 0
+                    Stepper {
+                        value: Flags.parallaxStrength
+                        display: (Flags.parallaxStrength * 100).toFixed(0) + "%"
+                        onStepped: (dir) => {
+                            var next = Math.max(0, Math.min(1, Math.round((Flags.parallaxStrength + dir * 0.05) * 100) / 100));
+                            if (next === Flags.parallaxStrength)
+                                return;
+                            Flags.parallaxStrength = next;
+                        }
                     }
                 }
             }
-
-            Item { width: 1; height: 10 * root.s }
         }
     }
 }

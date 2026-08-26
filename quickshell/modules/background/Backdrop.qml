@@ -23,7 +23,8 @@ PanelWindow {
 
     mask: Region { width: 0; height: 0 }
 
-    readonly property real parallaxScale: 1.08
+    readonly property bool parallaxOn: QsSingletons.Flags.parallaxEnable
+    readonly property real parallaxScale: root.parallaxOn ? QsSingletons.Flags.parallaxZoom : 1.0
     readonly property int wsId: {
         const m = Compositor.monitorFor(root.screen)
         return (m && m.activeWorkspace) ? m.activeWorkspace.id : 1
@@ -31,11 +32,11 @@ PanelWindow {
     readonly property real maxShift: root.parallaxScale > 1
         ? (root.parallaxScale - 1) / 2 * 0.9 * root.width
         : 0
-    readonly property real parallaxStep: root.width * 0.018
-    readonly property real shift: Math.min(
+    readonly property real parallaxStep: root.maxShift * QsSingletons.Flags.parallaxStrength
+    readonly property real shift: root.parallaxOn ? Math.min(
         Math.max((root.wsId - 1) * root.parallaxStep, 0),
         root.maxShift
-    )
+    ) : 0
 
     readonly property real dim: QsSingletons.Flags.backdropEffects ? QsSingletons.Flags.backdropDim : 0
     readonly property real vignette: QsSingletons.Flags.backdropEffects ? QsSingletons.Flags.backdropVignette : 0
