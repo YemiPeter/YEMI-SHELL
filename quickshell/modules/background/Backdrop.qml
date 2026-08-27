@@ -45,19 +45,11 @@ PanelWindow {
     readonly property real vr: QsSingletons.Flags.backdropVignetteRadius
     readonly property real vignetteInner: 1.0 - root.vr
 
-    readonly property bool globalAnimationEnabled: QsSingletons.Flags.wallpaperEnableAnimation
-    readonly property bool globalBlurEnabled: QsSingletons.Flags.wallpaperEnableBlur
-    readonly property int globalBlurRadius: QsSingletons.Flags.wallpaperBlurRadius
-    readonly property real globalDim: QsSingletons.Flags.wallpaperDim
-    readonly property real effectiveBlur: Math.min(1.0, ((QsSingletons.Flags.backdropBlurRadius + (root.globalBlurEnabled ? root.globalBlurRadius : 0)) / 100.0))
-    readonly property real effectiveDim: Math.min(1.0, root.dim + root.globalDim)
-
-    readonly property bool wallpaperActive: QsSingletons.Flags.wallpaperUseMainWallpaper
-    readonly property bool hideWhenFullscreen: QsSingletons.Flags.wallpaperHideWhenFullscreen
-
     readonly property string effectiveWallpaper: (!QsSingletons.Flags.backdropUseMainWallpaper && QsSingletons.Flags.backdropWallpaperPath !== "") ? QsSingletons.Flags.backdropWallpaperPath : QsSingletons.WallpaperState.current
     readonly property string _wpPath: root.effectiveWallpaper || ""
     readonly property bool isGif: root._wpPath.toLowerCase().endsWith(".gif")
+
+    visible: QsSingletons.Flags.backdropEnable
 
     Item {
         id: wallContainer
@@ -65,7 +57,6 @@ PanelWindow {
         x: -root.shift
         scale: root.parallaxScale
         transformOrigin: Transform.Center
-        visible: root.wallpaperActive
 
         Behavior on x { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
 
@@ -83,7 +74,7 @@ PanelWindow {
             id: gifWallpaper
             anchors.fill: parent
             visible: root.isGif
-            playing: root.isGif && QsSingletons.Flags.backdropEnableAnimation && root.globalAnimationEnabled
+            playing: root.isGif && QsSingletons.Flags.backdropEnableAnimation
             source: root._wpPath !== "" ? (root._wpPath.startsWith("file://") ? root._wpPath : "file://" + root._wpPath) : ""
             fillMode: Image.PreserveAspectCrop
             asynchronous: true
@@ -95,21 +86,9 @@ PanelWindow {
         id: wallFx
         anchors.fill: wallContainer
         source: wallContainer
-        visible: QsSingletons.Flags.backdropEnable && root.wallpaperActive
-        blurEnabled: root.effectiveBlur > 0
-        blur: root.effectiveBlur
-        blurMax: 64
-        saturation: QsSingletons.Flags.backdropSaturation / 100.0
-        contrast: QsSingletons.Flags.backdropContrast / 100.0
-    }
-
-    MultiEffect {
-        id: wallFx
-        anchors.fill: wallContainer
-        source: wallContainer
         visible: QsSingletons.Flags.backdropEnable
-        blurEnabled: root.effectiveBlur > 0
-        blur: root.effectiveBlur
+        blurEnabled: QsSingletons.Flags.backdropBlurRadius > 0 && (!root.isGif || QsSingletons.Flags.backdropEnableAnimatedBlur)
+        blur: QsSingletons.Flags.backdropBlurRadius / 100.0
         blurMax: 64
         saturation: QsSingletons.Flags.backdropSaturation / 100.0
         contrast: QsSingletons.Flags.backdropContrast / 100.0
@@ -118,8 +97,8 @@ PanelWindow {
     Rectangle {
         anchors.fill: parent
         color: "black"
-        opacity: root.effectiveDim
-        visible: root.effectiveDim > 0
+        opacity: root.dim
+        visible: root.dim > 0
     }
 
     Item {

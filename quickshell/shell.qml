@@ -271,6 +271,9 @@ ShellRoot {
     // Background renderer windows (one per screen) — Gate 0
     Variants {
         model: Quickshell.screens
+        Background.Wallpaper {
+            modelData: modelData
+        }
         Background.Backdrop {
             modelData: modelData
         }
