@@ -48,8 +48,6 @@ PanelWindow {
     readonly property bool globalAnimationEnabled: QsSingletons.Flags.wallpaperEnableAnimation
     readonly property bool globalBlurEnabled: QsSingletons.Flags.wallpaperEnableBlur
     readonly property int globalBlurRadius: QsSingletons.Flags.wallpaperBlurRadius
-    readonly property bool globalAnimatedBlurEnabled: QsSingletons.Flags.wallpaperEnableAnimatedBlur
-    readonly property int globalAnimatedBlurStrength: QsSingletons.Flags.wallpaperAnimatedBlurStrength
     readonly property real globalDim: QsSingletons.Flags.wallpaperDim
     readonly property real effectiveBlur: Math.min(1.0, ((QsSingletons.Flags.backdropBlurRadius + (root.globalBlurEnabled ? root.globalBlurRadius : 0)) / 100.0))
     readonly property real effectiveDim: Math.min(1.0, root.dim + root.globalDim)
@@ -90,12 +88,6 @@ PanelWindow {
             fillMode: Image.PreserveAspectCrop
             asynchronous: true
             cache: false
-            layer.enabled: (QsSingletons.Flags.backdropEnableAnimatedBlur || root.globalAnimatedBlurEnabled)
-                && (root.globalAnimatedBlurEnabled ? root.globalAnimatedBlurStrength : QsSingletons.Flags.backdropBlurRadius) > 0
-            layer.effect: GaussianBlur {
-                radius: Math.round((root.globalAnimatedBlurEnabled ? root.globalAnimatedBlurStrength : QsSingletons.Flags.backdropBlurRadius) * Math.max(0, Math.min(1, (root.globalAnimatedBlurEnabled ? root.globalAnimatedBlurStrength : 50) / 100)))
-                samples: Math.min(33, radius * 2 + 1)
-            }
         }
     }
 
