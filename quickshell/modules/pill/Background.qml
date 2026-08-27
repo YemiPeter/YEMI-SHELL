@@ -281,7 +281,18 @@ SettingsSurface {
                     label: "Vignette"
                     caption: "Darken the screen edges"
                     visible: Flags.backdropEnable && Flags.backdropEffects
-                    height: (Flags.backdropEnable && Flags.backdropEffects) ? 34 * root.s : 0
+                    LinkToggle {
+                        s: root.s
+                        on: Flags.backdropVignetteEnable
+                        onToggled: Flags.backdropVignetteEnable = !Flags.backdropVignetteEnable
+                    }
+                }
+
+                FieldRow {
+                    label: "Vignette intensity"
+                    caption: "How dark the vignette is"
+                    visible: Flags.backdropEnable && Flags.backdropEffects && Flags.backdropVignetteEnable
+                    height: (Flags.backdropEnable && Flags.backdropEffects && Flags.backdropVignetteEnable) ? 34 * root.s : 0
                     Stepper {
                         value: Flags.backdropVignette
                         display: (Flags.backdropVignette * 100).toFixed(0) + "%"
@@ -290,6 +301,23 @@ SettingsSurface {
                             if (next === Flags.backdropVignette)
                                 return;
                             Flags.backdropVignette = next;
+                        }
+                    }
+                }
+
+                FieldRow {
+                    label: "Vignette radius"
+                    caption: "How far the darkening reaches"
+                    visible: Flags.backdropEnable && Flags.backdropEffects && Flags.backdropVignetteEnable
+                    height: (Flags.backdropEnable && Flags.backdropEffects && Flags.backdropVignetteEnable) ? 34 * root.s : 0
+                    Stepper {
+                        value: Flags.backdropVignetteRadius
+                        display: (Flags.backdropVignetteRadius * 100).toFixed(0) + "%"
+                        onStepped: (dir) => {
+                            var next = Math.max(0.1, Math.min(1, Math.round((Flags.backdropVignetteRadius + dir * 0.05) * 100) / 100));
+                            if (next === Flags.backdropVignetteRadius)
+                                return;
+                            Flags.backdropVignetteRadius = next;
                         }
                     }
                 }

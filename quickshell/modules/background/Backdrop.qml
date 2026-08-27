@@ -39,7 +39,9 @@ PanelWindow {
     ) : 0
 
     readonly property real dim: (QsSingletons.Flags.backdropEnable && QsSingletons.Flags.backdropEffects) ? QsSingletons.Flags.backdropDim : 0
-    readonly property real vignette: (QsSingletons.Flags.backdropEnable && QsSingletons.Flags.backdropEffects) ? QsSingletons.Flags.backdropVignette : 0
+    readonly property real vignette: (QsSingletons.Flags.backdropEnable && QsSingletons.Flags.backdropEffects && QsSingletons.Flags.backdropVignetteEnable) ? QsSingletons.Flags.backdropVignette : 0
+    readonly property real vr: QsSingletons.Flags.backdropVignetteRadius
+    readonly property real vignetteInner: 1.0 - root.vr
 
     Image {
         id: wall
@@ -72,7 +74,7 @@ PanelWindow {
             gradient: Gradient {
                 orientation: Gradient.Vertical
                 GradientStop { position: 0.0; color: Qt.rgba(0, 0, 0, root.vignette) }
-                GradientStop { position: 0.22; color: "transparent" }
+                GradientStop { position: root.vignetteInner; color: "transparent" }
                 GradientStop { position: 1.0; color: "transparent" }
             }
         }
@@ -80,7 +82,7 @@ PanelWindow {
             anchors.fill: parent
             gradient: Gradient {
                 orientation: Gradient.Vertical
-                GradientStop { position: 0.78; color: "transparent" }
+                GradientStop { position: root.vr; color: "transparent" }
                 GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, root.vignette) }
             }
         }
@@ -89,7 +91,7 @@ PanelWindow {
             gradient: Gradient {
                 orientation: Gradient.Horizontal
                 GradientStop { position: 0.0; color: Qt.rgba(0, 0, 0, root.vignette) }
-                GradientStop { position: 0.22; color: "transparent" }
+                GradientStop { position: root.vignetteInner; color: "transparent" }
                 GradientStop { position: 1.0; color: "transparent" }
             }
         }
@@ -97,7 +99,7 @@ PanelWindow {
             anchors.fill: parent
             gradient: Gradient {
                 orientation: Gradient.Horizontal
-                GradientStop { position: 0.78; color: "transparent" }
+                GradientStop { position: root.vr; color: "transparent" }
                 GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, root.vignette) }
             }
         }

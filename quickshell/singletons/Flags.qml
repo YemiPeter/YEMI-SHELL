@@ -56,6 +56,8 @@ Singleton {
     property alias backdropDim: adapter.backdropDim
     property alias backdropVignette: adapter.backdropVignette
     property alias backdropEnable: adapter.backdropEnable
+    property alias backdropVignetteEnable: adapter.backdropVignetteEnable
+    property alias backdropVignetteRadius: adapter.backdropVignetteRadius
     property alias parallaxEnable: adapter.parallaxEnable
     property alias parallaxZoom: adapter.parallaxZoom
     property alias parallaxStrength: adapter.parallaxStrength
@@ -109,6 +111,8 @@ Singleton {
     property real backdropDim: 0.20
     property real backdropVignette: 0.35
     property bool backdropEnable: true
+    property bool backdropVignetteEnable: true
+    property real backdropVignetteRadius: 0.7
             property bool parallaxEnable: true
             property real parallaxZoom: 1.08
             property real parallaxStrength: 0.5
