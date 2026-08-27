@@ -25,7 +25,7 @@ PanelWindow {
 
     mask: Region { width: 0; height: 0 }
 
-    readonly property bool active: QsSingletons.Flags.wallpaperUseMainWallpaper
+    readonly property bool active: QsSingletons.Flags.wallpaperUseMainWallpaper && !QsSingletons.Flags.backdropHideWallpaper
     readonly property string wallpaperPath: QsSingletons.WallpaperState.current
     readonly property string _wpPath: root.wallpaperPath || ""
     readonly property bool isGif: root._wpPath.toLowerCase().endsWith(".gif")
