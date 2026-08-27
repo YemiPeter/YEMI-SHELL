@@ -44,27 +44,46 @@ PanelWindow {
     readonly property real vr: QsSingletons.Flags.backdropVignetteRadius
     readonly property real vignetteInner: 1.0 - root.vr
 
-    Image {
-        id: wall
-        width: parent.width
-        height: parent.height
+    readonly property string _wpPath: QsSingletons.WallpaperState.current || ""
+    readonly property bool isGif: root._wpPath.toLowerCase().endsWith(".gif")
+
+    Item {
+        id: wallContainer
+        anchors.fill: parent
         x: -root.shift
         scale: root.parallaxScale
         transformOrigin: Transform.Center
-        source: QsSingletons.WallpaperState.current !== "" ? "file://" + QsSingletons.WallpaperState.current : ""
-        fillMode: Image.PreserveAspectCrop
-        asynchronous: true
-        smooth: true
 
         Behavior on x { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+
+        Image {
+            id: wall
+            anchors.fill: parent
+            visible: !root.isGif
+            source: QsSingletons.WallpaperState.current !== "" ? "file://" + QsSingletons.WallpaperState.current : ""
+            fillMode: Image.PreserveAspectCrop
+            asynchronous: true
+            smooth: true
+        }
+
+        AnimatedImage {
+            id: gifWallpaper
+            anchors.fill: parent
+            visible: root.isGif
+            playing: root.isGif && QsSingletons.Flags.backdropEnableAnimation
+            source: root._wpPath !== "" ? (root._wpPath.startsWith("file://") ? root._wpPath : "file://" + root._wpPath) : ""
+            fillMode: Image.PreserveAspectCrop
+            asynchronous: true
+            cache: false
+        }
     }
 
     MultiEffect {
         id: wallFx
-        anchors.fill: wall
-        source: wall
+        anchors.fill: wallContainer
+        source: wallContainer
         visible: QsSingletons.Flags.backdropEnable
-        blurEnabled: QsSingletons.Flags.backdropBlurRadius > 0
+        blurEnabled: QsSingletons.Flags.backdropBlurRadius > 0 && (!root.isGif || QsSingletons.Flags.backdropEnableAnimatedBlur)
         blur: QsSingletons.Flags.backdropBlurRadius / 100.0
         blurMax: 64
         saturation: QsSingletons.Flags.backdropSaturation / 100.0

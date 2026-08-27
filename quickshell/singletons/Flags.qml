@@ -61,6 +61,8 @@ Singleton {
     property alias backdropBlurRadius: adapter.backdropBlurRadius
     property alias backdropSaturation: adapter.backdropSaturation
     property alias backdropContrast: adapter.backdropContrast
+    property alias backdropEnableAnimation: adapter.backdropEnableAnimation
+    property alias backdropEnableAnimatedBlur: adapter.backdropEnableAnimatedBlur
     property alias parallaxEnable: adapter.parallaxEnable
     property alias parallaxZoom: adapter.parallaxZoom
     property alias parallaxStrength: adapter.parallaxStrength
@@ -119,6 +121,8 @@ Singleton {
     property real backdropBlurRadius: 0
     property real backdropSaturation: 0
     property real backdropContrast: 0
+    property bool backdropEnableAnimation: false
+    property bool backdropEnableAnimatedBlur: false
             property bool parallaxEnable: true
             property real parallaxZoom: 1.08
             property real parallaxStrength: 0.5

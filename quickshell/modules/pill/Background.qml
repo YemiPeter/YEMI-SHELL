@@ -250,6 +250,28 @@ SettingsSurface {
                 }
 
                 FieldRow {
+                    label: "Animated wallpapers"
+                    caption: "Play GIFs as wallpaper"
+                    visible: Flags.backdropEnable
+                    LinkToggle {
+                        s: root.s
+                        on: Flags.backdropEnableAnimation
+                        onToggled: Flags.backdropEnableAnimation = !Flags.backdropEnableAnimation
+                    }
+                }
+
+                FieldRow {
+                    label: "Blur animated wallpapers"
+                    caption: "Frost animated wallpapers"
+                    visible: Flags.backdropEnable && Flags.backdropEnableAnimation
+                    LinkToggle {
+                        s: root.s
+                        on: Flags.backdropEnableAnimatedBlur
+                        onToggled: Flags.backdropEnableAnimatedBlur = !Flags.backdropEnableAnimatedBlur
+                    }
+                }
+
+                FieldRow {
                     label: "Effects"
                     caption: "Dim and vignette behind the UI"
                     visible: Flags.backdropEnable
