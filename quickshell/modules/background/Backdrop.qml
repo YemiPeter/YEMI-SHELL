@@ -20,6 +20,7 @@ PanelWindow {
 
     color: "transparent"
     WlrLayershell.layer: WlrLayer.Background
+    WlrLayershell.namespace: "quickshell:yBackdrop"
     exclusionMode: ExclusionMode.Ignore
 
     mask: Region { width: 0; height: 0 }

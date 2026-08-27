@@ -25,6 +25,14 @@ layer-rule {
     opacity 1.0
 }
 
+// yemi-shell backdrop (wallpaper surface) — keep it stationary and filling
+// the overview canvas instead of being attached per-workspace.
+layer-rule {
+    match namespace="quickshell:yBackdrop"
+    place-within-backdrop true
+    opacity 1.0
+}
+
 // ── Examples ────────────────────────────────────────────────────────────────
 // Make a specific layer surface semi-transparent:
 // layer-rule {

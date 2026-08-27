@@ -128,6 +128,12 @@ Legend: `[ ]` not started · `[~]` partial · `[x]` done & verified.
 ### D3. Excluded
 - [x] **Ripple effects** — EXCLUDED by user (no port).
 
+### D4. niri overview backdrop (the actual "show wallpaper behind workspaces" goal)
+- [x] **Backdrop layer namespace** → `Backdrop.qml` now sets `WlrLayershell.namespace: "quickshell:yBackdrop"` so a niri layer-rule can match it.
+- [x] **`place-within-backdrop true` rule** → added to `~/.config/niri/config.d/80-layer-rules.kdl` for `quickshell:yBackdrop` (mirrors the iNiR `quickshell:iiBackdrop`/`wBackdrop` rules). Keeps the wallpaper stationary and filling the whole overview canvas instead of being attached per-workspace (which zoomed and left solid gaps).
+- [x] **`layout { background-color "transparent" }`** → already present in `~/.config/niri/config.d/20-layout-and-overview.kdl` (so gaps between zoomed workspaces don't show a solid block).
+- [ ] **skwd daemon namespace (optional)** → if the wallpaper is actually painted by the `skwd` daemon rather than QuickShell's backdrop, also add a `place-within-backdrop true` rule for skwd's layer namespace. Namespace unknown; can be fetched from `niri` active-layer query if the wallpaper still zooms in overview.
+
 ### Suggested one-at-a-time order
 - **Tier A (cheap):** D1#1, D1#9 (rescale), D1#12, D1#14.
 - **Tier B (effect pass):** D1#8 blur, D1#10 saturation, D1#11 contrast (same MultiEffect as `Glass`).
