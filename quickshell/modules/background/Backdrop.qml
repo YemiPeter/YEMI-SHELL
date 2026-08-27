@@ -44,7 +44,8 @@ PanelWindow {
     readonly property real vr: QsSingletons.Flags.backdropVignetteRadius
     readonly property real vignetteInner: 1.0 - root.vr
 
-    readonly property string _wpPath: QsSingletons.WallpaperState.current || ""
+    readonly property string effectiveWallpaper: (!QsSingletons.Flags.backdropUseMainWallpaper && QsSingletons.Flags.backdropWallpaperPath !== "") ? QsSingletons.Flags.backdropWallpaperPath : QsSingletons.WallpaperState.current
+    readonly property string _wpPath: root.effectiveWallpaper || ""
     readonly property bool isGif: root._wpPath.toLowerCase().endsWith(".gif")
 
     Item {
@@ -60,7 +61,7 @@ PanelWindow {
             id: wall
             anchors.fill: parent
             visible: !root.isGif
-            source: QsSingletons.WallpaperState.current !== "" ? "file://" + QsSingletons.WallpaperState.current : ""
+            source: root.effectiveWallpaper !== "" ? "file://" + root.effectiveWallpaper : ""
             fillMode: Image.PreserveAspectCrop
             asynchronous: true
             smooth: true

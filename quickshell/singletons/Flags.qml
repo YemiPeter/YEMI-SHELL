@@ -63,6 +63,9 @@ Singleton {
     property alias backdropContrast: adapter.backdropContrast
     property alias backdropEnableAnimation: adapter.backdropEnableAnimation
     property alias backdropEnableAnimatedBlur: adapter.backdropEnableAnimatedBlur
+    property alias backdropUseMainWallpaper: adapter.backdropUseMainWallpaper
+    property alias backdropWallpaperPath: adapter.backdropWallpaperPath
+    property alias wallpaperSelectionTarget: adapter.wallpaperSelectionTarget
     property alias parallaxEnable: adapter.parallaxEnable
     property alias parallaxZoom: adapter.parallaxZoom
     property alias parallaxStrength: adapter.parallaxStrength
@@ -123,6 +126,9 @@ Singleton {
     property real backdropContrast: 0
     property bool backdropEnableAnimation: false
     property bool backdropEnableAnimatedBlur: false
+    property bool backdropUseMainWallpaper: true
+    property string backdropWallpaperPath: ""
+    property string wallpaperSelectionTarget: ""
             property bool parallaxEnable: true
             property real parallaxZoom: 1.08
             property real parallaxStrength: 0.5

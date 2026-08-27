@@ -272,6 +272,49 @@ SettingsSurface {
                 }
 
                 FieldRow {
+                    label: "Use separate wallpaper"
+                    caption: "Different image for the backdrop"
+                    visible: Flags.backdropEnable
+                    LinkToggle {
+                        s: root.s
+                        on: !Flags.backdropUseMainWallpaper
+                        onToggled: Flags.backdropUseMainWallpaper = !Flags.backdropUseMainWallpaper
+                    }
+                }
+
+                FieldRow {
+                    label: "Backdrop wallpaper"
+                    caption: "Pick the separate image"
+                    visible: Flags.backdropEnable && !Flags.backdropUseMainWallpaper
+                    height: (Flags.backdropEnable && !Flags.backdropUseMainWallpaper) ? 34 * root.s : 0
+                    Rectangle {
+                        width: 64 * root.s
+                        height: 24 * root.s
+                        radius: Motion.rSmall * root.s
+                        color: btArea.containsMouse ? Theme.frameBg : Theme.tileBg
+                        border.width: 1
+                        border.color: Theme.border
+                        Text {
+                            anchors.centerIn: parent
+                            text: "Change"
+                            color: Theme.cream
+                            font.family: Theme.font
+                            font.pixelSize: 11 * root.s
+                        }
+                        MouseArea {
+                            id: btArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                Flags.wallpaperSelectionTarget = "backdrop";
+                                pill.requestSurface("wallpaper");
+                            }
+                        }
+                    }
+                }
+
+                FieldRow {
                     label: "Effects"
                     caption: "Dim and vignette behind the UI"
                     visible: Flags.backdropEnable

@@ -125,6 +125,12 @@ PillSurface {
             dlProc.running = true;
         } else {
             Walls.apply(entry.path);
+            if (Flags.wallpaperSelectionTarget === "backdrop") {
+                Flags.backdropWallpaperPath = entry.path;
+                Flags.wallpaperSelectionTarget = "";
+                return;
+            }
+            Walls.apply(entry.path);
         }
     }
 
