@@ -39,6 +39,29 @@ resolve_wallpaper() {
 }
 
 # ---------------------------------------------------------------------------
+# Backdrop color source (D1#6): when the user opts to theme the shell from the
+# backdrop image, derive colors from the separately-configured backdrop image
+# rather than the main wallpaper. Only applies when a separate backdrop image
+# is actually configured (backdropUseMainWallpaper=false + backdropWallpaperPath).
+# ---------------------------------------------------------------------------
+maybe_use_backdrop_colors() {
+    local theme_from_backdrop
+    theme_from_backdrop="$(jq -r '.backdropThemeColors // false' "$FLAGS_FILE" 2>/dev/null || echo false)"
+    if [ "$theme_from_backdrop" != "true" ]; then
+        return 0
+    fi
+    local use_main backdrop_path
+    use_main="$(jq -r '.backdropUseMainWallpaper // true' "$FLAGS_FILE" 2>/dev/null || echo true)"
+    backdrop_path="$(jq -r '.backdropWallpaperPath // ""' "$FLAGS_FILE" 2>/dev/null || echo "")"
+    if [ "$use_main" = "true" ] || [ -z "$backdrop_path" ] || [ ! -f "$backdrop_path" ]; then
+        echo "[yemi-shell] backdropThemeColors on but no separate backdrop image configured; using main wallpaper" >&2
+        return 0
+    fi
+    echo "[yemi-shell] deriving theme colors from backdrop image: $backdrop_path" >&2
+    WALL_PATH="$backdrop_path"
+}
+
+# ---------------------------------------------------------------------------
 # LEGACY PATH — original wallcolors.py pipeline
 # ---------------------------------------------------------------------------
 if [ "$LEGACY" = "1" ]; then
@@ -46,6 +69,7 @@ if [ "$LEGACY" = "1" ]; then
         python3 "$SCRIPTS/wallcolors.py" --mode static --mood "$MOOD"
     else
         WALL_PATH="$(resolve_wallpaper)"
+        maybe_use_backdrop_colors
         python3 "$SCRIPTS/wallcolors.py" --mode dynamic --mood "$MOOD" "$WALL_PATH"
     fi
 
@@ -54,6 +78,7 @@ else
     # V2 PATH — dominance engine colors.json v2
     # -------------------------------------------------------------------------
     WALL_PATH="$(resolve_wallpaper)"
+    maybe_use_backdrop_colors
     mkdir -p "$CACHE"
 
     # Run the dominance engine once — it emits BOTH dark and light in one call,

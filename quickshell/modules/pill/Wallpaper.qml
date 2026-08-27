@@ -128,6 +128,9 @@ PillSurface {
             if (Flags.wallpaperSelectionTarget === "backdrop") {
                 Flags.backdropWallpaperPath = entry.path;
                 Flags.wallpaperSelectionTarget = "";
+                if (Flags.backdropThemeColors)
+                    backdropColorProc.exec(["sh", "-c",
+                        'sh "$HOME/.config/quickshell/scripts/after-wall.sh" "' + Flags.systemMood + '"']);
                 return;
             }
             Walls.apply(entry.path);
@@ -242,6 +245,15 @@ PillSurface {
                 failed = target;
             }
             savedPath = "";
+        }
+    }
+
+    /// Regenerates the color scheme from the newly-picked backdrop image when
+    /// backdropThemeColors is enabled (after-wall.sh swaps the source itself).
+    Process {
+        id: backdropColorProc
+        onExited: (code) => {
+            if (Flags.debug) console.log("[Wallpaper] Backdrop color regen exited:", code)
         }
     }
 

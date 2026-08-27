@@ -102,16 +102,18 @@ Legend: `[ ]` not started · `[~]` partial · `[x]` done & verified.
 - [x] **#1 Enable backdrop** (master gate) → `Flags.backdropEnable`; gate `Backdrop.qml` (see commit below)
 - [x] **#2 Enable animated wallpapers** (GIF) → `Flags.backdropEnableAnimation` + `Backdrop.qml` `AnimatedImage` (video deferred: needs QtMultimedia)
 - [x] **#3 Blur animated wallpapers** → `Flags.backdropEnableAnimatedBlur` gates `wallFx` blur on GIF
-- [ ] **#4 Use separate wallpaper** → `backdrop.useMainWallpaper` + second source (`WallpaperState`-style)
-- [ ] **#5 Backdrop wallpaper picker** → `selectionTarget: "waffle-backdrop"` selector
-- [ ] **#6 Derive theme colors from backdrop** → `appearance.wallpaperTheming.useBackdropForColors` (cross-cuts ThemeService/matugen)
-- [ ] **#7 Hide main wallpaper** → `backdrop.hideWallpaper` (semantic: yemi has one layer, needs design)
+- [x] **#4 Use separate wallpaper** → `Flags.backdropUseMainWallpaper` + second source (`WallpaperState`-style) — commit `3f82b75`
+- [x] **#5 Backdrop wallpaper picker** → `selectionTarget: "backdrop"` selector + `Flags.backdropWallpaperPath` — commit `3f82b75`
+- [x] **#6 Derive theme colors from backdrop** → `Flags.backdropThemeColors` + `after-wall.sh` swaps color source to `backdropWallpaperPath`; toggle in BACKGROUND→Backdrop re-runs `after-wall.sh`; picker regenerates when on
+  - Verify: set a separate backdrop image, enable "Theme from backdrop", confirm `colors.json` dark/light shift to the backdrop image's palette (check `jq '.dark.primary' ~/.cache/yemi-shell/colors.json`).
+- [x] **#7 Hide main wallpaper** → `Flags.backdropHideWallpaper`; suppresses the external wallpaper daemon (skwd/wallpaper.sh) so the QuickShell backdrop overlay is the sole renderer — mirrors iNiR `backdrop.hideWallpaper` (`externalMainWallpaperEligible=false`). `Backdrop.qml` keeps drawing the image; `Walls.qml` skips the daemon apply while hide is on and `stateProc` keeps `current` on the applied pick.
+  - Verify: with a separate backdrop image set, enabling "Hide main wallpaper" makes the backdrop image the only thing painted (daemon no longer draws the desktop wallpaper). Toggle OFF restores the external daemon apply.
 - [x] **#8 Backdrop blur** → `Flags.backdropBlurRadius` (0–100) on `Backdrop.qml` MultiEffect
 - [x] **#9 Backdrop dim** → `Flags.backdropDim` kept 0–1 (UI shows %); default rescaled to 20% to match `backdrop.dim` (def 20)
 - [x] **#10 Backdrop saturation** → `Flags.backdropSaturation` (−100..100) MultiEffect.saturation
 - [x] **#11 Backdrop contrast** → `Flags.backdropContrast` (−100..100) MultiEffect.contrast
 - [x] **#12 Enable vignette** (toggle) → `Flags.backdropVignetteEnable` gates `Backdrop.qml` + settings toggle
-- [~] **#13 Vignette intensity** → `Flags.backdropVignette` already exists
+- [x] **#13 Vignette intensity** → `Flags.backdropVignette` exists (0–1)
 - [x] **#14 Vignette radius** → `Flags.backdropVignetteRadius` (def 0.7) drives `Backdrop.qml` stops
 
 ### D2. Wallpaper Effects card — keys `waffles.background.*` / `waffles.background.effects.*`

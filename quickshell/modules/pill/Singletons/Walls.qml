@@ -57,6 +57,17 @@ Singleton {
             return;
         }
         root.lastAppliedPath = path;
+        // "Hide main wallpaper": don't push the pick to the external wallpaper
+        // daemon (skwd/wallpaper.sh) — the QuickShell backdrop overlay is the
+        // sole renderer, matching iNiR's backdrop.hideWallpaper semantics.
+        // Keep the in-memory current so Backdrop shows the pick, and still run
+        // the color pipeline.
+        if (QsSingletons.Flags.backdropHideWallpaper) {
+            root.current = path;
+            afterWallProc.wallPath = path;
+            afterWallProc.running = true;
+            return;
+        }
         applyProc.command = ["bash", root.setScript, "set", path];
         applyProc.running = true;
     }
@@ -116,7 +127,12 @@ Singleton {
         command: ["sh", "-c", "cat \"$1\" 2>/dev/null || true", "_", root.stateFile]
         stdout: StdioCollector {
             onStreamFinished: {
-                root.current = this.text.trim();
+                // While "hide main wallpaper" is on the external daemon never
+                // wrote the state file, so keep showing the applied pick.
+                if (QsSingletons.Flags.backdropHideWallpaper)
+                    root.current = root.lastAppliedPath;
+                else
+                    root.current = this.text.trim();
                 if (root.pending) {
                     root.pending = false;
                     Qt.callLater(root.refresh);

@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import "Singletons"
 
 /**
@@ -18,6 +19,21 @@ SettingsSurface {
     property real maxSurfaceH: settings.implicitHeight
     implicitHeight: Math.min(settingsHeader.implicitHeight + innerColumn.implicitHeight, maxSurfaceH)
     rows: []
+
+    /// Re-run the single-writer color pipeline (after-wall.sh) so a backdrop
+    /// color-source change takes effect. after-wall.sh itself reads
+    /// backdropThemeColors and swaps in the backdrop image when enabled.
+    function regenColors() {
+        colorRegen.exec(["sh", "-c",
+            'sh "$HOME/.config/quickshell/scripts/after-wall.sh" "' + Flags.systemMood + '"'])
+    }
+
+    Process {
+        id: colorRegen
+        onExited: (code) => {
+            if (Flags.debug) console.log("[Background] Color regen exited:", code)
+        }
+    }
 
     component Stepper: Row {
         id: step
@@ -250,6 +266,17 @@ SettingsSurface {
                 }
 
                 FieldRow {
+                    label: "Hide main wallpaper"
+                    caption: "Show the real desktop wallpaper; drop QuickShell's copy and effects blur"
+                    visible: Flags.backdropEnable
+                    LinkToggle {
+                        s: root.s
+                        on: Flags.backdropHideWallpaper
+                        onToggled: Flags.backdropHideWallpaper = !Flags.backdropHideWallpaper
+                    }
+                }
+
+                FieldRow {
                     label: "Animated wallpapers"
                     caption: "Play GIFs as wallpaper"
                     visible: Flags.backdropEnable
@@ -310,6 +337,20 @@ SettingsSurface {
                                 Flags.wallpaperSelectionTarget = "backdrop";
                                 pill.requestSurface("wallpaper");
                             }
+                        }
+                    }
+                }
+
+                FieldRow {
+                    label: "Theme from backdrop"
+                    caption: "Derive shell colors from the backdrop image"
+                    visible: Flags.backdropEnable && !Flags.backdropUseMainWallpaper
+                    LinkToggle {
+                        s: root.s
+                        on: Flags.backdropThemeColors
+                        onToggled: {
+                            Flags.backdropThemeColors = !Flags.backdropThemeColors;
+                            root.regenColors();
                         }
                     }
                 }
