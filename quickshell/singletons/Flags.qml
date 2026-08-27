@@ -106,7 +106,7 @@ Singleton {
             property real recordClearedBefore: 0
             property bool altSwitcherEnabled: true
     property bool backdropEffects: true
-    property real backdropDim: 0.12
+    property real backdropDim: 0.20
     property real backdropVignette: 0.35
     property bool backdropEnable: true
             property bool parallaxEnable: true

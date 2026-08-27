@@ -107,7 +107,7 @@ Legend: `[ ]` not started · `[~]` partial · `[x]` done & verified.
 - [ ] **#6 Derive theme colors from backdrop** → `appearance.wallpaperTheming.useBackdropForColors` (cross-cuts ThemeService/matugen)
 - [ ] **#7 Hide main wallpaper** → `backdrop.hideWallpaper` (semantic: yemi has one layer, needs design)
 - [ ] **#8 Backdrop blur** → `backdrop.blurRadius` (0–100) — MultiEffect proven viable via `Glass`
-- [~] **#9 Backdrop dim** → have `Flags.backdropDim` (0–1, .12); rescale to 0–100 to match `backdrop.dim` (def 20)
+- [x] **#9 Backdrop dim** → `Flags.backdropDim` kept 0–1 (UI shows %); default rescaled to 20% to match `backdrop.dim` (def 20)
 - [ ] **#10 Backdrop saturation** → `backdrop.saturation` (−100..100) MultiEffect.saturation
 - [ ] **#11 Backdrop contrast** → `backdrop.contrast` (−100..100) MultiEffect.contrast
 - [~] **#12 Enable vignette** (toggle) → add `Flags.backdropVignetteEnable` (currently always-on via intensity>0)
