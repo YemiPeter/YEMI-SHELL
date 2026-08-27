@@ -110,9 +110,9 @@ Legend: `[ ]` not started · `[~]` partial · `[x]` done & verified.
 - [x] **#9 Backdrop dim** → `Flags.backdropDim` kept 0–1 (UI shows %); default rescaled to 20% to match `backdrop.dim` (def 20)
 - [ ] **#10 Backdrop saturation** → `backdrop.saturation` (−100..100) MultiEffect.saturation
 - [ ] **#11 Backdrop contrast** → `backdrop.contrast` (−100..100) MultiEffect.contrast
-- [~] **#12 Enable vignette** (toggle) → add `Flags.backdropVignetteEnable` (currently always-on via intensity>0)
+- [x] **#12 Enable vignette** (toggle) → `Flags.backdropVignetteEnable` gates `Backdrop.qml` + settings toggle
 - [~] **#13 Vignette intensity** → `Flags.backdropVignette` already exists
-- [ ] **#14 Vignette radius** → `backdrop.vignetteRadius` (def 0.7) — currently hardcoded 0.22/0.78
+- [x] **#14 Vignette radius** → `Flags.backdropVignetteRadius` (def 0.7) drives `Backdrop.qml` stops
 
 ### D2. Wallpaper Effects card — keys `waffles.background.*` / `waffles.background.effects.*`
 - [ ] **Enable animated wallpapers** (global) → `waffles.background.enableAnimation`
