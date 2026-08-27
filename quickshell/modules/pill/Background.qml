@@ -240,8 +240,19 @@ SettingsSurface {
                 collapsed: false
 
                 FieldRow {
+                    label: "Backdrop layer"
+                    caption: "Master switch for wallpaper effects"
+                    LinkToggle {
+                        s: root.s
+                        on: Flags.backdropEnable
+                        onToggled: Flags.backdropEnable = !Flags.backdropEnable
+                    }
+                }
+
+                FieldRow {
                     label: "Effects"
                     caption: "Dim and vignette behind the UI"
+                    visible: Flags.backdropEnable
                     LinkToggle {
                         s: root.s
                         on: Flags.backdropEffects
@@ -252,8 +263,8 @@ SettingsSurface {
                 FieldRow {
                     label: "Dim"
                     caption: "How much the wallpaper darkens"
-                    visible: Flags.backdropEffects
-                    height: Flags.backdropEffects ? 34 * root.s : 0
+                    visible: Flags.backdropEnable && Flags.backdropEffects
+                    height: (Flags.backdropEnable && Flags.backdropEffects) ? 34 * root.s : 0
                     Stepper {
                         value: Flags.backdropDim
                         display: (Flags.backdropDim * 100).toFixed(0) + "%"
@@ -269,8 +280,8 @@ SettingsSurface {
                 FieldRow {
                     label: "Vignette"
                     caption: "Darken the screen edges"
-                    visible: Flags.backdropEffects
-                    height: Flags.backdropEffects ? 34 * root.s : 0
+                    visible: Flags.backdropEnable && Flags.backdropEffects
+                    height: (Flags.backdropEnable && Flags.backdropEffects) ? 34 * root.s : 0
                     Stepper {
                         value: Flags.backdropVignette
                         display: (Flags.backdropVignette * 100).toFixed(0) + "%"

@@ -38,8 +38,8 @@ PanelWindow {
         root.maxShift
     ) : 0
 
-    readonly property real dim: QsSingletons.Flags.backdropEffects ? QsSingletons.Flags.backdropDim : 0
-    readonly property real vignette: QsSingletons.Flags.backdropEffects ? QsSingletons.Flags.backdropVignette : 0
+    readonly property real dim: (QsSingletons.Flags.backdropEnable && QsSingletons.Flags.backdropEffects) ? QsSingletons.Flags.backdropDim : 0
+    readonly property real vignette: (QsSingletons.Flags.backdropEnable && QsSingletons.Flags.backdropEffects) ? QsSingletons.Flags.backdropVignette : 0
 
     Image {
         id: wall

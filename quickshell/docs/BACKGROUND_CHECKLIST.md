@@ -77,3 +77,57 @@ Legend: `[ ]` not started · `[~]` partial · `[x]` done & verified.
 A (apply → loader → Wallpapers → Listener → AwwwBackend → parallax.js)
 → B in order S4, S5, S6, S7, S8, S3
 → S2 / S9 / S10 last (renderer-dependent).
+
+---
+
+## D. Wallpaper-effects port (Backdrop Overview + Wallpaper Effects cards)
+
+Scope decided with user: **drop ripple** and keep **aurora** (now ported).
+Renderer target: `modules/background/Backdrop.qml`. Settings target:
+`modules/pill/Background.qml` (Backdrop group) + `modules/pill/Appearance.qml`
+(theme toggle already added). Persist new keys in `singletons/Flags.qml`.
+iNiR source of truth: `modules/waffle/settings/pages/WBackgroundPage.qml`
+(cards "Backdrop (Overview)" `:1136` and "Wallpaper Effects" `:1065`) and
+`modules/waffle/backdrop/WaffleBackdrop.qml`.
+
+Legend: `[ ]` not started · `[~]` partial · `[x]` done & verified.
+
+### D0. Aurora theme (FOUNDATION — done)
+- [x] Aurora theme engine (`Flags.themeStyle`, `Appearance.aurora`, translucent layers)
+  - Commit `783e34a`. Toggle in APPEARANCE (Yemi/Aurora).
+- [x] Frosted `Glass` component + pill/tooltip wiring
+  - Commit `01c7343`. `modules/common/Glass.qml` (MultiEffect blur + aurora tint).
+
+### D1. Backdrop (Overview) card — keys `waffles.background.backdrop.*`
+- [x] **#1 Enable backdrop** (master gate) → `Flags.backdropEnable`; gate `Backdrop.qml` (see commit below)
+- [ ] **#2 Enable animated wallpapers** (GIF/video in backdrop) → `Backdrop.qml` `AnimatedImage`/`Video` (currently static `Image` only)
+- [ ] **#3 Blur animated wallpapers** → `backdrop.enableAnimatedBlur` (layer MultiEffect, `Appearance.effectsEnabled` gated)
+- [ ] **#4 Use separate wallpaper** → `backdrop.useMainWallpaper` + second source (`WallpaperState`-style)
+- [ ] **#5 Backdrop wallpaper picker** → `selectionTarget: "waffle-backdrop"` selector
+- [ ] **#6 Derive theme colors from backdrop** → `appearance.wallpaperTheming.useBackdropForColors` (cross-cuts ThemeService/matugen)
+- [ ] **#7 Hide main wallpaper** → `backdrop.hideWallpaper` (semantic: yemi has one layer, needs design)
+- [ ] **#8 Backdrop blur** → `backdrop.blurRadius` (0–100) — MultiEffect proven viable via `Glass`
+- [~] **#9 Backdrop dim** → have `Flags.backdropDim` (0–1, .12); rescale to 0–100 to match `backdrop.dim` (def 20)
+- [ ] **#10 Backdrop saturation** → `backdrop.saturation` (−100..100) MultiEffect.saturation
+- [ ] **#11 Backdrop contrast** → `backdrop.contrast` (−100..100) MultiEffect.contrast
+- [~] **#12 Enable vignette** (toggle) → add `Flags.backdropVignetteEnable` (currently always-on via intensity>0)
+- [~] **#13 Vignette intensity** → `Flags.backdropVignette` already exists
+- [ ] **#14 Vignette radius** → `backdrop.vignetteRadius` (def 0.7) — currently hardcoded 0.22/0.78
+
+### D2. Wallpaper Effects card — keys `waffles.background.*` / `waffles.background.effects.*`
+- [ ] **Enable animated wallpapers** (global) → `waffles.background.enableAnimation`
+- [ ] **Enable blur** (blur wallpaper when windows open) → `waffles.background.effects.enableBlur`
+- [ ] **Blur animated wallpapers** → `waffles.background.effects.enableAnimatedBlur`
+- [ ] **Blur radius** → `waffles.background.effects.blurRadius` (0–100, def 32)
+- [ ] **Animated blur strength** → `waffles.background.effects.thumbnailBlurStrength` (0–100, def 70)
+- [~] **Dim overlay** → overlaps D1 #9 (`dim`)
+- [ ] **Extra dim with windows** → `waffles.background.effects.dynamicDim`
+
+### D3. Excluded
+- [x] **Ripple effects** — EXCLUDED by user (no port).
+
+### Suggested one-at-a-time order
+- **Tier A (cheap):** D1#1, D1#9 (rescale), D1#12, D1#14.
+- **Tier B (effect pass):** D1#8 blur, D1#10 saturation, D1#11 contrast (same MultiEffect as `Glass`).
+- **Tier C (media):** D1#2/#3 animated wallpapers; then D2 items.
+- **Tier D (cross-cutting):** D1#4/#5 separate wallpaper, D1#6 derive theme colors, D1#7 hide-main.
