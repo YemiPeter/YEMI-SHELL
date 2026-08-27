@@ -54,6 +54,9 @@ PanelWindow {
     readonly property real effectiveBlur: Math.min(1.0, ((QsSingletons.Flags.backdropBlurRadius + (root.globalBlurEnabled ? root.globalBlurRadius : 0)) / 100.0))
     readonly property real effectiveDim: Math.min(1.0, root.dim + root.globalDim)
 
+    readonly property bool wallpaperActive: QsSingletons.Flags.wallpaperUseMainWallpaper
+    readonly property bool hideWhenFullscreen: QsSingletons.Flags.wallpaperHideWhenFullscreen
+
     readonly property string effectiveWallpaper: (!QsSingletons.Flags.backdropUseMainWallpaper && QsSingletons.Flags.backdropWallpaperPath !== "") ? QsSingletons.Flags.backdropWallpaperPath : QsSingletons.WallpaperState.current
     readonly property string _wpPath: root.effectiveWallpaper || ""
     readonly property bool isGif: root._wpPath.toLowerCase().endsWith(".gif")
@@ -64,6 +67,7 @@ PanelWindow {
         x: -root.shift
         scale: root.parallaxScale
         transformOrigin: Transform.Center
+        visible: root.wallpaperActive
 
         Behavior on x { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
 
@@ -93,6 +97,18 @@ PanelWindow {
                 samples: Math.min(33, radius * 2 + 1)
             }
         }
+    }
+
+    MultiEffect {
+        id: wallFx
+        anchors.fill: wallContainer
+        source: wallContainer
+        visible: QsSingletons.Flags.backdropEnable && root.wallpaperActive
+        blurEnabled: root.effectiveBlur > 0
+        blur: root.effectiveBlur
+        blurMax: 64
+        saturation: QsSingletons.Flags.backdropSaturation / 100.0
+        contrast: QsSingletons.Flags.backdropContrast / 100.0
     }
 
     MultiEffect {

@@ -252,6 +252,41 @@ SettingsSurface {
                 bottomPadding: 12 * root.s
 
             Group {
+                title: "Wallpaper"
+                collapsed: false
+
+                FieldRow {
+                    label: "Use Material wallpaper"
+                    caption: "Adopt the same wallpaper set by the desktop"
+                    LinkToggle {
+                        s: root.s
+                        on: Flags.wallpaperUseMainWallpaper
+                        onToggled: Flags.wallpaperUseMainWallpaper = !Flags.wallpaperUseMainWallpaper
+                    }
+                }
+
+                FieldRow {
+                    label: "Per-monitor wallpapers"
+                    caption: "Set different wallpapers for each monitor"
+                    LinkToggle {
+                        s: root.s
+                        on: Flags.wallpaperMultiMonitorEnable
+                        onToggled: Flags.wallpaperMultiMonitorEnable = !Flags.wallpaperMultiMonitorEnable
+                    }
+                }
+
+                FieldRow {
+                    label: "Hide when fullscreen"
+                    caption: "Hide the wallpaper layer while a fullscreen window is active"
+                    LinkToggle {
+                        s: root.s
+                        on: Flags.wallpaperHideWhenFullscreen
+                        onToggled: Flags.wallpaperHideWhenFullscreen = !Flags.wallpaperHideWhenFullscreen
+                    }
+                }
+            }
+
+            Group {
                 title: "Backdrop"
                 collapsed: false
 

@@ -67,6 +67,9 @@ Singleton {
     property alias backdropWallpaperPath: adapter.backdropWallpaperPath
     property alias backdropThemeColors: adapter.backdropThemeColors
     property alias backdropHideWallpaper: adapter.backdropHideWallpaper
+    property alias wallpaperUseMainWallpaper: adapter.wallpaperUseMainWallpaper
+    property alias wallpaperHideWhenFullscreen: adapter.wallpaperHideWhenFullscreen
+    property alias wallpaperMultiMonitorEnable: adapter.wallpaperMultiMonitorEnable
     property alias wallpaperSelectionTarget: adapter.wallpaperSelectionTarget
     property alias parallaxEnable: adapter.parallaxEnable
     property alias parallaxZoom: adapter.parallaxZoom
@@ -139,6 +142,9 @@ Singleton {
     property string backdropWallpaperPath: ""
     property bool backdropThemeColors: false
     property bool backdropHideWallpaper: false
+    property bool wallpaperUseMainWallpaper: true
+    property bool wallpaperHideWhenFullscreen: false
+    property bool wallpaperMultiMonitorEnable: false
     property string wallpaperSelectionTarget: ""
             property bool parallaxEnable: true
             property real parallaxZoom: 1.08
