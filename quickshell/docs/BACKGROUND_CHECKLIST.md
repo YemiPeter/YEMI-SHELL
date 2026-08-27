@@ -101,7 +101,7 @@ Legend: `[ ]` not started · `[~]` partial · `[x]` done & verified.
 ### D1. Backdrop (Overview) card — keys `waffles.background.backdrop.*`
 - [x] **#1 Enable backdrop** (master gate) → `Flags.backdropEnable`; gate `Backdrop.qml` (see commit below)
 - [x] **#2 Enable animated wallpapers** (GIF) → `Flags.backdropEnableAnimation` + `Backdrop.qml` `AnimatedImage` (video deferred: needs QtMultimedia)
-- [ ] **#3 Blur animated wallpapers** → `backdrop.enableAnimatedBlur` (layer MultiEffect, `Appearance.effectsEnabled` gated)
+- [x] **#3 Blur animated wallpapers** → `Flags.backdropEnableAnimatedBlur` gates `wallFx` blur on GIF
 - [ ] **#4 Use separate wallpaper** → `backdrop.useMainWallpaper` + second source (`WallpaperState`-style)
 - [ ] **#5 Backdrop wallpaper picker** → `selectionTarget: "waffle-backdrop"` selector
 - [ ] **#6 Derive theme colors from backdrop** → `appearance.wallpaperTheming.useBackdropForColors` (cross-cuts ThemeService/matugen)
