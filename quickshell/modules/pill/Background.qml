@@ -526,6 +526,16 @@ SettingsSurface {
                 collapsed: false
 
                 FieldRow {
+                    label: "Hide main wallpaper"
+                    caption: "Show only backdrop, hide the desktop wallpaper"
+                    LinkToggle {
+                        s: root.s
+                        on: Flags.backdropHideWallpaper
+                        onToggled: Flags.backdropHideWallpaper = !Flags.backdropHideWallpaper
+                    }
+                }
+
+                FieldRow {
                     label: "Enable animated wallpapers"
                     caption: "Play videos and GIFs as wallpaper"
                     LinkToggle {
