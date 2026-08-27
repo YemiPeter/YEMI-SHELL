@@ -117,6 +117,7 @@ Legend: `[ ]` not started · `[~]` partial · `[x]` done & verified.
 - [x] **#14 Vignette radius** → `Flags.backdropVignetteRadius` (def 0.7) drives `Backdrop.qml` stops
 
 ### D2. Wallpaper Effects card — keys `waffles.background.*` / `waffles.background.effects.*`
+- [ ] **UI card missing in `modules/pill/Background.qml`** → add a "Wallpaper Effects" card with all 7 switches/spinners below. iNiR source: `WBackgroundPage.qml` `:1065-1134`.
 - [ ] **Enable animated wallpapers** (global) → `waffles.background.enableAnimation`
 - [ ] **Enable blur** (blur wallpaper when windows open) → `waffles.background.effects.enableBlur`
 - [ ] **Blur animated wallpapers** → `waffles.background.effects.enableAnimatedBlur`
@@ -124,6 +125,22 @@ Legend: `[ ]` not started · `[~]` partial · `[x]` done & verified.
 - [ ] **Animated blur strength** → `waffles.background.effects.thumbnailBlurStrength` (0–100, def 70)
 - [~] **Dim overlay** → overlaps D1 #9 (`dim`)
 - [ ] **Extra dim with windows** → `waffles.background.effects.dynamicDim`
+
+### D6. Missing UI cards from iNiR WBackgroundPage.qml
+- [ ] **D6.1 Wallpaper card** (top of page) → `modules/pill/Background.qml` needs the top "Wallpaper" card with:
+  - "Use Material wallpaper" (`waffles.background.useMainWallpaper`)
+  - "Per-monitor wallpapers" (`background.multiMonitor.enable`)
+  - "Hide when fullscreen" (`waffles.background.hideWhenFullscreen`)
+  - Wallpaper folder browser strip with thumbnail strip + "Load" button + "Ctrl+Alt+T targets focused output" hint
+  - iNiR source: `WBackgroundPage.qml` `:90-315`
+- [ ] **D6.2 Multi-monitor card** → lazy-loaded when `background.multiMonitor.enable` is true:
+  - Visual monitor cards with hover scale/opacity, selection border, video/GIF badge, resolution label
+  - Buttons: Change, Random, Reset to global, Apply to all, View backdrop / Change backdrop / Back to wallpaper
+  - Inline wallpaper browser with video-first-frame + "Change" routing per monitor
+  - "Derive theme colors from backdrop" switch
+  - iNiR source: `WBackgroundPage.qml` `:317-1063`
+- [ ] **D6.3 Desktop Clock card** → all clock widget settings (placement, style, time format, seconds, date, font, dim, scale, shadow, lock status, animate time change)
+  - iNiR source: `WBackgroundPage.qml` `:1286-1477`
 
 ### D3. Excluded
 - [x] **Ripple effects** — EXCLUDED by user (no port).
@@ -134,8 +151,47 @@ Legend: `[ ]` not started · `[~]` partial · `[x]` done & verified.
 - [x] **`layout { background-color "transparent" }`** → already present in `~/.config/niri/config.d/20-layout-and-overview.kdl` (so gaps between zoomed workspaces don't show a solid block).
 - [ ] **skwd daemon namespace (optional)** → if the wallpaper is actually painted by the `skwd` daemon rather than QuickShell's backdrop, also add a `place-within-backdrop true` rule for skwd's layer namespace. Namespace unknown; can be fetched from `niri` active-layer query if the wallpaper still zooms in overview.
 
+### D5. Missing from iNiR Background.qml (found by source audit)
+- [ ] **Fill modes** → `Image.FillMode` mapping for `fit`, `tile`, `center` (in addition to `fill`); expose in settings.
+  - iNiR equiv: `Background.qml` `fillMode` + `Image.PreserveAspectFit/Tile/Pad`.
+  - Verify: each mode behaves as expected.
+- [ ] **Video wallpapers** → `Video` + `MediaPlayer`; first-frame thumbnail via `ffmpeg`; play/pause tied to lock/game-mode/overview; `loops: MediaPlayer.Infinite`; `muted: true`; `source` file:// URI handling.
+  - iNiR equiv: `Background.qml` `videoWallpaper` block.
+  - Verify: mp4/webm plays when enabled; pauses on lock/overview; first frame visible when paused.
+- [ ] **Wallpaper transitions** → `WallpaperCrossfader` component; `enableTransitions`, `transitionType` (crossfade/slide), `transitionDirection`, `transitionBaseDuration`, `bezier` curve; container resize disabled during transitions.
+  - iNiR equiv: `Background.qml` `wallpaper` + `wallpaperContainer` Behaviors.
+  - Verify: transition fires on wallpaper change; bezier/duration respect config.
+- [ ] **Multi-monitor rendering** → per-monitor wallpaper path lookup; Niri workspace range per output (`workspaceFirst`/`workspaceLast`); `usePerMonitorRange` gate.
+  - iNiR equiv: `Background.qml` `_multiMonEnabled`, `monitorName`, `usePerMonitorRange`, `effectiveWorkspaceFirst/Last`.
+  - Verify: different wallpapers per monitor; parallax range matches output workspaces.
+- [ ] **Work safety** → hide wallpaper when `fileKeywords` match path AND `networkNameKeywords` match current SSID; fallback to dimmed solid color.
+  - iNiR equiv: `Background.qml` `wallpaperSafetyTriggered` + `color` fallback.
+  - Verify: trigger on matching file+network; restore when either changes.
+- [ ] **Dynamic dim on windows** → `focusPresenceProgress` (0→1) driven by whether current workspace has windows; drives blur/dim/vignette only when windows present.
+  - iNiR equiv: `Background.qml` `hasWindowsOnCurrentWorkspace`, `focusPresenceProgress`.
+  - Verify: dim/blur off on empty workspace; on when windows open.
+- [ ] **Awww reveal** → instant crossfader hide → awww transition → fade back in; `_manualWallpaperScaleOverride` during reveal.
+  - iNiR equiv: `Background.qml` `_awwwRevealOpacity`, `_awwwParallaxRevealNeeded`, `_awwwRevealAnimation`.
+  - Verify: awww transitions play without double-image; scale override clears after settle.
+- [ ] **Keyboard focus OnDemand** → `WlrLayershell.keyboardFocus: OnDemand` when notes/text widget needs input; `None` otherwise.
+  - iNiR equiv: `Background.qml` `_needsKeyboardFocus` + `keyboardFocus`.
+  - Verify: sticky notes receive typing without stealing focus from apps when disabled.
+- [ ] **Parallax transition pause** → freeze parallax position during wallpaper/family transitions; resume with settle timer.
+  - iNiR equiv: `Background.qml` `beginParallaxTransition`, `parallaxTransitionActive`, `parallaxResumeProgress`.
+  - Verify: wallpaper shift stops during transition; resumes smoothly after.
+- [ ] **Wallpaper metrics** → `magick identify` for natural size; decode at `screen.width × monitor.scale`; cache by path.
+  - iNiR equiv: `Background.qml` `getWallpaperSizeProc`, `_wallpaperSizeCache`.
+  - Verify: no pixelation from CPU upscale; cache hit on second switch to same wallpaper.
+
 ### Suggested one-at-a-time order
 - **Tier A (cheap):** D1#1, D1#9 (rescale), D1#12, D1#14.
 - **Tier B (effect pass):** D1#8 blur, D1#10 saturation, D1#11 contrast (same MultiEffect as `Glass`).
 - **Tier C (media):** D1#2/#3 animated wallpapers; then D2 items.
 - **Tier D (cross-cutting):** D1#4/#5 separate wallpaper, D1#6 derive theme colors, D1#7 hide-main.
+- **Tier E (missing UI cards):** D6.1 Wallpaper card → D6.2 Multi-monitor card → D6.3 Desktop Clock card.
+
+### Dependency order
+A (apply → loader → Wallpapers → Listener → AwwwBackend → parallax.js)
+→ B in order S4, S5, S6, S7, S8, S3
+→ S2 / S9 / S10 last (renderer-dependent).
+→ D6 UI cards (need Wallpapers service + WallpaperListener + Flags keys already in place from D1/D2).

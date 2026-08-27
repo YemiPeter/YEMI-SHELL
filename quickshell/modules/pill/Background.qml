@@ -487,6 +487,106 @@ SettingsSurface {
             }
 
             Group {
+                title: "Wallpaper Effects"
+                collapsed: false
+
+                FieldRow {
+                    label: "Enable animated wallpapers"
+                    caption: "Play videos and GIFs as wallpaper"
+                    LinkToggle {
+                        s: root.s
+                        on: Flags.wallpaperEnableAnimation
+                        onToggled: Flags.wallpaperEnableAnimation = !Flags.wallpaperEnableAnimation
+                    }
+                }
+
+                FieldRow {
+                    label: "Enable blur"
+                    caption: "Blur wallpaper when windows are open"
+                    LinkToggle {
+                        s: root.s
+                        on: Flags.wallpaperEnableBlur
+                        onToggled: Flags.wallpaperEnableBlur = !Flags.wallpaperEnableBlur
+                    }
+                }
+
+                FieldRow {
+                    label: "Blur animated wallpapers"
+                    caption: "Apply blur to animated wallpapers"
+                    visible: Flags.wallpaperEnableAnimation && Flags.wallpaperEnableBlur
+                    LinkToggle {
+                        s: root.s
+                        on: Flags.wallpaperEnableAnimatedBlur
+                        onToggled: Flags.wallpaperEnableAnimatedBlur = !Flags.wallpaperEnableAnimatedBlur
+                    }
+                }
+
+                FieldRow {
+                    label: "Blur radius"
+                    caption: "Amount of blur applied to wallpaper"
+                    visible: Flags.wallpaperEnableBlur
+                    height: Flags.wallpaperEnableBlur ? 34 * root.s : 0
+                    Stepper {
+                        value: Flags.wallpaperBlurRadius
+                        display: (Flags.wallpaperBlurRadius).toFixed(0) + "%"
+                        onStepped: (dir) => {
+                            var next = Math.max(0, Math.min(100, Math.round(Flags.wallpaperBlurRadius + dir * 5)));
+                            if (next === Flags.wallpaperBlurRadius)
+                                return;
+                            Flags.wallpaperBlurRadius = next;
+                        }
+                    }
+                }
+
+                FieldRow {
+                    label: "Animated blur strength"
+                    caption: "Blur intensity for animated wallpapers"
+                    visible: Flags.wallpaperEnableAnimatedBlur
+                    height: Flags.wallpaperEnableAnimatedBlur ? 34 * root.s : 0
+                    Stepper {
+                        value: Flags.wallpaperAnimatedBlurStrength
+                        display: (Flags.wallpaperAnimatedBlurStrength).toFixed(0) + "%"
+                        onStepped: (dir) => {
+                            var next = Math.max(0, Math.min(100, Math.round(Flags.wallpaperAnimatedBlurStrength + dir * 5)));
+                            if (next === Flags.wallpaperAnimatedBlurStrength)
+                                return;
+                            Flags.wallpaperAnimatedBlurStrength = next;
+                        }
+                    }
+                }
+
+                FieldRow {
+                    label: "Dim overlay"
+                    caption: "Darken the wallpaper"
+                    Stepper {
+                        value: Flags.wallpaperDim
+                        display: (Flags.wallpaperDim * 100).toFixed(0) + "%"
+                        onStepped: (dir) => {
+                            var next = Math.max(0, Math.min(1, Math.round((Flags.wallpaperDim + dir * 0.05) * 100) / 100));
+                            if (next === Flags.wallpaperDim)
+                                return;
+                            Flags.wallpaperDim = next;
+                        }
+                    }
+                }
+
+                FieldRow {
+                    label: "Extra dim with windows"
+                    caption: "Additional dim when windows are present"
+                    Stepper {
+                        value: Flags.wallpaperDynamicDim
+                        display: (Flags.wallpaperDynamicDim * 100).toFixed(0) + "%"
+                        onStepped: (dir) => {
+                            var next = Math.max(0, Math.min(1, Math.round((Flags.wallpaperDynamicDim + dir * 0.05) * 100) / 100));
+                            if (next === Flags.wallpaperDynamicDim)
+                                return;
+                            Flags.wallpaperDynamicDim = next;
+                        }
+                    }
+                }
+            }
+
+            Group {
                 title: "Parallax"
                 collapsed: false
 

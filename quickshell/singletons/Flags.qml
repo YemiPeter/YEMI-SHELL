@@ -71,6 +71,13 @@ Singleton {
     property alias parallaxEnable: adapter.parallaxEnable
     property alias parallaxZoom: adapter.parallaxZoom
     property alias parallaxStrength: adapter.parallaxStrength
+    property alias wallpaperEnableAnimation: adapter.wallpaperEnableAnimation
+    property alias wallpaperEnableBlur: adapter.wallpaperEnableBlur
+    property alias wallpaperEnableAnimatedBlur: adapter.wallpaperEnableAnimatedBlur
+    property alias wallpaperBlurRadius: adapter.wallpaperBlurRadius
+    property alias wallpaperAnimatedBlurStrength: adapter.wallpaperAnimatedBlurStrength
+    property alias wallpaperDim: adapter.wallpaperDim
+    property alias wallpaperDynamicDim: adapter.wallpaperDynamicDim
 
     FileView {
         id: file
@@ -136,6 +143,13 @@ Singleton {
             property bool parallaxEnable: true
             property real parallaxZoom: 1.08
             property real parallaxStrength: 0.5
+            property bool wallpaperEnableAnimation: false
+            property bool wallpaperEnableBlur: false
+            property bool wallpaperEnableAnimatedBlur: false
+            property int wallpaperBlurRadius: 32
+            property int wallpaperAnimatedBlurStrength: 70
+            property real wallpaperDim: 0
+            property real wallpaperDynamicDim: 0
         }
     }
 }
