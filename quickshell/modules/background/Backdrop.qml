@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
 import qs.compositor
@@ -56,6 +57,18 @@ PanelWindow {
         smooth: true
 
         Behavior on x { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+    }
+
+    MultiEffect {
+        id: wallFx
+        anchors.fill: wall
+        source: wall
+        visible: QsSingletons.Flags.backdropEnable
+        blurEnabled: QsSingletons.Flags.backdropBlurRadius > 0
+        blur: QsSingletons.Flags.backdropBlurRadius / 100.0
+        blurMax: 64
+        saturation: QsSingletons.Flags.backdropSaturation / 100.0
+        contrast: QsSingletons.Flags.backdropContrast / 100.0
     }
 
     Rectangle {

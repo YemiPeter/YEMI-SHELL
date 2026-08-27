@@ -321,7 +321,58 @@ SettingsSurface {
                         }
                     }
                 }
-            }
+                }
+
+                FieldRow {
+                    label: "Blur"
+                    caption: "Frost the wallpaper"
+                    visible: Flags.backdropEnable
+                    height: Flags.backdropEnable ? 34 * root.s : 0
+                    Stepper {
+                        value: Flags.backdropBlurRadius
+                        display: (Flags.backdropBlurRadius).toFixed(0) + "%"
+                        onStepped: (dir) => {
+                            var next = Math.max(0, Math.min(100, Math.round(Flags.backdropBlurRadius + dir * 5)));
+                            if (next === Flags.backdropBlurRadius)
+                                return;
+                            Flags.backdropBlurRadius = next;
+                        }
+                    }
+                }
+
+                FieldRow {
+                    label: "Saturation"
+                    caption: "Color intensity (−100..100)"
+                    visible: Flags.backdropEnable
+                    height: Flags.backdropEnable ? 34 * root.s : 0
+                    Stepper {
+                        value: Flags.backdropSaturation
+                        display: (Flags.backdropSaturation).toFixed(0) + "%"
+                        onStepped: (dir) => {
+                            var next = Math.max(-100, Math.min(100, Math.round(Flags.backdropSaturation + dir * 10)));
+                            if (next === Flags.backdropSaturation)
+                                return;
+                            Flags.backdropSaturation = next;
+                        }
+                    }
+                }
+
+                FieldRow {
+                    label: "Contrast"
+                    caption: "Light/dark separation (−100..100)"
+                    visible: Flags.backdropEnable
+                    height: Flags.backdropEnable ? 34 * root.s : 0
+                    Stepper {
+                        value: Flags.backdropContrast
+                        display: (Flags.backdropContrast).toFixed(0) + "%"
+                        onStepped: (dir) => {
+                            var next = Math.max(-100, Math.min(100, Math.round(Flags.backdropContrast + dir * 10)));
+                            if (next === Flags.backdropContrast)
+                                return;
+                            Flags.backdropContrast = next;
+                        }
+                    }
+                }
 
             Rectangle {
                 width: parent.width

@@ -106,10 +106,10 @@ Legend: `[ ]` not started · `[~]` partial · `[x]` done & verified.
 - [ ] **#5 Backdrop wallpaper picker** → `selectionTarget: "waffle-backdrop"` selector
 - [ ] **#6 Derive theme colors from backdrop** → `appearance.wallpaperTheming.useBackdropForColors` (cross-cuts ThemeService/matugen)
 - [ ] **#7 Hide main wallpaper** → `backdrop.hideWallpaper` (semantic: yemi has one layer, needs design)
-- [ ] **#8 Backdrop blur** → `backdrop.blurRadius` (0–100) — MultiEffect proven viable via `Glass`
+- [x] **#8 Backdrop blur** → `Flags.backdropBlurRadius` (0–100) on `Backdrop.qml` MultiEffect
 - [x] **#9 Backdrop dim** → `Flags.backdropDim` kept 0–1 (UI shows %); default rescaled to 20% to match `backdrop.dim` (def 20)
-- [ ] **#10 Backdrop saturation** → `backdrop.saturation` (−100..100) MultiEffect.saturation
-- [ ] **#11 Backdrop contrast** → `backdrop.contrast` (−100..100) MultiEffect.contrast
+- [x] **#10 Backdrop saturation** → `Flags.backdropSaturation` (−100..100) MultiEffect.saturation
+- [x] **#11 Backdrop contrast** → `Flags.backdropContrast` (−100..100) MultiEffect.contrast
 - [x] **#12 Enable vignette** (toggle) → `Flags.backdropVignetteEnable` gates `Backdrop.qml` + settings toggle
 - [~] **#13 Vignette intensity** → `Flags.backdropVignette` already exists
 - [x] **#14 Vignette radius** → `Flags.backdropVignetteRadius` (def 0.7) drives `Backdrop.qml` stops
