@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Controls
 import Quickshell
 import Quickshell.Io
 import "Singletons"
@@ -627,6 +628,86 @@ SettingsSurface {
                                 return;
                             Flags.wallpaperDynamicDim = next;
                         }
+                    }
+                }
+            }
+
+            Group {
+                title: "Wallpapers folder"
+                collapsed: false
+
+                FieldRow {
+                    label: "Wallpapers directory"
+                    caption: "Folder containing wallpaper images"
+                    TextField {
+                        width: Math.max(180 * root.s, parent.width * 0.5)
+                        height: 28 * root.s
+                        font.pixelSize: 11 * root.s
+                        color: Theme.cream
+                        placeholderText: QsSingletons.Walls.wpDir
+                        text: Flags.wallpapersDirectory || QsSingletons.Walls.wpDir
+                        onEditingFinished: {
+                            var val = text.trim()
+                            Flags.wallpapersDirectory = val
+                            Config.setNestedValue("wallpapers.directory", val)
+                        }
+                    }
+                }
+            }
+
+            Group {
+                title: "Shuffle wallpapers"
+                collapsed: false
+
+                FieldRow {
+                    label: "Shuffle automatically"
+                    caption: "Pick a random wallpaper from the folder periodically"
+                    LinkToggle {
+                        s: root.s
+                        on: Flags.autoWallpaperEnable
+                        onToggled: Flags.autoWallpaperEnable = !Flags.autoWallpaperEnable
+                    }
+                }
+
+                FieldRow {
+                    label: "Change every"
+                    caption: "How often to pick a new wallpaper"
+                    visible: Flags.autoWallpaperEnable
+                    height: Flags.autoWallpaperEnable ? 34 * root.s : 0
+                    Stepper {
+                        value: Flags.autoWallpaperInterval
+                        display: Flags.autoWallpaperInterval + " min"
+                        onStepped: (dir) => {
+                            var next = Math.max(1, Math.min(1440, Flags.autoWallpaperInterval + dir * 5))
+                            if (next === Flags.autoWallpaperInterval) return
+                            Flags.autoWallpaperInterval = next
+                        }
+                    }
+                }
+
+                FieldRow {
+                    label: "Regenerate colors on shuffle"
+                    caption: "Recompute theme colors from the new wallpaper"
+                    visible: Flags.autoWallpaperEnable
+                    LinkToggle {
+                        s: root.s
+                        on: Flags.autoWallpaperGenerateColors
+                        onToggled: Flags.autoWallpaperGenerateColors = !Flags.autoWallpaperGenerateColors
+                    }
+                }
+
+                FieldRow {
+                    label: "Shuffle folder"
+                    caption: "Leave empty to shuffle within the wallpapers directory"
+                    visible: Flags.autoWallpaperEnable
+                    TextField {
+                        width: Math.max(180 * root.s, parent.width * 0.5)
+                        height: 28 * root.s
+                        font.pixelSize: 11 * root.s
+                        color: Theme.cream
+                        placeholderText: Translation.tr("Use current wallpapers folder")
+                        text: Flags.autoWallpaperFolder
+                        onEditingFinished: Flags.autoWallpaperFolder = text.trim()
                     }
                 }
             }

@@ -71,6 +71,11 @@ Singleton {
     property alias wallpaperHideWhenFullscreen: adapter.wallpaperHideWhenFullscreen
     property alias wallpaperMultiMonitorEnable: adapter.wallpaperMultiMonitorEnable
     property alias wallpaperSelectionTarget: adapter.wallpaperSelectionTarget
+    property alias autoWallpaperEnable: adapter.autoWallpaperEnable
+    property alias autoWallpaperInterval: adapter.autoWallpaperInterval
+    property alias autoWallpaperGenerateColors: adapter.autoWallpaperGenerateColors
+    property alias autoWallpaperFolder: adapter.autoWallpaperFolder
+    property alias wallpapersDirectory: adapter.wallpapersDirectory
     property alias parallaxEnable: adapter.parallaxEnable
     property alias parallaxZoom: adapter.parallaxZoom
     property alias parallaxStrength: adapter.parallaxStrength
@@ -146,6 +151,11 @@ Singleton {
     property bool wallpaperHideWhenFullscreen: false
     property bool wallpaperMultiMonitorEnable: false
     property string wallpaperSelectionTarget: ""
+    property bool autoWallpaperEnable: false
+    property int autoWallpaperInterval: 30
+    property bool autoWallpaperGenerateColors: true
+    property string autoWallpaperFolder: ""
+    property string wallpapersDirectory: ""
             property bool parallaxEnable: true
             property real parallaxZoom: 1.08
             property real parallaxStrength: 0.5

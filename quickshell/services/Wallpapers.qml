@@ -18,6 +18,40 @@ Singleton {
 
     readonly property string globalWallpaperPath: Config.options?.background?.wallpaperPath ?? ""
 
+    readonly property bool autoWallpaperEnabled: Config.options?.background?.autoWallpaper?.enable ?? false
+    readonly property int autoWallpaperInterval: Config.options?.background?.autoWallpaper?.intervalMinutes ?? 30
+    readonly property bool autoWallpaperGenerateColors: Config.options?.background?.autoWallpaper?.generateColors ?? true
+    readonly property string autoWallpaperFolder: Config.options?.background?.autoWallpaper?.folder ?? ""
+
+    Timer {
+        id: autoWallpaperTimer
+        interval: root.autoWallpaperInterval * 60 * 1000
+        running: root.autoWallpaperEnabled
+        repeat: true
+        onTriggered: root._cycleAutoWallpaper()
+    }
+
+    function _cycleAutoWallpaper() {
+        const entries = QsSingletons.Walls.entries
+        if (entries.length === 0) return
+        const currentPath = Config.options?.background?.wallpaperPath ?? ""
+        let randomIndex, filePath
+        let attempts = 0
+        do {
+            randomIndex = Math.floor(Math.random() * entries.length)
+            filePath = entries[randomIndex].path
+            attempts++
+        } while (filePath === currentPath && attempts < 5 && entries.length > 1)
+        if (!filePath) return
+        root.apply(filePath, true, "")
+        if (root.autoWallpaperGenerateColors) {
+            Quickshell.execDetached([QsSingletons.Walls.setScript, "--noswitch"])
+        }
+    }
+
+    onAutoWallpaperEnabledChanged: autoWallpaperTimer.restart()
+    onAutoWallpaperIntervalChanged: autoWallpaperTimer.restart()
+
     function currentMainWallpaperPath(monitorName = ""): string {
         const targetMonitor = monitorName || (WallpaperListener.multiMonitorEnabled ? WallpaperListener.getFocusedMonitor() : "")
         if (WallpaperListener.multiMonitorEnabled && targetMonitor) {
