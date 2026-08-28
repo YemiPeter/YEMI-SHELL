@@ -88,7 +88,11 @@ fi
 
     AWWW_ARGS=(--transition-type "$T_TYPE" --transition-fps "$T_FPS" --transition-step "$T_STEP")
     if [ "$T_TYPE" != "simple" ] && [ "$T_TYPE" != "none" ]; then
-        AWWW_ARGS+=(--transition-duration "$T_DUR")
+        # T_DUR is milliseconds (Settings UI labels "ms", default 800, range
+        # 200-3000), but awww's --transition-duration expects SECONDS. Convert
+        # at the point we hand it to awww; T_DUR itself stays in ms for other use.
+        T_DUR_SECONDS="$(awk "BEGIN { printf \"%.3f\", $T_DUR / 1000 }")"
+        AWWW_ARGS+=(--transition-duration "$T_DUR_SECONDS")
     fi
     if [ "$T_TYPE" = "wipe" ] || [ "$T_TYPE" = "wave" ]; then
         case "$T_DIR" in
@@ -107,7 +111,7 @@ fi
 # Delegate color generation to the single quickshell writer so colors.json
 # stays in the Dyn.qml-expected schema. wallpaper.sh only sets the image +
 # state here; after-wall.sh owns the palette.
-python3 "$HOME/.config/quickshell/scripts/after-wall.sh" "dynamic" "$pic" >/dev/null 2>&1 || true
+bash "$HOME/.config/quickshell/scripts/after-wall.sh" "dynamic" "$pic" >/dev/null 2>&1 || true
 hyprctl reload >/dev/null 2>&1 || true
 busctl --user call com.mitchellh.ghostty /com/mitchellh/ghostty org.gtk.Actions \
     Activate "sava{sv}" reload-config 0 0 >/dev/null 2>&1 || true

@@ -111,7 +111,8 @@
   "paper": {
     "engine": "awww",
     "awww": {
-      "transitionType": "random",
+      "transitionType": "fade",
+      "transitionDuration": 0.8,
       "transitionFps": 120,
       "filter": "Bilinear"
     }

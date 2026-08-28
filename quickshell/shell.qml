@@ -268,12 +268,11 @@ ShellRoot {
         }
     }
 
-    // Background renderer windows (one per screen) — Gate 0
+    // Background renderer windows (one per screen) — single layer now.
+    // Backdrop.qml is the sole background component (Wallpaper.qml was
+    // collapsed into it during the wallpaper rearchitect).
     Variants {
         model: Quickshell.screens
-        Background.Wallpaper {
-            modelData: modelData
-        }
         Background.Backdrop {
             modelData: modelData
         }
@@ -324,10 +323,14 @@ ShellRoot {
     property bool walApplying: false
     property var wallpaperHashes: ({})
 
+    // Single compositor-aware dispatcher (set-wallpaper.sh). Resolved against
+    // RICE_HOME with a real fallback. The compositor is passed in explicitly.
+    property string setScript: (Quickshell.env("RICE_HOME") || (Quickshell.env("HOME") + "/.config")) + "/quickshell/scripts/set-wallpaper.sh"
+
     function applyWallpaper(wallpaper) {
         root.currentWallpaper = wallpaper.path
         root.walApplying = true
-        applyWallProc.command = ["bash", "-c", "skwd wall apply '{\"name\":\'" + wallpaper.name + "\'}'"]
+        applyWallProc.command = ["bash", root.setScript, Compositor.runningCompositor, "set", wallpaper.path]
         applyWallProc.running = true
     }
 
