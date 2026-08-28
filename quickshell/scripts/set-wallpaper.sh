@@ -77,7 +77,8 @@ pop_bag() {
 }
 
 ensure_daemon() {
-    [ "$COMPOSITOR" = "hyprland" ] || return 0
+    # awww is compositor-agnostic: skwd's picker paints through it on Niri
+    # too, so the dispatcher must be able to spawn it everywhere.
     awww query >/dev/null 2>&1 && return 0
     local attempt i
     for attempt in 1 2 3 4 5; do
@@ -147,11 +148,13 @@ mkdir -p "$(dirname "$STATE")"
 printf '%s\n' "$pic" > "$STATE"
 
 # ---------------------------------------------------------------------------
-# Paint — Hyprland only. Niri renders the QML layer from the state file.
+# Paint — every compositor. The Pill picker must repaint the same awww layer
+# skwd's picker paints through, otherwise the desktop wallpaper goes stale on
+# Niri while the QML backdrop changes. hyprctl reload stays Hyprland-only.
 # ---------------------------------------------------------------------------
+ensure_daemon || true
+awww img "$pic" "${AWWW_ARGS[@]}" || true
 if [ "$COMPOSITOR" = "hyprland" ]; then
-    ensure_daemon || true
-    awww img "$pic" "${AWWW_ARGS[@]}" || true
     hyprctl reload >/dev/null 2>&1 || true
 fi
 
