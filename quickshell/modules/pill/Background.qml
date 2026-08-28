@@ -662,7 +662,9 @@ SettingsSurface {
 
                 FieldRow {
                     label: "Enable transitions"
-                    caption: "Animate wallpaper changes"
+                    caption: "Animate wallpaper changes (Hyprland only)"
+                    enabled: !Compositor.isNiri
+                    opacity: enabled ? 1 : 0.4
                     LinkToggle {
                         s: root.s
                         on: Flags.transitionEnable
@@ -675,6 +677,8 @@ SettingsSurface {
                     caption: transitionTypes[transitionTypeIndex]
                     visible: Flags.transitionEnable
                     height: Flags.transitionEnable ? 34 * root.s : 0
+                    enabled: !Compositor.isNiri
+                    opacity: enabled ? 1 : 0.4
                     Stepper {
                         value: transitionTypeIndex
                         display: transitionTypes[transitionTypeIndex]
@@ -691,6 +695,8 @@ SettingsSurface {
                     caption: Flags.transitionDirection
                     visible: Flags.transitionEnable && isDirectional
                     height: (Flags.transitionEnable && isDirectional) ? 34 * root.s : 0
+                    enabled: !Compositor.isNiri
+                    opacity: enabled ? 1 : 0.4
                     Stepper {
                         value: transitionDirIndex
                         display: transitionDirs[transitionDirIndex]
@@ -703,9 +709,11 @@ SettingsSurface {
 
                 FieldRow {
                     label: "Transition duration"
-                    caption: "How long the transition takes (ms)"
+                    caption: "How long the transition takes (ms, Hyprland only)"
                     visible: Flags.transitionEnable
                     height: Flags.transitionEnable ? 34 * root.s : 0
+                    enabled: !Compositor.isNiri
+                    opacity: enabled ? 1 : 0.4
                     Stepper {
                         value: Flags.transitionDuration
                         display: Flags.transitionDuration + " ms"
