@@ -144,13 +144,6 @@ Singleton {
             // cleanup PER ATTEMPT so no handler leaks, and a late failure from a
             // previous tap is not dropped (each attempt owns its own handlers;
             // no shared _connectingNet that gets silently retargeted).
-            const failHandler = function (reason) {
-                cleanup()
-                root.connectionFailed(ConnectionFailReason.toString(reason))
-            }
-            const okHandler = function () {
-                if (net.connected) cleanup()
-            }
             const cleanup = function () {
                 // Guard against double-run: failHandler, okHandler and the 8s
                 // timer can all fire close together; a second run would touch an
@@ -163,6 +156,13 @@ Singleton {
                     cleanupTimer.onFire = null
                     cleanupTimer.destroy()
                 }
+            }
+            const failHandler = function (reason) {
+                cleanup()
+                root.connectionFailed(ConnectionFailReason.toString(reason))
+            }
+            const okHandler = function () {
+                if (net.connected) cleanup()
             }
             net.connectionFailed.connect(failHandler)
             net.connectedChanged.connect(okHandler)
