@@ -76,6 +76,12 @@ Singleton {
     property alias autoWallpaperGenerateColors: adapter.autoWallpaperGenerateColors
     property alias autoWallpaperFolder: adapter.autoWallpaperFolder
     property alias wallpapersDirectory: adapter.wallpapersDirectory
+    property alias transitionEnable: adapter.transitionEnable
+    property alias transitionType: adapter.transitionType
+    property alias transitionDirection: adapter.transitionDirection
+    property alias transitionDuration: adapter.transitionDuration
+    property alias transitionFps: adapter.transitionFps
+    property alias transitionStep: adapter.transitionStep
     property alias parallaxEnable: adapter.parallaxEnable
     property alias parallaxZoom: adapter.parallaxZoom
     property alias parallaxStrength: adapter.parallaxStrength
@@ -156,6 +162,12 @@ Singleton {
     property bool autoWallpaperGenerateColors: true
     property string autoWallpaperFolder: ""
     property string wallpapersDirectory: ""
+    property bool transitionEnable: true
+    property string transitionType: "fade"
+    property string transitionDirection: "right"
+    property int transitionDuration: 800
+    property int transitionFps: 60
+    property int transitionStep: 90
             property bool parallaxEnable: true
             property real parallaxZoom: 1.08
             property real parallaxStrength: 0.5

@@ -76,17 +76,33 @@ else
     pic=$(pop_bag) || exit 0
 fi
 
-[ -n "$pic" ] || exit 0
+    [ -n "$pic" ] || exit 0
 
-awww img "$pic" \
-    --transition-type wave \
-    --transition-angle 30 \
-    --transition-wave "60,30" \
-    --transition-fps 60 \
-    --transition-step 90
+    FLAGS_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/quickshell/flags.json"
+    T_ENABLE="$(jq -r '.transitionEnable // true' "$FLAGS_FILE" 2>/dev/null || echo true)"
+    T_TYPE="$(jq -r '.transitionType // "fade"' "$FLAGS_FILE" 2>/dev/null || echo fade)"
+    T_DIR="$(jq -r '.transitionDirection // "right"' "$FLAGS_FILE" 2>/dev/null || echo right)"
+    T_DUR="$(jq -r '.transitionDuration // 800' "$FLAGS_FILE" 2>/dev/null || echo 800)"
+    T_FPS="$(jq -r '.transitionFps // 60' "$FLAGS_FILE" 2>/dev/null || echo 60)"
+    T_STEP="$(jq -r '.transitionStep // 90' "$FLAGS_FILE" 2>/dev/null || echo 90)"
 
-mkdir -p "$(dirname "$STATE")"
-printf '%s\n' "$pic" > "$STATE"
+    AWWW_ARGS=(--transition-type "$T_TYPE" --transition-fps "$T_FPS" --transition-step "$T_STEP")
+    if [ "$T_TYPE" != "simple" ] && [ "$T_TYPE" != "none" ]; then
+        AWWW_ARGS+=(--transition-duration "$T_DUR")
+    fi
+    if [ "$T_TYPE" = "wipe" ] || [ "$T_TYPE" = "wave" ]; then
+        case "$T_DIR" in
+            left)  AWWW_ARGS+=(--transition-angle 180) ;;
+            top)   AWWW_ARGS+=(--transition-angle 270) ;;
+            bottom)AWWW_ARGS+=(--transition-angle 90) ;;
+            *)     AWWW_ARGS+=(--transition-angle 0) ;;
+        esac
+    fi
+
+    awww img "$pic" "${AWWW_ARGS[@]}"
+
+    mkdir -p "$(dirname "$STATE")"
+    printf '%s\n' "$pic" > "$STATE"
 
 # Delegate color generation to the single quickshell writer so colors.json
 # stays in the Dyn.qml-expected schema. wallpaper.sh only sets the image +
