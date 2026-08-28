@@ -18,14 +18,14 @@ Singleton {
     readonly property int defaultSimpleStep: 5
     readonly property int defaultSpatialStep: 30
 
-    function supportsMainWallpaper(path: string): bool {
+    function supportsMainWallpaper(path) {
         if (!path) return false
         const lower = path.toLowerCase()
         return !lower.endsWith(".gif") && !lower.endsWith(".mp4") && !lower.endsWith(".webm")
             && !lower.endsWith(".mkv") && !lower.endsWith(".avi") && !lower.endsWith(".mov")
     }
 
-    function normalizedAwwwTransitionType(type: string, direction: string): string {
+    function normalizedAwwwTransitionType(type, direction) {
         const t = String(type ?? "crossfade").toLowerCase().trim()
         if (t === "crossfade") return "fade"
         if (t === "slide" || t === "directional") return direction ?? "right"
@@ -33,7 +33,7 @@ Singleton {
         return t
     }
 
-    function apply(path: string, monitorName = "", options: var = ({})): void {
+    function apply(path, monitorName = "", options = ({})) {
         if (!root._available) return
         const normalizedPath = String(path ?? "").trim()
         if (!normalizedPath) return
@@ -74,7 +74,7 @@ Singleton {
         Quickshell.execDetached(args)
     }
 
-    function clear(monitorName = "", color = "0x000000"): void {
+    function clear(monitorName = "", color = "0x000000") {
         if (!root._available) return
         const args = [root.awwwBin, "clear"]
         if (monitorName && monitorName.length > 0)
@@ -83,23 +83,21 @@ Singleton {
         Quickshell.execDetached(args)
     }
 
-    function query(): var {
+    function query() {
+        // awww query reports the current wallpaper path, but there is no
+        // synchronous process API exposed here; callers currently expect null.
         if (!root._available) return null
-        const proc = Process {
-            command: [root.awwwBin, "query"]
-            running: true
-        }
-        // awww query is synchronous enough for this use; return null on failure.
         return null
     }
 
-    Component.onCompleted: {
-        const check = Process {
-            command: [root.awwwBin, "--help"]
-            running: true
-            onExited: function(exitCode) {
-                root._available = exitCode === 0
-            }
+    // Probe whether the awww binary is available at startup. A Process must be
+    // declared as a child object (not constructed inline inside a function).
+    Process {
+        id: checkAvailabilityProc
+        command: [root.awwwBin, "--help"]
+        running: true
+        onExited: function(exitCode) {
+            root._available = exitCode === 0
         }
     }
 }

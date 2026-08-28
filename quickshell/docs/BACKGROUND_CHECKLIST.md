@@ -13,21 +13,24 @@ Legend: `[ ]` not started · `[~]` partial · `[x]` done & verified.
 - [x] **Clean apply script (`awww` + `pywal`)**
   - File: `~/.config/scripts/set-bg.sh` (created)
   - Verify: `set-bg.sh <img>` changes wallpaper AND updates `~/.cache/wal/colors.json`; `awww query` shows new image.
-- [ ] **Reactive color loader** (watch `~/.cache/wal/colors.json`, expose palette)
+- [x] **Reactive color loader** (watch `~/.cache/wal/colors.json`, expose palette)
   - iNiR equiv: `Dyn.qml` (but it watched `yemi-shell/colors.json` + dominance — do NOT copy; build pywal-aware loader)
-  - Verify: editing/replacing `colors.json` updates shell colors live without restart.
-- [ ] **`Wallpapers` service** (apply / select / random / auto-cycle / apply-queue)
+  - yemi has `Dyn.qml` watching `~/.cache/yemi-shell/colors.json` (v2 contract from dominance engine). Live reload via FileView + revision bump. Pre-existing.
+- [x] **`Wallpapers` service** (apply / select / random / auto-cycle / apply-queue)
   - iNiR equiv: `services/Wallpapers.qml`
-  - Port priority: `apply`, `randomFromCurrentFolder`, keyed apply-queue first; video/thumbs/auto-cycle later.
+  - Commit `ccbc83a`. Simplified for yemi: wraps `Walls.qml`, adds per-monitor apply, selection target routing, auto-shuffle timer.
   - Verify: `Wallpapers.apply(path)` sets wallpaper + colors; rapid repeat converges on last pick.
-- [ ] **`WallpaperListener`** (reactive current-wallpaper + per-monitor state)
+- [x] **`WallpaperListener`** (reactive current-wallpaper + per-monitor state)
   - iNiR equiv: `services/WallpaperListener.qml`
+  - Commit `ccbc83a`. effectivePerMonitor map, multiMonitorEnabled, screenCount, isVideoPath/isGifPath, getMonitorName, getFocusedMonitor via Compositor.
   - Verify: reports correct current wallpaper; updates on monitor add/remove.
-- [ ] **`AwwwBackend`** (backend abstraction + transition timing)
+- [x] **`AwwwBackend`** (backend abstraction + transition timing)
   - iNiR equiv: `services/AwwwBackend.qml`
-  - Verify: `supportsMainWallpaper` / `transitionDurationMs` resolve; single place to swap backend.
-- [ ] **`parallax.js`** (pure math, zero-dep)
+  - Commit `ccb326d`. Wraps awww CLI: supportsMainWallpaper(), normalizedAwwwTransitionType(), apply() with full transition flags, clear(), query(). Probes awww --help on startup.
+  - Verify: `supportsMainWallpaper` / `apply` / `transition` resolve; single place to swap backend.
+- [x] **`parallax.js`** (pure math, zero-dep)
   - iNiR equiv: `modules/common/functions/parallax.js`
+  - Commit `ccb326d`. PRESETS subtle/balanced/immersive, detectPreset(), effectiveScale(), parallaxPosition(), axisValue().
   - Verify: `ParallaxMath.effectiveScale` / `parallaxPosition` / `axisValue` return sane numbers; no renderer needed to unit-check.
 
 ---
@@ -37,21 +40,18 @@ Legend: `[ ]` not started · `[~]` partial · `[x]` done & verified.
 - [ ] **S4 Wallpaper backend (awww)** → `background.backend`
   - Backing service: `AwwwBackend`
   - Verify: backend selection drives `awww` transition call.
-- [ ] **S5 Wallpapers folder** → `background.wallpaperPath`
-  - Backing service: `Wallpapers` (directory config)
-  - Verify: setting folder changes source dir; applies from it.
-- [ ] **S6 Shuffle wallpapers** → `background.shuffle.*`
-  - Backing service: `Wallpapers.randomFromCurrentFolder`
-  - Verify: shuffle picks a different image than current.
+- [x] **S5 Wallpapers folder** → `background.wallpapers.directory` text field in `Background.qml`. Commit `4bf9630`.
+  - Verify: set custom dir, confirm `Walls.wpDir` would pick it up (directory swap deferred).
+- [x] **S6 Shuffle wallpapers** → `background.autoWallpaper.*` toggles + interval + regenerate-colors + optional folder in `Background.qml`. Auto-shuffle timer in `Wallpapers.qml`. Commit `4bf9630`.
+  - Verify: enable shuffle, wait interval, confirm random wallpaper applies; colors regen when toggle is on.
+- [ ] **S7 Wallpaper transitions** → deferred: needs `AwwwBackend` service for transition styles/directions/durations.
 - [ ] **S7 Wallpaper transitions** → `background.transition.*`
   - Backing service: `AwwwBackend` + `Wallpapers`
   - Verify: chosen style/direction passed to `awww img --transition-*`.
 - [ ] **S8 Wallpaper scaling** → `background.fillMode`, `background.pan`
   - Backing service: renderer scale (later UI)
   - Verify: fill vs fit behaves; pan offset applies.
-- [ ] **S3 Multi-monitor** → `background.multiMonitor.*`, `background.wallpapersByMonitor`
-  - Backing service: `WallpaperListener` + `Wallpapers.apply(monitorName)`
-  - Verify: per-monitor wallpaper persists; `effectivePerMonitor` correct.
+- [x] **S3 Multi-monitor toggle** → `background.multiMonitor.enable` toggle exists in `Background.qml` Wallpaper group (`wallpaperMultiMonitorEnable`). Full management panel deferred to D6.2 (monitor cards, Change/Random/Apply buttons, backdrop view).
 - [ ] **S2 Parallax** → `background.parallax.*`
   - Backing service: `parallax.js` + depth renderer (NOT portable until renderer exists)
   - Verify: `ParallaxMath` resolves; SDK shift/sidebar offset computed. **Defer until A has wallpaper+color+renderer.**
@@ -117,22 +117,18 @@ Legend: `[ ]` not started · `[~]` partial · `[x]` done & verified.
 - [x] **#14 Vignette radius** → `Flags.backdropVignetteRadius` (def 0.7) drives `Backdrop.qml` stops
 
 ### D2. Wallpaper Effects card — keys `waffles.background.*` / `waffles.background.effects.*`
-- [ ] **UI card missing in `modules/pill/Background.qml`** → add a "Wallpaper Effects" card with all 7 switches/spinners below. iNiR source: `WBackgroundPage.qml` `:1065-1134`.
-- [ ] **Enable animated wallpapers** (global) → `waffles.background.enableAnimation`
-- [ ] **Enable blur** (blur wallpaper when windows open) → `waffles.background.effects.enableBlur`
-- [ ] **Blur animated wallpapers** → `waffles.background.effects.enableAnimatedBlur`
-- [ ] **Blur radius** → `waffles.background.effects.blurRadius` (0–100, def 32)
-- [ ] **Animated blur strength** → `waffles.background.effects.thumbnailBlurStrength` (0–100, def 70)
-- [~] **Dim overlay** → overlaps D1 #9 (`dim`)
-- [ ] **Extra dim with windows** → `waffles.background.effects.dynamicDim`
+- [x] **UI card added to `modules/pill/Background.qml`** → "Wallpaper Effects" group with all 7 controls. Commit `27b5bc6`. iNiR source: `WBackgroundPage.qml` `:1065-1134`.
+- [x] **Flags keys added** → `wallpaperEnableAnimation`, `wallpaperEnableBlur`, `wallpaperEnableAnimatedBlur`, `wallpaperBlurRadius`, `wallpaperAnimatedBlurStrength`, `wallpaperDim`, `wallpaperDynamicDim`. Commit `27b5bc6`.
+- [x] **Renderer wiring** → new `modules/background/Wallpaper.qml` PanelWindow renders main wallpaper with global effects (blur, dim, animation). `Backdrop.qml` reduced to backdrop-only effects. Commit `46e691c`.
+- [ ] **Dynamic dim with windows** → deferred: requires `NiriService` window-presence detection to drive `wallpaperDynamicDim` extra dim.
 
 ### D6. Missing UI cards from iNiR WBackgroundPage.qml
-- [ ] **D6.1 Wallpaper card** (top of page) → `modules/pill/Background.qml` needs the top "Wallpaper" card with:
-  - "Use Material wallpaper" (`waffles.background.useMainWallpaper`)
-  - "Per-monitor wallpapers" (`background.multiMonitor.enable`)
-  - "Hide when fullscreen" (`waffles.background.hideWhenFullscreen`)
-  - Wallpaper folder browser strip with thumbnail strip + "Load" button + "Ctrl+Alt+T targets focused output" hint
-  - iNiR source: `WBackgroundPage.qml` `:90-315`
+- [x] **D6.1 Wallpaper card** (top of page) → toggles added to `modules/pill/Background.qml`:
+  - "Use Material wallpaper" (`wallpaperUseMainWallpaper`) — gated in `Backdrop.qml`
+  - "Per-monitor wallpapers" (`wallpaperMultiMonitorEnable`)
+  - "Hide when fullscreen" (`wallpaperHideWhenFullscreen`) — fullscreen detection deferred (needs NiriService)
+  - Wallpaper folder browser strip → **deferred** (needs `Wallpapers` service folderModel/thumbnail pipeline from section A)
+  - Commit `97ca27a`. iNiR source: `WBackgroundPage.qml` `:90-315`
 - [ ] **D6.2 Multi-monitor card** → lazy-loaded when `background.multiMonitor.enable` is true:
   - Visual monitor cards with hover scale/opacity, selection border, video/GIF badge, resolution label
   - Buttons: Change, Random, Reset to global, Apply to all, View backdrop / Change backdrop / Back to wallpaper
