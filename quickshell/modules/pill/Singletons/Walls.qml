@@ -68,6 +68,11 @@ Singleton {
         // the color pipeline.
         if (QsSingletons.Flags.backdropHideWallpaper) {
             root.current = path;
+            // Still record the pick in the state file: WallpaperState (which
+            // Backdrop actually renders) watches it, and it lets the awww
+            // restore (toggle off / next login) land on the last pick.
+            stateWriteProc.wallPath = path;
+            stateWriteProc.running = true;
             afterWallProc.wallPath = path;
             afterWallProc.running = true;
             return;
@@ -178,5 +183,71 @@ Singleton {
         onExited: stateProc.running = true
     }
 
-    Component.onCompleted: refresh()
+    Component.onCompleted: {
+        refresh();
+        syncAwww(QsSingletons.Flags.backdropHideWallpaper);
+    }
+
+    // ── "Hide wallpaper" ↔ awww lifecycle ────────────────────────────────────
+    // Niri: when the setting is ON, the awww background layer is killed so the
+    // QML Backdrop becomes the only wallpaper. When turned OFF (or at startup
+    // with the setting OFF), awww is brought back painting the state file's
+    // pick via the dispatcher's init. Hyprland keeps awww alive regardless —
+    // killing it there would leave a black desktop under the overlay.
+    function syncAwww(hide) {
+        if (!Compositor.isNiri)
+            return;
+        if (hide) {
+            killProc.running = true;
+        } else if (!restoreProc.running) {
+            restoreProc.running = true;
+        }
+    }
+
+    Connections {
+        target: QsSingletons.Flags
+        function onBackdropHideWallpaperChanged() {
+            root.syncAwww(QsSingletons.Flags.backdropHideWallpaper);
+        }
+    }
+
+    Process {
+        id: killProc
+        // Remember which wallpaper awww is displaying right now, then kill it.
+        // The memory file (~/.local/state/quickshell-wallpaper-awww) survives
+        // restarts, so toggle-off / later logins restore exactly what awww was
+        // showing when hide was enabled — even if picks changed while the
+        // backdrop owned the screen.
+        command: ["bash", "-c",
+                  "Q=$(awww query 2>/dev/null); " +
+                  "P=$(printf '%s\\n' \"$Q\" | sed -n 's/.*currently displaying: image: //p' | head -n1); " +
+                  "if [ -n \"$P\" ]; then " +
+                  "  mkdir -p \"$(dirname \"$1\")\"; printf '%s' \"$P\" > \"$1\"; " +
+                  "fi; " +
+                  "pkill -x awww-daemon || true",
+                  "_", awwwMemoryFile]
+    }
+
+    Process {
+        id: restoreProc
+        // Bring awww back on the wallpaper it was showing when it was hidden.
+        command: ["bash", "-c",
+                  "P=$(cat \"$1\" 2>/dev/null); " +
+                  "if [ -n \"$P\" ] && [ -f \"$P\" ]; then " +
+                  "  exec bash \"$2\" \"$3\" set \"$P\"; " +
+                  "else " +
+                  "  exec bash \"$2\" \"$3\" init; " +
+                  "fi",
+                  "_", awwwMemoryFile, root.setScript, Compositor.runningCompositor]
+    }
+
+    readonly property string awwwMemoryFile:
+        (Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state"))
+        + "/quickshell-wallpaper-awww"
+
+    Process {
+        id: stateWriteProc
+        property string wallPath: ""
+        command: ["sh", "-c", "mkdir -p \"$(dirname \"$1\")\" && printf '%s\\n' \"$2\" > \"$1\"", "_", root.stateFile, wallPath]
+    }
 }
