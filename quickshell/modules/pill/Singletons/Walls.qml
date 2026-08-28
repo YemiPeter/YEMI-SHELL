@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs.compositor
 import "../../../singletons" as QsSingletons
 
 /**
@@ -30,8 +31,11 @@ Singleton {
 
     readonly property string wpDir: Quickshell.env("HOME") + "/Pictures/Wallpapers"
     readonly property string thumbDir: (Quickshell.env("XDG_CACHE_HOME") || (Quickshell.env("HOME") + "/.cache")) + "/quickshell-wp-thumbs/"
-    readonly property string thumbScript: Quickshell.env("RICE_HOME") + "/hypr/scripts/wallpaper-thumbs.sh"
-    readonly property string setScript: Quickshell.env("RICE_HOME") + "/hypr/scripts/wallpaper.sh"
+    readonly property string thumbScript: (Quickshell.env("RICE_HOME") || (Quickshell.env("HOME") + "/.config")) + "/hypr/scripts/wallpaper-thumbs.sh"
+    // Single compositor-aware dispatcher (set-wallpaper.sh). Resolved against
+    // RICE_HOME with a real fallback so Niri — which has no hypr/ dir — still
+    // finds it. The compositor is passed in explicitly (never re-detected).
+    readonly property string setScript: (Quickshell.env("RICE_HOME") || (Quickshell.env("HOME") + "/.config")) + "/quickshell/scripts/set-wallpaper.sh"
     readonly property string stateFile: (Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")) + "/quickshell-wallpaper"
 
     function refresh() {
@@ -68,7 +72,7 @@ Singleton {
             afterWallProc.running = true;
             return;
         }
-        applyProc.command = ["bash", root.setScript, "set", path];
+        applyProc.command = ["bash", root.setScript, Compositor.runningCompositor, "set", path];
         applyProc.running = true;
     }
 
@@ -144,19 +148,19 @@ Singleton {
     Process {
         id: applyProc
         onExited: function(exitCode) {
+                // The dispatcher already ran the single color writer (after-wall.sh);
+                // just refresh the in-memory current from the state file.
                 if (exitCode === 0) {
-                    afterWallProc.wallPath = root.lastAppliedPath
-                    afterWallProc.running = true
-                    // stateProc fires from afterWallProc.onExited — don't call it here
+                    stateProc.running = true
                 } else if (!root.queuedApply.length) {
                     stateProc.running = true   // only run directly if apply failed
                 }
-    
+
                 if (root.queuedApply.length) {
                     var next = root.queuedApply;
                     root.queuedApply = "";
                     root.lastAppliedPath = next;
-                    applyProc.command = ["bash", root.setScript, "set", next];
+                    applyProc.command = ["bash", root.setScript, Compositor.runningCompositor, "set", next];
                     applyProc.running = true;
                     return;
                 }

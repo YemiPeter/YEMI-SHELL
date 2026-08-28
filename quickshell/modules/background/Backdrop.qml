@@ -49,6 +49,14 @@ PanelWindow {
     readonly property string _wpPath: root.effectiveWallpaper || ""
     readonly property bool isGif: root._wpPath.toLowerCase().endsWith(".gif")
 
+    // Whether the QML-rendered image is actually shown.
+    // Niri: QML *is* the wallpaper, always show it.
+    // Hyprland: awww paints the real wallpaper, so the QML copy is hidden by
+    // default (only dim + vignette overlay); it is force-shown only when the
+    // user opts into double-paint (and not when "hide main wallpaper" wins).
+    readonly property bool showImageLayer: Compositor.isNiri
+        || (QsSingletons.Flags.backdropDoublePaint && !QsSingletons.Flags.backdropHideWallpaper)
+
     visible: QsSingletons.Flags.backdropEnable
 
     Item {
@@ -63,7 +71,7 @@ PanelWindow {
         Image {
             id: wall
             anchors.fill: parent
-            visible: !root.isGif
+            visible: root.showImageLayer && !root.isGif
             source: root.effectiveWallpaper !== "" ? "file://" + root.effectiveWallpaper : ""
             fillMode: Image.PreserveAspectCrop
             asynchronous: true
@@ -73,7 +81,7 @@ PanelWindow {
         AnimatedImage {
             id: gifWallpaper
             anchors.fill: parent
-            visible: root.isGif
+            visible: root.showImageLayer && root.isGif
             playing: root.isGif && QsSingletons.Flags.backdropEnableAnimation
             source: root._wpPath !== "" ? (root._wpPath.startsWith("file://") ? root._wpPath : "file://" + root._wpPath) : ""
             fillMode: Image.PreserveAspectCrop

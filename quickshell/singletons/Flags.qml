@@ -67,6 +67,7 @@ Singleton {
     property alias backdropWallpaperPath: adapter.backdropWallpaperPath
     property alias backdropThemeColors: adapter.backdropThemeColors
     property alias backdropHideWallpaper: adapter.backdropHideWallpaper
+    property alias backdropDoublePaint: adapter.backdropDoublePaint
     property alias wallpaperUseMainWallpaper: adapter.wallpaperUseMainWallpaper
     property alias wallpaperHideWhenFullscreen: adapter.wallpaperHideWhenFullscreen
     property alias wallpaperMultiMonitorEnable: adapter.wallpaperMultiMonitorEnable
@@ -153,6 +154,7 @@ Singleton {
     property string backdropWallpaperPath: ""
     property bool backdropThemeColors: false
     property bool backdropHideWallpaper: false
+    property bool backdropDoublePaint: false
     property bool wallpaperUseMainWallpaper: true
     property bool wallpaperHideWhenFullscreen: false
     property bool wallpaperMultiMonitorEnable: false

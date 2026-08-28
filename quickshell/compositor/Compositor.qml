@@ -9,6 +9,11 @@ Item {
     
     // Detect which compositor is running
     readonly property string runningCompositor: detectCompositor()
+
+    // Convenience boolean flags (used by the wallpaper/backdrop path so we
+    // never have to string-compare runningCompositor in every binding).
+    readonly property bool isNiri: runningCompositor === "niri"
+    readonly property bool isHyprland: runningCompositor === "hyprland"
     
     // Reference to the actual implementation based on detected compositor
     readonly property var impl: runningCompositor === "hyprland" ? hyprlandImpl : (runningCompositor === "niri" ? niriImpl : null)

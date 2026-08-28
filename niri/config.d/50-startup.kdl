@@ -30,3 +30,10 @@ spawn-at-startup "bash" "-c" "systemctl --user start hyprpolkitagent"
 // ── Shell by Yemi ───────────────────────────────────────────────────────────
 // Start this Quickshell config when Niri starts.
 spawn-at-startup "bash" "-c" "quickshell -p $HOME/.config/quickshell/shell.qml"
+
+// ── Wallpaper auto-restore (YemiShell) ──────────────────────────────────────
+// Paint the last wallpaper on login via the compositor-aware dispatcher. On
+// Niri the QML Backdrop renders it from the state file, so no external daemon
+// is needed. The dispatcher is the single source, identical to the Pill picker
+// and the random keybind path.
+spawn-at-startup "bash" "-c" "'$HOME/.config/quickshell/scripts/set-wallpaper.sh' niri init || true"

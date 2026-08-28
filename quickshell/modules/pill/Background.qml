@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Controls
 import Quickshell
 import Quickshell.Io
+import qs.compositor
 import "Singletons"
 
 /**
@@ -302,6 +303,17 @@ SettingsSurface {
                 }
 
                 FieldRow {
+                    label: "Double-paint (Hyprland)"
+                    caption: "Force the QML wallpaper on top of awww so blur/saturation/contrast/parallax can apply"
+                    visible: Flags.backdropEnable && Compositor.isHyprland
+                    LinkToggle {
+                        s: root.s
+                        on: Flags.backdropDoublePaint
+                        onToggled: Flags.backdropDoublePaint = !Flags.backdropDoublePaint
+                    }
+                }
+
+                FieldRow {
                     label: "Hide main wallpaper"
                     caption: "Show the real desktop wallpaper; drop QuickShell's copy and effects blur"
                     visible: Flags.backdropEnable
@@ -470,6 +482,8 @@ SettingsSurface {
                     caption: "Frost the wallpaper"
                     visible: Flags.backdropEnable
                     height: Flags.backdropEnable ? 34 * root.s : 0
+                    enabled: !(Compositor.isHyprland && !Flags.backdropDoublePaint)
+                    opacity: enabled ? 1 : 0.4
                     Stepper {
                         value: Flags.backdropBlurRadius
                         display: (Flags.backdropBlurRadius).toFixed(0) + "%"
@@ -487,6 +501,8 @@ SettingsSurface {
                     caption: "Color intensity (−100..100)"
                     visible: Flags.backdropEnable
                     height: Flags.backdropEnable ? 34 * root.s : 0
+                    enabled: !(Compositor.isHyprland && !Flags.backdropDoublePaint)
+                    opacity: enabled ? 1 : 0.4
                     Stepper {
                         value: Flags.backdropSaturation
                         display: (Flags.backdropSaturation).toFixed(0) + "%"
@@ -504,6 +520,8 @@ SettingsSurface {
                     caption: "Light/dark separation (−100..100)"
                     visible: Flags.backdropEnable
                     height: Flags.backdropEnable ? 34 * root.s : 0
+                    enabled: !(Compositor.isHyprland && !Flags.backdropDoublePaint)
+                    opacity: enabled ? 1 : 0.4
                     Stepper {
                         value: Flags.backdropContrast
                         display: (Flags.backdropContrast).toFixed(0) + "%"
@@ -787,6 +805,8 @@ SettingsSurface {
                 FieldRow {
                     label: "Parallax"
                     caption: "Slide the wallpaper between workspaces"
+                    enabled: !(Compositor.isHyprland && !Flags.backdropDoublePaint)
+                    opacity: enabled ? 1 : 0.4
                     LinkToggle {
                         s: root.s
                         on: Flags.parallaxEnable
@@ -799,6 +819,8 @@ SettingsSurface {
                     caption: "How much the wallpaper scales to free edge pixels"
                     visible: Flags.parallaxEnable
                     height: Flags.parallaxEnable ? 34 * root.s : 0
+                    enabled: !(Compositor.isHyprland && !Flags.backdropDoublePaint)
+                    opacity: enabled ? 1 : 0.4
                     Stepper {
                         value: Flags.parallaxZoom
                         display: (Flags.parallaxZoom * 100).toFixed(0) + "%"
@@ -816,6 +838,8 @@ SettingsSurface {
                     caption: "How far it glides per workspace"
                     visible: Flags.parallaxEnable
                     height: Flags.parallaxEnable ? 34 * root.s : 0
+                    enabled: !(Compositor.isHyprland && !Flags.backdropDoublePaint)
+                    opacity: enabled ? 1 : 0.4
                     Stepper {
                         value: Flags.parallaxStrength
                         display: (Flags.parallaxStrength * 100).toFixed(0) + "%"
