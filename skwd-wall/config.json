@@ -94,6 +94,7 @@
   },
   "wallpaperMute": true,
   "pickOnlyMode": true,
+  "restoreOnStartup": false,
   "externalWallpaperCommand": "~/.config/hypr/scripts/wallpaper.sh set %path% && ~/.config/skwd-wall/scripts/sync-colors.sh %path%",
   "postProcessing": [],
   "performance": {
