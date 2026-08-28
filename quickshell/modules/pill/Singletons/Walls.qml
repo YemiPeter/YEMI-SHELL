@@ -68,6 +68,11 @@ Singleton {
         // the color pipeline.
         if (QsSingletons.Flags.backdropHideWallpaper) {
             root.current = path;
+            // Still record the pick in the state file: WallpaperState (which
+            // Backdrop actually renders) watches it, and it lets the awww
+            // restore (toggle off / next login) land on the last pick.
+            stateWriteProc.wallPath = path;
+            stateWriteProc.running = true;
             afterWallProc.wallPath = path;
             afterWallProc.running = true;
             return;
@@ -178,5 +183,47 @@ Singleton {
         onExited: stateProc.running = true
     }
 
-    Component.onCompleted: refresh()
+    Component.onCompleted: {
+        refresh();
+        syncAwww(QsSingletons.Flags.backdropHideWallpaper);
+    }
+
+    // ── "Hide wallpaper" ↔ awww lifecycle ────────────────────────────────────
+    // Niri: when the setting is ON, the awww background layer is killed so the
+    // QML Backdrop becomes the only wallpaper. When turned OFF (or at startup
+    // with the setting OFF), awww is brought back painting the state file's
+    // pick via the dispatcher's init. Hyprland keeps awww alive regardless —
+    // killing it there would leave a black desktop under the overlay.
+    function syncAwww(hide) {
+        if (!Compositor.isNiri)
+            return;
+        if (hide) {
+            killProc.running = true;
+        } else if (!restoreProc.running) {
+            restoreProc.running = true;
+        }
+    }
+
+    Connections {
+        target: QsSingletons.Flags
+        function onBackdropHideWallpaperChanged() {
+            root.syncAwww(QsSingletons.Flags.backdropHideWallpaper);
+        }
+    }
+
+    Process {
+        id: killProc
+        command: ["pkill", "-x", "awww-daemon"]
+    }
+
+    Process {
+        id: restoreProc
+        command: ["bash", root.setScript, Compositor.runningCompositor, "init"]
+    }
+
+    Process {
+        id: stateWriteProc
+        property string wallPath: ""
+        command: ["sh", "-c", "mkdir -p \"$(dirname \"$1\")\" && printf '%s\\n' \"$2\" > \"$1\"", "_", root.stateFile, wallPath]
+    }
 }
