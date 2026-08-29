@@ -69,19 +69,24 @@ Rectangle {
     // Live wallpaper, blurred. Sourced from the same WallpaperState the
     // Background layer draws, so the frost matches the user's wallpaper.
     //
-    // The Image is oversized by `bleed` on every side: the blur kernel
-    // (blur * blurMax ≈ 38px) is wider than most cards are tall, and a
-    // card-sized source would sample out-of-bounds transparent texels for
-    // most of its kernel — washing the frost out to near-nothing. Bleeding
-    // real wallpaper pixels past the card edges keeps the blur dense; the
-    // maskRect below crops the result back to the rounded card.
+    // Position-aligned per iNiR's GlassBackground: the Image is SCREEN-sized
+    // and offset by -screenPos, so the card shows exactly the wallpaper region
+    // physically behind it (a true frosted window, not a centered crop).
+    //
+    // The screen-sized source is additionally oversized by `bleed` on every
+    // side: the blur kernel (blur * blurMax ≈ 38px) has no pixels beyond the
+    // item edge, so an exactly-screen-sized source would fade at the screen
+    // borders (iNiR Backdrop.qml's documented "blur edge compensation").
+    // Bleeding real wallpaper pixels past the screen edges keeps the blur
+    // dense everywhere; the maskRect below crops the result back to the
+    // rounded card.
     Image {
         id: wp
         readonly property real bleed: 64
-        x: -bleed
-        y: -bleed
-        width: parent.width + bleed * 2
-        height: parent.height + bleed * 2
+        x: -root.screenPos.x - bleed
+        y: -root.screenPos.y - bleed
+        width: root.screenW + bleed * 2
+        height: root.screenH + bleed * 2
         source: root.active && QsSingletons.WallpaperState.current !== ""
             ? "file://" + QsSingletons.WallpaperState.current : ""
         fillMode: Image.PreserveAspectCrop
