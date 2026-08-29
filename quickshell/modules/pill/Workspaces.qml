@@ -40,15 +40,23 @@ for (var i = 0; i < wss.length; i++) {
   var w = wss[i];
   // w.monitor.name → Hyprland QML WrapperModel row ; w.output → Niri JSON object
   var wsMonName = (w.monitor && w.monitor.name) || w.output || "";
-  if (w.id >= 1 && wsMonName === screenName && !seen[w.id]) {
+  if ((w.id >= 1 || Compositor.isNiri) && wsMonName === screenName && !seen[w.id]) {
     seen[w.id] = true;
-    out.push(w.id);
+    out.push(w);
   }
 }
         var a = parseInt(activeName);
         if (a >= 1 && !seen[a])
-            out.push(a);
-        out.sort(function (x, y) { return x - y; });
+            out.push({ id: a, name: String(a) });
+        // out holds workspace objects now (not bare ids), so a numeric sort would
+        // compare objects as NaN and leave them in insertion order (by id, which is
+        // NOT the visual order). Sort by idx on Niri (position on its monitor) and
+        // by id on Hyprland so dots read left→right in natural workspace order.
+        out.sort(function (x, y) {
+            var kx = (typeof x === "object") ? (x.idx != null ? x.idx : x.id) : x;
+            var ky = (typeof y === "object") ? (y.idx != null ? y.idx : y.id) : y;
+            return kx - ky;
+        });
         return out;
       }
       
@@ -73,7 +81,20 @@ for (var i = 0; i < wss.length; i++) {
 
     property int hoverIndex: -1
 
-    readonly property int activeIndex: range.indexOf(parseInt(activeName))
+    readonly property int activeIndex: {
+        for (var i = 0; i < workspaces.range.length; i++) {
+            var m = workspaces.range[i];
+            if (Compositor.isNiri) {
+                if (typeof m === "object" && m.isActive === true)
+                    return i;
+            } else {
+                var mid = (typeof m === "number") ? m : (m ? m.id : null);
+                if (String(mid) === workspaces.activeName)
+                    return i;
+            }
+        }
+        return -1;
+    }
 
     /**
      * Centre x of a dot slot from target layout widths (active stick is wider).
@@ -111,8 +132,11 @@ for (var i = 0; i < wss.length; i++) {
                 required property var modelData
                 required property int index
 
-                readonly property string wsName: String(modelData)
-                readonly property bool isActive: workspaces.activeName === wsName
+                readonly property var wsObj: modelData
+                readonly property string wsKey: (typeof wsObj === "number") ? String(wsObj) : String(wsObj.id)
+                readonly property bool isActive: Compositor.isNiri
+                    ? (typeof wsObj === "object" && wsObj.isActive === true)
+                    : (workspaces.activeName === wsKey)
 
                 Layout.preferredWidth: slot.isActive ? workspaces.stickW : workspaces.dotW
                 Layout.preferredHeight: 22 * workspaces.s
@@ -137,7 +161,7 @@ for (var i = 0; i < wss.length; i++) {
                     anchors.bottomMargin: -8 * workspaces.s
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: Compositor.dispatch('workspace ' + slot.wsName)
+                    onClicked: Compositor.dispatch('workspace ' + (Compositor.isNiri ? slot.wsObj.idx : (typeof slot.wsObj === "number" ? slot.wsObj : slot.wsObj.id)))
                     onContainsMouseChanged: {
                         if (containsMouse)
                             workspaces.hoverIndex = slot.index;

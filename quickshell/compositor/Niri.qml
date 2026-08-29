@@ -104,7 +104,28 @@ Item {
 
         var parts = request.trim().split(/\s+/);
         if (parts[0] === "workspace" && parts.length > 1) {
-            dispatchProc.command = ["niri", "msg", "action", "focus-workspace", parts[1]];
+            // niri's `focus-workspace <REFERENCE>` is scoped to the *focused*
+            // monitor, so focusing an index while keyboard focus is elsewhere hits
+            // the wrong monitor. Resolve the index to its output and focus that
+            // monitor first. Harmless on single-monitor (focuses the only output).
+            // Note: niri 26.04 has no `focus-workspace --id`; it only takes an
+            // index/name, so we dispatch by idx (position), which is what the
+            // pill's dots are ordered by.
+            var idx = parts[1];
+            var output = null;
+            var wss = _niriState.workspaces;
+            for (var id in wss) {
+                if (String(wss[id].idx) === idx) {
+                    output = wss[id].output;
+                    break;
+                }
+            }
+            if (output) {
+                dispatchProc.command = ["sh", "-c",
+                    "niri msg action focus-monitor '" + output + "' && niri msg action focus-workspace " + idx];
+            } else {
+                dispatchProc.command = ["niri", "msg", "action", "focus-workspace", idx];
+            }
         } else {
             dispatchProc.command = ["niri", "msg", "action"].concat(parts);
         }
@@ -182,15 +203,30 @@ Item {
         try {
             var workspaceData = JSON.parse(output.trim());
 
-            // Convert array to object keyed by workspace ID for easier lookup
+            // Convert array to object keyed by workspace ID for easier lookup.
+            // Normalize each row so consumers never depend on Niri's raw shape:
+            //  - name is null by default (user-set), so fall back to a label so
+            //    the OSD flash / dot label never see null.
+            //  - keep both id (stable, global) and idx (position on its monitor)
+            //    since niri only lets you focus a workspace by index/name, not id.
+            //  - isActive mirrors Niri's is_active (visible on its output) which is
+            //    the per-monitor truth the pill dot must track; is_focused is global.
             var newWorkspaces = {};
             var newFocusedWorkspace = null;
 
             for (var i = 0; i < workspaceData.length; i++) {
-                var ws = workspaceData[i];
+                var src = workspaceData[i];
+                var ws = {
+                    id: src.id,
+                    idx: src.idx,
+                    name: src.name != null ? src.name : ("WS " + src.idx),
+                    output: src.output,
+                    isActive: src.is_active === true,
+                    is_focused: src.is_focused === true
+                };
                 newWorkspaces[ws.id] = ws;
 
-                // Identify the focused workspace
+                // Identify the globally focused workspace (used by fast path / fallback)
                 if (ws.is_focused) {
                     newFocusedWorkspace = ws;
                 }
@@ -293,6 +329,15 @@ Item {
      * to its monitor's activeWorkspace property so consumers that expect
      * Hyprland-like monitor.activeWorkspace work.
      */
+    /**
+     * After both monitors and workspaces have been parsed, link each workspace
+     * to its monitor's activeWorkspace property so consumers that expect
+     * Hyprland-like monitor.activeWorkspace work.
+     *
+     * Niri's is_active means "this workspace is currently shown on its output"
+     * — exactly one per monitor — so every monitor gets its own activeWorkspace.
+     * is_focused is global (one across all outputs), kept only as a fallback.
+     */
     function linkWorkspacesToMonitors(): void {
         var ws = _niriState.workspaces;
         var mons = _niriState.monitors;
@@ -300,7 +345,7 @@ Item {
             var w = ws[wsId];
             if (w.output && mons[w.output]) {
                 var mon = mons[w.output];
-                if (w.is_focused) {
+                if (w.isActive || w.is_focused) {
                     mon.activeWorkspace = w;
                 }
             }
