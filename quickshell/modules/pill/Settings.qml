@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import qs.compositor
 import "Singletons"
 
 /**
@@ -15,16 +16,21 @@ SettingsSurface {
 
     implicitHeight: content.implicitHeight
 
-    rows: [
-        { item: appearanceRow, kind: "nav", surface: "appearance" },
-        { item: lookRow, kind: "nav", surface: "look" },
-        { item: displayRow, kind: "nav", surface: "display" },
-        { item: inputRow, kind: "nav", surface: "input" },
-        { item: keybindsRow, kind: "nav", surface: "keybinds" },
-        { item: idleRow, kind: "nav", surface: "idlelock" },
-        { item: updatesRow, kind: "nav", surface: "updates" },
-        { item: backgroundRow, kind: "nav", surface: "background" }
-    ]
+    rows: (function () {
+        var list = [
+            { item: appearanceRow, kind: "nav", surface: "appearance" },
+            { item: lookRow, kind: "nav", surface: "look" },
+            { item: displayRow, kind: "nav", surface: "display" },
+            { item: inputRow, kind: "nav", surface: "input" },
+            { item: keybindsRow, kind: "nav", surface: "keybinds" },
+            { item: idleRow, kind: "nav", surface: "idlelock" },
+            { item: updatesRow, kind: "nav", surface: "updates" },
+            { item: backgroundRow, kind: "nav", surface: "background" }
+        ];
+        if (!Compositor.isHyprland)
+            list = list.filter(function (r) { return r.surface !== "look"; });
+        return list;
+    })()
 
     Column {
         id: content
@@ -71,6 +77,7 @@ SettingsSurface {
         SettingsRow {
             id: lookRow
             surface: root
+            visible: Compositor.isHyprland
             captionOnFocus: true
             icon: "app-window"
             name: "Look"

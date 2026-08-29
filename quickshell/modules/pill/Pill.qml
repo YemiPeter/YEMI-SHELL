@@ -10,6 +10,7 @@ import "Singletons"
 import "../common"
 import "../../singletons" as QsSingletons
 import qs.services as QsServices
+import qs.compositor
 
 /**
  * The pill body. One element carries every state. Width/height driven by `state`
@@ -164,7 +165,9 @@ Item {
         updates:    { size: () => Qt.size(updatesW, updates.implicitHeight + 29 * s), ame: updates },
         display:    { size: () => Qt.size(displayW, display.implicitHeight + 29 * s), ame: display },
         input:      { size: () => Qt.size(inputW, input.implicitHeight + 29 * s), ame: input },
-        look:       { size: () => Qt.size(lookW, look.implicitHeight + 29 * s), ame: look },
+        look:       Compositor.isHyprland
+            ? { size: () => Qt.size(lookW, look.implicitHeight + 29 * s), ame: look }
+            : undefined,
         idlelock:   { size: () => Qt.size(idlelockW, idlelock.implicitHeight + 29 * s), ame: idlelock },
         fontpicker: { size: () => Qt.size(fontpickerW, fontpicker.implicitHeight + 29 * s), ame: fontpicker },
         background: { size: () => Qt.size(backgroundW, background.implicitHeight + 29 * s), ame: background }
