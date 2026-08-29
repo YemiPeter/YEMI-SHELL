@@ -10,6 +10,12 @@ import "../../config" as QsConfig
  * plus a translucent aurora tint, clipped to `radius`. Drop it as the FIRST
  * child of a card so it sits behind the card's content.
  *
+ * Layering contract: when a card is Glass-backed, the Glass IS the surface —
+ * the host must not paint its own cardTop/cardBot fill over it (those tokens
+ * are already aurora-transparentized, so stacking another fill double-dims).
+ * Hosts that need a user-facing opacity feed it through `tintScale`, which
+ * scales the tint's alpha once.
+ *
  * Only paints when the Aurora theme is active (Appearance.auroraEverywhere);
  * in the default "yemi" style it is invisible and costs nothing visible.
  */
@@ -22,6 +28,14 @@ Rectangle {
 
     readonly property bool active: QsConfig.Appearance.auroraEverywhere
     visible: root.active
+
+    /// Extra scale on the tint's alpha (e.g. Flags.pillOpacity), applied once.
+    property real tintScale: 1.0
+
+    readonly property color tintColor: {
+        const c = QsConfig.Appearance.aurora.colSubSurface;
+        return Qt.rgba(c.r, c.g, c.b, c.a * root.tintScale);
+    }
 
     // Live wallpaper, blurred. Sourced from the same WallpaperState the
     // Background layer draws, so the frost matches the user's wallpaper.
@@ -48,7 +62,7 @@ Rectangle {
     // Aurora tint — replaces the card's flat gradient in aurora mode.
     Rectangle {
         anchors.fill: parent
-        color: QsConfig.Appearance.aurora.colSubSurface
+        color: root.tintColor
         radius: root.radius
     }
 }

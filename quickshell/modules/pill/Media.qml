@@ -145,8 +145,11 @@ PillSurface {
         Rectangle {
             anchors.fill: parent
             gradient: Gradient {
-                GradientStop { position: 0.0; color: Qt.alpha(Theme.cardTop, 0.88) }
-                GradientStop { position: 1.0; color: Qt.alpha(Theme.cardBot, 0.93) }
+                // Base tokens + one design alpha each: the resolved
+                // cardTop/cardBot are already aurora-transparentized, so
+                // alphaing them again would double-dim the card.
+                GradientStop { position: 0.0; color: Qt.alpha(Theme.cardTopBase, 0.88) }
+                GradientStop { position: 1.0; color: Qt.alpha(Theme.cardBotBase, 0.93) }
             }
         }
 

@@ -21,6 +21,14 @@ Singleton {
     readonly property color cardBot: QsConfig.Appearance.yemiCardBot
     readonly property color ghost: QsConfig.Appearance.m3.surfaceContainerHighest || "#3a3a3a"
 
+    // --- Base surfaces (never aurora-transparentized) ------------------
+    // Paint code that applies its own alpha (Flags.pillOpacity, design
+    // alphas) must use these, never the resolved tokens — the resolved
+    // cardTop/cardBot are already transparentized in aurora mode, and
+    // multiplying another alpha on top double-dims the surface.
+    readonly property color cardTopBase: QsConfig.Appearance.yemiCardTopBase
+    readonly property color cardBotBase: QsConfig.Appearance.yemiCardBotBase
+
     // --- Text ---------------------------------------------------------
     readonly property color cream: QsConfig.Appearance.yemiCream
     readonly property color bright: QsConfig.Appearance.yemiBright
@@ -46,6 +54,9 @@ Singleton {
     // Mirrors iNiR's Appearance.aurora color object so cards can opt into
     // explicit aurora glass colors (Theme.aurora.colSubSurface, etc.).
     readonly property var aurora: QsConfig.Appearance.aurora
+
+    /// True when the Aurora theme style is active (glass surfaces).
+    readonly property bool auroraActive: QsConfig.Appearance.auroraEverywhere
 
     // --- Flame Canvas Strings (MUST remain strings, not colors) -------
     readonly property string flameInk: QsConfig.Appearance.flameInk

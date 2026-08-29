@@ -494,6 +494,10 @@ Item {
     Glass {
         anchors.fill: parent
         radius: pill.morphRadius
+        // Pill opacity owns the pill's see-through once: in aurora mode it
+        // scales the glass tint (the Glass is the surface); in yemi mode it
+        // is the body fill's alpha below. Never both.
+        tintScale: Flags.pillOpacity
     }
 
     Rectangle {
@@ -510,8 +514,11 @@ Item {
         border.width: 1
         border.color: Theme.border
         gradient: Gradient {
-            GradientStop { position: 0.0; color: Qt.alpha(Theme.cardTop, Flags.pillOpacity) }
-            GradientStop { position: 1.0; color: Qt.alpha(Theme.cardBot, Flags.pillOpacity) }
+            // Base tokens + one alpha: the resolved cardTop/cardBot are
+            // already aurora-transparentized, so alphaing them again
+            // double-dims the bud.
+            GradientStop { position: 0.0; color: Qt.alpha(Theme.cardTopBase, Flags.pillOpacity) }
+            GradientStop { position: 1.0; color: Qt.alpha(Theme.cardBotBase, Flags.pillOpacity) }
         }
         Behavior on budR { NumberAnimation { duration: Motion.fast; easing.type: Motion.easeStandard } }
         Behavior on opacity { NumberAnimation { duration: Motion.standard } }
@@ -560,13 +567,16 @@ Item {
         radius: pill.morphRadius
 
         // 🎛️ TWEAK ZONE — Yemi, adjust these yourself:
-        // - Last number in Qt.rgba(...) = alpha/transparency.
-        //   Lower = more see-through, blur shows more. Try 0.4 to 0.75.
-        // - border.color alpha (currently 0.10) = how visible the edge line is.
+        // - Flags.pillOpacity (Look → Pill opacity) = alpha/transparency of
+        //   this fill in the yemi style. Lower = more see-through.
+        //   In the aurora style this fill steps aside and the Glass tint
+        //   (scaled by the same flag) is the surface.
+        // - border.color alpha (Theme.frameBorder, 0.10) = edge line visibility.
         // - Top highlight gradient's "0.04" = how strong the glossy shine looks.
-        color: Qt.rgba(Theme.cardBot.r, Theme.cardBot.g, Theme.cardBot.b, Flags.pillOpacity)
+        color: Theme.auroraActive ? "transparent"
+            : Qt.rgba(Theme.cardBotBase.r, Theme.cardBotBase.g, Theme.cardBotBase.b, Flags.pillOpacity)
         border.width: 1
-        border.color: Qt.rgba(Theme.cream.r, Theme.cream.g, Theme.cream.b, 0.10)
+        border.color: Theme.frameBorder
 
         // Top highlight — same as bar pills
         Rectangle {

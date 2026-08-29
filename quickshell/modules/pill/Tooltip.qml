@@ -69,8 +69,11 @@ Item {
         border.width: 1
         border.color: Theme.frameBorder
         gradient: Gradient {
-            GradientStop { position: 0.0; color: Theme.cardTop }
-            GradientStop { position: 1.0; color: Theme.cardBot }
+            // In aurora mode the Glass behind is the surface (its tint already
+            // carries the theme translucency), so this gradient paints
+            // nothing; in the yemi style it is the bubble's surface.
+            GradientStop { position: 0.0; color: Theme.auroraActive ? "transparent" : Theme.cardTop }
+            GradientStop { position: 1.0; color: Theme.auroraActive ? "transparent" : Theme.cardBot }
         }
 
         layer.enabled: visible
@@ -116,7 +119,8 @@ Item {
         onPaint: {
             var ctx = getContext("2d");
             ctx.reset();
-            ctx.fillStyle = Theme.cardBot;
+            // Match the bubble surface: glass tint in aurora, card fill in yemi.
+            ctx.fillStyle = Theme.auroraActive ? Theme.aurora.colSubSurface : Theme.cardBot;
             ctx.beginPath();
             if (root.below) {
                 ctx.moveTo(0, height);
