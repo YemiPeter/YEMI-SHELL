@@ -12,9 +12,11 @@ import "Singletons"
  * reduce-motion switch. Reached from the settings index and morphs back to it
  * on an empty click or the back chevron.
  *
- * Color source and system mood are independent switches — changing either
- * rebuilds the rice colour set through after-wall.sh and reloads Hyprland
- * and the terminal.
+     * Color source and system mood are independent switches. Changing either
+     * rebuilds the rice colour set through after-wall.sh (the single writer of
+     * colors.json) AND applies the matching host dark/light theme via
+     * apply-system-theme.sh (GNOME gsettings color-scheme / KDE colorscheme),
+     * so the whole desktop follows the pill's mood.
  */
 SettingsSurface {
     id: root
@@ -23,11 +25,14 @@ SettingsSurface {
     implicitHeight: content.implicitHeight
 
     /// Single entry point for color generation - routes through after-wall.sh
-    /// which is the only script that writes colors.json
+    /// which is the only script that writes colors.json, and through
+    /// apply-system-theme.sh which applies the host GTK/KDE dark/light theme.
     function applyMode(wallPath) {
         var mood = Flags.systemMood;
         colorProc.exec(["sh", "-c",
             'sh "$HOME/.config/quickshell/scripts/after-wall.sh" "' + mood + '" "' + (wallPath || "") + '"']);
+        systemThemeProc.exec(["sh", "-c",
+            'sh "$HOME/.config/quickshell/scripts/apply-system-theme.sh" "' + mood + '"']);
     }
     
     /// Process that calls after-wall.sh (Phase 0: single writer pattern)
@@ -38,11 +43,13 @@ SettingsSurface {
         }
     }
 
+    /// Process that applies the host dark/light theme to match the mood
+    /// (GNOME color-scheme/gtk-theme via gsettings, KDE via plasma/kvantum).
     Process {
         id: systemThemeProc
-        command: ["sh", "-c",
-            "sh \"$HOME/.config/quickshell/scripts/apply-system-theme.sh\" \"$1\"",
-            "sh", Flags.systemMood]
+        onExited: (code) => {
+            if (Flags.debug) console.log("[Appearance] System theme process exited with code:", code)
+        }
     }
 
     rows: [
