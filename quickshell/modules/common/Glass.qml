@@ -39,13 +39,29 @@ Rectangle {
 
     // Live wallpaper, blurred. Sourced from the same WallpaperState the
     // Background layer draws, so the frost matches the user's wallpaper.
+    // Decoded at card size (sourceSize), never at full wallpaper resolution,
+    // and only while the Aurora theme is active.
     Image {
         id: wp
         anchors.fill: parent
-        source: QsSingletons.WallpaperState.current !== "" ? "file://" + QsSingletons.WallpaperState.current : ""
+        source: root.active && QsSingletons.WallpaperState.current !== ""
+            ? "file://" + QsSingletons.WallpaperState.current : ""
         fillMode: Image.PreserveAspectCrop
+        sourceSize: Qt.size(Math.max(1, Math.ceil(width)), Math.max(1, height))
         asynchronous: true
         smooth: true
+        visible: false
+    }
+
+    // Rounded-rect mask for the blur. White inside the radius, transparent
+    // outside, so it works whether the mask shader samples red or alpha.
+    // root's rect clip only bounds the blur spill; the corners come from here
+    // (clip: true alone crops to the bounding box, not the radius).
+    Rectangle {
+        id: maskRect
+        anchors.fill: parent
+        radius: root.radius
+        color: "white"
         visible: false
     }
 
@@ -57,6 +73,8 @@ Rectangle {
         blur: 0.6
         blurMax: 64
         saturation: 0.25
+        maskEnabled: true
+        maskSource: maskRect
     }
 
     // Aurora tint — replaces the card's flat gradient in aurora mode.
