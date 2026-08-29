@@ -4,6 +4,8 @@ QtObject {
     readonly property var workspaces: QtObject {
         // Workspace count
         property int count: 9
+        // Active workspace index (0-8, corresponds to workspaces.count)
+        readonly property var activeWorkspaceIndex: 0
         
         // Modern indicator style
         property bool showOccupiedIndicator: true
