@@ -24,7 +24,6 @@ SettingsSurface {
     rows: []
 
     readonly property string decoPath: Quickshell.env("RICE_HOME") + "/hypr/modules/decoration.lua"
-    readonly property string pillBlurRule: 'hl.layer_rule({ name = "pill-blur", match = { namespace = "pill" }, blur = true, ignore_alpha = 0.05 })\n'
     readonly property string decoDefaultsPath: Quickshell.env("RICE_HOME") + "/hypr/modules/decoration.defaults.lua"
 
     property int gapsIn: 6
@@ -80,8 +79,6 @@ SettingsSurface {
         root.activeOpacity = isNaN(ao) ? 1.0 : ao;
         var io = parseFloat(SetDeco.getField(t, "inactive_opacity"));
         root.inactiveOpacity = isNaN(io) ? 1.0 : io;
-
-        Flags.pillBlur = SetDeco.hasNamedRule(t, "pill-blur");
     }
 
     /**
@@ -113,35 +110,6 @@ SettingsSurface {
             + ", inactive_opacity = " + root.inactiveOpacity.toFixed(2) + " } })"];
         opacityRefresh.running = true;
     }
-
-    // BLUR DISABLED
-    /*
-    function writeBlur(name, literal) {
-        var res = SetDeco.setBlockField(root.decoText, "blur", name, literal);
-        if (!res.ok)
-            return;
-        root.decoText = res.text;
-        decoWriter.setText(res.text);
-        reloadProc.running = true;
-    }
-
-    function applyPillBlur(on) {
-        var t = root.decoText;
-        var res;
-        if (on) {
-            if (SetDeco.hasNamedRule(t, "pill-blur"))
-                return;
-            res = SetDeco.addNamedRule(t, root.pillBlurRule);
-        } else {
-            res = SetDeco.removeNamedRule(t, "pill-blur");
-        }
-        if (!res.ok)
-            return;
-        root.decoText = res.text;
-        decoWriter.setText(res.text);
-        reloadProc.running = true;
-    }
-    */
 
     FileView {
         id: decoFile
@@ -506,23 +474,6 @@ function resetToDefault() {
                     }
                 }
             }
-
-            // BLUR DISABLED
-            /*
-            FieldRow {
-                label: "Pill blur"
-                caption: "Frosts what is behind the pill. Needs opacity below 100%."
-                height: 42 * root.s
-                LinkToggle {
-                    s: root.s
-                    on: Flags.pillBlur
-                    onToggled: {
-                        Flags.pillBlur = !Flags.pillBlur;
-                        root.applyPillBlur(Flags.pillBlur);
-                    }
-                }
-            }
-            */
 
             Item { width: 1; height: 10 * root.s }
         }

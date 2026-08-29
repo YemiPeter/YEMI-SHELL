@@ -38,7 +38,6 @@ Singleton {
     property alias manualSat: adapter.manualSat
     property alias uiFont: adapter.uiFont
     property alias pillOpacity: adapter.pillOpacity
-    property alias pillBlur: adapter.pillBlur
     property alias idleLockMin: adapter.idleLockMin
     property alias idleScreenOffMin: adapter.idleScreenOffMin
     property alias idleSuspendMin: adapter.idleSuspendMin
@@ -125,7 +124,6 @@ Singleton {
             property real manualSat: 0.5
             property string uiFont: ""
             property real pillOpacity: 0.55
-            property bool pillBlur: false
             property int recordCountdown: 5
             property string recordDir: ""
             property int recordFps: 60
