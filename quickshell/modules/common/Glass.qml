@@ -91,6 +91,7 @@ Rectangle {
             ? "file://" + QsSingletons.WallpaperState.current : ""
         fillMode: Image.PreserveAspectCrop
         sourceSize: Qt.size(Math.max(1, Math.ceil(width)), Math.max(1, Math.ceil(height)))
+        cache: true
         asynchronous: true
         smooth: true
         visible: false
