@@ -29,6 +29,11 @@ Rectangle {
     readonly property bool active: QsConfig.Appearance.auroraEverywhere
     visible: root.active
 
+    /// True once the wallpaper has decoded. The blur fades in over the tint
+    /// when this flips, so activating aurora (or a wallpaper change) never
+    /// flashes a tint-only card before the frost pops.
+    readonly property bool frostReady: wp.status === Image.Ready
+
     /// Extra scale on the tint's alpha (e.g. Flags.pillOpacity), applied once.
     property real tintScale: 1.0
 
@@ -68,7 +73,9 @@ Rectangle {
     MultiEffect {
         anchors.fill: parent
         source: wp
-        visible: root.active
+        visible: root.active && root.frostReady
+        opacity: root.active && root.frostReady ? 1 : 0
+        Behavior on opacity { NumberAnimation { duration: 120 } }
         blurEnabled: true
         blur: 0.6
         blurMax: 64
