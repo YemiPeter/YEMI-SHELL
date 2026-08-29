@@ -37,6 +37,30 @@ Rectangle {
     /// Extra scale on the tint's alpha (e.g. Flags.pillOpacity), applied once.
     property real tintScale: 1.0
 
+    // --- Screen geometry (iNiR GlassBackground contract) -------------------
+    // The pill's overlay PanelWindow is fullscreen and edge-anchored, so
+    // window-scene coordinates equal screen coordinates. This position is
+    // computed by summing the ancestor x/y chain rather than mapToItem(null):
+    // mapToItem is a Q_INVOKABLE and does NOT register binding dependencies,
+    // so a mapToItem binding would go stale when the pill or a tooltip moves.
+    // JS property reads ARE tracked, so this re-evaluates on any ancestor
+    // move (pill morph, tooltip anchor, surface open).
+    readonly property point screenPos: {
+        let x = 0;
+        let y = 0;
+        let it = root;
+        while (it) {
+            x += it.x;
+            y += it.y;
+            it = it.parent;
+        }
+        return Qt.point(x, y);
+    }
+
+    /// Screen the hosting window sits on (uniform wallpaper geometry).
+    readonly property real screenW: Screen.width
+    readonly property real screenH: Screen.height
+
     readonly property color tintColor: {
         const c = QsConfig.Appearance.aurora.colSubSurface;
         return Qt.rgba(c.r, c.g, c.b, c.a * root.tintScale);
@@ -44,11 +68,20 @@ Rectangle {
 
     // Live wallpaper, blurred. Sourced from the same WallpaperState the
     // Background layer draws, so the frost matches the user's wallpaper.
-    // Decoded at card size (sourceSize), never at full wallpaper resolution,
-    // and only while the Aurora theme is active.
+    //
+    // The Image is oversized by `bleed` on every side: the blur kernel
+    // (blur * blurMax ≈ 38px) is wider than most cards are tall, and a
+    // card-sized source would sample out-of-bounds transparent texels for
+    // most of its kernel — washing the frost out to near-nothing. Bleeding
+    // real wallpaper pixels past the card edges keeps the blur dense; the
+    // maskRect below crops the result back to the rounded card.
     Image {
         id: wp
-        anchors.fill: parent
+        readonly property real bleed: 64
+        x: -bleed
+        y: -bleed
+        width: parent.width + bleed * 2
+        height: parent.height + bleed * 2
         source: root.active && QsSingletons.WallpaperState.current !== ""
             ? "file://" + QsSingletons.WallpaperState.current : ""
         fillMode: Image.PreserveAspectCrop
