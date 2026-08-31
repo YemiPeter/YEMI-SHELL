@@ -8,71 +8,113 @@
 //
 // Once iNiR binds but now modify for YEMI-SHELL route through the `YEMI-SHELL` launcher which talks to Quickshell
 // via IPC. Niri-native actions (focus, move, resize…) go directly to Niri.
+//
+// Organized to mirror hypr/modules/binds.lua: Section 1 = apps, workspaces &
+// actions; Section 2 = navigation, window management & hardware. The pill's
+// Keybinds surface lists binds in file order, so this order IS the pill order.
 // ─────────────────────────────────────────────────────────────────────────────
 
 binds {
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // SECTION 1 — SESSION, APPS, OVERLAYS & ACTIONS
+    // SECTION 1 — APPS, WORKSPACES & ACTIONS
     // ─────────────────────────────────────────────────────────────────────────────
 
-    // Session & compositor
-    Mod+Tab repeat=false { toggle-overview; }                                                            // Toggle niri overview
-    Alt+Tab repeat=false { spawn "qs" "ipc" "call" "altSwitcher" "next"; }                              // Open / cycle YemiShell Overview (Alt+Tab)
-    Alt+Shift+Tab repeat=false { spawn "qs" "ipc" "call" "altSwitcher" "previous"; }                     // Prev in YemiShell Overview
-    Mod+Shift+E { quit;  }                                                                               // Quit Niri
-    Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }                             // Re-enable keybinds if inhibited
-    Mod+Shift+O { power-off-monitors; }                                                                  // Power off monitors
-
-    // YEMI-SHELL overlays & tools
+    // Launcher
     Mod+Space repeat=false { spawn "qs" "ipc" "call" "pill" "launcher" "eDP-1"; }                        // Launcher
-    Mod+C { spawn "qs" "ipc" "call" "pill" "clipboard" "eDP-1"; }                                        // Clipboard history
-    Mod+X allow-when-locked=true { spawn "/home/yemi/.config/hypr/scripts/lock.sh"; }                    // Lock screen
-    Mod+M { spawn "qs" "ipc" "call" "music" "toggle"; }                                                  // Music player
-    Mod+S { spawn "bash" "-c" "mkdir -p $HOME/Pictures/Screenshots && grim -g \"$(slurp)\" $HOME/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png && notify-send 'Screenshot Saved' 'Area captured' -i camera-photo"; }  // Region screenshot
-    Mod+Shift+S { spawn "bash" "-c" "mkdir -p $HOME/Pictures/Screenshots && grim $HOME/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png && notify-send 'Screenshot Saved' 'Full screen captured' -i camera-photo"; }  // Full screenshot
-    Mod+W { spawn "qs" "ipc" "call" "wallpaper" "toggle" "eDP-1"; }                                      // Wallpaper toggle
-    Mod+Shift+W { spawn "skwd" "wall" "toggle"; }                                                        // Skwd wall toggle
-    // Mod+R { spawn "bash" "-c" "gpu-screen-recorder -w screen -f 30 -a default_output -o ~/screen-recordings/$(date +%Y-%m-%d_%H-%M-%S).mp4 & notify-send 'Recording Started'"; }  // Screen recording (Mod+R conflicts with switch-preset-column-width)
-    // Mod+Shift+R { spawn "bash" "-c" "killall -SIGINT gpu-screen-recorder && notify-send 'Recording Stopped'"; }  // Stop recording (Mod+Shift+R conflicts with switch-preset-column-width)
 
-    // Window switcher — Alt+Tab is now the YemiShell Overview (see quickshell altSwitcher).
-    // Native niri focus-window is remapped below to avoid a duplicate Alt+Tab bind,
-    // which makes niri reject the whole config (killing Mod+Tab too).
-    Mod+Slash { focus-window-down; }                                                                     // Focus window down
-    Mod+Shift+Slash { focus-window-up; }                                                                 // Focus window up
-
-    // App launchers
-    Mod+T { spawn "ghostty"; }                                                                           // Terminal (ghostty)
+    // Terminals
     Mod+Return { spawn "kitty"; }                                                                        // Terminal (kitty)
+    Mod+T { spawn "ghostty"; }                                                                           // Terminal (ghostty)
+
+    // File manager
     Mod+E { spawn "/home/yemi/.config/hypr/scripts/file-manager.sh"; }                                   // File manager (dolphin > thunar > nautilus)
 
+    // Close window
+    Mod+Q { close-window; }                                                                             // Close window
+
+    // Wallpaper
+    Mod+W { spawn "qs" "ipc" "call" "wallpaper" "toggle" "eDP-1"; }                                      // Wallpaper toggle
+    Mod+Shift+W { spawn "skwd" "wall" "toggle"; }                                                        // Skwd wall toggle
+
+    // Lock screen
+    Mod+X allow-when-locked=true { spawn "/home/yemi/.config/hypr/scripts/lock.sh"; }                    // Lock screen
+
+    // Music
+    Mod+M { spawn "qs" "ipc" "call" "music" "toggle"; }                                                  // Music player
+
+    // Clipboard
+    Mod+C { spawn "qs" "ipc" "call" "pill" "clipboard" "eDP-1"; }                                        // Clipboard history
+
+    // Region screenshot
+    Mod+S { spawn "bash" "-c" "mkdir -p $HOME/Pictures/Screenshots && grim -g \"$(slurp)\" $HOME/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png && notify-send 'Screenshot Saved' 'Area captured' -i camera-photo"; }  // Region screenshot
+
+    // Full screenshot
+    Mod+Shift+S { spawn "bash" "-c" "mkdir -p $HOME/Pictures/Screenshots && grim $HOME/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png && notify-send 'Screenshot Saved' 'Full screen captured' -i camera-photo"; }  // Full screenshot
+
+    // Screen recording (commented out — Mod+R / Mod+Shift+R conflict with
+    // switch-preset-column-width; kept for reference like the Hyprland file).
+    // Mod+R { spawn "bash" "-c" "gpu-screen-recorder -w screen -f 30 -a default_output -o ~/screen-recordings/$(date +%Y-%m-%d_%H-%M-%S).mp4 & notify-send 'Recording Started'"; }  // Screen recording
+    // Mod+Shift+R { spawn "bash" "-c" "killall -SIGINT gpu-screen-recorder && notify-send 'Recording Stopped'"; }  // Stop recording
+
+    // Overview & window switcher — Alt+Tab is the YemiShell Overview (altSwitcher).
+    // Native niri focus-window is remapped to Mod+Slash (Section 2) to avoid a
+    // duplicate Alt+Tab bind, which makes niri reject the whole config.
+    Mod+Tab repeat=false { toggle-overview; }                                                            // Toggle niri overview
+    Alt+Tab repeat=false { spawn "qs" "ipc" "call" "altSwitcher" "next"; }                               // Open / cycle YemiShell Overview (Alt+Tab)
+    Alt+Shift+Tab repeat=false { spawn "qs" "ipc" "call" "altSwitcher" "previous"; }                     // Prev in YemiShell Overview
+
+    // Workspace navigation
+    Mod+1 { focus-workspace 1; }                                                                         // Focus workspace 1
+    Mod+2 { focus-workspace 2; }                                                                         // Focus workspace 2
+    Mod+3 { focus-workspace 3; }                                                                         // Focus workspace 3
+    Mod+4 { focus-workspace 4; }                                                                         // Focus workspace 4
+    Mod+5 { focus-workspace 5; }                                                                         // Focus workspace 5
+    Mod+6 { focus-workspace 6; }                                                                         // Focus workspace 6
+    Mod+7 { focus-workspace 7; }                                                                         // Focus workspace 7
+    Mod+8 { focus-workspace 8; }                                                                         // Focus workspace 8
+    Mod+9 { focus-workspace 9; }                                                                         // Focus workspace 9
+    Mod+Page_Down { focus-workspace-down; }                                                              // Focus workspace down
+    Mod+Page_Up   { focus-workspace-up; }                                                                // Focus workspace up
+    Mod+WheelScrollDown      cooldown-ms=150 { focus-workspace-down; }                                   // Focus workspace down (scroll)
+    Mod+WheelScrollUp        cooldown-ms=150 { focus-workspace-up; }                                     // Focus workspace up (scroll)
+
+    // Move to workspace
+    Mod+Ctrl+1 { move-column-to-workspace 1; }                                                           // Move column to workspace 1
+    Mod+Ctrl+2 { move-column-to-workspace 2; }                                                           // Move column to workspace 2
+    Mod+Ctrl+3 { move-column-to-workspace 3; }                                                           // Move column to workspace 3
+    Mod+Ctrl+4 { move-column-to-workspace 4; }                                                           // Move column to workspace 4
+    Mod+Ctrl+5 { move-column-to-workspace 5; }                                                           // Move column to workspace 5
+    Mod+Ctrl+6 { move-column-to-workspace 6; }                                                           // Move column to workspace 6
+    Mod+Ctrl+7 { move-column-to-workspace 7; }                                                           // Move column to workspace 7
+    Mod+Ctrl+8 { move-column-to-workspace 8; }                                                           // Move column to workspace 8
+    Mod+Ctrl+9 { move-column-to-workspace 9; }                                                           // Move column to workspace 9
+    Mod+Ctrl+Page_Down { move-column-to-workspace-down; }                                                // Move column to workspace down
+    Mod+Ctrl+Page_Up   { move-column-to-workspace-up; }                                                  // Move column to workspace up
+    Mod+Ctrl+WheelScrollDown cooldown-ms=150 { move-column-to-workspace-down; }                          // Move column to workspace down (scroll)
+    Mod+Ctrl+WheelScrollUp   cooldown-ms=150 { move-column-to-workspace-up; }                            // Move column to workspace up (scroll)
+
+    // Session & compositor
+    Mod+Shift+E { quit; }                                                                                // Quit Niri
+    Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }                             // Re-enable keybinds if inhibited
+    Mod+Shift+O { power-off-monitors; }                                                                  // Power off monitors
 
     // Debug
     Super+F12 { spawn "bash" "-c" "hyprctl activeworkspace -j >> /tmp/fs-debug.log 2>&1"; }             // Debug
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // SECTION 2 — WINDOW MANAGEMENT, LAYOUT, FOCUS & WORKSPACES
+    // SECTION 2 — NAVIGATION, WINDOW MANAGEMENT & HARDWARE
     // ─────────────────────────────────────────────────────────────────────────────
-
-    // Close window
-    Mod+Q { close-window; }                                                                             // Close window
-
-    // Floating
-    Mod+A { toggle-window-floating; }                                                                    // Toggle floating
-    Mod+Shift+V { switch-focus-between-floating-and-tiling; }                                            // Switch focus between floating and tiling
 
     // Fullscreen / maximize
     Mod+F { fullscreen-window; }                                                                         // Fullscreen
     Mod+D { maximize-column; }                                                                           // Maximize column
 
-    // Column layout
-    Mod+R { switch-preset-column-width; }                                                                // Cycle column widths
-    Mod+Equal { set-column-width "+10%"; }                                                               // Increase column width
-    Mod+Shift+Minus { set-window-height "-10%"; }                                                        // Decrease window height
-    Mod+Shift+Equal { set-window-height "+10%"; }                                                        // Increase window height
-  
-    // Focus navigation (arrows + Vim)
+    // Toggle floating
+    Mod+A { toggle-window-floating; }                                                                    // Toggle floating
+    Mod+Shift+V { switch-focus-between-floating-and-tiling; }                                            // Switch focus between floating and tiling
+
+    // Focus movement (arrows + Vim)
     Mod+Left  { focus-column-left; }                                                                     // Focus column left
     Mod+Right { focus-column-right; }                                                                    // Focus column right
     Mod+Up    { focus-window-up; }                                                                       // Focus window up
@@ -83,6 +125,8 @@ binds {
     Mod+L     { focus-column-right; }                                                                    // Focus column right (vim)
     Mod+Home { focus-column-first; }                                                                     // Focus first column
     Mod+End  { focus-column-last; }                                                                      // Focus last column
+    Mod+WheelScrollRight { focus-column-right; }                                                         // Focus column right (scroll)
+    Mod+WheelScrollLeft  { focus-column-left; }                                                          // Focus column left (scroll)
 
     // Move windows (arrows + Vim)
     Mod+Shift+Left  { move-column-left; }                                                                // Move column left
@@ -96,6 +140,16 @@ binds {
     Mod+Ctrl+Home { move-column-to-first; }                                                              // Move column to first
     Mod+Ctrl+End  { move-column-to-last; }                                                               // Move column to last
 
+    // Resize / column layout
+    Mod+R { switch-preset-column-width; }                                                                // Cycle column widths
+    Mod+Equal { set-column-width "+10%"; }                                                               // Increase column width
+    Mod+Shift+Minus { set-window-height "-10%"; }                                                        // Decrease window height
+    Mod+Shift+Equal { set-window-height "+10%"; }                                                        // Increase window height
+
+    // Cycle windows
+    Mod+Slash { focus-window-down; }                                                                     // Cycle focus window forward
+    Mod+Shift+Slash { focus-window-up; }                                                                 // Cycle focus window backward
+
     // Multi-monitor
     Mod+Ctrl+Left  { focus-monitor-left; }                                                               // Focus monitor left
     Mod+Ctrl+Right { focus-monitor-right; }                                                              // Focus monitor right
@@ -106,42 +160,8 @@ binds {
     Mod+Ctrl+Shift+Up    { move-column-to-monitor-up; }                                                  // Move column to monitor up
     Mod+Ctrl+Shift+Down  { move-column-to-monitor-down; }                                                // Move column to monitor down
 
-    // Workspaces
-    Mod+1 { focus-workspace 1; }                                                                         // Focus workspace 1
-    Mod+2 { focus-workspace 2; }                                                                         // Focus workspace 2
-    Mod+3 { focus-workspace 3; }                                                                         // Focus workspace 3
-    Mod+4 { focus-workspace 4; }                                                                         // Focus workspace 4
-    Mod+5 { focus-workspace 5; }                                                                         // Focus workspace 5
-    Mod+6 { focus-workspace 6; }                                                                         // Focus workspace 6
-    Mod+7 { focus-workspace 7; }                                                                         // Focus workspace 7
-    Mod+8 { focus-workspace 8; }                                                                         // Focus workspace 8
-    Mod+9 { focus-workspace 9; }                                                                         // Focus workspace 9
-    Mod+Ctrl+1 { move-column-to-workspace 1; }                                                           // Move column to workspace 1
-    Mod+Ctrl+2 { move-column-to-workspace 2; }                                                           // Move column to workspace 2
-    Mod+Ctrl+3 { move-column-to-workspace 3; }                                                           // Move column to workspace 3
-    Mod+Ctrl+4 { move-column-to-workspace 4; }                                                           // Move column to workspace 4
-    Mod+Ctrl+5 { move-column-to-workspace 5; }                                                           // Move column to workspace 5
-    Mod+Ctrl+6 { move-column-to-workspace 6; }                                                           // Move column to workspace 6
-    Mod+Ctrl+7 { move-column-to-workspace 7; }                                                           // Move column to workspace 7
-    Mod+Ctrl+8 { move-column-to-workspace 8; }                                                           // Move column to workspace 8
-    Mod+Ctrl+9 { move-column-to-workspace 9; }                                                           // Move column to workspace 9
-    Mod+Page_Down { focus-workspace-down; }                                                              // Focus workspace down
-    Mod+Page_Up   { focus-workspace-up; }                                                                // Focus workspace up
-    Mod+Ctrl+Page_Down { move-column-to-workspace-down; }                                                // Move column to workspace down
-    Mod+Ctrl+Page_Up   { move-column-to-workspace-up; }                                                  // Move column to workspace up
-    Mod+WheelScrollDown      cooldown-ms=150 { focus-workspace-down; }                                   // Focus workspace down
-    Mod+WheelScrollUp        cooldown-ms=150 { focus-workspace-up; }                                     // Focus workspace up
-    Mod+Ctrl+WheelScrollDown cooldown-ms=150 { move-column-to-workspace-down; }                          // Move column to workspace down
-    Mod+Ctrl+WheelScrollUp   cooldown-ms=150 { move-column-to-workspace-up; }                            // Move column to workspace up
-    Mod+WheelScrollRight { focus-column-right; }                                                         // Focus column right
-    Mod+WheelScrollLeft  { focus-column-left; }                                                          // Focus column left
-
-    // ─────────────────────────────────────────────────────────────────────────────
-    // SECTION — AUDIO (physical volume / mic keys → QuickShell Audio service)
-    // Routes through `qs ipc call audio …` so volume protection + ramp logic apply
-    // to keyboard volume changes. (Previous wpctl-direct binds only existed in the
-    // inactive niri default config.kdl.d, never in this active file.)
-    // ─────────────────────────────────────────────────────────────────────────────
+    // Audio (hardware keys → QuickShell Audio service; volume protection +
+    // ramp logic apply to keyboard volume changes)
     XF86AudioRaiseVolume allow-when-locked=true { spawn "qs" "ipc" "call" "audio" "volumeUp"; }           // Volume up (protected/ramped)
     XF86AudioLowerVolume allow-when-locked=true { spawn "qs" "ipc" "call" "audio" "volumeDown"; }         // Volume down (protected/ramped)
     XF86AudioMute        allow-when-locked=true { spawn "qs" "ipc" "call" "audio" "mute"; }               // Toggle output mute
