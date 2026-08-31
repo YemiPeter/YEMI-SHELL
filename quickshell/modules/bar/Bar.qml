@@ -6,6 +6,7 @@ import "../../components/effects"
 import "../../config" as QsConfig
 import "../../services" as QsServices
 import "../../singletons" as QsSingletons
+import qs.compositor
 
 Item {
     id: root
@@ -20,7 +21,16 @@ Item {
 
     readonly property var config: QsConfig.Config
     readonly property var appearance: QsConfig.AppearanceConfig
-    readonly property color pillBg: Qt.rgba(QsSingletons.Theme.cardBot.r, QsSingletons.Theme.cardBot.g, QsSingletons.Theme.cardBot.b, 0.7)
+    /**
+     * Side-pill alpha — same contract as the pill body's pillAlpha
+     * (modules/pill/Pill.qml): the Look → Pill opacity stepper owns the
+     * see-through on Hyprland, and Niri renders fully solid (no layer blur
+     * there), so a translucent side pill never mismatches the solid pill.
+     * Uses Theme.cardBotBase (the never-aurora-transparentized base) so in
+     * Glass mode the alpha is applied exactly once, like the pill body.
+     */
+    readonly property real pillAlpha: QsCompositor.Compositor.isNiri ? 1.0 : QsSingletons.Flags.pillOpacity
+    readonly property color pillBg: Qt.rgba(QsSingletons.Theme.cardBotBase.r, QsSingletons.Theme.cardBotBase.g, QsSingletons.Theme.cardBotBase.b, root.pillAlpha)
     readonly property color pillBorder: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.10)
     readonly property color pillSeparator: Qt.rgba(QsSingletons.Theme.cream.r, QsSingletons.Theme.cream.g, QsSingletons.Theme.cream.b, 0.15)
 
