@@ -3,18 +3,29 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs.compositor
 import "lib/setInput.js" as SetInput
+import "lib/setInputNiri.js" as SetNiri
 import "Singletons"
 
 /**
  * INPUT sub-surface: edits the pointer and cursor settings that live in the
- * Hyprland Lua modules, writing each change straight back to its source so the
- * choice survives a restart. Pointer fields rewrite input.lua and reload
- * Hyprland; sensitivity steps through a small −/value/+ control while the accel
- * profile uses the shared segmented control. Cursor size and theme apply live
- * through `hyprctl setcursor` with no reload, and persist by rewriting the
- * XCURSOR/HYPRCURSOR env lines and the autostart setcursor call. The theme list
- * is scanned from the installed icon themes that carry a `cursors/` folder.
+ * Hyprland Lua modules or the Niri KDL config, writing each change straight
+ * back to its source so the choice survives a restart.
+ *
+ * HYPRLAND:
+ *   Pointer fields rewrite input.lua and reload Hyprland; sensitivity steps
+ *   through a small −/value/+ control while the accel profile uses the shared
+ *   segmented control. Cursor size and theme apply live through `hyprctl
+ *   setcursor` with no reload, and persist by rewriting the XCURSOR/HYPRCURSOR
+ *   env lines and the autostart setcursor call.
+ *
+ * NIRI:
+ *   Pointer and cursor fields are rewritten directly into
+ *   config.d/10-input-and-cursor.kdl. Niri auto-reloads the config on save so
+ *   no extra reload command is needed. The theme list is scanned from the
+ *   installed icon themes that carry a `cursors/` folder.
+ *
  * Reached from the settings index; morphs back on the back chevron.
  */
 SettingsSurface {
@@ -24,9 +35,13 @@ SettingsSurface {
     implicitHeight: content.implicitHeight
     rows: []
 
+    // ── Hyprland paths ──────────────────────────────────────────────────
     readonly property string inputPath: Quickshell.env("RICE_HOME") + "/hypr/modules/input.lua"
     readonly property string envPath: Quickshell.env("RICE_HOME") + "/hypr/modules/env.lua"
     readonly property string autostartPath: Quickshell.env("RICE_HOME") + "/hypr/modules/autostart.lua"
+
+    // ── Niri paths ──────────────────────────────────────────────────────
+    readonly property string niriInputPath: Quickshell.env("RICE_HOME") + "/niri/config.d/10-input-and-cursor.kdl"
 
     property real sensitivity: 0
     property string accelProfile: "flat"
@@ -38,6 +53,7 @@ SettingsSurface {
     property string inputText: ""
     property string envText: ""
     property string autostartText: ""
+    property string niriInputText: ""
 
     readonly property var accelOptions: [
         { label: "Flat", value: "flat" },
@@ -46,10 +62,15 @@ SettingsSurface {
 
     onActiveChanged: {
         if (active) {
-            inputFile.reload();
-            envFile.reload();
-            autostartFile.reload();
-            seed();
+            if (Compositor.isHyprland) {
+                inputFile.reload();
+                envFile.reload();
+                autostartFile.reload();
+                seed();
+            } else if (Compositor.isNiri) {
+                niriFile.reload();
+                seedNiri();
+            }
             themeProc.running = true;
         } else {
             themeOpen = false;
@@ -59,9 +80,9 @@ SettingsSurface {
     }
 
     /**
-     * Seeds every control from the live source files. Numbers fall back to the
-     * defaults when a field is missing so a partially hand-edited config never
-     * leaves a control blank.
+     * Seeds every control from the live Hyprland source files. Numbers fall
+     * back to the defaults when a field is missing so a partially hand-edited
+     * config never leaves a control blank.
      */
     function seed() {
         root.inputText = inputFile.text();
@@ -82,10 +103,33 @@ SettingsSurface {
     }
 
     /**
-     * Rewrites one input.lua field to `literal` (already formatted by the caller)
-     * and reloads Hyprland so the change takes effect at once.
+     * Seeds every control from the live Niri KDL config. Falls back to the
+     * same defaults as the Hyprland path when a field is absent.
+     */
+    function seedNiri() {
+        root.niriInputText = niriFile.text();
+        var text = root.niriInputText;
+
+        // Niri stores pointer speed as accel-speed (-1.0 … 1.0) and the
+        // profile as accel-profile ("flat" | "adaptive").
+        var speed = parseFloat(SetNiri.getField(text, "accel-speed"));
+        root.sensitivity = isNaN(speed) ? 0 : Math.max(-1, Math.min(1, speed));
+        var ap = SetNiri.getField(text, "accel-profile");
+        root.accelProfile = ap.length > 0 ? ap : "flat";
+
+        var cs = parseInt(SetNiri.getField(text, "xcursor-size"), 10);
+        root.cursorSize = isNaN(cs) ? 24 : cs;
+        var ct = SetNiri.getField(text, "xcursor-theme");
+        root.cursorTheme = ct.length > 0 ? ct : "Bibata-Modern-Ice";
+    }
+
+    /**
+     * Hyprland: rewrites one input.lua field to `literal` (already formatted
+     * by the caller) and reloads Hyprland so the change takes effect at once.
      */
     function writeInputField(name, literal) {
+        if (!Compositor.isHyprland)
+            return;
         var res = SetInput.setField(root.inputText, name, literal);
         if (!res.ok)
             return;
@@ -95,28 +139,70 @@ SettingsSurface {
     }
 
     /**
-     * Applies a cursor theme/size pair live via `hyprctl setcursor`, then persists
-     * it by rewriting the XCURSOR/HYPRCURSOR env lines and the autostart setcursor
-     * call. No Hyprland reload is needed for the cursor.
+     * Niri: rewrites the accel-profile or accel-speed field inside the KDL
+     * config. Always rebuilds the mouse block for these two fields so the
+     * block never holds more than one of each, even if setField only
+     * replaced the first of several active lines. Niri auto-reloads
+     * the file on change, so no extra reload command is needed.
+     */
+    function writeNiriField(name, literal) {
+        if (!Compositor.isNiri)
+            return;
+        var res = SetNiri.setField(root.niriInputText, name, literal);
+        if (res.ok) {
+            root.niriInputText = res.text;
+        }
+        // Always rebuild the mouse block for these two fields so the block
+        // never holds more than one of each, even if setField only replaced
+        // the first of several active lines.
+        if (name === "accel-profile" || name === "accel-speed") {
+            var speed = name === "accel-speed" ? parseFloat(literal) : root.sensitivity;
+            if (isNaN(speed)) speed = 0;
+            var mouseRes = SetNiri.upsertMouseBlock(root.niriInputText, root.accelProfile, speed);
+            if (mouseRes !== root.niriInputText) {
+                root.niriInputText = mouseRes;
+                niriWriter.setText(mouseRes);
+                return;
+            }
+        }
+        if (res.ok) {
+            niriWriter.setText(res.text);
+        }
+    }
+
+    /**
+     * Hyprland: applies a cursor theme/size pair live via `hyprctl setcursor`,
+     * then persists it by rewriting the XCURSOR/HYPRCURSOR env lines and the
+     * autostart setcursor call. No Hyprland reload is needed for the cursor.
      */
     function applyCursor(theme, size) {
-        setcursorProc.theme = theme;
-        setcursorProc.size = size;
-        setcursorProc.running = true;
+        if (Compositor.isHyprland) {
+            setcursorProc.theme = theme;
+            setcursorProc.size = size;
+            setcursorProc.running = true;
 
-        var env = root.envText;
-        var e1 = SetInput.setEnv(env, "XCURSOR_THEME", theme);
-        var e2 = SetInput.setEnv(e1.ok ? e1.text : env, "XCURSOR_SIZE", String(size));
-        var e3 = SetInput.setEnv(e2.ok ? e2.text : (e1.ok ? e1.text : env), "HYPRCURSOR_SIZE", String(size));
-        if (e3.ok || e2.ok || e1.ok) {
-            root.envText = e3.ok ? e3.text : (e2.ok ? e2.text : e1.text);
-            envWriter.setText(root.envText);
-        }
+            var env = root.envText;
+            var e1 = SetInput.setEnv(env, "XCURSOR_THEME", theme);
+            var e2 = SetInput.setEnv(e1.ok ? e1.text : env, "XCURSOR_SIZE", String(size));
+            var e3 = SetInput.setEnv(e2.ok ? e2.text : (e1.ok ? e1.text : env), "HYPRCURSOR_SIZE", String(size));
+            if (e3.ok || e2.ok || e1.ok) {
+                root.envText = e3.ok ? e3.text : (e2.ok ? e2.text : e1.text);
+                envWriter.setText(root.envText);
+            }
 
-        var auto = SetInput.setCursorLine(root.autostartText, theme, size);
-        if (auto.ok) {
-            root.autostartText = auto.text;
-            autostartWriter.setText(auto.text);
+            var auto = SetInput.setCursorLine(root.autostartText, theme, size);
+            if (auto.ok) {
+                root.autostartText = auto.text;
+                autostartWriter.setText(auto.text);
+            }
+        } else if (Compositor.isNiri) {
+            // Niri: rewrite the cursor block in the KDL config. Niri
+            // auto-reloads, so the change lands immediately.
+            var res = SetNiri.upsertCursorBlock(root.niriInputText, theme, size);
+            if (res !== root.niriInputText) {
+                root.niriInputText = res;
+                niriWriter.setText(res);
+            }
         }
     }
 
@@ -124,6 +210,7 @@ SettingsSurface {
         return Math.max(-1, Math.min(1, Math.round(v * 10) / 10));
     }
 
+    // ── Hyprland file watchers ──────────────────────────────────────────
     FileView {
         id: inputFile
         path: root.inputPath
@@ -166,6 +253,25 @@ SettingsSurface {
         printErrors: false
     }
 
+    // ── Niri file watchers ─────────────────────────────────────────────
+    FileView {
+        id: niriFile
+        path: root.niriInputPath
+        blockLoading: true
+        printErrors: false
+    }
+
+    FileView {
+        id: niriWriter
+        path: root.niriInputPath
+        atomicWrites: true
+        printErrors: false
+        onSaveFailed: (err) => {
+            if (Flags.debug) console.log("input: niri write failed: " + err);
+        }
+    }
+
+    // ── Hyprland processes ─────────────────────────────────────────────
     Process {
         id: reloadProc
         command: ["setsid", "-f", "sh", "-c", "sleep 0.4; hyprctl reload"]
@@ -178,6 +284,7 @@ SettingsSurface {
         command: ["hyprctl", "setcursor", theme, String(size)]
     }
 
+    // ── Shared: cursor theme scanner ───────────────────────────────────
     Process {
         id: themeProc
         command: ["sh", "-c", "{ printf '%s\\n' \"$HOME/.icons\" \"$HOME/.local/share/icons\" /usr/share/icons; printf '%s' \"${XDG_DATA_DIRS:-/usr/local/share:/usr/share}\" | tr ':' '\\n' | sed 's#/*$#/icons#'; } | sort -u | while IFS= read -r d; do [ -d \"$d\" ] || continue; for t in \"$d\"/*/; do [ -d \"$t/cursors\" ] && basename \"$t\"; done; done | sort -u"]
@@ -339,7 +446,10 @@ SettingsSurface {
                         if (next === root.sensitivity)
                             return;
                         root.sensitivity = next;
-                        root.writeInputField("sensitivity", String(next));
+                        if (Compositor.isHyprland)
+                            root.writeInputField("sensitivity", String(next));
+                        else if (Compositor.isNiri)
+                            root.writeNiriField("accel-speed", String(next));
                     }
                 }
             }
@@ -352,7 +462,10 @@ SettingsSurface {
                     value: root.accelProfile
                     onPicked: (v) => {
                         root.accelProfile = v;
-                        root.writeInputField("accel_profile", "\"" + v + "\"");
+                        if (Compositor.isHyprland)
+                            root.writeInputField("accel_profile", "\"" + v + "\"");
+                        else if (Compositor.isNiri)
+                            root.writeNiriField("accel-profile", "\"" + v + "\"");
                     }
                 }
             }

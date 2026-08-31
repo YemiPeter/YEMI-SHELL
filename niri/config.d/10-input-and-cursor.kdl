@@ -47,17 +47,19 @@ input {
     }
 
     mouse {
-        // "flat" = raw movement, "adaptive" = acceleration curve.
         accel-profile "flat"
+        accel-speed 0.2
+
+        // "flat" = raw movement, "adaptive" = acceleration curve.
 
         // Adjust pointer speed: -1.0 (slowest) … 0.0 (default) … 1.0 (fastest).
-        // accel-speed 0.0
+
     }
 
     // Trackpoint (ThinkPad nub, etc.).
     // trackpoint {
-    //     accel-profile "flat"
-    //     accel-speed 0.0
+        // accel-profile "adaptive"
+        // accel-speed 0
     // }
 
     // "Mod" = Super on bare metal, Alt inside a nested Niri window.
@@ -83,8 +85,9 @@ gestures {
 
 // ── Cursor theme ────────────────────────────────────────────────────────────
 cursor {
-    xcursor-theme "capitaine-cursors-light"
+    xcursor-theme "Adwaita"
     xcursor-size 24
+
     hide-when-typing
 }
 
