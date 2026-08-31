@@ -501,6 +501,10 @@ Item {
         // scales the glass tint (the Glass is the surface); in yemi mode it
         // is the body fill's alpha below. Never both.
         tintScale: Flags.pillOpacity
+        // On niri the compositor blurs behind the pill (BackgroundEffect on
+        // the overlay window in shell.qml) — the Glass then paints tint only,
+        // no fake wallpaper copy, so the frost is a true backdrop sample.
+        realBlur: barWindow ? barWindow.realGlass : false
     }
 
     Rectangle {

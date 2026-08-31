@@ -143,3 +143,35 @@ tracked by screenPos; believed harmless because opacity is 0 during the
 transform's active state, but the opacity/transform timing relationship
 (Behavior vs instant snap) was not directly verified. Revisit if frost
 flashes misaligned during fullscreen toggle.
+
+## 8. Real compositor frost for the pill (2026-08-31)
+
+User feedback: AltSwitcher's compositor blur looks more like real glass than
+the pill's fake QML blur. Fix: the pill now uses the same real frost.
+
+- `modules/pill/shell.qml` — the overlay PanelWindow attaches
+  `BackgroundEffect.blurRegion` to a `Region { item: pill; radius:
+  pill.morphRadius }`, gated on `Theme.auroraActive && Compositor.isNiri &&
+  !monFullscreen` (`overlay.realGlass`). The Region tracks the pill's morph
+  geometry live.
+- `modules/common/Glass.qml` — new `realBlur` property: when set, the fake
+  wallpaper copy (Image + MultiEffect) is skipped entirely (no decode, no
+  blur pass — also retires findings 2/3 for the pill on niri) and only the
+  aurora tint paints over the compositor's blur.
+- `modules/pill/Pill.qml` — passes `realBlur: barWindow.realGlass` to its
+  Glass.
+
+Tooltips keep the fake Glass: they float outside the pill's blur region, so
+tint-only there would sit over raw wallpaper. Finding 13's "one strategy per
+surface" is now resolved for the pill (compositor blur on niri, fake Glass
+elsewhere, e.g. Hyprland); tooltips still fake. Blur strength is the
+compositor's (niri config), not QML's — finding 6 is moot for the pill on
+niri.
+
+**Follow-up (same day):** finding 1's rounded mask was credited to `96f9894`
+but was not present in the working tree (`clip: true` was). Now actually
+landed in `Glass.qml`: `clip` removed, the blur MultiEffect masks through a
+white rounded-rect `maskSource` (`maskEnabled: true`, channel-agnostic), so
+the blurred wallpaper can no longer poke out as square corners past
+`radius`. The mask rect tracks `radius` live, so morph animations stay
+correct.

@@ -299,6 +299,25 @@ ShellRoot {
             anchors { top: true; left: true; right: true; bottom: true }
 
             mask: monFullscreen ? hiddenRegion : (modal ? fullRegion : pillRegion)
+
+            /**
+             * Real compositor frost behind the pill (niri ext-background-effect,
+             * the same protocol AltSwitcher's glass uses): the compositor blurs
+             * the live wallpaper under the pill's rounded rect, so the aurora
+             * glass is a true backdrop sample instead of Glass.qml's centred
+             * fake copy. Off in the yemi style (Glass is invisible there
+             * anyway), on non-niri compositors (no ext-background-effect), and
+             * while the pill is retracted for fullscreen. Pill.qml reads this
+             * to switch its Glass to tint-only.
+             */
+            readonly property bool realGlass: Theme.auroraActive && Compositor.isNiri && !monFullscreen
+            BackgroundEffect.blurRegion: realGlass ? frostRegion : null
+            Region {
+                id: frostRegion
+                item: pill
+                radius: pill.morphRadius
+            }
+
             Region { id: hiddenRegion }
             Region {
                 id: pillRegion
