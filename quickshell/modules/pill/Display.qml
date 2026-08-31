@@ -36,6 +36,9 @@ SettingsSurface {
     property string openPicker: ""
     property int countdown: 0
     property string note: ""
+    property string oldMode: ""
+    property string oldPosition: ""
+    property real oldScale: 1
 
     readonly property var scaleOptions: [
         { label: "1.0", value: 1 },
@@ -130,6 +133,32 @@ SettingsSurface {
         command: ["sh", "-c", "sh \"$1\" keep \"$2\"", "sh", root.helper, out]
     }
 
+    // ── Niri processes ─────────────────────────────────────────────────
+    Process {
+        id: niriApplyProc
+        property string out: ""
+        property string mode: ""
+        property string x: "0"
+        property string y: "0"
+        property real scale: 1
+        command: ["sh", "-c",
+            "niri msg output \"$1\" mode \"$2\" && niri msg output \"$1\" scale \"$3\" && niri msg output \"$1\" position set \"$4\" \"$5\"",
+            "sh", out, mode, String(scale), x, y]
+        onExited: root.startCountdown()
+    }
+
+    Process {
+        id: niriRevertProc
+        property string out: ""
+        property string mode: ""
+        property string x: "0"
+        property string y: "0"
+        property real scale: 1
+        command: ["sh", "-c",
+            "niri msg output \"$1\" mode \"$2\" && niri msg output \"$1\" scale \"$3\" && niri msg output \"$1\" position set \"$4\" \"$5\"",
+            "sh", out, mode, String(scale), x, y]
+    }
+
     /**
      * Builds the mode/position/scale for `mon` from its current picker state and
      * runs the helper's apply verb. Position holds the monitor's current x/y so a
@@ -141,12 +170,32 @@ SettingsSurface {
             return;
         var res = root.resolutionsFor(mon)[card.resIndex];
         var hz = res.rates[card.rateIndex];
-        applyProc.out = mon.name;
-        applyProc.mode = res.w + "x" + res.h + "@" + hz;
-        applyProc.position = mon.x + "x" + mon.y;
-        applyProc.scale = card.pickScale;
+        var newMode = res.w + "x" + res.h + "@" + hz;
+        var newPosition = mon.x + "x" + mon.y;
+        var newScale = card.pickScale;
+
+        // Snapshot old values so we can revert if the user does not confirm.
+        root.oldMode = mon.width + "x" + mon.height + "@" + mon.refresh;
+        root.oldPosition = newPosition;
+        root.oldScale = mon.scale;
+
+        if (Compositor.runningCompositor === "niri") {
+            var posParts = newPosition.split("x");
+            niriApplyProc.out = mon.name;
+            niriApplyProc.mode = newMode;
+            niriApplyProc.x = posParts[0] || "0";
+            niriApplyProc.y = posParts[1] || "0";
+            niriApplyProc.scale = newScale;
+            niriApplyProc.running = true;
+        } else {
+            applyProc.out = mon.name;
+            applyProc.mode = newMode;
+            applyProc.position = newPosition;
+            applyProc.scale = newScale;
+            applyProc.running = true;
+        }
+
         root.pendingOut = mon.name;
-        applyProc.running = true;
     }
 
     function startCountdown() {
@@ -155,19 +204,26 @@ SettingsSurface {
     }
 
     /**
-     * Confirm the pending change: clear the helper's watchdog so it will not
-     * revert, then persist by rewriting that output's block in monitors.lua.
+     * Confirm the pending change: on Hyprland, clear the helper's watchdog so
+     * it will not revert, then persist by rewriting that output's block in
+     * monitors.lua. On Niri, the change is already live and there is no
+     * monitors.lua to rewrite, so we just cancel the revert countdown.
      */
     function keep() {
         if (root.pendingOut.length === 0)
             return;
-        keepProc.out = root.pendingOut;
-        keepProc.running = true;
-        var res = Mon.setMonitor(monitorsFile.text(), applyProc.out, applyProc.mode, applyProc.position, applyProc.scale);
-        if (res.ok)
-            writer.setText(res.text);
-        cancelCountdown();
-        root.note = "Saved. " + applyProc.out + " set to " + applyProc.mode + " · scale " + applyProc.scale;
+        if (Compositor.runningCompositor === "niri") {
+            cancelCountdown();
+            root.note = "Saved. " + root.pendingOut + " set to " + niriApplyProc.mode + " · scale " + niriApplyProc.scale;
+        } else {
+            keepProc.out = root.pendingOut;
+            keepProc.running = true;
+            var res = Mon.setMonitor(monitorsFile.text(), applyProc.out, applyProc.mode, applyProc.position, applyProc.scale);
+            if (res.ok)
+                writer.setText(res.text);
+            cancelCountdown();
+            root.note = "Saved. " + applyProc.out + " set to " + applyProc.mode + " · scale " + applyProc.scale;
+        }
     }
 
     /**
@@ -188,8 +244,20 @@ SettingsSurface {
         onTriggered: {
             root.countdown -= 1;
             if (root.countdown <= 0) {
+                if (Compositor.runningCompositor === "niri" && root.pendingOut.length > 0) {
+                    // Revert the temporary Niri output change.
+                    var posParts = root.oldPosition.split("x");
+                    niriRevertProc.out = root.pendingOut;
+                    niriRevertProc.mode = root.oldMode;
+                    niriRevertProc.x = posParts[0] || "0";
+                    niriRevertProc.y = posParts[1] || "0";
+                    niriRevertProc.scale = root.oldScale;
+                    niriRevertProc.running = true;
+                    root.loadMonitorsFromCompositor();
+                } else {
+                    readProc.running = true;
+                }
                 root.cancelCountdown();
-                readProc.running = true;
                 root.note = "Reverted — the change was not confirmed in time.";
             }
         }
