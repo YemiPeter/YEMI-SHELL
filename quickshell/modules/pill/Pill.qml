@@ -494,13 +494,23 @@ Item {
     Behavior on height { NumberAnimation { duration: Motion.morph; easing.type: Motion.easeMorph; easing.bezierCurve: Motion.morphCurve } }
     Behavior on morphRadius { NumberAnimation { duration: Motion.morph; easing.type: Motion.easeMorph; easing.bezierCurve: Motion.morphCurve } }
 
+    /**
+     * Compositor-gated pill alpha. Hyprland blurs the quickshell layer
+     * (layerrule = blur on, match:namespace quickshell), so the Look → Pill
+     * opacity stepper can stay translucent there. Niri has no layer blur yet,
+     * so the pill renders fully solid until a compositor-level blur exists —
+     * and a value changed on Hyprland never leaks into niri's rendering.
+     */
+    readonly property real pillAlpha: Compositor.isNiri ? 1.0 : Flags.pillOpacity
+
     Glass {
         anchors.fill: parent
         radius: pill.morphRadius
         // Pill opacity owns the pill's see-through once: in aurora mode it
         // scales the glass tint (the Glass is the surface); in yemi mode it
-        // is the body fill's alpha below. Never both.
-        tintScale: Flags.pillOpacity
+        // is the body fill's alpha below. Never both. Routed through
+        // pillAlpha so niri stays solid regardless of the stored value.
+        tintScale: pill.pillAlpha
     }
 
     Rectangle {
@@ -520,8 +530,8 @@ Item {
             // Base tokens + one alpha: the resolved cardTop/cardBot are
             // already aurora-transparentized, so alphaing them again
             // double-dims the bud.
-            GradientStop { position: 0.0; color: Qt.alpha(Theme.cardTopBase, Flags.pillOpacity) }
-            GradientStop { position: 1.0; color: Qt.alpha(Theme.cardBotBase, Flags.pillOpacity) }
+            GradientStop { position: 0.0; color: Qt.alpha(Theme.cardTopBase, pill.pillAlpha) }
+            GradientStop { position: 1.0; color: Qt.alpha(Theme.cardBotBase, pill.pillAlpha) }
         }
         Behavior on budR { NumberAnimation { duration: Motion.fast; easing.type: Motion.easeStandard } }
         Behavior on opacity { NumberAnimation { duration: Motion.standard } }
@@ -573,11 +583,12 @@ Item {
         // - Flags.pillOpacity (Look → Pill opacity) = alpha/transparency of
         //   this fill in the yemi style. Lower = more see-through.
         //   In the aurora style this fill steps aside and the Glass tint
-        //   (scaled by the same flag) is the surface.
+        //   (scaled by the same flag) is the surface. Hyprland only — niri
+        //   renders at full alpha via pill.pillAlpha (no layer blur there).
         // - border.color alpha (Theme.frameBorder, 0.10) = edge line visibility.
         // - Top highlight gradient's "0.04" = how strong the glossy shine looks.
         color: Theme.auroraActive ? "transparent"
-            : Qt.rgba(Theme.cardBotBase.r, Theme.cardBotBase.g, Theme.cardBotBase.b, Flags.pillOpacity)
+            : Qt.rgba(Theme.cardBotBase.r, Theme.cardBotBase.g, Theme.cardBotBase.b, pill.pillAlpha)
         border.width: 1
         border.color: Theme.frameBorder
 
