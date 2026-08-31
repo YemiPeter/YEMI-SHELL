@@ -34,13 +34,6 @@ Rectangle {
     /// Extra scale on the tint's alpha (e.g. Flags.pillOpacity), applied once.
     property real tintScale: 1.0
 
-    /// When true, the compositor already blurs the wallpaper behind this
-    /// window (BackgroundEffect.blurRegion, niri ext-background-effect — the
-    /// same real frost AltSwitcher gets). The fake wallpaper copy below is
-    /// skipped entirely (no decode, no MultiEffect pass) and only the aurora
-    /// tint paints over the compositor's blur.
-    property bool realBlur: false
-
     readonly property color tintColor: {
         const c = QsConfig.Appearance.aurora.colSubSurface
         return Qt.rgba(c.r, c.g, c.b, c.a * root.tintScale)
@@ -51,12 +44,11 @@ Rectangle {
     Image {
         id: wp
         anchors.fill: parent
-        source: root.active && !root.realBlur && QsSingletons.WallpaperState.current !== ""
+        source: root.active && QsSingletons.WallpaperState.current !== ""
             ? "file://" + QsSingletons.WallpaperState.current : ""
         fillMode: Image.PreserveAspectCrop
         asynchronous: true
         smooth: true
-        visible: false
     }
 
     // Mask source for the blur: an opaque white rounded rect rendered to a
@@ -67,20 +59,30 @@ Rectangle {
         anchors.fill: parent
         radius: root.radius
         color: "white"
-        visible: false
-        layer.enabled: true
+        // Ensure the rect is rendered so the ShaderEffectSource can sample it.
+        visible: true
+    }
+
+    ShaderEffectSource {
+        id: maskSourceItem
+        sourceItem: maskRect
+        hideSource: true
+        live: true
+        // Disable smoothing to avoid a 1-2px semi-transparent fringe
+        // when the mask is sampled by MultiEffect.
+        smooth: false
     }
 
     MultiEffect {
         anchors.fill: parent
         source: wp
-        visible: root.active && !root.realBlur
+        visible: root.active
         blurEnabled: true
         blur: 0.6
         blurMax: 64
         saturation: 0.25
         maskEnabled: true
-        maskSource: maskRect
+        maskSource: maskSourceItem
     }
 
     // Aurora tint — replaces the card's flat gradient in aurora mode.
