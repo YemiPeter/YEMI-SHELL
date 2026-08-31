@@ -4,22 +4,33 @@ import QtQuick
 import QtQuick.Controls
 import Quickshell
 import Quickshell.Io
+import qs.compositor
 import "lib/binds.js" as Binds
+import "lib/binds-niri.js" as BindsNiri
 import "lib/keychord.js" as Chord
 import "Singletons"
 
 /**
  * KEYBINDS surface: a searchable list of the keyboard shortcuts parsed from
- * ~/.config/hypr/modules/binds.lua, each row a combo chip on the left and its
- * name or derived action on the right; hovering a row reveals the underlying
- * command. Tapping a row opens a unified form prefilled in EDIT mode — a
- * key-binding field that arms chord capture, a name field and a command field
- * — with Save and Delete. A dashed bar at the bottom opens the same form EMPTY
- * in ADD mode. Save folds the minimal set of binds.js calls (rebind / editCmd /
- * editName, or add) into one text and writes it; the write reloads Hyprland and
- * re-parses. A command is only editable when it is a single string literal
- * (`exec_cmd("...")`); a non-exec dispatch or an env-prefixed exec path is shown
- * read-only as the raw action so it can never be clobbered.
+ * ~/.config/hypr/modules/binds.lua (Hyprland) or ~/.config/niri/config.d/70-binds.kdl
+ * (Niri), each row a combo chip on the left and its name or derived action on
+ * the right; hovering a row reveals the underlying command. Tapping a row
+ * opens a unified form prefilled in EDIT mode — a key-binding field that arms
+ * chord capture, a name field and a command field — with Save and Delete. A
+ * dashed bar at the bottom opens the same form EMPTY in ADD mode. Save folds
+ * the minimal set of binds.js calls (rebind / editCmd / editName, or add)
+ * into one text and writes it; the write reloads Hyprland and re-parses. A
+ * command is only editable when it is a single string literal
+ * (`exec_cmd("...")`); a non-exec dispatch or an env-prefixed exec path is
+ * shown read-only as the raw action so it can never be clobbered.
+ *
+ * Phase 1 (this surface, in flight on the niri-fix-cleanup branch) is
+ * read-only on Niri: binds are parsed from the KDL file and displayed, but
+ * Save / Delete / Add remain Hyprland-only. The shape the model exposes to
+ * the UI is the same on both compositors ({ combo, label, name, cmd,
+ * lineIndex, isExec, isMouse }), so no UI changes are needed beyond the
+ * read-path branch. Phase 2 will add KDL node-level upserts and Phase 3 will
+ * add Add / Delete on Niri.
  *
  * The capture path mirrors the wallpaper strip's search handoff: while
  * `listening`, an Item with focus swallows every keystroke; the captured combo
@@ -38,7 +49,23 @@ PillSurface {
 
     signal requestSurface(string name)
 
+    // Hyprland binds live in a Lua module that hl.bind reads at reload time.
+    // Niri binds live in the KDL config that niri watches; Phase 1 only reads
+    // this file, Phase 2+ will also write to it.
     readonly property string bindsPath: Quickshell.env("RICE_HOME") + "/hypr/modules/binds.lua"
+    readonly property string niriBindsPath: Quickshell.env("RICE_HOME") + "/niri/config.d/70-binds.kdl"
+
+    // The FileView the read-path reloads from. Same shape regardless of
+    // compositor; only the path and parser differ.
+    FileView {
+        id: bindsFile
+        path: Compositor.isNiri ? root.niriBindsPath : root.bindsPath
+        blockLoading: true
+        watchChanges: true
+        printErrors: false
+        onLoaded: root.refresh()
+        onFileChanged: reload()
+    }
 
     property var binds: []
     property int focusIndex: 0
@@ -85,7 +112,32 @@ PillSurface {
     }
 
     function refresh() {
-        root.binds = Binds.parse(bindsFile.text());
+        if (Compositor.isNiri) {
+            // Phase 1 (read-only): same model shape as the Hyprland parser
+            // returns, so the existing UI / search / form bindings work
+            // unchanged. Niri action vocabulary is different from Hyprland
+            // dispatchers, so for the read-only ACTION field we use the
+            // literal "action args" string. isMouse is a best-effort match
+            // on WheelScroll / mouse tokens in the combo.
+            var raw = BindsNiri.parse(bindsFile.text());
+            root.binds = raw.map(function (b) {
+                var isExec = b.action === "spawn";
+                var cmd = isExec ? b.args : "";
+                var isMouse = /WheelScroll|mouse|MouseButton/i.test(b.combo);
+                return {
+                    combo: b.combo,
+                    name: b.name,
+                    label: b.label,
+                    cmd: cmd,
+                    isExec: isExec,
+                    isMouse: isMouse,
+                    action: b.action + (b.args ? " " + b.args : ""),
+                    lineIndex: b.lineIndex
+                };
+            });
+        } else {
+            root.binds = Binds.parse(bindsFile.text());
+        }
         if (root.focusIndex >= root.filtered.length)
             root.focusIndex = Math.max(0, root.filtered.length - 1);
     }
@@ -180,6 +232,13 @@ PillSurface {
      * one write. A combo that collides with another bind is refused inline.
      */
     function save() {
+        // Phase 1 on Niri is read-only. Phase 2+ will add KDL node-level
+        // upserts; until then, surface a clear note rather than silently
+        // writing to a Hyprland file the user can't see.
+        if (Compositor.isNiri) {
+            root.conflict = "editing not available yet — read-only on Niri";
+            return;
+        }
         var text = bindsFile.text();
         if (root.formAdd) {
             if (root.formCombo.length === 0) { root.conflict = "pick a key"; return; }
@@ -233,6 +292,10 @@ PillSurface {
     function removeBind() {
         if (root.formAdd || root.formLine < 0)
             return;
+        if (Compositor.isNiri) {
+            root.conflict = "editing not available yet — read-only on Niri";
+            return;
+        }
         var d = Binds.del(bindsFile.text(), root.formLine);
         if (!d.ok) { root.conflict = d.error || "delete failed"; return; }
         writer.setText(d.text);
@@ -274,22 +337,18 @@ PillSurface {
     amePoint: rowPoint
 
     FileView {
-        id: bindsFile
-        path: root.bindsPath
-        blockLoading: true
-        watchChanges: true
-        printErrors: false
-        onLoaded: root.refresh()
-        onFileChanged: reload()
-    }
-
-    FileView {
         id: writer
         path: root.bindsPath
         atomicWrites: true
         printErrors: false
         onSaved: {
-            reloadProc.running = true;
+            // Phase 1 guards `save()`/`removeBind()` against Niri, so the
+            // writer is Hyprland-only today. Keep the `isHyprland` guard
+            // anyway — the future KDL writer will trigger a different reload
+            // path (niri msg action load-config-file) and this branch stops
+            // running hyprctl on it.
+            if (Compositor.isHyprland)
+                reloadProc.running = true;
             root.formOpen = false;
             root.listening = false;
             root.conflict = "";
