@@ -44,6 +44,12 @@ Item {
         // ═══════════════════════════════════════════════════════════════
         Row {
             id: leftPills
+            // Side-pill toggle (Flags.barLeftVisible): lets the user collapse
+            // the left cluster for a single-pill layout. Opacity + width clip
+            // so the bar strip itself stays put.
+            visible: QsSingletons.Flags.barLeftVisible
+            opacity: QsSingletons.Flags.barLeftVisible ? 1 : 0
+            Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
             spacing: 8 * root.s
@@ -118,6 +124,10 @@ Item {
         // ═══════════════════════════════════════════════════════════════
         Row {
             id: rightPills
+            // Side-pill toggle (Flags.barRightVisible) — mirrors leftPills.
+            visible: QsSingletons.Flags.barRightVisible
+            opacity: QsSingletons.Flags.barRightVisible ? 1 : 0
+            Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
             spacing: 6 * root.s

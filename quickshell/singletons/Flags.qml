@@ -51,6 +51,8 @@ Singleton {
     property alias recordDesktop: adapter.recordDesktop
     property alias recordClearedBefore: adapter.recordClearedBefore
     property alias altSwitcherEnabled: adapter.altSwitcherEnabled
+    property alias barLeftVisible: adapter.barLeftVisible
+    property alias barRightVisible: adapter.barRightVisible
     property alias backdropEffects: adapter.backdropEffects
     property alias backdropDim: adapter.backdropDim
     property alias backdropVignette: adapter.backdropVignette
@@ -137,6 +139,11 @@ Singleton {
             property string weatherCity: ""
             property real recordClearedBefore: 0
             property bool altSwitcherEnabled: true
+            // Side-pill visibility (bar left = workspaces, right = network /
+            // volume / battery). The pill remains the always-available surface;
+            // these let users collapse the bar to a single-pill layout.
+            property bool barLeftVisible: true
+            property bool barRightVisible: true
     property bool backdropEffects: true
     property real backdropDim: 0.20
     property real backdropVignette: 0.35
