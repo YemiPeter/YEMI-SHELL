@@ -5,6 +5,7 @@ import QtQuick.Controls
 import Quickshell
 import Quickshell.Io
 import qs.compositor
+import "../common"
 import "Singletons"
 
 /**
@@ -114,62 +115,83 @@ SettingsSurface {
         }
     }
 
-    component Group: Column {
+    component Group: Rectangle {
         id: g
         property string title: ""
         property bool collapsed: false
         default property alias content: bodyColumn.data
 
-        spacing: 0
         width: parent ? parent.width : 0
+        implicitHeight: cardBody.implicitHeight
+        radius: Motion.rTile * root.s
+        color: Theme.cardTop
+        border.width: 1
+        border.color: Theme.hairSoft
 
-        Row {
-            id: header
-            width: g.width
-            height: 30 * root.s
-            spacing: 6 * root.s
-
-            GlyphIcon {
-                width: 14 * root.s
-                height: 14 * root.s
-                anchors.verticalCenter: parent.verticalCenter
-                name: "chevron-down"
-                rotation: g.collapsed ? -90 : 0
-                color: Theme.faint
-                stroke: 2.2
-
-                Behavior on rotation { NumberAnimation { duration: 150 } }
-            }
-
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                text: g.title
-                color: Theme.faint
-                font.family: Theme.font
-                font.pixelSize: 8.5 * root.s
-                font.weight: Font.Bold
-                font.capitalization: Font.AllUppercase
-                font.letterSpacing: 1.2 * root.s
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: g.collapsed = !g.collapsed
-            }
+        Glass {
+            anchors.fill: parent
+            radius: parent.radius
+            tintScale: 1.0
         }
 
-        Column {
-            id: bodyColumn
-            width: g.width
-            clip: true
-            enabled: !g.collapsed
-            opacity: g.collapsed ? 0 : 1
-            height: g.collapsed ? 0 : implicitHeight
+        readonly property real pad: 4 * root.s
 
-            Behavior on height { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
-            Behavior on opacity { NumberAnimation { duration: 160 } }
+        Column {
+            id: cardBody
+            width: parent.width - pad * 2
+            anchors.horizontalCenter: parent.horizontalCenter
+            topPadding: pad
+            bottomPadding: pad
+            spacing: 0
+
+            Row {
+                id: header
+                width: cardBody.width
+                height: 30 * root.s
+                spacing: 6 * root.s
+
+                GlyphIcon {
+                    width: 14 * root.s
+                    height: 14 * root.s
+                    anchors.verticalCenter: parent.verticalCenter
+                    name: "chevron-down"
+                    rotation: g.collapsed ? -90 : 0
+                    color: Theme.faint
+                    stroke: 2.2
+
+                    Behavior on rotation { NumberAnimation { duration: 150 } }
+                }
+
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: g.title
+                    color: Theme.faint
+                    font.family: Theme.font
+                    font.pixelSize: 8.5 * root.s
+                    font.weight: Font.Bold
+                    font.capitalization: Font.AllUppercase
+                    font.letterSpacing: 1.2 * root.s
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: g.collapsed = !g.collapsed
+                }
+            }
+
+            Column {
+                id: bodyColumn
+                width: cardBody.width
+                clip: true
+                enabled: !g.collapsed
+                opacity: g.collapsed ? 0 : 1
+                height: g.collapsed ? 0 : implicitHeight
+
+                Behavior on height { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+                Behavior on opacity { NumberAnimation { duration: 160 } }
+            }
         }
     }
 
@@ -533,12 +555,6 @@ SettingsSurface {
                         }
                     }
                 }
-
-            Rectangle {
-                width: parent.width
-                height: 1 * root.s
-                color: Theme.hairSoft
-            }
 
             Group {
                 title: "Wallpaper Effects"
