@@ -48,7 +48,7 @@ input {
 
     mouse {
         accel-profile "flat"
-        accel-speed 0.2
+        accel-speed 0
 
         // "flat" = raw movement, "adaptive" = acceleration curve.
 
@@ -85,7 +85,7 @@ gestures {
 
 // ── Cursor theme ────────────────────────────────────────────────────────────
 cursor {
-    xcursor-theme "Adwaita"
+    xcursor-theme "capitaine-cursors-light"
     xcursor-size 24
 
     hide-when-typing
