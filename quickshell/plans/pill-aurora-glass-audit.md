@@ -175,3 +175,26 @@ white rounded-rect `maskSource` (`maskEnabled: true`, channel-agnostic), so
 the blurred wallpaper can no longer poke out as square corners past
 `radius`. The mask rect tracks `radius` live, so morph animations stay
 correct.
+
+## 9. Square Shadow Artifact Elimination (2026-08-31)
+
+User feedback: The compositor blur (`BackgroundEffect.blurRegion`) left a faint
+square blur box / shadow around the pill's rounded corners.
+
+**Root cause:** Wayland `ext-background-effect-v1` specifies blur regions via
+`wl_region`, which only supports axis-aligned rectangles (no corner radii).
+Niri blurred the full `[x, y, w, h]` bounding rectangle of the pill. Outside the
+pill's 4 rounded corners, the compositor's rectangular blur leaked onto the desktop
+as a square shadow. Furthermore, in QML, setting `visible: false` on an item
+prevents scene graph layer rendering in Qt 6, leaving `MultiEffect.maskSource`
+with an unrendered texture.
+
+**Fix:**
+- `modules/pill/shell.qml` & `modules/pill/Pill.qml` — removed `BackgroundEffect.blurRegion`
+  and `realGlass` / `realBlur` from the floating overlay window.
+- `modules/common/Glass.qml` — implemented rounded corner masking using
+  `ShaderEffectSource` (`hideSource: true`, `live: true`). This forces Qt Quick
+  to render the rounded rectangle (`maskRect`) offscreen to a GPU texture for
+  `MultiEffect.maskSource`, cropping all blurred wallpaper pixels cleanly at
+  `root.radius` with no edge leaking or square shadow artifacts.
+

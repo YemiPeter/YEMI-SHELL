@@ -49,6 +49,10 @@ Rectangle {
         fillMode: Image.PreserveAspectCrop
         asynchronous: true
         smooth: true
+        // Texture source for the MultiEffect only. If this ever renders
+        // directly it draws the SHARP wallpaper with square corners past the
+        // rounded mask — exactly the poke-out bug.
+        visible: false
     }
 
     // Mask source for the blur: an opaque white rounded rect rendered to a
