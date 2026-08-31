@@ -29,6 +29,13 @@ Singleton {
     readonly property color cardTopBase: QsConfig.Appearance.yemiCardTopBase
     readonly property color cardBotBase: QsConfig.Appearance.yemiCardBotBase
 
+    // --- Canonical solidity (single source) -----------------------------
+    // Every pill/bar/popup surface reads these so "once it's solid, everything
+    // is solid". pillAlpha gates on compositor (Niri always solid, Hyprland via
+    // Flags.pillOpacity); pillSurface is the fully-resolved color (base @ alpha).
+    readonly property real pillAlpha: QsConfig.Appearance.pillAlpha
+    readonly property color pillSurface: QsConfig.Appearance.yemiSurface
+
     // --- Text ---------------------------------------------------------
     readonly property color cream: QsConfig.Appearance.yemiCream
     readonly property color bright: QsConfig.Appearance.yemiBright

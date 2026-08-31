@@ -501,7 +501,7 @@ Item {
      * so the pill renders fully solid until a compositor-level blur exists —
      * and a value changed on Hyprland never leaks into niri's rendering.
      */
-    readonly property real pillAlpha: Compositor.isNiri ? 1.0 : Flags.pillOpacity
+    readonly property real pillAlpha: Theme.pillAlpha
 
     Glass {
         anchors.fill: parent

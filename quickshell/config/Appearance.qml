@@ -154,6 +154,21 @@ Singleton {
     readonly property color yemiTileBg: auroraEverywhere ? ColorUtils.transparentize(yemiTileBgBase, aurora.layerTransparentize) : yemiTileBgBase
     readonly property color yemiCardTop: auroraEverywhere ? ColorUtils.transparentize(yemiCardTopBase, aurora.layerTransparentize) : yemiCardTopBase
     readonly property color yemiCardBot: auroraEverywhere ? ColorUtils.transparentize(yemiCardBotBase, aurora.layerTransparentize) : yemiCardBotBase
+    /// Canonical surface alpha — SINGLE source of truth for pill/bar/popup
+    /// solidity. One knob, applied everywhere so once it is solid, everything
+    /// is solid. Niri has no layer-blur backends wired, so every surface there
+    /// renders fully solid regardless of Flags.pillOpacity; Hyprland honors the
+    /// Look → Pill opacity stepper. This replaces the two previously-duplicated
+    /// `pillAlpha` copies (Pill.qml / Bar.qml).
+    readonly property real pillAlpha: Compositor.isNiri ? 1.0 : QsSingletons.Flags.pillOpacity
+
+    /// Resolved pill/bar/popup surface color (solid base @ pillAlpha). Every bar
+    /// cluster and popup reads this token so the solid/translucent look is uniform
+    /// and driven from this one definition. Uses cardBotBase (never
+    /// aurora-transparentized) so the alpha is applied exactly once — matching the
+    /// pill body's rule for Glass mode.
+    readonly property color yemiSurface: Qt.rgba(yemiCardBotBase.r, yemiCardBotBase.g, yemiCardBotBase.b, pillAlpha)
+
     readonly property color yemiCream: QsSingletons.Dyn.schemeValid ? ColorUtils.ensureReadable(QsSingletons.Dyn.onSurface, yemiTileBg) : activeMood.cream
     readonly property color yemiBright: QsSingletons.Dyn.schemeValid ? ColorUtils.ensureReadable(QsSingletons.Dyn.onSurface, yemiTileBg) : activeMood.bright
     readonly property color yemiSubtle: QsSingletons.Dyn.schemeValid ? ColorUtils.ensureReadable(QsSingletons.Dyn.onSurfaceVariant, yemiTileBg) : activeMood.subtle
