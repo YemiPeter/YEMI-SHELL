@@ -4,6 +4,7 @@ import Quickshell
 import QtQuick 6.10
 import "../services" as QsServices
 import "../singletons" as QsSingletons
+import qs.compositor
 import "functions"
 import "theme/moods"
 
@@ -102,8 +103,11 @@ Singleton {
 
     // --- Aurora glass style (ported from iNiR) ------------------------
     // When active, layer surfaces become translucent so the wallpaper shows
-    // through (the "aurora" look). Driven by Flags.themeStyle === "aurora".
-    readonly property bool auroraEverywhere: QsSingletons.Flags.themeStyle === "aurora"
+    // through (the "aurora" look). Driven by Flags.themeStyle === "aurora",
+    // hard-gated to Hyprland: the Glass pipeline relies on Hyprland's layer
+    // rendering, so a synced "aurora" themeStyle must never activate Glass on
+    // Niri (or any unknown compositor) — there the pill stays fully solid.
+    readonly property bool auroraEverywhere: QsSingletons.Flags.themeStyle === "aurora" && Compositor.isHyprland
     readonly property real _auroraLightFactor: auroraEverywhere && QsSingletons.Flags.systemMood !== "dark" ? 0.75 : 1.0
 
     readonly property var aurora: {
