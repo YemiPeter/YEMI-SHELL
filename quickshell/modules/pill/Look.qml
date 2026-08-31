@@ -462,7 +462,7 @@ function resetToDefault() {
 
             FieldRow {
                 label: "Pill opacity"
-                caption: "How see-through the pill sits"
+                caption: "How see-through the pill sits (Hyprland only — niri stays solid)"
                 Stepper {
                     value: Flags.pillOpacity
                     display: Flags.pillOpacity.toFixed(2)

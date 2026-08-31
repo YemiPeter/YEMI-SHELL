@@ -1,7 +1,7 @@
 input {
     kb_layout = us
     follow_mouse = 1
-    sensitivity = 1
+    sensitivity = 0.4
     accel_profile = "adaptive"
     repeat_rate = 40
     repeat_delay = 400
