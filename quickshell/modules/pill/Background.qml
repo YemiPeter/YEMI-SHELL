@@ -286,6 +286,7 @@ SettingsSurface {
                 id: backdropGroup
                 title: "Backdrop"
                 collapsed: false
+                visible: Compositor.isNiri
 
                 FieldRow {
                     label: "Backdrop layer"
