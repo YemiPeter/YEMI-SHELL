@@ -196,6 +196,32 @@ SettingsSurface {
         }
 
         SettingsRow {
+            id: leftPillRow
+            surface: root
+            name: "Left pill"
+            icon: "view-grid"
+
+            LinkToggle {
+                s: root.s
+                on: Flags.barLeftVisible
+                onToggled: Flags.barLeftVisible = !Flags.barLeftVisible
+            }
+        }
+
+        SettingsRow {
+            id: rightPillRow
+            surface: root
+            name: "Right pill"
+            icon: "settings"
+
+            LinkToggle {
+                s: root.s
+                on: Flags.barRightVisible
+                onToggled: Flags.barRightVisible = !Flags.barRightVisible
+            }
+        }
+
+        SettingsRow {
             id: fontRow
             surface: root
             name: "Font"
