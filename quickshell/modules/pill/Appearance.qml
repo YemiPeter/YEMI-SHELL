@@ -142,7 +142,7 @@ SettingsSurface {
             id: themeRow
             surface: root
             name: "Theme style"
-            icon: "blur_on"
+            icon: "droplet"
             // Solid (yemi) / Glass (aurora). Hyprland-only: Niri has no glass
             // pipeline, so the whole section is hidden there.
             visible: !Compositor.isNiri
@@ -186,7 +186,7 @@ SettingsSurface {
             id: overviewRow
             surface: root
             name: "Overview (Alt+Tab)"
-            icon: "view-grid"
+            icon: "app-window"
 
             LinkToggle {
                 s: root.s
@@ -199,7 +199,7 @@ SettingsSurface {
             id: pillsRow
             surface: root
             name: "Bar pills"
-            icon: "view-grid"
+            icon: "monitor"
 
             Row {
                 spacing: 14 * root.s
