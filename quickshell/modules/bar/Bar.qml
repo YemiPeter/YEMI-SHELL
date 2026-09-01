@@ -113,6 +113,22 @@ Item {
                     }
                 }
             }
+
+            // Running-apps strip — bare icons (no pill chrome) that sit next
+            // to the workspace pill. Loaded the same way as Workspaces.qml.
+            Loader {
+                id: appIconsLoader
+                anchors.verticalCenter: parent.verticalCenter
+                active: true
+                source: "components/AppIcons.qml"
+                Binding {
+                    target: appIconsLoader.item
+                    property: "screen"
+                    value: root.screen
+                    when: appIconsLoader.status === Loader.Ready && root.screen !== undefined
+                    restoreMode: Binding.RestoreBinding
+                }
+            }
         }
 
         // ═══════════════════════════════════════════════════════════════
