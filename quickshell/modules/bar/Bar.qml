@@ -62,9 +62,10 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             spacing: 8 * root.s
 
-            // Workspaces pill
+            // Workspaces pill — shown unless the bar taskbar is enabled (Flags.barTaskbar)
             Rectangle {
                 id: leftModule
+                visible: !QsSingletons.Flags.barTaskbar
                 height: 28 * root.s
                 width: leftContent.implicitWidth + 16 * root.s
                 radius: 14
@@ -111,6 +112,35 @@ Item {
                             restoreMode: Binding.RestoreBinding
                         }
                     }
+                }
+            }
+
+            // Running-apps taskbar — replaces the workspaces pill when
+            // Flags.barTaskbar is on. Ported from iNiR's BarTaskbar, adapted to
+            // this shell's Compositor singleton + pill tokens. The taskbar is a
+            // self-contained pill (Taskbar.qml) driven by the same left cluster.
+            Loader {
+                id: taskbarLoader
+                anchors.verticalCenter: parent.verticalCenter
+                visible: status === Loader.Ready
+                width: status === Loader.Ready ? item.width : 0
+                height: status === Loader.Ready ? item.height : 0
+                active: QsSingletons.Flags.barTaskbar
+                source: "taskbar/Taskbar.qml"
+
+                Binding {
+                    target: taskbarLoader.item
+                    property: "screen"
+                    value: root.screen
+                    when: taskbarLoader.status === Loader.Ready && root.screen !== undefined
+                    restoreMode: Binding.RestoreBinding
+                }
+                Binding {
+                    target: taskbarLoader.item
+                    property: "barWindow"
+                    value: root.barWindow
+                    when: taskbarLoader.status === Loader.Ready && root.barWindow !== undefined
+                    restoreMode: Binding.RestoreBinding
                 }
             }
         }
