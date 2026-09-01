@@ -521,4 +521,5 @@ ShellRoot {
         if (QsSingletons.Flags.debug) console.log("QuickShell loaded successfully!")
         initStateDir.running = true
     }
-}
+}// taskbar-debug-flush
+// flush2

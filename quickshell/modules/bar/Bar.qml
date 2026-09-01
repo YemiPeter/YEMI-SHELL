@@ -2,6 +2,7 @@ import QtQuick 6.10
 import QtQuick.Layouts 6.10
 import QtQuick.Effects
 import Quickshell
+import Quickshell.Io
 import "../../components/effects"
 import "../../config" as QsConfig
 import "../../services" as QsServices
@@ -15,6 +16,19 @@ Item {
 
     // Screen name for PillState toggle calls
     readonly property string screenName: root.screen ? root.screen.name : ""
+
+    // TEMP DEBUG: report loader status to /tmp/taskbar_dbg.log (v2)
+
+    // TEMP DEBUG: report loader status to /tmp/taskbar_dbg.log
+    Process {
+        id: dbgTaskbarProc
+        running: false
+    }
+    function dbgTaskbar(msg: string): void {
+        var clean = String(msg).replace(/'/g, " ") + "\n"
+        dbgTaskbarProc.command = ["sh", "-c", "printf '%s' '" + clean + "' >> /tmp/taskbar_dbg.log"]
+        dbgTaskbarProc.running = true
+    }
 
     // Scale factor matching PillOverlay so bar spacing and center spacer align.
     readonly property real s: screen ? (screen.height / 1080) * QsSingletons.Flags.uiScale : 1
@@ -62,9 +76,10 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             spacing: 8 * root.s
 
-            // Workspaces pill
+            // Workspaces pill — shown unless the bar taskbar is enabled (Flags.barTaskbar)
             Rectangle {
                 id: leftModule
+                visible: !QsSingletons.Flags.barTaskbar
                 height: 28 * root.s
                 width: leftContent.implicitWidth + 16 * root.s
                 radius: 14
@@ -112,6 +127,39 @@ Item {
                         }
                     }
                 }
+            }
+
+            // Running-apps taskbar — replaces the workspaces pill when
+            // Flags.barTaskbar is on. Ported from iNiR's BarTaskbar, adapted to
+            // this shell's Compositor singleton + pill tokens. The taskbar is a
+            // self-contained pill (Taskbar.qml) driven by the same left cluster.
+            Loader {
+                id: taskbarLoader
+                anchors.verticalCenter: parent.verticalCenter
+                visible: status === Loader.Ready
+                width: status === Loader.Ready ? item.width : 0
+                height: status === Loader.Ready ? item.height : 0
+                active: QsSingletons.Flags.barTaskbar
+                source: "taskbar/Taskbar.qml"
+
+                Binding {
+                    target: taskbarLoader.item
+                    property: "screen"
+                    value: root.screen
+                    when: taskbarLoader.status === Loader.Ready && root.screen !== undefined
+                    restoreMode: Binding.RestoreBinding
+                }
+                Binding {
+                    target: taskbarLoader.item
+                    property: "barWindow"
+                    value: root.barWindow
+                    when: taskbarLoader.status === Loader.Ready && root.barWindow !== undefined
+                    restoreMode: Binding.RestoreBinding
+                }
+                // TEMP DEBUG: report loader status/error to /tmp/taskbar_dbg.log
+                Component.onCompleted: dbgTaskbar("__LOADER_ONCOMPLETED__ active=" + QsSingletons.Flags.barTaskbar + " status=" + taskbarLoader.status + " success=" + taskbarLoader.successful)
+                onStatusChanged: dbgTaskbar("__LOADER_STATUS__ status=" + taskbarLoader.status + " success=" + taskbarLoader.successful + " item=" + (taskbarLoader.item ? "loaded" : "none"))
+                onError: dbgTaskbar("__LOADER_ERROR__ " + taskbarLoader.errorString())
             }
         }
 
