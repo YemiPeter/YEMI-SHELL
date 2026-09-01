@@ -1,0 +1,3 @@
+module modules.bar.taskbar
+TaskbarButton TaskbarButton.qml
+TaskbarPreview TaskbarPreview.qml
