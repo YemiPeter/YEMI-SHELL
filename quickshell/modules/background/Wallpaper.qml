@@ -37,28 +37,33 @@ PanelWindow {
 
     visible: root.active
 
-    Image {
+    Item {
+        id: wallContainer
         anchors.fill: parent
-        visible: !root.isGif
-        source: root.wallpaperPath !== "" ? "file://" + root.wallpaperPath : ""
-        fillMode: Image.PreserveAspectCrop
-        asynchronous: true
-        smooth: true
-    }
 
-    AnimatedImage {
-        anchors.fill: parent
-        visible: root.isGif && root.animEnabled
-        playing: visible
-        source: root._wpPath !== "" ? (root._wpPath.startsWith("file://") ? root._wpPath : "file://" + root._wpPath) : ""
-        fillMode: Image.PreserveAspectCrop
-        asynchronous: true
-        cache: false
+        Image {
+            anchors.fill: parent
+            visible: !root.isGif
+            source: root.wallpaperPath !== "" ? "file://" + root.wallpaperPath : ""
+            fillMode: Image.PreserveAspectCrop
+            asynchronous: true
+            smooth: true
+        }
+
+        AnimatedImage {
+            anchors.fill: parent
+            visible: root.isGif && root.animEnabled
+            playing: visible
+            source: root._wpPath !== "" ? (root._wpPath.startsWith("file://") ? root._wpPath : "file://" + root._wpPath) : ""
+            fillMode: Image.PreserveAspectCrop
+            asynchronous: true
+            cache: false
+        }
     }
 
     MultiEffect {
         anchors.fill: parent
-        source: parent
+        source: wallContainer
         visible: root.blurEnabled || root.dimAmount > 0
         blurEnabled: root.blurEnabled && root.blurRadius > 0
         blur: root.blurRadius / 100.0
