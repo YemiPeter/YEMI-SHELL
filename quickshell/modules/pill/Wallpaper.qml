@@ -123,16 +123,13 @@ PillSurface {
             dlProc.target = entry.image;
             dlProc.command = ["bash", root.searchScript, "download", entry.image];
             dlProc.running = true;
+        } else if (Flags.wallpaperSelectionTarget === "backdrop") {
+            Flags.backdropWallpaperPath = entry.path;
+            Flags.wallpaperSelectionTarget = "";
+            if (Flags.backdropThemeColors)
+                backdropColorProc.exec(["sh", "-c",
+                    'sh "$HOME/.config/quickshell/scripts/after-wall.sh" "' + Flags.systemMood + '"']);
         } else {
-            Walls.apply(entry.path);
-            if (Flags.wallpaperSelectionTarget === "backdrop") {
-                Flags.backdropWallpaperPath = entry.path;
-                Flags.wallpaperSelectionTarget = "";
-                if (Flags.backdropThemeColors)
-                    backdropColorProc.exec(["sh", "-c",
-                        'sh "$HOME/.config/quickshell/scripts/after-wall.sh" "' + Flags.systemMood + '"']);
-                return;
-            }
             Walls.apply(entry.path);
         }
     }
