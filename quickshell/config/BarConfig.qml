@@ -33,7 +33,7 @@ QtObject {
         property int cornerRadius: 10
         property int indicatorSize: 4
     }
-    
+
     // Floating island bar design
     readonly property int height: 60 // Taller bar to prevent bottom clipping
     readonly property int padding: 4               // Tight padding around content
