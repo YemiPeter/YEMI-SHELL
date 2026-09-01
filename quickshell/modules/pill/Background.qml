@@ -5,6 +5,7 @@ import QtQuick.Controls
 import Quickshell
 import Quickshell.Io
 import qs.compositor
+import "../common"
 import "Singletons"
 
 /**
@@ -114,62 +115,89 @@ SettingsSurface {
         }
     }
 
-    component Group: Column {
+    component Group: Rectangle {
         id: g
         property string title: ""
         property bool collapsed: false
         default property alias content: bodyColumn.data
 
-        spacing: 0
         width: parent ? parent.width : 0
+        implicitHeight: cardBody.implicitHeight
+        radius: Motion.rTile * root.s
+        color: Theme.cardTop
+        border.width: 1
+        border.color: Theme.hairSoft
+        clip: true
 
-        Row {
-            id: header
-            width: g.width
-            height: 30 * root.s
-            spacing: 6 * root.s
-
-            GlyphIcon {
-                width: 14 * root.s
-                height: 14 * root.s
-                anchors.verticalCenter: parent.verticalCenter
-                name: "chevron-down"
-                rotation: g.collapsed ? -90 : 0
-                color: Theme.faint
-                stroke: 2.2
-
-                Behavior on rotation { NumberAnimation { duration: 150 } }
-            }
-
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                text: g.title
-                color: Theme.faint
-                font.family: Theme.font
-                font.pixelSize: 8.5 * root.s
-                font.weight: Font.Bold
-                font.capitalization: Font.AllUppercase
-                font.letterSpacing: 1.2 * root.s
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: g.collapsed = !g.collapsed
-            }
+        Glass {
+            anchors.fill: parent
+            radius: parent.parent.radius
+            tintScale: 1.0
         }
 
-        Column {
-            id: bodyColumn
-            width: g.width
-            clip: true
-            enabled: !g.collapsed
-            opacity: g.collapsed ? 0 : 1
-            height: g.collapsed ? 0 : implicitHeight
+        readonly property real pad: 4 * root.s
 
-            Behavior on height { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
-            Behavior on opacity { NumberAnimation { duration: 160 } }
+        Column {
+            id: cardBody
+            width: parent.width - pad * 2
+            anchors.horizontalCenter: parent.horizontalCenter
+            topPadding: pad
+            bottomPadding: pad
+            spacing: 0
+
+            Item {
+                id: header
+                width: cardBody.width
+                height: 30 * root.s
+
+                Row {
+                    id: headerRow
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: 6 * root.s
+
+                    GlyphIcon {
+                        width: 14 * root.s
+                        height: 14 * root.s
+                        anchors.verticalCenter: parent.verticalCenter
+                        name: "chevron-down"
+                        rotation: g.collapsed ? -90 : 0
+                        color: Theme.faint
+                        stroke: 2.2
+
+                        Behavior on rotation { NumberAnimation { duration: 150 } }
+                    }
+
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: g.title
+                        color: Theme.faint
+                        font.family: Theme.font
+                        font.pixelSize: 8.5 * root.s
+                        font.weight: Font.Bold
+                        font.capitalization: Font.AllUppercase
+                        font.letterSpacing: 1.2 * root.s
+                    }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: g.collapsed = !g.collapsed
+                }
+            }
+
+            Column {
+                id: bodyColumn
+                width: cardBody.width
+                clip: true
+                enabled: !g.collapsed
+                opacity: g.collapsed ? 0 : 1
+                height: g.collapsed ? 0 : implicitHeight
+
+                Behavior on height { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+                Behavior on opacity { NumberAnimation { duration: 160 } }
+            }
         }
     }
 
@@ -268,27 +296,60 @@ SettingsSurface {
                 }
 
                 FieldRow {
-                    label: "Per-monitor wallpapers"
-                    caption: "Set different wallpapers for each monitor"
+                    label: "Enable animated wallpapers"
+                    caption: "Play videos and GIFs as wallpaper"
                     LinkToggle {
                         s: root.s
-                        on: Flags.wallpaperMultiMonitorEnable
-                        onToggled: Flags.wallpaperMultiMonitorEnable = !Flags.wallpaperMultiMonitorEnable
+                        on: Flags.wallpaperEnableAnimation
+                        onToggled: Flags.wallpaperEnableAnimation = !Flags.wallpaperEnableAnimation
                     }
                 }
 
                 FieldRow {
-                    label: "Hide when fullscreen"
-                    caption: "Hide the wallpaper layer while a fullscreen window is active"
+                    label: "Enable blur"
+                    caption: "Blur wallpaper when windows are open"
                     LinkToggle {
                         s: root.s
-                        on: Flags.wallpaperHideWhenFullscreen
-                        onToggled: Flags.wallpaperHideWhenFullscreen = !Flags.wallpaperHideWhenFullscreen
+                        on: Flags.wallpaperEnableBlur
+                        onToggled: Flags.wallpaperEnableBlur = !Flags.wallpaperEnableBlur
+                    }
+                }
+
+                FieldRow {
+                    label: "Blur radius"
+                    caption: "Amount of blur applied to wallpaper"
+                    visible: Flags.wallpaperEnableBlur
+                    height: Flags.wallpaperEnableBlur ? 34 * root.s : 0
+                    Stepper {
+                        value: Flags.wallpaperBlurRadius
+                        display: (Flags.wallpaperBlurRadius).toFixed(0) + "%"
+                        onStepped: (dir) => {
+                            var next = Math.max(0, Math.min(100, Math.round(Flags.wallpaperBlurRadius + dir * 5)));
+                            if (next === Flags.wallpaperBlurRadius)
+                                return;
+                            Flags.wallpaperBlurRadius = next;
+                        }
+                    }
+                }
+
+                FieldRow {
+                    label: "Dim overlay"
+                    caption: "Darken the wallpaper"
+                    Stepper {
+                        value: Flags.wallpaperDim
+                        display: (Flags.wallpaperDim * 100).toFixed(0) + "%"
+                        onStepped: (dir) => {
+                            var next = Math.max(0, Math.min(1, Math.round((Flags.wallpaperDim + dir * 0.05) * 100) / 100));
+                            if (next === Flags.wallpaperDim)
+                                return;
+                            Flags.wallpaperDim = next;
+                        }
                     }
                 }
             }
 
             Group {
+                id: backdropGroup
                 title: "Backdrop"
                 collapsed: false
 
@@ -475,7 +536,6 @@ SettingsSurface {
                         }
                     }
                 }
-                }
 
                 FieldRow {
                     label: "Blur"
@@ -533,122 +593,6 @@ SettingsSurface {
                         }
                     }
                 }
-
-            Rectangle {
-                width: parent.width
-                height: 1 * root.s
-                color: Theme.hairSoft
-            }
-
-            Group {
-                title: "Wallpaper Effects"
-                collapsed: false
-
-                FieldRow {
-                    label: "Hide main wallpaper"
-                    caption: "Show only backdrop, hide the desktop wallpaper"
-                    LinkToggle {
-                        s: root.s
-                        on: Flags.backdropHideWallpaper
-                        onToggled: Flags.backdropHideWallpaper = !Flags.backdropHideWallpaper
-                    }
-                }
-
-                FieldRow {
-                    label: "Enable animated wallpapers"
-                    caption: "Play videos and GIFs as wallpaper"
-                    LinkToggle {
-                        s: root.s
-                        on: Flags.wallpaperEnableAnimation
-                        onToggled: Flags.wallpaperEnableAnimation = !Flags.wallpaperEnableAnimation
-                    }
-                }
-
-                FieldRow {
-                    label: "Enable blur"
-                    caption: "Blur wallpaper when windows are open"
-                    LinkToggle {
-                        s: root.s
-                        on: Flags.wallpaperEnableBlur
-                        onToggled: Flags.wallpaperEnableBlur = !Flags.wallpaperEnableBlur
-                    }
-                }
-
-                FieldRow {
-                    label: "Blur animated wallpapers"
-                    caption: "Apply blur to animated wallpapers"
-                    visible: Flags.wallpaperEnableAnimation && Flags.wallpaperEnableBlur
-                    LinkToggle {
-                        s: root.s
-                        on: Flags.wallpaperEnableAnimatedBlur
-                        onToggled: Flags.wallpaperEnableAnimatedBlur = !Flags.wallpaperEnableAnimatedBlur
-                    }
-                }
-
-                FieldRow {
-                    label: "Blur radius"
-                    caption: "Amount of blur applied to wallpaper"
-                    visible: Flags.wallpaperEnableBlur
-                    height: Flags.wallpaperEnableBlur ? 34 * root.s : 0
-                    Stepper {
-                        value: Flags.wallpaperBlurRadius
-                        display: (Flags.wallpaperBlurRadius).toFixed(0) + "%"
-                        onStepped: (dir) => {
-                            var next = Math.max(0, Math.min(100, Math.round(Flags.wallpaperBlurRadius + dir * 5)));
-                            if (next === Flags.wallpaperBlurRadius)
-                                return;
-                            Flags.wallpaperBlurRadius = next;
-                        }
-                    }
-                }
-
-                FieldRow {
-                    label: "Animated blur strength"
-                    caption: "Blur intensity for animated wallpapers"
-                    visible: Flags.wallpaperEnableAnimatedBlur
-                    height: Flags.wallpaperEnableAnimatedBlur ? 34 * root.s : 0
-                    Stepper {
-                        value: Flags.wallpaperAnimatedBlurStrength
-                        display: (Flags.wallpaperAnimatedBlurStrength).toFixed(0) + "%"
-                        onStepped: (dir) => {
-                            var next = Math.max(0, Math.min(100, Math.round(Flags.wallpaperAnimatedBlurStrength + dir * 5)));
-                            if (next === Flags.wallpaperAnimatedBlurStrength)
-                                return;
-                            Flags.wallpaperAnimatedBlurStrength = next;
-                        }
-                    }
-                }
-
-                FieldRow {
-                    label: "Dim overlay"
-                    caption: "Darken the wallpaper"
-                    Stepper {
-                        value: Flags.wallpaperDim
-                        display: (Flags.wallpaperDim * 100).toFixed(0) + "%"
-                        onStepped: (dir) => {
-                            var next = Math.max(0, Math.min(1, Math.round((Flags.wallpaperDim + dir * 0.05) * 100) / 100));
-                            if (next === Flags.wallpaperDim)
-                                return;
-                            Flags.wallpaperDim = next;
-                        }
-                    }
-                }
-
-                FieldRow {
-                    label: "Extra dim with windows"
-                    caption: "Additional dim when windows are present"
-                    Stepper {
-                        value: Flags.wallpaperDynamicDim
-                        display: (Flags.wallpaperDynamicDim * 100).toFixed(0) + "%"
-                        onStepped: (dir) => {
-                            var next = Math.max(0, Math.min(1, Math.round((Flags.wallpaperDynamicDim + dir * 0.05) * 100) / 100));
-                            if (next === Flags.wallpaperDynamicDim)
-                                return;
-                            Flags.wallpaperDynamicDim = next;
-                        }
-                    }
-                }
-            }
 
             Group {
                 title: "Wallpaper transitions"
@@ -807,6 +751,7 @@ SettingsSurface {
             }
 
             Group {
+                id: parallaxGroup
                 title: "Parallax"
                 collapsed: false
 
