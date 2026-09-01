@@ -53,6 +53,7 @@ Singleton {
     property alias altSwitcherEnabled: adapter.altSwitcherEnabled
     property alias barLeftVisible: adapter.barLeftVisible
     property alias barRightVisible: adapter.barRightVisible
+    property alias barTaskbar: adapter.barTaskbar
     property alias backdropEffects: adapter.backdropEffects
     property alias backdropDim: adapter.backdropDim
     property alias backdropVignette: adapter.backdropVignette
@@ -144,6 +145,10 @@ Singleton {
             // these let users collapse the bar to a single-pill layout.
             property bool barLeftVisible: true
             property bool barRightVisible: true
+            // Left-side bar content: when true the left cluster is the running
+            // apps taskbar (modules/bar/taskbar); when false it is the classic
+            // workspaces pill. A settings toggle can flip this at runtime.
+            property bool barTaskbar: false
     property bool backdropEffects: true
     property real backdropDim: 0.20
     property real backdropVignette: 0.35
