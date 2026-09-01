@@ -90,6 +90,39 @@ Item {
         return false;
     }
 
+    // iNiR brand icons (copied to assets/icons) — used as a fallback chain for
+    // appIds that have no desktop-entry/system icon (terminals named after the
+    // distro, AI chats, flatpak, etc.).
+    readonly property string brandIconsRoot: Qt.resolvedUrl("../../../assets/icons/").toString()
+    readonly property var brandIconMap: ({
+        "arch": "arch-symbolic.svg", "archlinux": "arch-symbolic.svg",
+        "cachyos": "cachyos-symbolic.svg", "cachy": "cachyos-symbolic.svg",
+        "debian": "debian-symbolic.svg", "fedora": "fedora-symbolic.svg",
+        "ubuntu": "ubuntu-symbolic.svg", "endeavouros": "endeavouros-symbolic.svg",
+        "eos": "endeavouros-symbolic.svg", "gentoo": "gentoo-symbolic.svg",
+        "nixos": "nixos-symbolic.svg", "nyarch": "nyarch-symbolic.svg",
+        "linux": "linux-symbolic.svg", "org.gnome.nautilus": "desktop-symbolic.svg",
+        "microsoft": "microsoft-symbolic.svg", "github": "github-symbolic.svg",
+        "flatpak": "flatpak-symbolic.svg",
+        "chatgpt": "openai-symbolic.svg", "openai": "openai-symbolic.svg",
+        "gemini": "google-gemini-symbolic.svg", "deepseek": "deepseek-symbolic.svg",
+        "ollama": "ollama-symbolic.svg", "openrouter": "openrouter-symbolic.svg",
+        "mistral": "mistral-symbolic.svg", "claude": "ai-openai-symbolic.svg",
+        "cloudflare": "cloudflare-dns-symbolic.svg", "warp": "crosshair-symbolic.svg"
+    })
+
+    function brandIconFor(appId): string {
+        var lower = appId ? appId.toLowerCase() : "";
+        // exact, then suffix/prefix containment ("org.arch.…" / "chatgpt-daemon")
+        if (root.brandIconMap[lower] !== undefined)
+            return root.brandIconsRoot + root.brandIconMap[lower];
+        for (var k in root.brandIconMap) {
+            if (lower.indexOf(k) !== -1)
+                return root.brandIconsRoot + root.brandIconMap[k];
+        }
+        return "";
+    }
+
     function iconFor(appId): string {
         if (appId in root._entryCache) return root._entryCache[appId];
         var hit = Quickshell.iconPath(appId, true);
@@ -102,6 +135,8 @@ Item {
                 break;
             }
         }
+        if (!hit || hit === "")
+            hit = root.brandIconFor(appId);
         root._entryCache[appId] = hit;
         return hit;
     }
@@ -186,13 +221,18 @@ Item {
                     visible: status === Image.Ready && source !== ""
                 }
 
-                // Neutral disc fallback while/if the icon can't be resolved.
-                Rectangle {
+                // Fluent app-generic icon (from iNiR's pack) when nothing else
+                // resolved — replaces the old blank neutral disc.
+                Image {
                     anchors.centerIn: parent
-                    width: root.iconSize * 0.6
-                    height: root.iconSize * 0.6
-                    radius: width / 2
-                    color: Qt.rgba(root.theme.cream.r, root.theme.cream.g, root.theme.cream.b, 0.18)
+                    width: root.iconSize
+                    height: root.iconSize
+                    sourceSize.width: Math.round(root.iconSize * 2)
+                    sourceSize.height: Math.round(root.iconSize * 2)
+                    fillMode: Image.PreserveAspectFit
+                    asynchronous: true
+                    smooth: true
+                    source: root.brandIconsRoot + "fluent/app-generic.svg"
                     visible: !icon.visible
                 }
 

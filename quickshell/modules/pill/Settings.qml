@@ -130,7 +130,7 @@ SettingsSurface {
             id: backgroundRow
             surface: root
             captionOnFocus: true
-            icon: "waves"
+            icon: "app-window"
             name: "Background"
             sub: "Wallpaper dim & vignette"
 
