@@ -34,6 +34,14 @@ QtObject {
         property int indicatorSize: 4
     }
     
+    // Running-apps taskbar (replaces the workspace pill when Flags.barTaskbar
+    // is on). Look & behaviour knobs for the ported iNiR taskbar.
+    readonly property var taskbar: QtObject {
+        property bool hoverPreview: true          // hover window-list popup
+        property int iconSize: 16                 // app icon size in px @1080p
+        property int spacing: 2                   // gap between app buttons
+    }
+    
     // Floating island bar design
     readonly property int height: 60 // Taller bar to prevent bottom clipping
     readonly property int padding: 4               // Tight padding around content
