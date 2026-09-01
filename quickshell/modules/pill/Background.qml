@@ -6,6 +6,7 @@ import Quickshell
 import Quickshell.Io
 import qs.compositor
 import "../common"
+import "../../../config" as QsConfig
 import "Singletons"
 
 /**
@@ -596,6 +597,7 @@ SettingsSurface {
             }
 
             Group {
+                id: transitionsGroup
                 title: "Wallpaper transitions"
                 collapsed: false
 
@@ -619,18 +621,18 @@ SettingsSurface {
 
                 FieldRow {
                     label: "Transition style"
-                    caption: transitionTypes[transitionTypeIndex]
+                    caption: transitionsGroup.transitionTypes[transitionsGroup.transitionTypeIndex]
                     visible: Flags.transitionEnable
                     height: Flags.transitionEnable ? 34 * root.s : 0
                     enabled: !Compositor.isNiri
                     opacity: enabled ? 1 : 0.4
                     Stepper {
-                        value: transitionTypeIndex
-                        display: transitionTypes[transitionTypeIndex]
+                        value: transitionsGroup.transitionTypeIndex
+                        display: transitionsGroup.transitionTypes[transitionsGroup.transitionTypeIndex]
                         onStepped: (dir) => {
-                            var idx = transitionTypeIndex
-                            var next = Math.max(0, Math.min(transitionTypes.length - 1, idx + dir))
-                            Flags.transitionType = transitionTypes[next]
+                            var idx = transitionsGroup.transitionTypeIndex
+                            var next = Math.max(0, Math.min(transitionsGroup.transitionTypes.length - 1, idx + dir))
+                            Flags.transitionType = transitionsGroup.transitionTypes[next]
                         }
                     }
                 }
@@ -638,16 +640,16 @@ SettingsSurface {
                 FieldRow {
                     label: "Transition direction"
                     caption: Flags.transitionDirection
-                    visible: Flags.transitionEnable && isDirectional
-                    height: (Flags.transitionEnable && isDirectional) ? 34 * root.s : 0
+                    visible: Flags.transitionEnable && transitionsGroup.isDirectional
+                    height: (Flags.transitionEnable && transitionsGroup.isDirectional) ? 34 * root.s : 0
                     enabled: !Compositor.isNiri
                     opacity: enabled ? 1 : 0.4
                     Stepper {
-                        value: transitionDirIndex
-                        display: transitionDirs[transitionDirIndex]
+                        value: transitionsGroup.transitionDirIndex
+                        display: transitionsGroup.transitionDirs[transitionsGroup.transitionDirIndex]
                         onStepped: (dir) => {
-                            var next = Math.max(0, Math.min(transitionDirs.length - 1, transitionDirIndex + dir))
-                            Flags.transitionDirection = transitionDirs[next]
+                            var next = Math.max(0, Math.min(transitionsGroup.transitionDirs.length - 1, transitionsGroup.transitionDirIndex + dir))
+                            Flags.transitionDirection = transitionsGroup.transitionDirs[next]
                         }
                     }
                 }
@@ -683,12 +685,12 @@ SettingsSurface {
                         height: 28 * root.s
                         font.pixelSize: 11 * root.s
                         color: Theme.cream
-                        placeholderText: QsSingletons.Walls.wpDir
-                        text: Flags.wallpapersDirectory || QsSingletons.Walls.wpDir
+                        placeholderText: Walls.wpDir
+                        text: Flags.wallpapersDirectory || Walls.wpDir
                         onEditingFinished: {
                             var val = text.trim()
                             Flags.wallpapersDirectory = val
-                            Config.setNestedValue("wallpapers.directory", val)
+                            QsConfig.Config.setNestedValue("wallpapers.directory", val)
                         }
                     }
                 }
@@ -744,7 +746,7 @@ SettingsSurface {
                         height: 28 * root.s
                         font.pixelSize: 11 * root.s
                         color: Theme.cream
-                        placeholderText: Translation.tr("Use current wallpapers folder")
+                        placeholderText: "Use current wallpapers folder"
                         text: Flags.autoWallpaperFolder
                         onEditingFinished: Flags.autoWallpaperFolder = text.trim()
                     }
