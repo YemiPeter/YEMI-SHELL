@@ -536,17 +536,91 @@ SettingsSurface {
                 FieldRow {
                     label: "Wallpapers directory"
                     caption: "Folder containing wallpaper images"
-                    TextField {
-                        width: Math.max(180 * root.s, parent.width * 0.5)
-                        height: 28 * root.s
-                        font.pixelSize: 11 * root.s
-                        color: Theme.cream
-                        placeholderText: Walls.wpDir
-                        text: Flags.wallpapersDirectory || Walls.wpDir
-                        onEditingFinished: {
-                            var val = text.trim()
-                            Flags.wallpapersDirectory = val
-                            QsConfig.Config.setNestedValue("wallpapers.directory", val)
+                    Item {
+                        width: Math.max(220 * root.s, parent.width * 0.6)
+                        height: 30 * root.s
+
+                        Rectangle {
+                            id: dirField
+                            anchors.fill: parent
+                            radius: Motion.rSmall * root.s
+                            color: dirArea.containsMouse ? Theme.frameBg : Theme.tileBg
+                            border.width: 1
+                            border.color: dirFieldInput.activeFocus ? Theme.border : Theme.hairSoft
+                            Behavior on color { ColorAnimation { duration: Motion.fast } }
+                            Behavior on border.color { ColorAnimation { duration: Motion.fast } }
+
+                            GlyphIcon {
+                                anchors.left: parent.left
+                                anchors.leftMargin: 9 * root.s
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 13 * root.s
+                                height: 13 * root.s
+                                name: "folder"
+                                color: Theme.faint
+                                stroke: 1.8
+                            }
+
+                            TextField {
+                                id: dirFieldInput
+                                anchors.left: parent.left
+                                anchors.leftMargin: 28 * root.s
+                                anchors.right: resetBtn.left
+                                anchors.verticalCenter: parent.verticalCenter
+                                height: parent.height
+                                font.pixelSize: 11 * root.s
+                                font.family: Theme.font
+                                color: Theme.cream
+                                selectionColor: Theme.cream
+                                selectedTextColor: Theme.bg
+                                placeholderText: Walls.wpDir
+                                placeholderTextColor: Theme.faint
+                                text: Flags.wallpapersDirectory || Walls.wpDir
+                                background: null
+                                onEditingFinished: {
+                                    var val = text.trim()
+                                    if (val === "" || val === Walls.wpDir) {
+                                        Flags.wallpapersDirectory = ""
+                                    } else {
+                                        Flags.wallpapersDirectory = val
+                                    }
+                                    QsConfig.Config.setNestedValue("wallpapers.directory", Flags.wallpapersDirectory)
+                                }
+                            }
+
+                            Rectangle {
+                                id: browseBtn
+                                visible: dirFieldInput.text.length > 0 && dirFieldInput.text !== Walls.wpDir
+                                anchors.right: resetBtn.left
+                                anchors.rightMargin: 4 * root.s
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 22 * root.s
+                                height: 22 * root.s
+                                radius: Motion.rSmall * root.s
+                                color: resetArea.containsMouse ? Theme.frameBg : "transparent"
+                                border.width: 1
+                                border.color: Theme.border
+                                Behavior on color { ColorAnimation { duration: Motion.fast } }
+                                GlyphIcon {
+                                    anchors.centerIn: parent
+                                    width: 11 * root.s
+                                    height: 11 * root.s
+                                    name: "close"
+                                    color: Theme.faint
+                                    stroke: 1.8
+                                }
+                                MouseArea {
+                                    id: resetArea
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        Flags.wallpapersDirectory = ""
+                                        QsConfig.Config.setNestedValue("wallpapers.directory", "")
+                                        dirFieldInput.text = Walls.wpDir
+                                    }
+                                }
+                            }
                         }
                     }
                 }
