@@ -3,6 +3,7 @@ import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
 import qs.compositor
+import "../common/widgets"
 import "../../singletons" as QsSingletons
 
 PanelWindow {
@@ -71,14 +72,12 @@ PanelWindow {
 
         Behavior on x { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
 
-        Image {
+        WallpaperCrossfader {
             id: wall
             anchors.fill: parent
             visible: root.showImageLayer && !root.isGif
-            source: root.effectiveWallpaper !== "" ? "file://" + root.effectiveWallpaper : ""
+            source: root.effectiveWallpaper !== "" ? (root.effectiveWallpaper.startsWith("file://") ? root.effectiveWallpaper : "file://" + root.effectiveWallpaper) : ""
             fillMode: Image.PreserveAspectCrop
-            asynchronous: true
-            smooth: true
         }
 
         AnimatedImage {
@@ -96,7 +95,7 @@ PanelWindow {
     MultiEffect {
         id: wallFx
         anchors.fill: wallContainer
-        source: wallContainer
+        source: root.isGif ? wallContainer : wall
         visible: QsSingletons.Flags.backdropEnable
         blurEnabled: QsSingletons.Flags.backdropBlurRadius > 0 && (!root.isGif || QsSingletons.Flags.backdropEnableAnimatedBlur)
         blur: QsSingletons.Flags.backdropBlurRadius / 100.0

@@ -470,9 +470,7 @@ SettingsSurface {
 
                 FieldRow {
                     label: "Enable transitions"
-                    caption: "Animate wallpaper changes (Hyprland only)"
-                    enabled: !Compositor.isNiri
-                    opacity: enabled ? 1 : 0.4
+                    caption: "Animate wallpaper changes"
                     LinkToggle {
                         s: root.s
                         on: Flags.transitionEnable
@@ -485,8 +483,6 @@ SettingsSurface {
                     caption: transitionsGroup.transitionTypes[transitionsGroup.transitionTypeIndex]
                     visible: Flags.transitionEnable
                     height: Flags.transitionEnable ? 34 * root.s : 0
-                    enabled: !Compositor.isNiri
-                    opacity: enabled ? 1 : 0.4
                     Stepper {
                         value: transitionsGroup.transitionTypeIndex
                         display: transitionsGroup.transitionTypes[transitionsGroup.transitionTypeIndex]
@@ -503,8 +499,6 @@ SettingsSurface {
                     caption: Flags.transitionDirection
                     visible: Flags.transitionEnable && transitionsGroup.isDirectional
                     height: (Flags.transitionEnable && transitionsGroup.isDirectional) ? 34 * root.s : 0
-                    enabled: !Compositor.isNiri
-                    opacity: enabled ? 1 : 0.4
                     Stepper {
                         value: transitionsGroup.transitionDirIndex
                         display: transitionsGroup.transitionDirs[transitionsGroup.transitionDirIndex]
@@ -517,11 +511,9 @@ SettingsSurface {
 
                 FieldRow {
                     label: "Transition duration"
-                    caption: "How long the transition takes (ms, Hyprland only)"
+                    caption: "How long the transition takes (ms)"
                     visible: Flags.transitionEnable
                     height: Flags.transitionEnable ? 34 * root.s : 0
-                    enabled: !Compositor.isNiri
-                    opacity: enabled ? 1 : 0.4
                     Stepper {
                         value: Flags.transitionDuration
                         display: Flags.transitionDuration + " ms"
