@@ -25,7 +25,12 @@ PanelWindow {
 
     mask: Region { width: 0; height: 0 }
 
-    readonly property bool active: QsSingletons.Flags.wallpaperUseMainWallpaper && !QsSingletons.Flags.backdropHideWallpaper
+    // Niri: QML is the wallpaper renderer. Hyprland: awww paints the real
+    // wallpaper, so the QML copy must NOT stack (and blur) on top of it —
+    // it only paints when the user opts into double-paint.
+    readonly property bool active: (Compositor.isNiri || QsSingletons.Flags.backdropDoublePaint)
+        && QsSingletons.Flags.wallpaperUseMainWallpaper
+        && !QsSingletons.Flags.backdropHideWallpaper
     readonly property string wallpaperPath: QsSingletons.WallpaperState.current
     readonly property string _wpPath: root.wallpaperPath || ""
     readonly property bool isGif: root._wpPath.toLowerCase().endsWith(".gif")

@@ -537,12 +537,19 @@ SettingsSurface {
                     label: "Wallpapers directory"
                     caption: "Folder containing wallpaper images"
                     TextField {
-                        width: Math.max(180 * root.s, parent.width * 0.5)
+                        width: Math.max(180 * root.s, root.width * 0.5)
                         height: 28 * root.s
                         font.pixelSize: 11 * root.s
                         color: Theme.cream
                         placeholderText: Walls.wpDir
                         text: Flags.wallpapersDirectory || Walls.wpDir
+                        background: Rectangle {
+                            anchors.fill: parent
+                            radius: Motion.rSmall * root.s
+                            color: Theme.tileBg
+                            border.width: 1
+                            border.color: Theme.border
+                        }
                         onEditingFinished: {
                             var val = text.trim()
                             Flags.wallpapersDirectory = val
@@ -581,33 +588,6 @@ SettingsSurface {
                         }
                     }
                 }
-
-                FieldRow {
-                    label: "Regenerate colors on shuffle"
-                    caption: "Recompute theme colors from the new wallpaper"
-                    visible: Flags.autoWallpaperEnable
-                    LinkToggle {
-                        s: root.s
-                        on: Flags.autoWallpaperGenerateColors
-                        onToggled: Flags.autoWallpaperGenerateColors = !Flags.autoWallpaperGenerateColors
-                    }
-                }
-
-                FieldRow {
-                    label: "Shuffle folder"
-                    caption: "Leave empty to shuffle within the wallpapers directory"
-                    visible: Flags.autoWallpaperEnable
-                    TextField {
-                        width: Math.max(180 * root.s, parent.width * 0.5)
-                        height: 28 * root.s
-                        font.pixelSize: 11 * root.s
-                        color: Theme.cream
-                        placeholderText: "Use current wallpapers folder"
-                        text: Flags.autoWallpaperFolder
-                        onEditingFinished: Flags.autoWallpaperFolder = text.trim()
-                    }
-                }
-            }
 
             Group {
                 id: parallaxGroup
