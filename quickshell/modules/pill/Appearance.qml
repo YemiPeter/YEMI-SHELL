@@ -285,6 +285,12 @@ SettingsSurface {
                     on: Flags.barAppIcons
                     onToggled: Flags.barAppIcons = !Flags.barAppIcons
                 }
+
+                PillCheck {
+                    label: "Shadow"
+                    on: Flags.barShadow
+                    onToggled: Flags.barShadow = !Flags.barShadow
+                }
             }
         }
 
