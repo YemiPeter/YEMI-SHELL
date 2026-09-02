@@ -44,6 +44,7 @@ SettingsSurface {
 
         property real value: 0
         property string display: ""
+        property string style: "plusminus"  // "plusminus" | "arrow"
         signal stepped(int dir)
 
         spacing: 6 * root.s
@@ -60,10 +61,10 @@ SettingsSurface {
 
             Text {
                 anchors.centerIn: parent
-                text: "−"
+                text: step.style === "arrow" ? "‹" : "−"
                 color: Theme.cream
                 font.family: Theme.font
-                font.pixelSize: 14 * root.s
+                font.pixelSize: step.style === "arrow" ? 16 * root.s : 14 * root.s
                 font.weight: Font.Bold
             }
 
@@ -99,10 +100,10 @@ SettingsSurface {
 
             Text {
                 anchors.centerIn: parent
-                text: "+"
+                text: step.style === "arrow" ? "›" : "+"
                 color: Theme.cream
                 font.family: Theme.font
-                font.pixelSize: 14 * root.s
+                font.pixelSize: step.style === "arrow" ? 16 * root.s : 14 * root.s
                 font.weight: Font.Bold
             }
 
@@ -484,6 +485,7 @@ SettingsSurface {
                     visible: Flags.transitionEnable
                     height: Flags.transitionEnable ? 34 * root.s : 0
                     Stepper {
+                        style: "arrow"
                         value: transitionsGroup.transitionTypeIndex
                         display: transitionsGroup.transitionTypes[transitionsGroup.transitionTypeIndex]
                         onStepped: (dir) => {
@@ -500,6 +502,7 @@ SettingsSurface {
                     visible: Flags.transitionEnable && transitionsGroup.isDirectional
                     height: (Flags.transitionEnable && transitionsGroup.isDirectional) ? 34 * root.s : 0
                     Stepper {
+                        style: "arrow"
                         value: transitionsGroup.transitionDirIndex
                         display: transitionsGroup.transitionDirs[transitionsGroup.transitionDirIndex]
                         onStepped: (dir) => {
@@ -515,6 +518,7 @@ SettingsSurface {
                     visible: Flags.transitionEnable
                     height: Flags.transitionEnable ? 34 * root.s : 0
                     Stepper {
+                        style: "arrow"
                         value: Flags.transitionDuration
                         display: Flags.transitionDuration + " ms"
                         onStepped: (dir) => {
