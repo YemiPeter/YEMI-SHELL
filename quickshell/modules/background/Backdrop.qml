@@ -58,7 +58,10 @@ PanelWindow {
     readonly property bool showImageLayer: Compositor.isNiri
         || (QsSingletons.Flags.backdropDoublePaint && !QsSingletons.Flags.backdropHideWallpaper)
 
+    // Hyprland: awww owns the wallpaper — the backdrop layer stays off unless
+    // the user explicitly opts into double-paint on top of awww.
     visible: QsSingletons.Flags.backdropEnable
+        && (Compositor.isNiri || QsSingletons.Flags.backdropDoublePaint)
 
     Item {
         id: wallContainer
@@ -68,7 +71,7 @@ PanelWindow {
         }
         x: -root.shift
         scale: root.parallaxScale
-        transformOrigin: Transform.Center
+        transformOrigin: Item.Center
 
         Behavior on x { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
 
