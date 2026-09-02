@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Effects
 import "Singletons"
 
 /**
@@ -16,6 +17,9 @@ Item {
     property var surface: null
     property string glyph: ""
     property string icon: ""
+    // A file-path SVG/PNG icon (from assets/icons, e.g. the iNiR fluent pack).
+    // Takes precedence over the `icon` glyph when set.
+    property string sourceIcon: ""
     property string name: ""
     property string sub: ""
     property bool last: false
@@ -65,7 +69,7 @@ Item {
         anchors.left: parent.left
         anchors.leftMargin: 14 * srow.s
         anchors.verticalCenter: parent.verticalCenter
-        visible: srow.icon.length > 0
+        visible: srow.icon.length > 0 && srow.sourceIcon.length === 0
         width: 17 * srow.s
         height: 17 * srow.s
         name: srow.icon
@@ -73,10 +77,30 @@ Item {
         stroke: 1.8
     }
 
+    Image {
+        id: sri
+        anchors.left: parent.left
+        anchors.leftMargin: 14 * srow.s
+        anchors.verticalCenter: parent.verticalCenter
+        visible: srow.sourceIcon.length > 0
+        width: 18 * srow.s
+        height: 18 * srow.s
+        fillMode: Image.PreserveAspectFit
+        source: srow.sourceIcon
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            // The fluent iNiR pack ships monochrome #000000 glyphs; recolorize
+            // them through the theme so they render cream like GlyphIcon rows
+            // instead of black.
+            colorization: 1.0
+            colorizationColor: Theme.cream
+        }
+    }
+
     Column {
         id: textCol
-        anchors.left: ri.visible ? ri.right : (rk.visible ? rk.right : parent.left)
-        anchors.leftMargin: ri.visible ? 13 * srow.s : (rk.visible ? 11 * srow.s : 12 * srow.s)
+        anchors.left: ri.visible ? ri.right : (sri.visible ? sri.right : (rk.visible ? rk.right : parent.left))
+        anchors.leftMargin: ri.visible ? 13 * srow.s : (sri.visible ? 13 * srow.s : (rk.visible ? 11 * srow.s : 12 * srow.s))
         anchors.right: controlSlot.left
         anchors.rightMargin: 14 * srow.s
         anchors.verticalCenter: parent.verticalCenter

@@ -54,6 +54,7 @@ Singleton {
     property alias barLeftVisible: adapter.barLeftVisible
     property alias barRightVisible: adapter.barRightVisible
     property alias barAppIcons: adapter.barAppIcons
+    property alias barShadow: adapter.barShadow
     property alias backdropEffects: adapter.backdropEffects
     property alias backdropDim: adapter.backdropDim
     property alias backdropVignette: adapter.backdropVignette
@@ -146,6 +147,9 @@ Singleton {
             property bool barLeftVisible: true
             property bool barRightVisible: true
             property bool barAppIcons: true
+            // Floating drop shadow behind the bar strip, center pill, and app
+            // icons so they read as lifted off the wallpaper.
+            property bool barShadow: true
     property bool backdropEffects: true
     property real backdropDim: 0.20
     property real backdropVignette: 0.35
