@@ -25,6 +25,9 @@ SettingsSurface {
     backSurface: "settings"
     implicitHeight: content.implicitHeight
 
+    // iNiR fluent icons (committed to assets/icons) — used for the Bar nav row.
+    readonly property string icRoot: Qt.resolvedUrl("../../assets/icons/fluent/").toString()
+
     /// Single entry point for color generation - routes through after-wall.sh
     /// which is the only script that writes colors.json, and through
     /// apply-system-theme.sh which applies the host GTK/KDE dark/light theme.
@@ -65,6 +68,7 @@ SettingsSurface {
         { item: scaleRow, kind: "seg", vals: [0.9, 1.0, 1.1, 1.25], get: function () { return Flags.uiScale; }, set: function (v) { Flags.uiScale = v; } },
         { item: motionRow, kind: "toggle", get: function () { return Flags.reduceMotion; }, set: function (v) { Flags.reduceMotion = v; } },
         { item: overviewRow, kind: "toggle", get: function () { return Flags.altSwitcherEnabled; }, set: function (v) { Flags.altSwitcherEnabled = v; } },
+        { item: pillsRow, kind: "nav", surface: "barpills" },
         { item: fontRow, kind: "nav", surface: "fontpicker" }
     ]
 
@@ -198,93 +202,18 @@ SettingsSurface {
         SettingsRow {
             id: pillsRow
             surface: root
-            name: "Bar pills"
-            icon: "monitor"
+            captionOnFocus: true
+            sourceIcon: root.icRoot + "task-view-light.svg"
+            sourceIconColor: "#FFFFFF"
+            name: "Bar"
+            sub: "Pills, app icons, shadow"
 
-            Row {
-                spacing: 14 * root.s
-
-                // Round check: filled with a check glyph when the pill is
-                // shown, empty circle when hidden. Click toggles.
-                component PillCheck: Item {
-                    id: chk
-                    property string label
-                    property bool on: false
-                    signal toggled()
-                    width: checkRow.implicitWidth
-                    height: 18 * root.s
-
-                    Row {
-                        id: checkRow
-                        anchors.verticalCenter: parent.verticalCenter
-                        spacing: 6 * root.s
-
-                        Rectangle {
-                            width: 18 * root.s
-                            height: 18 * root.s
-                            radius: width / 2
-                            anchors.verticalCenter: parent.verticalCenter
-                            color: chk.on ? Theme.verm : Theme.tileBg
-                            border.width: chk.on ? 0 : 1
-                            border.color: Theme.border
-                            Behavior on color { ColorAnimation { duration: Motion.fast } }
-
-                            GlyphIcon {
-                                anchors.centerIn: parent
-                                width: 10 * root.s
-                                height: 10 * root.s
-                                name: "check"
-                                color: Theme.cream
-                                stroke: 2.4
-                                visible: chk.on
-                            }
-                        }
-
-                        Text {
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: chk.label
-                            color: Theme.cream
-                            font.family: Theme.font
-                            font.pixelSize: 11 * root.s
-                        }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: chk.toggled()
-                    }
-                }
-
-                PillCheck {
-                    label: "Left"
-                    on: Flags.barLeftVisible
-                    onToggled: Flags.barLeftVisible = !Flags.barLeftVisible
-                }
-
-                PillCheck {
-                    label: "Right"
-                    on: Flags.barRightVisible
-                    onToggled: Flags.barRightVisible = !Flags.barRightVisible
-                }
-
-                // Master check: hides/shows BOTH side pills at once. On when
-                // either side is visible; toggling flips both together.
-                PillCheck {
-                    label: "Sides"
-                    on: Flags.barLeftVisible || Flags.barRightVisible
-                    onToggled: {
-                        var show = !(Flags.barLeftVisible || Flags.barRightVisible);
-                        Flags.barLeftVisible = show;
-                        Flags.barRightVisible = show;
-                    }
-                }
-
-                PillCheck {
-                    label: "Apps"
-                    on: Flags.barAppIcons
-                    onToggled: Flags.barAppIcons = !Flags.barAppIcons
-                }
+            GlyphIcon {
+                width: 16 * root.s
+                height: 16 * root.s
+                name: "chevron-right"
+                color: root.focusRowItem === pillsRow ? Theme.cream : Theme.iconDim
+                stroke: 1.9
             }
         }
 
