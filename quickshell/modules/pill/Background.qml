@@ -518,7 +518,6 @@ SettingsSurface {
                     visible: Flags.transitionEnable
                     height: Flags.transitionEnable ? 34 * root.s : 0
                     Stepper {
-                        style: "arrow"
                         value: Flags.transitionDuration
                         display: Flags.transitionDuration + " ms"
                         onStepped: (dir) => {
