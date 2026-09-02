@@ -77,8 +77,6 @@ Singleton {
     property alias wallpaperSelectionTarget: adapter.wallpaperSelectionTarget
     property alias autoWallpaperEnable: adapter.autoWallpaperEnable
     property alias autoWallpaperInterval: adapter.autoWallpaperInterval
-    property alias autoWallpaperGenerateColors: adapter.autoWallpaperGenerateColors
-    property alias autoWallpaperFolder: adapter.autoWallpaperFolder
     property alias wallpapersDirectory: adapter.wallpapersDirectory
     property alias transitionEnable: adapter.transitionEnable
     property alias transitionType: adapter.transitionType
@@ -172,8 +170,6 @@ Singleton {
     property string wallpaperSelectionTarget: ""
     property bool autoWallpaperEnable: false
     property int autoWallpaperInterval: 30
-    property bool autoWallpaperGenerateColors: true
-    property string autoWallpaperFolder: ""
     property string wallpapersDirectory: ""
     property bool transitionEnable: true
     property string transitionType: "fade"

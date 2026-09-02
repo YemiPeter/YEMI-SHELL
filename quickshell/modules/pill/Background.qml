@@ -300,17 +300,6 @@ SettingsSurface {
                 }
 
                 FieldRow {
-                    label: "Double-paint (Hyprland)"
-                    caption: "Force the QML wallpaper on top of awww so blur/saturation/contrast/parallax can apply"
-                    visible: Flags.backdropEnable && Compositor.isHyprland
-                    LinkToggle {
-                        s: root.s
-                        on: Flags.backdropDoublePaint
-                        onToggled: Flags.backdropDoublePaint = !Flags.backdropDoublePaint
-                    }
-                }
-
-                FieldRow {
                     label: "Hide main wallpaper"
                     caption: "Show the real desktop wallpaper; drop QuickShell's copy and effects blur"
                     visible: Flags.backdropEnable
@@ -405,8 +394,7 @@ SettingsSurface {
                     caption: "Frost the wallpaper"
                     visible: Flags.backdropEnable
                     height: Flags.backdropEnable ? 34 * root.s : 0
-                    enabled: !(Compositor.isHyprland && !Flags.backdropDoublePaint)
-                    opacity: enabled ? 1 : 0.4
+                    
                     Stepper {
                         value: Flags.backdropBlurRadius
                         display: (Flags.backdropBlurRadius).toFixed(0) + "%"
@@ -424,8 +412,7 @@ SettingsSurface {
                     caption: "Color intensity (−100..100)"
                     visible: Flags.backdropEnable
                     height: Flags.backdropEnable ? 34 * root.s : 0
-                    enabled: !(Compositor.isHyprland && !Flags.backdropDoublePaint)
-                    opacity: enabled ? 1 : 0.4
+                    
                     Stepper {
                         value: Flags.backdropSaturation
                         display: (Flags.backdropSaturation).toFixed(0) + "%"
@@ -443,8 +430,7 @@ SettingsSurface {
                     caption: "Light/dark separation (−100..100)"
                     visible: Flags.backdropEnable
                     height: Flags.backdropEnable ? 34 * root.s : 0
-                    enabled: !(Compositor.isHyprland && !Flags.backdropDoublePaint)
-                    opacity: enabled ? 1 : 0.4
+                    
                     Stepper {
                         value: Flags.backdropContrast
                         display: (Flags.backdropContrast).toFixed(0) + "%"
@@ -537,12 +523,19 @@ SettingsSurface {
                     label: "Wallpapers directory"
                     caption: "Folder containing wallpaper images"
                     TextField {
-                        width: Math.max(180 * root.s, parent.width * 0.5)
+                        width: Math.max(180 * root.s, root.width * 0.5)
                         height: 28 * root.s
                         font.pixelSize: 11 * root.s
                         color: Theme.cream
                         placeholderText: Walls.wpDir
                         text: Flags.wallpapersDirectory || Walls.wpDir
+                        background: Rectangle {
+                            anchors.fill: parent
+                            radius: Motion.rSmall * root.s
+                            color: Theme.tileBg
+                            border.width: 1
+                            border.color: Theme.border
+                        }
                         onEditingFinished: {
                             var val = text.trim()
                             Flags.wallpapersDirectory = val
@@ -581,44 +574,18 @@ SettingsSurface {
                         }
                     }
                 }
-
-                FieldRow {
-                    label: "Regenerate colors on shuffle"
-                    caption: "Recompute theme colors from the new wallpaper"
-                    visible: Flags.autoWallpaperEnable
-                    LinkToggle {
-                        s: root.s
-                        on: Flags.autoWallpaperGenerateColors
-                        onToggled: Flags.autoWallpaperGenerateColors = !Flags.autoWallpaperGenerateColors
-                    }
-                }
-
-                FieldRow {
-                    label: "Shuffle folder"
-                    caption: "Leave empty to shuffle within the wallpapers directory"
-                    visible: Flags.autoWallpaperEnable
-                    TextField {
-                        width: Math.max(180 * root.s, parent.width * 0.5)
-                        height: 28 * root.s
-                        font.pixelSize: 11 * root.s
-                        color: Theme.cream
-                        placeholderText: "Use current wallpapers folder"
-                        text: Flags.autoWallpaperFolder
-                        onEditingFinished: Flags.autoWallpaperFolder = text.trim()
-                    }
-                }
             }
 
             Group {
                 id: parallaxGroup
                 title: "Parallax"
                 collapsed: false
+                visible: Compositor.isNiri
 
                 FieldRow {
                     label: "Parallax"
                     caption: "Slide the wallpaper between workspaces"
-                    enabled: !(Compositor.isHyprland && !Flags.backdropDoublePaint)
-                    opacity: enabled ? 1 : 0.4
+                    
                     LinkToggle {
                         s: root.s
                         on: Flags.parallaxEnable
@@ -631,8 +598,7 @@ SettingsSurface {
                     caption: "How much the wallpaper scales to free edge pixels"
                     visible: Flags.parallaxEnable
                     height: Flags.parallaxEnable ? 34 * root.s : 0
-                    enabled: !(Compositor.isHyprland && !Flags.backdropDoublePaint)
-                    opacity: enabled ? 1 : 0.4
+                    
                     Stepper {
                         value: Flags.parallaxZoom
                         display: (Flags.parallaxZoom * 100).toFixed(0) + "%"
@@ -650,8 +616,7 @@ SettingsSurface {
                     caption: "How far it glides per workspace"
                     visible: Flags.parallaxEnable
                     height: Flags.parallaxEnable ? 34 * root.s : 0
-                    enabled: !(Compositor.isHyprland && !Flags.backdropDoublePaint)
-                    opacity: enabled ? 1 : 0.4
+                    
                     Stepper {
                         value: Flags.parallaxStrength
                         display: (Flags.parallaxStrength * 100).toFixed(0) + "%"

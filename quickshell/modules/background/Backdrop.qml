@@ -26,7 +26,7 @@ PanelWindow {
 
     mask: Region { width: 0; height: 0 }
 
-    readonly property bool parallaxOn: QsSingletons.Flags.parallaxEnable
+    readonly property bool parallaxOn: QsSingletons.Flags.parallaxEnable && Compositor.isNiri
     readonly property real parallaxScale: root.parallaxOn ? QsSingletons.Flags.parallaxZoom : 1.0
     readonly property int wsId: {
         const m = Compositor.monitorFor(root.screen)
@@ -52,13 +52,13 @@ PanelWindow {
 
     // Whether the QML-rendered image is actually shown.
     // Niri: QML *is* the wallpaper, always show it.
-    // Hyprland: awww paints the real wallpaper, so the QML copy is hidden by
-    // default (only dim + vignette overlay); it is force-shown only when the
-    // user opts into double-paint (and not when "hide main wallpaper" wins).
-    readonly property bool showImageLayer: Compositor.isNiri
-        || (QsSingletons.Flags.backdropDoublePaint && !QsSingletons.Flags.backdropHideWallpaper)
+    // Hyprland: awww paints the real wallpaper; the QML backdrop is Niri-only
+    // and does not render here, so the image layer is never shown.
+    readonly property bool showImageLayer: Compositor.isNiri && !QsSingletons.Flags.backdropHideWallpaper
 
-    visible: QsSingletons.Flags.backdropEnable
+    // Niri-only backdrop layer. On Hyprland, awww owns the wallpaper and the
+    // QML overlay must not run (no parallax, no crossfader, no effects).
+    visible: QsSingletons.Flags.backdropEnable && Compositor.isNiri
 
     Item {
         id: wallContainer
@@ -68,7 +68,7 @@ PanelWindow {
         }
         x: -root.shift
         scale: root.parallaxScale
-        transformOrigin: Transform.Center
+        transformOrigin: Item.Center
 
         Behavior on x { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
 
