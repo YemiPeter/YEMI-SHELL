@@ -163,7 +163,8 @@ Item {
     function activateTl(tl): void {
         if (!tl) return;
         if (compositor.isNiri) {
-            if (tl.id != null) compositor.dispatch("focus-window " + tl.id);
+            // niri requires the --id flag: `focus-window --id <ID>`
+            if (tl.id != null) compositor.dispatch("focus-window --id " + tl.id);
         } else if (compositor.isHyprland) {
             if (typeof tl.activate === "function") {
                 tl.activate();
