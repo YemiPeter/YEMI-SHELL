@@ -220,6 +220,16 @@ Item {
                     smooth: true
                     source: cell.app ? (cell.app.icon || "") : ""
                     visible: status === Image.Ready && source !== ""
+                    // Subtle shadow so each bare icon reads as floating over the
+                    // wallpaper (the strip-level shadow can't show around a
+                    // transparent glyph).
+                    layer.enabled: true
+                    layer.effect: MultiEffect {
+                        shadowEnabled: true
+                        shadowColor: Qt.rgba(0, 0, 0, 0.5)
+                        shadowBlur: 0.5
+                        shadowVerticalOffset: 1
+                    }
                 }
 
                 // Fluent app-generic icon (from iNiR's pack) when nothing else
@@ -235,6 +245,13 @@ Item {
                     smooth: true
                     source: root.brandIconsRoot + "fluent/app-generic.svg"
                     visible: !icon.visible
+                    layer.enabled: true
+                    layer.effect: MultiEffect {
+                        shadowEnabled: true
+                        shadowColor: Qt.rgba(0, 0, 0, 0.5)
+                        shadowBlur: 0.5
+                        shadowVerticalOffset: 1
+                    }
                 }
 
                 // Focused-app indicator: small accent dot under the icon.

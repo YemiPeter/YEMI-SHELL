@@ -31,6 +31,16 @@ Item {
     property var barWindow
     property string surface: ""
 
+    // Floating drop shadow behind the pill body so the center pill reads as
+    // lifted off the wallpaper, matching the bar strip's shadow.
+    layer.enabled: true
+    layer.effect: MultiEffect {
+        shadowEnabled: true
+        shadowColor: Qt.rgba(0, 0, 0, 0.45)
+        shadowBlur: 1.0
+        shadowVerticalOffset: 4
+    }
+
     property bool hovered: false
     property bool pinned: false
     property bool forcePinned: false
