@@ -31,6 +31,16 @@ Item {
     property var barWindow
     property string surface: ""
 
+    // Floating drop shadow behind the pill body so the center pill reads as
+    // lifted off the wallpaper, matching the bar strip's shadow.
+    layer.enabled: QsSingletons.Flags.barShadow
+    layer.effect: MultiEffect {
+        shadowEnabled: true
+        shadowColor: Qt.rgba(0, 0, 0, 0.45)
+        shadowBlur: 1.0
+        shadowVerticalOffset: 4
+    }
+
     property bool hovered: false
     property bool pinned: false
     property bool forcePinned: false
@@ -57,8 +67,9 @@ Item {
     readonly property bool lookOpen: surface === "look"
     readonly property bool idlelockOpen: surface === "idlelock"
     readonly property bool fontpickerOpen: surface === "fontpicker"
+    readonly property bool barPillsOpen: surface === "barpills"
     readonly property bool backgroundOpen: surface === "background"
-    readonly property bool settingsLike: settingsOpen || appearanceOpen || updatesOpen
+    readonly property bool settingsLike: settingsOpen || appearanceOpen || updatesOpen || barPillsOpen
     readonly property bool hasMedia: Mpris.players.values.length > 0
 
     /**
@@ -128,6 +139,7 @@ Item {
     readonly property real lookW: 392 * s
     readonly property real idlelockW: 392 * s
     readonly property real fontpickerW: 360 * s
+    readonly property real barPillsW: 392 * s
     readonly property real backgroundW: 392 * s
     readonly property real toastW: 342 * s
     readonly property real quickChooseW: 344 * s
@@ -170,6 +182,7 @@ Item {
             : undefined,
         idlelock:   { size: () => Qt.size(idlelockW, idlelock.implicitHeight + 29 * s), ame: idlelock },
         fontpicker: { size: () => Qt.size(fontpickerW, fontpicker.implicitHeight + 29 * s), ame: fontpicker },
+        barpills:  { size: () => Qt.size(barPillsW, barPills.implicitHeight + 29 * s), ame: barPills },
         background: { size: () => Qt.size(backgroundW, background.implicitHeight + 29 * s), ame: background }
     })
 
@@ -221,6 +234,8 @@ Item {
             return settings;
         if (pill.appearanceOpen)
             return appearance;
+        if (pill.barPillsOpen)
+            return barPills;
         return null;
     }
 
@@ -329,6 +344,10 @@ Item {
             return;
         }
         if (pill.fontpickerOpen) {
+            pill.requestSurface("appearance");
+            return;
+        }
+        if (pill.barPillsOpen) {
             pill.requestSurface("appearance");
             return;
         }
@@ -1428,6 +1447,15 @@ Item {
         id: fontpicker
         s: pill.s
         open: pill.fontpickerOpen
+        morphCloseness: pill.morphCloseness
+        onRequestClose: pill.requestClose()
+        onRequestSurface: (name) => pill.requestSurface(name)
+    }
+
+    BarPills {
+        id: barPills
+        s: pill.s
+        open: pill.barPillsOpen
         morphCloseness: pill.morphCloseness
         onRequestClose: pill.requestClose()
         onRequestSurface: (name) => pill.requestSurface(name)
