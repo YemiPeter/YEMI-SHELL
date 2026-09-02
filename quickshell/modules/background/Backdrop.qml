@@ -56,11 +56,9 @@ PanelWindow {
     // and does not render here, so the image layer is never shown.
     readonly property bool showImageLayer: Compositor.isNiri && !QsSingletons.Flags.backdropHideWallpaper
 
-    // Niri always gets the backdrop layer (there, QML *is* the wallpaper).
-    // Hyprland only gets it when the user opts into hiding awww's wallpaper
-    // (backdropHideWallpaper); then Backdrop serves as a dim/vignette overlay
-    // on top of awww's own wallpaper.
-    visible: QsSingletons.Flags.backdropEnable && (Compositor.isNiri || QsSingletons.Flags.backdropHideWallpaper)
+    // Niri-only backdrop layer. On Hyprland, awww owns the wallpaper and the
+    // QML overlay must not run (no parallax, no crossfader, no effects).
+    visible: QsSingletons.Flags.backdropEnable && Compositor.isNiri
 
     Item {
         id: wallContainer
