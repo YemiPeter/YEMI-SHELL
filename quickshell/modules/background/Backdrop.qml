@@ -26,20 +26,11 @@ PanelWindow {
 
     mask: Region { width: 0; height: 0 }
 
-    readonly property bool parallaxOn: QsSingletons.Flags.parallaxEnable && Compositor.isNiri
-    readonly property real parallaxScale: root.parallaxOn ? QsSingletons.Flags.parallaxZoom : 1.0
-    readonly property int wsId: {
-        const m = Compositor.monitorFor(root.screen)
-        return (m && m.activeWorkspace) ? m.activeWorkspace.id : 1
-    }
-    readonly property real maxShift: root.parallaxScale > 1
-        ? (root.parallaxScale - 1) / 2 * 0.9 * root.width
-        : 0
-    readonly property real parallaxStep: root.maxShift * QsSingletons.Flags.parallaxStrength
-    readonly property real shift: root.parallaxOn ? Math.min(
-        Math.max((root.wsId - 1) * root.parallaxStep, 0),
-        root.maxShift
-    ) : 0
+    // Niri-only workspace parallax, loaded through a Loader so Hyprland never
+    // evaluates parallax math or holds a Behavior animator object. The loaded
+    // component owns shift/parallaxScale and the x-animation; see
+    // BackdropParallax.qml.
+    readonly property bool parallaxActive: parallaxLoader.active && parallaxLoader.item !== null
 
     readonly property real dim: (QsSingletons.Flags.backdropEnable && QsSingletons.Flags.backdropEffects) ? QsSingletons.Flags.backdropDim : 0
     readonly property real vignette: (QsSingletons.Flags.backdropEnable && QsSingletons.Flags.backdropEffects && QsSingletons.Flags.backdropVignetteEnable) ? QsSingletons.Flags.backdropVignette : 0
@@ -62,17 +53,27 @@ PanelWindow {
     // on top of awww's own wallpaper.
     visible: QsSingletons.Flags.backdropEnable && (Compositor.isNiri || QsSingletons.Flags.backdropHideWallpaper)
 
+    Loader {
+        id: parallaxLoader
+        anchors.fill: parent
+        active: Compositor.isNiri
+        sourceComponent: BackdropParallax {
+            monitorScreen: root.screen
+        }
+    }
+
     Item {
         id: wallContainer
         anchors {
             fill: parent
             margins: -64
         }
-        x: -root.shift
-        scale: root.parallaxScale
+        // Driven by BackdropParallax when loaded (Niri); identity otherwise.
+        // The ternary short-circuits, so parallaxLoader.item is never
+        // dereferenced while it is null (loader inactive).
+        x: root.parallaxActive ? parallaxLoader.item.containerX : 0
+        scale: root.parallaxActive ? parallaxLoader.item.parallaxScale : 1.0
         transformOrigin: Item.Center
-
-        Behavior on x { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
 
         WallpaperCrossfader {
             id: wall
