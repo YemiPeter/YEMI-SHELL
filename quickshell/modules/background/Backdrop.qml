@@ -61,7 +61,10 @@ PanelWindow {
 
     Item {
         id: wallContainer
-        anchors.fill: parent
+        anchors {
+            fill: parent
+            margins: -64
+        }
         x: -root.shift
         scale: root.parallaxScale
         transformOrigin: Transform.Center
