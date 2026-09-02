@@ -96,7 +96,30 @@ PanelWindow {
         id: wallFx
         anchors.fill: wallContainer
         source: root.isGif ? wallContainer : wall
-        visible: QsSingletons.Flags.backdropEnable
+    visible: QsSingletons.Flags.backdropEnable
+
+    // The WallpaperState singleton's `current` change isn't always picked up by
+    // the readonly-property binding chain in time (singleton change signals
+    // across files can be flaky). Listen explicitly and forward the new path
+    // to the crossfader so the QML transition kicks in.
+    Connections {
+        target: QsSingletons.WallpaperState
+        function onCurrentChanged() {
+            const path = root.effectiveWallpaper
+            wall.source = path !== "" ? (path.startsWith("file://") ? path : "file://" + path) : ""
+        }
+    }
+    Connections {
+        target: QsSingletons.Flags
+        function onBackdropWallpaperPathChanged() {
+            const path = root.effectiveWallpaper
+            wall.source = path !== "" ? (path.startsWith("file://") ? path : "file://" + path) : ""
+        }
+        function onBackdropUseMainWallpaperChanged() {
+            const path = root.effectiveWallpaper
+            wall.source = path !== "" ? (path.startsWith("file://") ? path : "file://" + path) : ""
+        }
+    }
         blurEnabled: QsSingletons.Flags.backdropBlurRadius > 0 && (!root.isGif || QsSingletons.Flags.backdropEnableAnimatedBlur)
         blur: QsSingletons.Flags.backdropBlurRadius / 100.0
         blurMax: 64
