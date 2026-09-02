@@ -537,12 +537,26 @@ SettingsSurface {
                     label: "Wallpapers directory"
                     caption: "Folder containing wallpaper images"
                     TextField {
-                        width: Math.max(180 * root.s, parent.width * 0.5)
+                        width: Math.max(180 * root.s, root.width * 0.5)
                         height: 28 * root.s
                         font.pixelSize: 11 * root.s
                         color: Theme.cream
                         placeholderText: Walls.wpDir
                         text: Flags.wallpapersDirectory || Walls.wpDir
+                        background: Rectangle {
+                            anchors.fill: parent
+                            radius: Motion.rSmall * root.s
+                            color: Theme.tileBg
+                            border.width: 1
+                            border.color: Theme.border
+                        }
+                        onEditingFinished: {
+                            var val = text.trim()
+                            Flags.wallpapersDirectory = val
+                            QsConfig.Config.setNestedValue("wallpapers.directory", val)
+                        }
+                    }
+                }
                         onEditingFinished: {
                             var val = text.trim()
                             Flags.wallpapersDirectory = val
@@ -663,8 +677,6 @@ SettingsSurface {
                         }
                     }
                 }
-            }
-
             }
 
             WheelScroller { flick: scroller }
