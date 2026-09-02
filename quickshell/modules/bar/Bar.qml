@@ -47,6 +47,16 @@ Item {
         anchors.rightMargin: 9 * root.s
         anchors.bottomMargin: 1 * root.s
 
+        // Drop shadow behind the whole strip so the floating bar reads as
+        // lifted off the wallpaper (matches the popup shadow style).
+        layer.enabled: QsSingletons.Flags.barShadow
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowColor: Qt.rgba(0, 0, 0, 0.45)
+            shadowBlur: 1.0
+            shadowVerticalOffset: 4
+        }
+
         // ═══════════════════════════════════════════════════════════════
         // LEFT MODULE - Workspaces
         // ═══════════════════════════════════════════════════════════════
