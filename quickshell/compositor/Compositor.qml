@@ -15,23 +15,36 @@ Item {
     readonly property bool isNiri: runningCompositor === "niri"
     readonly property bool isHyprland: runningCompositor === "hyprland"
     
-    // Reference to the actual implementation based on detected compositor
-    readonly property var impl: runningCompositor === "hyprland" ? hyprlandImpl : (runningCompositor === "niri" ? niriImpl : null)
-    
-    // Implementation instances
-    Hyprland {
-        id: hyprlandImpl
-        enabled: runningCompositor === "hyprland"
+    // Reference to the actual implementation based on detected compositor.
+    // Backend instances are Loader-gated below: only the backend matching the
+    // running compositor is ever instantiated (no Niri objects on Hyprland,
+    // no Hyprland objects on Niri). `impl` is null until the matching loader's
+    // item exists; every consumer below guards with `impl?.` / `??`.
+    readonly property var impl: runningCompositor === "hyprland" ? hyprlandLoader.item
+                              : (runningCompositor === "niri" ? niriLoader.item : null)
+
+    // Implementation instances (Loader-gated)
+    Loader {
+        id: hyprlandLoader
+        active: runningCompositor === "hyprland"
+        sourceComponent: Hyprland {
+            id: hyprlandImpl
+            enabled: runningCompositor === "hyprland"
+        }
     }
-    
-    Niri {
-        id: niriImpl
-        enabled: runningCompositor === "niri"
+
+    Loader {
+        id: niriLoader
+        active: runningCompositor === "niri"
+        sourceComponent: Niri {
+            id: niriImpl
+            enabled: runningCompositor === "niri"
+        }
     }
-    
+
     // Forward raw events from the active backend
     Connections {
-        target: hyprlandImpl
+        target: hyprlandLoader.item
         function onRawEvent(event) { root.rawEvent(event) }
     }
     
