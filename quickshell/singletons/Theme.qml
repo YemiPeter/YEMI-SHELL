@@ -54,6 +54,15 @@ Singleton {
     readonly property color vermBurn: Qt.darker(QsConfig.Appearance.yemiPrimaryContainer, 1.1)
     readonly property color tickRest: QsConfig.Appearance.yemiDim
 
+    // --- Flame tokens (charging / active / warm accent) ----------------
+    // Canonical values from Ricelin's pill Theme (dyn branch): the primary
+    // glow plus a slightly lighter core. These were missing for months —
+    // every call site below threw a per-frame "Unable to assign [undefined]
+    // to QColor" warning storm while painting (audit 04 B1/B2, pill-perf
+    // audit P0).
+    readonly property color flameGlow: onGlow
+    readonly property color flameCore: Qt.lighter(onGlow, 1.03)
+
     // --- Borders ------------------------------------------------------
     readonly property color border: QsConfig.Appearance.yemiBorder
 
