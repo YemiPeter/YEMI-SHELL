@@ -20,6 +20,7 @@ SettingsSurface {
         { item: rightRow, kind: "toggle", get: function () { return Flags.barRightVisible; }, set: function (v) { Flags.barRightVisible = v; } },
         { item: sidesRow, kind: "toggle", get: function () { return Flags.barLeftVisible || Flags.barRightVisible; }, set: function (v) { Flags.barLeftVisible = v; Flags.barRightVisible = v; } },
         { item: appsRow, kind: "toggle", get: function () { return Flags.barAppIcons; }, set: function (v) { Flags.barAppIcons = v; } },
+        { item: tintRow, kind: "toggle", get: function () { return Flags.barAppIconTint; }, set: function (v) { Flags.barAppIconTint = v; } },
         { item: shadowRow, kind: "toggle", get: function () { return Flags.barShadow; }, set: function (v) { Flags.barShadow = v; } }
     ]
 
@@ -106,6 +107,21 @@ SettingsSurface {
                 s: root.s
                 on: Flags.barAppIcons
                 onToggled: Flags.barAppIcons = !Flags.barAppIcons
+            }
+        }
+
+         SettingsRow {
+            id: tintRow
+            surface: root
+            sourceIcon: root.icRoot + "paint-bucket.svg"
+            sourceIconColor: "#FFFFFF"
+            name: "Icon tint"
+            sub: "Recolor app icons with the wallpaper theme"
+
+            LinkToggle {
+                s: root.s
+                on: Flags.barAppIconTint
+                onToggled: Flags.barAppIconTint = !Flags.barAppIconTint
             }
         }
 

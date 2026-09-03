@@ -54,6 +54,7 @@ Singleton {
     property alias barLeftVisible: adapter.barLeftVisible
     property alias barRightVisible: adapter.barRightVisible
     property alias barAppIcons: adapter.barAppIcons
+    property alias barAppIconTint: adapter.barAppIconTint
     property alias barShadow: adapter.barShadow
     property alias backdropEffects: adapter.backdropEffects
     property alias backdropDim: adapter.backdropDim
@@ -77,8 +78,6 @@ Singleton {
     property alias wallpaperSelectionTarget: adapter.wallpaperSelectionTarget
     property alias autoWallpaperEnable: adapter.autoWallpaperEnable
     property alias autoWallpaperInterval: adapter.autoWallpaperInterval
-    property alias autoWallpaperGenerateColors: adapter.autoWallpaperGenerateColors
-    property alias autoWallpaperFolder: adapter.autoWallpaperFolder
     property alias wallpapersDirectory: adapter.wallpapersDirectory
     property alias transitionEnable: adapter.transitionEnable
     property alias transitionType: adapter.transitionType
@@ -147,6 +146,7 @@ Singleton {
             property bool barLeftVisible: true
             property bool barRightVisible: true
             property bool barAppIcons: true
+            property bool barAppIconTint: false
             // Floating drop shadow behind the bar strip, center pill, and app
             // icons so they read as lifted off the wallpaper.
             property bool barShadow: true
@@ -172,8 +172,6 @@ Singleton {
     property string wallpaperSelectionTarget: ""
     property bool autoWallpaperEnable: false
     property int autoWallpaperInterval: 30
-    property bool autoWallpaperGenerateColors: true
-    property string autoWallpaperFolder: ""
     property string wallpapersDirectory: ""
     property bool transitionEnable: true
     property string transitionType: "fade"
