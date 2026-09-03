@@ -7,6 +7,7 @@ import Quickshell
 import Quickshell.Wayland
 // import Quickshell.Services.SystemTray
 import "Singletons"
+import qs.compositor
 
 /**
  * System tray. Draws StatusNotifier items as warm-tinted icons. Left-click
@@ -300,7 +301,10 @@ Item {
                     color: Theme.sheen
                 }
 
-                layer.enabled: true
+                // No QML shadow under a compositor layer blur (Hyprland): the
+                // fullscreen pill-tray surface blurs behind every translucent
+                // pixel, so the shadow reads as a frosted halo around the card.
+                layer.enabled: !Compositor.hasLayerBlur
                 layer.effect: MultiEffect {
                     shadowEnabled: true
                     shadowColor: Theme.shadow
