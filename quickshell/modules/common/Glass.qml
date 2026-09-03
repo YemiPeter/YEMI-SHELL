@@ -82,7 +82,7 @@ Rectangle {
     // rounded card.
     Image {
         id: wp
-        readonly property real bleed: 64
+        readonly property real bleed: 32
         x: -root.screenPos.x - bleed
         y: -root.screenPos.y - bleed
         width: root.screenW + bleed * 2
@@ -116,8 +116,8 @@ Rectangle {
         opacity: root.active && root.frostReady ? 1 : 0
         Behavior on opacity { NumberAnimation { duration: 120 } }
         blurEnabled: true
-        blur: 0.6
-        blurMax: 64
+        blur: 0.5
+        blurMax: 24
         saturation: 0.25
         maskEnabled: true
         maskSource: maskRect
