@@ -33,7 +33,14 @@ Item {
 
     // Floating drop shadow behind the pill body so the center pill reads as
     // lifted off the wallpaper, matching the bar strip's shadow.
-    layer.enabled: QsSingletons.Flags.barShadow
+    //
+    // Suppressed when the compositor blurs the layer (hasLayerBlur, i.e.
+    // Hyprland): the layerrule blur is composited behind every translucent
+    // pixel of this fullscreen overlay, so the shadow's pixels would show
+    // blurred wallpaper as a halo outside the pill's border. The compositor
+    // blur already lifts the pill there. Niri (no layer blur) keeps the QML
+    // shadow, and its pill renders solid so the shadow sits on opaque paint.
+    layer.enabled: QsSingletons.Flags.barShadow && !Compositor.hasLayerBlur
     layer.effect: MultiEffect {
         shadowEnabled: true
         shadowColor: Qt.rgba(0, 0, 0, 0.45)

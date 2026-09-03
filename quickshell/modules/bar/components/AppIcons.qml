@@ -224,9 +224,14 @@ Item {
                     // Subtle shadow so each bare icon reads as floating over the
                     // wallpaper (the strip-level shadow can't show around a
                     // transparent glyph).
+                    // Shadow suppressed under a compositor layer blur
+                    // (Hyprland): the shadow spills past the icon onto
+                    // transparent strip pixels and the layerrule blur reads
+                    // as a frosted halo around each glyph. Tint keeps its
+                    // layer either way.
                     layer.enabled: QsSingletons.Flags.barShadow || QsSingletons.Flags.barAppIconTint
                     layer.effect: MultiEffect {
-                        shadowEnabled: QsSingletons.Flags.barShadow
+                        shadowEnabled: QsSingletons.Flags.barShadow && !root.compositor.hasLayerBlur
                         shadowColor: Qt.rgba(0, 0, 0, 0.5)
                         shadowBlur: 0.5
                         shadowVerticalOffset: 1
@@ -250,7 +255,7 @@ Item {
                     visible: !icon.visible
                     layer.enabled: QsSingletons.Flags.barShadow || QsSingletons.Flags.barAppIconTint
                     layer.effect: MultiEffect {
-                        shadowEnabled: QsSingletons.Flags.barShadow
+                        shadowEnabled: QsSingletons.Flags.barShadow && !root.compositor.hasLayerBlur
                         shadowColor: Qt.rgba(0, 0, 0, 0.5)
                         shadowBlur: 0.5
                         shadowVerticalOffset: 1
