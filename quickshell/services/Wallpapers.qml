@@ -18,10 +18,8 @@ Singleton {
 
     readonly property string globalWallpaperPath: Config.options?.background?.wallpaperPath ?? ""
 
-    readonly property bool autoWallpaperEnabled: Config.options?.background?.autoWallpaper?.enable ?? false
-    readonly property int autoWallpaperInterval: Config.options?.background?.autoWallpaper?.intervalMinutes ?? 30
-    readonly property bool autoWallpaperGenerateColors: Config.options?.background?.autoWallpaper?.generateColors ?? true
-    readonly property string autoWallpaperFolder: Config.options?.background?.autoWallpaper?.folder ?? ""
+    readonly property bool autoWallpaperEnabled: QsSingletons.Flags.autoWallpaperEnable
+    readonly property int autoWallpaperInterval: QsSingletons.Flags.autoWallpaperInterval
 
     Timer {
         id: autoWallpaperTimer
@@ -29,6 +27,12 @@ Singleton {
         running: root.autoWallpaperEnabled
         repeat: true
         onTriggered: root._cycleAutoWallpaper()
+    }
+
+    Connections {
+        target: QsSingletons.Flags
+        function onAutoWallpaperEnableChanged() { autoWallpaperTimer.restart() }
+        function onAutoWallpaperIntervalChanged() { autoWallpaperTimer.restart() }
     }
 
     function _cycleAutoWallpaper() {
@@ -44,24 +48,9 @@ Singleton {
         } while (filePath === currentPath && attempts < 5 && entries.length > 1)
         if (!filePath) return
         root.apply(filePath, true, "")
-        if (root.autoWallpaperGenerateColors) {
-            Quickshell.execDetached([QsSingletons.Walls.setScript, "--noswitch"])
-        }
     }
-
-    onAutoWallpaperEnabledChanged: autoWallpaperTimer.restart()
-    onAutoWallpaperIntervalChanged: autoWallpaperTimer.restart()
 
     function currentMainWallpaperPath(monitorName = ""): string {
-        const targetMonitor = monitorName || (WallpaperListener.multiMonitorEnabled ? WallpaperListener.getFocusedMonitor() : "")
-        if (WallpaperListener.multiMonitorEnabled && targetMonitor) {
-            const data = WallpaperListener.effectivePerMonitor[targetMonitor]
-            if (data && data.path) return data.path
-        }
-        return Config.options?.background?.wallpaperPath ?? ""
-    }
-
-    function currentWallpaperPathForTarget(target = "main", monitorName = ""): string {
         const mainPath = currentMainWallpaperPath(monitorName)
         const normalizedTarget = target && target.length > 0 ? target : "main"
 
