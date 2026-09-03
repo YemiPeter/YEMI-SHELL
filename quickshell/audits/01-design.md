@@ -21,6 +21,9 @@ All 18 pill surfaces are created at startup and re-evaluate geometry bindings ev
 ### D3 — Per-screen duplication
 `PillOverlay.qml` uses `Variants` per screen — each screen gets its own full pill + surface tree. Fine for 1–2 monitors; with 3+, the eager-instantiation cost (D2) multiplies. Loader-gating D2 makes this cheap by construction.
 
+### D4 — Glass polish backlog (folded from `plans/pill-aurora-glass-audit.md` §7 on its deletion)
+Remaining ideas, none blocking: animated (GIF) wallpaper support in Glass; blur params tied to a user setting instead of hardcoded; mood-gradient fallback when no wallpaper is set; verify the frost alignment during the fullscreen Translate transform (`shell.qml:437`) — opacity is 0 while it runs, but the timing relationship was never directly verified.
+
 ## Invariants to keep (do not regress)
 - `Glass` must be the surface itself in aurora mode — never paint a card fill on top of it (double-dim).
 - No translucent decorative pixels (shadows, glows) on blur-enabled layer surfaces on Hyprland.

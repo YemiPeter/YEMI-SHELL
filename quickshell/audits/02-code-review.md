@@ -23,3 +23,6 @@ Glass aligns to the wallpaper via `screenPos` math that assumes the window is to
 
 ### C4 — Duplicated pill-cluster markup in `Bar.qml` (maintainability)
 The four side-pill clusters repeat the same Glass + highlight + border block four times with only content differing. A `BarPill.qml` component would collapse ~120 lines into one definition and make the next theme-wide change a single edit. Low priority, good hygiene.
+
+### C5 — Niri-API reachability on Hyprland (folded from old root `AUDIT.md` §1.3)
+Most files go through `Compositor.impl` (safe), but the old audit never completed the per-file confirmation that no direct niri call is reachable when the backend is Hyprland. You now run Hyprland daily, so any miss would be live. The config-writer part is done (Input/Keybinds carry guards); this is only about direct `Niri.*` API references in the §1.3 file list.

@@ -20,6 +20,9 @@ Several surfaces' `implicitHeight` depends on the animating pill width, so every
 ### R3 — P1.3: double blur on Hyprland (design call, see audit 01 D1)
 QML Glass blur + compositor layerrule blur both run. Picking one halves the remaining per-frame blur cost.
 
+### R4 — Timer/process sweep from the old root `AUDIT.md` (folded in on its deletion)
+Still valid, never acted on: ~8×1000ms, 6×2000ms, 5×500ms pollers — several can become event-driven or `running: visible && …` (clock, system info, network state, battery). The two `interval: 1` timers are one-shot startup kicks (fine). 47 `Process {}` objects, some poll-based where a `FileView` watcher would do. Zero behavior change, steady background-CPU win.
+
 ## Measured state
 - `qs log` steady state: clean (only environmental H2 noise).
 - Glass GPU cost: ~130k px texture vs ~2MP before (16×).
