@@ -125,9 +125,13 @@ Item {
             }
 
             // Hyprland: query hyprctl activeworkspace -j for live fullscreen state
-            if (!hyprFsProc.running) {
-              hyprFsProc.output = "";
-              hyprFsProc.running = true;
+            // hyprFsProc is Loader-gated (Hyprland-only); null when inactive.
+
+            var proc = hyprFsLoader.item
+
+            if (proc && !proc.running) {
+              proc.output = "";
+              proc.running = true;
             }
         }
 
@@ -177,8 +181,15 @@ Item {
           }
         }
 
-          // Hyprland fullscreen detection via hyprctl activeworkspace -j
-          Process {
+          // Hyprland fullscreen detection via hyprctl activeworkspace -j.
+
+
+          // Loader-gated:the Process is never constructed off-Hyprland; callers
+          // null-check hyprFsLoader.item.(Mirror of niriFsLoader.)
+          Loader {
+            id: hyprFsLoader
+            active: Compositor.isHyprland
+            sourceComponent: Process {
             id: hyprFsProc
             property string output: ""
             command: ["hyprctl", "activeworkspace", "-j"]
@@ -203,6 +214,7 @@ Item {
               }
             }
           }
+        }
           
           // Poll fullscreen state every 500ms (Niri has no event-driven IPC for this)
         Timer {
