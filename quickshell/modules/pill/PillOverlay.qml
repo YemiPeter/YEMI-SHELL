@@ -37,7 +37,7 @@ Item {
             left: true
             right: true
         }
-        height: reserve.restH + reserve.topGap
+        implicitHeight: reserve.restH + reserve.topGap
 
         color: "transparent"
         WlrLayershell.layer: WlrLayer.Top

@@ -101,6 +101,13 @@ Rectangle {
         layer.enabled: true
         layer.textureSize: Qt.size(Math.max(1, Math.ceil(width / 4)), Math.max(1, Math.ceil(height / 4)))
         layer.smooth: true
+        // Saturation is applied ONCE per wallpaper change here on the cached
+        // 1/4-res layer texture, instead of every frame inside the card-sized
+        // blur MultiEffect below (audit P1.2 — the display MultiEffect no
+        // longer runs a saturation pass at all).
+        layer.effect: MultiEffect {
+            saturation: 0.25
+        }
         cache: true
         asynchronous: true
         smooth: true
@@ -128,7 +135,6 @@ Rectangle {
         blurEnabled: true
         blur: 0.5
         blurMax: 24
-        saturation: 0.25
         maskEnabled: true
         maskSource: maskRect
     }

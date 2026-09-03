@@ -144,7 +144,11 @@ Singleton {
             // cleanup PER ATTEMPT so no handler leaks, and a late failure from a
             // previous tap is not dropped (each attempt owns its own handlers;
             // no shared _connectingNet that gets silently retargeted).
-            const cleanup = function () {
+            // Function declarations (hoisted) so the parser never sees a
+            // "used before declared" ordering warning between the mutually
+            // referencing cleanup/handlers.
+            const cleanupTimer = cleanupTimerComp.createObject(root)
+            function cleanup() {
                 // Guard against double-run: failHandler, okHandler and the 8s
                 // timer can all fire close together; a second run would touch an
                 // already-destroyed cleanupTimer. Idempotent by design.
@@ -152,24 +156,21 @@ Singleton {
                 done = true
                 net.connectionFailed.disconnect(failHandler)
                 net.connectedChanged.disconnect(okHandler)
-                if (cleanupTimer) {
-                    cleanupTimer.onFire = null
-                    cleanupTimer.destroy()
-                }
+                cleanupTimer.onFire = null
+                cleanupTimer.destroy()
             }
-            const failHandler = function (reason) {
+            function failHandler(reason) {
                 cleanup()
                 root.connectionFailed(ConnectionFailReason.toString(reason))
             }
-            const okHandler = function () {
+            function okHandler() {
                 if (net.connected) cleanup()
             }
+            cleanupTimer.onFire = cleanup
             net.connectionFailed.connect(failHandler)
             net.connectedChanged.connect(okHandler)
             // Safety net: drop the handlers after 8s if neither signal fired
             // (covers genuinely dropped signals). Legitimate cleanup, not a UI state.
-            const cleanupTimer = cleanupTimerComp.createObject(root)
-            cleanupTimer.onFire = cleanup
             net.connect()
         } else {
             // Fallback: saved connection by profile name.

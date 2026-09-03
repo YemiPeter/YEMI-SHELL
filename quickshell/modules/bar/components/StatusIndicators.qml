@@ -52,11 +52,13 @@ Item {
                 color: QsSingletons.Theme.onGlow
             }
             
-            // Subtle pulse animation when active
+            // Subtle pulse animation when active. `running` gates both the
+            // flag and visibility: a `paused` binding on a stopped animation
+            // trips "setPaused() cannot be used when animation isn't running"
+            // on every load (audit B7).
             SequentialAnimation on opacity {
-                running: keepAwakeActive
+                running: keepAwakeActive && visible
                 loops: Animation.Infinite
-                paused: !visible
                 NumberAnimation { to: 0.7; duration: 1500; easing.type: Easing.InOutSine }
                 NumberAnimation { to: 1.0; duration: 1500; easing.type: Easing.InOutSine }
             }

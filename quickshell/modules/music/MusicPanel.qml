@@ -741,7 +741,7 @@ PanelWindow {
 
     Connections {
         target: root
-        onMusicVisibleChanged: {
+        function onMusicVisibleChanged() {
             if (root.musicVisible) {
                 focusTimer.start()
             }
