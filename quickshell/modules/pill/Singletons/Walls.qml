@@ -66,7 +66,8 @@ Singleton {
         // sole renderer, matching iNiR's backdrop.hideWallpaper semantics.
         // Keep the in-memory current so Backdrop shows the pick, and still run
         // the color pipeline.
-        if (QsSingletons.Flags.backdropHideWallpaper) {
+        // Niri-only: no Backdrop on Hyprland, so never skip the real paint (awww) here.
+        if (QsSingletons.Flags.backdropHideWallpaper && Compositor.isNiri) {
             root.current = path;
             // Still record the pick in the state file: WallpaperState (which
             // Backdrop actually renders) watches it, and it lets the awww
