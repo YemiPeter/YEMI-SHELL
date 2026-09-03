@@ -56,6 +56,81 @@ Item {
         readonly property real topGap: (barHeight - restH) / 2
     }
 
+    // ── Shadow window (Hyprland) ─────────────────────────────────────────────
+    // QML drop shadows are Niri-only (Compositor.qmlShadows): on Hyprland the
+    // pill overlay's layerrule blur composites blurred wallpaper behind every
+    // translucent pixel of the surface, so a QML shadow painted there reads
+    // as a frosted halo outside the pill's border. This separate surface
+    // carries ONLY the shadow, under its own namespace ("shell-shadow" —
+    // deliberately matches none of the blur layerrules, and avoids the
+    // substring "pill" since match:namespace is regex-based), so the shadow
+    // darkens the live wallpaper exactly like a normal drop shadow.
+    //
+    // Layer Top: always below the Overlay-layer pill surface, above tiled
+    // windows (a drop shadow cast over windows is expected). Zero mask keeps
+    // it click-through.
+    //
+    // The shadow is an SDF rounded-box shader (shaders/shadow.*.qsb) rather
+    // than MultiEffect: MultiEffect always draws its source silhouette, and
+    // an opaque silhouette here would show through the translucent pill
+    // above. The shader emits shadow-only alpha: zero inside the pill frame
+    // so it never tints the pill's own frost. Tuning mirrors the Niri QML
+    // shadow (0.45 alpha, vertical offset 4) so the compositors look alike.
+    PanelWindow {
+        id: shadowWin
+        screen: root.modelData
+
+        visible: Compositor.isHyprland && QsSingletons.Flags.barShadow
+        color: "transparent"
+        WlrLayershell.layer: WlrLayer.Top
+        WlrLayershell.namespace: "shell-shadow"
+        exclusionMode: ExclusionMode.Ignore
+
+        // Purely decorative — never take input.
+        mask: Region { width: 0; height: 0 }
+
+        anchors {
+            top: true
+            left: true
+            right: true
+            bottom: true
+        }
+
+        readonly property real s: overlay.s
+        readonly property real fadePx: 34 * s                 // falloff distance
+        readonly property real offY: 4 * s                    // cast downward
+        readonly property real strength: 0.45
+        readonly property real marginPx: fadePx + Math.abs(offY) + 8
+
+        // Pill frame in this window's scene coords. The window is unmargined,
+        // so these mirror the overlay's anchors.topMargin + horizontalCenter
+        // and track the pill morph through plain bindings.
+        readonly property real frameX: (width - pill.width) / 2
+        readonly property real frameY: overlay.overlayTopOffset + overlay.topGap
+
+        ShaderEffect {
+            x: shadowWin.frameX - shadowWin.marginPx
+            y: shadowWin.frameY - shadowWin.marginPx
+            width: pill.width + shadowWin.marginPx * 2
+            height: pill.height + shadowWin.marginPx * 2
+
+            // Fades out with the pill when a monitor goes fullscreen.
+            opacity: overlay.monFullscreen ? 0 : 1
+            Behavior on opacity {
+                NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
+            }
+
+            property vector4d uGeom: Qt.vector4d(width, height, pill.width, pill.height)
+            property vector4d uParams: Qt.vector4d(pill.morphRadius, shadowWin.fadePx, 0, shadowWin.offY)
+            property color uColor: Qt.rgba(0, 0, 0, shadowWin.strength)
+
+            vertexShader: "shaders/shadow.vert.qsb"
+            fragmentShader: "shaders/shadow.frag.qsb"
+        }
+    }
+
+    // ── Overlay window (WlrLayer.Overlay, full content) ──────────────────────
+
     // ── Overlay window (WlrLayer.Overlay, full content) ──────────────────────
     PanelWindow {
         id: overlay
