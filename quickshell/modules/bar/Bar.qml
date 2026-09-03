@@ -3,6 +3,7 @@ import QtQuick.Layouts 6.10
 import QtQuick.Effects
 import Quickshell
 import "../../components/effects"
+import "../common"
 import "../../config" as QsConfig
 import "../../services" as QsServices
 import "../../singletons" as QsSingletons
@@ -90,9 +91,17 @@ Item {
                 height: 28 * root.s
                 width: leftContent.implicitWidth + 16 * root.s
                 radius: 14
-                color: pillBg
+                // Aurora glass IS the fill (Glass layering contract — mirrors
+                // the center pill body); solid pillBg in the yemi style only.
+                color: QsSingletons.Theme.auroraActive ? "transparent" : pillBg
                 border.width: 1
                 border.color: pillBorder
+
+                Glass {
+                    anchors.fill: parent
+                    radius: leftModule.radius
+                    tintScale: root.pillAlpha
+                }
 
                 Behavior on width {
                     NumberAnimation {
@@ -190,9 +199,16 @@ Item {
                 height: 28 * root.s
                 width: connectivityContent.implicitWidth + 16 * root.s
                 radius: 14 * root.s
-                color: pillBg
+                // Aurora glass IS the fill (Glass layering contract).
+                color: QsSingletons.Theme.auroraActive ? "transparent" : pillBg
                 border.width: 1
                 border.color: pillBorder
+
+                Glass {
+                    anchors.fill: parent
+                    radius: connectivityPill.radius
+                    tintScale: root.pillAlpha
+                }
 
                 Behavior on width {
                     NumberAnimation {
@@ -279,9 +295,16 @@ Item {
                 height: 28 * root.s
                 width: audioContent.implicitWidth + 16 * root.s
                 radius: 14 * root.s
-                color: pillBg
+                // Aurora glass IS the fill (Glass layering contract).
+                color: QsSingletons.Theme.auroraActive ? "transparent" : pillBg
                 border.width: 1
                 border.color: pillBorder
+
+                Glass {
+                    anchors.fill: parent
+                    radius: audioPill.radius
+                    tintScale: root.pillAlpha
+                }
 
                 Behavior on width {
                     NumberAnimation {
@@ -368,9 +391,16 @@ Item {
                 height: 28 * root.s
                 width: powerContent.implicitWidth + 16 * root.s
                 radius: 14 * root.s
-                color: pillBg
+                // Aurora glass IS the fill (Glass layering contract).
+                color: QsSingletons.Theme.auroraActive ? "transparent" : pillBg
                 border.width: 1
                 border.color: pillBorder
+
+                Glass {
+                    anchors.fill: parent
+                    radius: powerPill.radius
+                    tintScale: root.pillAlpha
+                }
 
                 Behavior on width {
                     NumberAnimation {
