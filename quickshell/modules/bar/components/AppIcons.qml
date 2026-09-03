@@ -224,12 +224,14 @@ Item {
                     // Subtle shadow so each bare icon reads as floating over the
                     // wallpaper (the strip-level shadow can't show around a
                     // transparent glyph).
-                    layer.enabled: QsSingletons.Flags.barShadow
+                    layer.enabled: QsSingletons.Flags.barShadow || QsSingletons.Flags.barAppIconTint
                     layer.effect: MultiEffect {
-                        shadowEnabled: true
+                        shadowEnabled: QsSingletons.Flags.barShadow
                         shadowColor: Qt.rgba(0, 0, 0, 0.5)
                         shadowBlur: 0.5
                         shadowVerticalOffset: 1
+                        colorization: QsSingletons.Flags.barAppIconTint ? 1.0 : 0.0
+                        colorizationColor: root.theme.onGlow
                     }
                 }
 
@@ -246,12 +248,14 @@ Item {
                     smooth: true
                     source: root.brandIconsRoot + "fluent/app-generic.svg"
                     visible: !icon.visible
-                    layer.enabled: QsSingletons.Flags.barShadow
+                    layer.enabled: QsSingletons.Flags.barShadow || QsSingletons.Flags.barAppIconTint
                     layer.effect: MultiEffect {
-                        shadowEnabled: true
+                        shadowEnabled: QsSingletons.Flags.barShadow
                         shadowColor: Qt.rgba(0, 0, 0, 0.5)
                         shadowBlur: 0.5
                         shadowVerticalOffset: 1
+                        colorization: QsSingletons.Flags.barAppIconTint ? 1.0 : 0.0
+                        colorizationColor: root.theme.onGlow
                     }
                 }
 
@@ -263,7 +267,7 @@ Item {
                     width: cell.app && cell.app.focused ? 8 * root.s : 0
                     height: 2 * root.s
                     radius: 1
-                    color: root.theme.onGlow
+                    color: QsSingletons.Flags.barAppIconTint ? root.theme.cream : root.theme.onGlow
                     visible: width > 0
                     Behavior on width { NumberAnimation { duration: 140 } }
                 }
