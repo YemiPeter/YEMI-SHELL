@@ -3,7 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Effects
 
-import "../../singletons" as QsSingletons
+import "../../../singletons" as QsSingletons
 
 /**
  * Wallpaper crossfader: two-slot QML-based transition engine for backdrop

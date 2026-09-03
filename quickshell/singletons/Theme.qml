@@ -63,6 +63,9 @@ Singleton {
     readonly property color flameGlow: onGlow
     readonly property color flameCore: Qt.lighter(onGlow, 1.03)
 
+    /// Today-cell / held-tile warm accent (Ricelin dyn branch: onGlow).
+    readonly property color todayWarm: onGlow
+
     // --- Borders ------------------------------------------------------
     readonly property color border: QsConfig.Appearance.yemiBorder
 

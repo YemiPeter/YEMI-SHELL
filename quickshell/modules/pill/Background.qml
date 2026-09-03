@@ -6,7 +6,7 @@ import Quickshell
 import Quickshell.Io
 import qs.compositor
 import "../common"
-import "../../../config" as QsConfig
+import "../../config" as QsConfig
 import "Singletons"
 
 /**
@@ -133,7 +133,7 @@ SettingsSurface {
 
         Glass {
             anchors.fill: parent
-            radius: parent.parent.radius
+            radius: parent.radius
             tintScale: 1.0
         }
 
