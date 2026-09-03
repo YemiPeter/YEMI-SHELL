@@ -1,39 +1,29 @@
-# Audit 05 — Performance (qt-qml-profiler pass)
+# Audit 05 — Performance
+*Refreshed 2026-09-04 on branch `pill-perf`. Hardware: i3-1215U iGPU, 120Hz, Hyprland, aurora theme. Full plan with effort estimates: `plans/pill-perf-audit.md`.*
 
-## GPU / compositing
-**43 `MultiEffect` / `layer.enabled` / `ShaderEffectSource` usages in 19 files**
-(bar popups ×4, `Glass.qml`, `Tooltip`, `SettingsRow`, `Pill`, `Tray`,
-`MusicPanel`, `AltSwitcher`, `AppIcons`, dialogs, wallpaper path,
-`WallpaperCrossfader`).
+## Resolved since last audit ✅
+- ~~P0: per-frame warning storm on the render thread~~ — `a13b119`, `e15503c`. Biggest single win; the morph no longer fights thousands of JS exceptions + log writes.
+- ~~P1.1: Glass blurred a full-screen 1920×1080+bleed texture every morph frame~~ — ¼-res cached layer, ~16× less GPU work, `dc9b30b`.
+- ~~P1.2: saturation as a separate per-frame shader pass~~ — folded into the cached layer's `layer.effect`; runs once per wallpaper change, `b84983d`.
+- ~~P3: input-mask Region re-applied per morph frame~~ — verified already target-aware on open; close path intentionally tracks animated size so clicks never land on a vanished pill. Won't-fix by design.
+- ~~P4: wallpaper thumbnails decoded at full resolution~~ — verified already `sourceSize: 512×220`.
+- ~~P5: deprecation/hygiene log noise~~ — `b84983d`; steady-state log is clean.
 
-Wins, cheapest first:
-1. **Visibility-gate effects** — an effect on a hidden popup still costs a
-   layer + shader unless the effect itself is `visible: false`. Gate every
-   popup-effect on its window's visible state.
-2. **SettingsRow per-row layer effects** — settings surfaces instantiate many
-   rows; static icons should be pre-colored assets (fluent-white pattern)
-   instead of `layer.effect` colorization.
-3. **Backdrop blur/saturation/contrast** runs per-frame on Niri — fine, but
-   keep defaults conservative for weak GPUs (blurMax 64 is the ceiling; verify
-   only when radius > 0).
+## Open — where the remaining open-lag lives
 
-## Timers (~40)
-- ✅ two `interval: 1` one-shot startup kicks (SystemInfo, Updates) — fine.
-- 🟡 8×1000ms, 6×2000ms, 5×500ms, 3×300ms pollers. Convert to
-  `running: <surfaceVisible>` where they only feed UI (clock, network, battery),
-  and to event/watcher-driven where a FileView or daemon signal exists.
-- ✅ debounces (Mixer 160ms ×3, WallpaperListener 80ms) fine.
+### R1 — P2.1: layout feedback loops during the morph (~2h, needs approval)
+Several surfaces' `implicitHeight` depends on the animating pill width, so every morph frame re-lays-out all 18 eager surfaces. Fix: give each surface a width-independent `implicitHeight` (bind to content, not to `pill.width`-derived values).
 
-## Processes (47 `Process {}`)
-Poll-based ones → FileView watchers or signals. Biggest suspects: anything
-polling on an interval that just reads a file (battery, brightness, updates).
+### R2 — P2.2: Loader-gate the surfaces (~1 day, needs approval)
+`active: open || closingGrace` with the grace held one morph-duration after close for the fade-out. Eliminates the per-frame binding evaluation of closed surfaces entirely and makes per-screen duplication (D3) cheap. Biggest remaining structural win.
 
-## Log spam as a perf cost
-`Theme.flameGlow` undefined-assignment spam (4,104 warnings, see
-04-hidden-bugs B1) means binding re-evaluation + string formatting on every
-change — fixing B1–B3 is itself a performance win, not just correctness.
+### R3 — P1.3: double blur on Hyprland (design call, see audit 01 D1)
+QML Glass blur + compositor layerrule blur both run. Picking one halves the remaining per-frame blur cost.
 
-## Startup
-Two one-shot timers + 47 processes at boot: order non-critical probes
-(Updates availability, Weather, Devices) behind `Timer`/idle so the shell's
-first frame isn't competing for exec slots.
+## Measured state
+- `qs log` steady state: clean (only environmental H2 noise).
+- Glass GPU cost: ~130k px texture vs ~2MP before (16×).
+- Aurora-mode side pills: 4 small Glass blurs sampling the ¼-res texture — negligible.
+
+## Next recommended pass
+R1 + R2 together (they share the same files), after your call on R3. If the pill already feels snappy enough after the P0/P1 fixes, R2 alone gives the best effort-to-win ratio.

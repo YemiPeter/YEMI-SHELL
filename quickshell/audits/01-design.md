@@ -1,48 +1,27 @@
-# Audit 01 — Design (qt-ui-design + YemiWorkingRules pass)
+# Audit 01 — Design & Architecture
+*Refreshed 2026-09-04 on branch `pill-perf`. Outdated entries deleted; see git history for the old snapshot.*
 
-Scope: architecture, module design, theming consistency — not pixel-level UI.
+## Resolved since last audit ✅
+- ~~Shadow strategy split per compositor~~ — **done.** Single gate `Compositor.qmlShadows` (= `isNiri`) in `compositor/Compositor.qml`; every shadow site (Pill, Bar, Tray, AppIcons ×2) checks it. Hyprland gets zero QML shadows → the blur-halo bug class is closed.
+- ~~Side pills visually inconsistent with center pill~~ — **done.** All four bar clusters host `Glass` under `Theme.auroraActive` and step their fill aside, matching the center pill's contract (`2d5693f`).
+- ~~Glass blur cost~~ — **done.** ¼-res cached layer + saturation folded into the cache pass (`dc9b30b`, `b84983d`).
 
-## Architecture — what's right
-- `compositor/` facade (isNiri/isHyprland, `enabled:`-gated impls, normalized
-  data) is the correct abstraction. Keep it as the only place that imports
-  `Quickshell.Hyprland` / niri APIs.
-- White-fill asset pattern (`assets/icons/fluent-white/`) over shader
-  colorization — deterministic, theme-safe.
-- Flag persistence via `Flags.qml` JSON with live file-watch is a clean
-  cross-daemon contract.
+## Open design decisions
 
-## Design issues
+### D1 — Double blur on Hyprland (P1.3, needs your call)
+The pill's `Glass` blurs the wallpaper in QML **and** Hyprland's `layerrule = blur on` (namespaces `quickshell`, `pill`, `pill-tray`) blurs the same wallpaper behind the surface. Two full blur chains for one visual. Options:
+- **A.** Drop the QML Glass blur on Hyprland, lean on the layerrule (saves the most GPU; loses the aurora tint/saturation character; Niri path stays Glass-only).
+- **B.** Keep Glass, remove blur from the layerrules (one code path for both compositors; loses compositor-native blur on the bar strip).
+- **C.** Status quo (correct visuals, double cost).
+Recommendation: **B** — one blur implementation to tune, and it already matches Niri.
 
-### D1 — Settings row pattern duplication (refactor candidate)
-`Appearance.qml` → sub-cards (`BarPills.qml`) → `SettingsRow` +
-`SettingsSurface` now hand-declare every row with 5–6 repeated properties
-(`surface`, `captionOnFocus`, `sourceIcon`, `name`, `sub`, `last`). A
-declarative model (`ListElement` rows + `Repeater` + `Loader`) would cut
-~40% of settings-surface code and make new cards one-array changes.
-Follows YemiWorkingRules Rule #2 (traceable, mechanical) — propose, get
-approval before touching.
+### D2 — Eager surface instantiation (P2, needs approval)
+All 18 pill surfaces are created at startup and re-evaluate geometry bindings every morph frame; several surfaces' `implicitHeight` depends on the *animating* pill width → layout feedback loop during the 420ms morph. Two-phase fix in `plans/pill-perf-audit.md`: (1) break the loops (~2h), (2) `Loader`-gate surfaces with `active: open || closingGrace` (~1 day). This is where the remaining open-lag lives.
 
-### D2 — Theme property contract is implicit
-B1–B3 in 04-hidden-bugs exist because `Theme.<prop>` references are unchecked.
-Design fix: keep `Theme.qml` as the single palette source and add a `qmllint`
-pass (possible after the IMP-2 versioned-import sweep) so missing properties
-become build-time errors instead of 4k runtime warnings.
+### D3 — Per-screen duplication
+`PillOverlay.qml` uses `Variants` per screen — each screen gets its own full pill + surface tree. Fine for 1–2 monitors; with 3+, the eager-instantiation cost (D2) multiplies. Loader-gating D2 makes this cheap by construction.
 
-### D3 — `modules/pill` is a monolith
-~40+ files in one folder: services (Singletons/), dialogs, settings surfaces,
-bar items all mixed. The reorg already started (`modules/bar`, `modules/
-background`); next split: `pill/dialogs/`, `pill/settings/`, and promote
-`pill/Singletons/` → `services/` (it already holds real daemons like
-ScreenRec, Notifs, Weather).
-
-### D4 — Compositor parity contract (the regression watchlist)
-Every new surface must declare its compositor story at creation:
-background layers → `isNiri || doublePaint` gating (Backdrop/Wallpaper
-pattern); config writers → niri/hyprland pair or explicit gate. Codify this
-as a one-line comment header convention on files touching compositor APIs.
-
-## Accessibility / consistency spot checks
-- Toast/Osd/Tooltip each hand-roll their fade; a shared `SurfaceFade`
-  behavior would standardize timing with `Flags.reduceMotion` respect.
-- `Flags.reduceMotion` exists but is not consulted by the new settings
-  transitions — wire it into the shared fade (pairs with D-fix above).
+## Invariants to keep (do not regress)
+- `Glass` must be the surface itself in aurora mode — never paint a card fill on top of it (double-dim).
+- No translucent decorative pixels (shadows, glows) on blur-enabled layer surfaces on Hyprland.
+- `Compositor.qmlShadows` is the only shadow gate; don't add per-file compositor checks.

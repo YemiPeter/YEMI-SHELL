@@ -1,42 +1,25 @@
-# Audit 02 — Code Review (qt-qml-review lint pass)
+# Audit 02 — Code Review
+*Refreshed 2026-09-04 on branch `pill-perf`.*
 
-Deterministic lint across all tracked `.qml` files.
+## Resolved since last audit ✅
+- ~~`Updates.qml` missing `import Quickshell`~~ (B4) — fixed `e15503c`.
+- ~~`Background.qml` / `WallpaperCrossfader.qml` broken relative import paths~~ (B3/B5) — fixed `e15503c`.
+- ~~`Background.qml` `parent.parent.radius` fragile chain~~ — fixed `e15503c`.
+- ~~`Network.qml` used-before-declared handler vars~~ — hoisted, `b84983d`.
+- ~~`MusicPanel.qml` deprecated Connections syntax~~ — `b84983d`.
+- ~~`PillOverlay.qml` reserve window `height` → `implicitHeight`~~ (B6) — `b84983d`.
+- ~~Glass `saturationEnabled`~~ — property doesn't exist in this Qt build; saturation auto-enables. Correct final form shipped in `b84983d`.
 
-## IMP-2 — Versioned imports: 45 occurrences
-Qt 6 dropped version numbers; they cap API surface and block `qmlsc`
-compilation. Examples of the pattern: `import QtQuick 6.10`,
-`import QtQuick.Controls 6.x`, etc. (45 files/lines).
-**Fix:** mechanical sweep — strip versions from all Qt module imports.
-High-value because `qmlsc`/`qmllint` type inference unlocks the rest.
+## Open findings
 
-## IMP-3 — Plain `QtQuick.Controls` + deep customization: 6 files
-Customizing `contentItem` / `background` / `indicator` while importing the
-style-agnostic module can render differently per style:
-- `pill/Calendar.qml`
-- `pill/FontPicker.qml`
-- `pill/Keybinds.qml`
-- `pill/LinkWifi.qml`
-- `pill/SearchField.qml`
-- `pill/Background.qml`
-**Fix:** `import QtQuick.Controls.Basic` in these six.
+### C1 — Load-transient `Calendar[656]` warnings (low)
+`Dyn.primary` is undefined until matugen's `colors.json` lands at startup; Calendar binds against it eagerly. Fix: startup fallback palette in `config/Appearance.qml`. Cosmetic — one burst at boot, then silent.
 
-## IMP-4 — Import ordering
-No file passed full Qt→third-party→local ordering check; non-blocking,
-`qmlformat --sort-imports` would settle it in one pass.
+### C2 — `qmllint` unqualified-member-access infos (info-level)
+`qmllint` reports many `unqualified` member accesses across the pill modules (e.g. ids referenced from nested delegates). They run fine, but each one is a lookup that walks the scope chain and a future name-collision hazard. Worth a gradual cleanup when touching a file anyway; not a dedicated pass.
 
-## IMP-1/IMP-5/IMP-6 — clean
-No `Qt.include()`, no duplicate imports, no version-incompatible patterns
-found. Good.
+### C3 — `Glass.screenPos` alignment assumption (documented, keep in mind)
+Glass aligns to the wallpaper via `screenPos` math that assumes the window is top-anchored at the screen origin with no margins. True for the bar and pill overlay today. If a future surface uses margins/offsets, its Glass frost will sample the wrong wallpaper region silently. Consider an assertion or a comment at the next Glass call site.
 
-## Binding hygiene (deep-analysis spot checks)
-- `Backdrop.qml`: the explicit `Connections { onCurrentChanged … }` forwarding
-  of `WallpaperState.current` works around flaky singleton bindings — works,
-  but is a smell; a single `readonly property` chain through `Flags`/state
-  would be cleaner.
-- `WallpaperCrossfader.qml`: assigns `undefined` into int/QString bindings
-  (see 04-hidden-bugs B3) — the binding chain, not the widget, is at fault.
-
-## Composability note (YemiWorkingRules §architecture)
-Settings surfaces (SettingsRow/SettingsSurface/BarPills) now duplicate a
-row-declaration pattern that could be one declarative model + Repeater. Not a
-bug — flag for the design pass.
+### C4 — Duplicated pill-cluster markup in `Bar.qml` (maintainability)
+The four side-pill clusters repeat the same Glass + highlight + border block four times with only content differing. A `BarPill.qml` component would collapse ~120 lines into one definition and make the next theme-wide change a single edit. Low priority, good hygiene.

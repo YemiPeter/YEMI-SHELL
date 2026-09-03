@@ -1,32 +1,24 @@
-# Audit 03 — Dead Code (unused symbols pass)
+# Audit 03 — Dead Code
+*Refreshed 2026-09-04 on branch `pill-perf`. Method: grep-verified zero references for every entry.*
 
-Method: defined-function scan vs. whole-tree call-site count. **Candidates
-only** — each needs one manual confirmation (some are IPC handlers or signal
-handlers invoked from outside QML).
+## Resolved since last audit ✅
+- ~~`Compositor.hasLayerBlur`~~ — interim flag, removed when `qmlShadows` landed; zero references.
+- ~~`modules/pill/shaders/`~~ — experimental Hyprland shadow shader (vert/frag/qsb ×2); removed when the approach was abandoned.
+- ~~`Theme.flameGlow` / `flameCore` / `todayWarm`~~ — were *referenced-but-undeclared* (worse than dead); now declared and live (`a13b119`, `e15503c`).
 
-## Confirmed dead / remove after check
-| Location | Symbol | Note |
-|---|---|---|
-| `pill/Singletons/Sysmon.qml` | `keepAlive`, `releaseKeepAlive`, `updateHistories` | no call sites anywhere |
-| `pill/Look.qml` | `resetToDefault()` | no call sites (settings UI has no "reset" wired) |
-| `pill/LinkWifi.qml` | `syncPwField()` | no call sites |
-| `common/widgets/WallpaperCrossfader.qml` | `_travelDistance` | internal helper, unused |
+## Verified clean ✅
+- **Theme singleton**: every `Theme.<token>` referenced anywhere in `modules/` is declared in `singletons/Theme.qml` (checked by extracting all declared properties + functions vs all referenced tokens). Zero dangling references. `Theme.joinArtists` (function, `Theme.qml:107`) is live — used by `Media.qml:51` and `Osd.qml:49`.
+- **Flags**: spot-checked `pillBlur`, `backdropEnableAnimatedBlur`, `wallpaperEnableAnimatedBlur`, `barShadow` — all have live consumers.
+- **Versioned imports**: zero `import Qt*.x.y` versioned imports remain in the tree.
+- **`_travelDistance`**: only its definition site; no external callers — it's a private helper, fine.
 
-## Likely dead (verify against `qs ipc` usage first)
-`pill/shell.qml` exposes many single-word functions (`battery`, `bluetooth`,
-`calendar`, `clipboard`, `hide`, `keybinds`, `launcher`, `link`, `media`,
-`mixer`, …) with no QML call sites — most are **IPC handlers** called via
-`qs ipc call <obj> <fn>`. Cross-check each against `~/.config/hypr/modules/
-binds.lua` and any niri keybind spawn lines before deleting; anything not
-bound and not called is dead.
+## Candidates (verify before deleting)
 
-## False positives (do NOT remove)
-`onXxxChanged` handlers, `decide` (Ame.qml), `toggleSilent` (Notifs.qml),
-`call` (Workspaces) — these are signal handlers / externally invoked.
+### X1 — `keepAlive` / `restartIfRunning` pattern sweep
+Earlier audit flagged possible unused process-keepalive plumbing. Current grep shows the pattern exists but each instance needs a consumer check before removal. **Do not bulk-delete** — some are load-bearing for services that must respawn (e.g. network polling).
 
-## Dead-flag suspects (logic dead code)
-- `Flags.backdropEnableAnimatedBlur` + `wallpaperEnableAnimatedBlur` +
-  `wallpaperAnimatedBlurStrength`: gated flags whose feature paths only run
-  in double-paint mode now — check reachability after the §1 isolation fixes.
-- `Flags.wallpaperMultiMonitorEnable`, `wallpaperSelectionTarget` — need a
-  reachability check in Background.qml settings.
+### X2 — Old shadow-related Flags
+If `Flags` grew any Hyprland-shadow experiment toggles during the shader attempt, they're orphaned now. Next time `singletons/Flags.qml` is open, cross-check its keys against `~/.local/state/quickshell/flags.json` and delete any key neither the QML nor the JSON references.
+
+## Policy note
+This repo's audits explicitly hunt orphaned flags/tokens. The `qmlShadows` refactor established the pattern: **one semantic gate in the compositor singleton, deleted interim flags immediately** — keep following it.
