@@ -14,6 +14,28 @@ Item {
     // never have to string-compare runningCompositor in every binding).
     readonly property bool isNiri: runningCompositor === "niri"
     readonly property bool isHyprland: runningCompositor === "hyprland"
+
+    /**
+     * True when the compositor applies its own blur to quickshell's layer
+     * surfaces (Hyprland: `layerrule = blur on, match:namespace quickshell|pill`).
+     *
+     * QML-side drop shadows must be suppressed when this is set: the layer
+     * blur is drawn behind EVERY translucent pixel of the layer surface, so
+     * a shadow painted outside a card's border reads as a frosted halo of
+     * blurred wallpaper instead of a shadow. On such compositors the
+     * compositor blur itself lifts the card. Niri has no layer blur yet, so
+     * QML shadows render there as designed.
+     */
+    /**
+     * Gate for ALL QML-side drop shadows. Shadows are a Niri-only feature:
+     * Hyprland's layer blur composites blurred wallpaper behind every
+     * translucent pixel of a layer surface, so any QML shadow (built from
+     * the item's alpha silhouette) reads as a frosted halo outside the
+     * card's border there — and the compositor blur already lifts cards.
+     * Flip this to `true` (or per-compositor logic) when a Hyprland-safe
+     * shadow path exists; every shadow site checks this one flag.
+     */
+    readonly property bool qmlShadows: isNiri
     
     // Reference to the actual implementation based on detected compositor.
     // Backend instances are Loader-gated below: only the backend matching the

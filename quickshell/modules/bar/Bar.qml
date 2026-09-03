@@ -49,7 +49,14 @@ Item {
 
         // Drop shadow behind the whole strip so the floating bar reads as
         // lifted off the wallpaper (matches the popup shadow style).
-        layer.enabled: QsSingletons.Flags.barShadow
+        //
+        // QML shadow is Niri-only (Compositor.qmlShadows): on Hyprland the
+        // MultiEffect builds the shadow from the layer's alpha silhouette,
+        // so every translucent surface in the strip (side pills, icons)
+        // gets its own shadow halo, and the layerrule blur shows blurred
+        // wallpaper through it OUTSIDE each pill's border. The compositor
+        // blur already lifts the strip there.
+        layer.enabled: QsSingletons.Flags.barShadow && Compositor.qmlShadows
         layer.effect: MultiEffect {
             shadowEnabled: true
             shadowColor: Qt.rgba(0, 0, 0, 0.45)
