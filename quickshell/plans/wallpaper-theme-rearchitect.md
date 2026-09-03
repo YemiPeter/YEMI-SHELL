@@ -1,5 +1,13 @@
 # Wallpaper & Theme Rearchitecture — Implementation Plan
 
+> **STATUS (updated 2026-09-04, verified against live tree):**
+> - ✅ Phases 1–3 substantially LANDED: `Walls.qml` now dispatches through
+>   `Compositor.runningCompositor` (lines 81/169/242), colors.json v2 is live.
+> - ❌ **Phase 6 is still OPEN**: `skwd-daemon` is systemd-**active** and the
+>   dead bridge services (`AwwwBackend.qml`, `Wallpapers.qml`,
+>   `WallpaperListener.qml`) are still present in `services/`.
+>   Finishing this plan = Phase 5 (Niri startup hook) + Phase 6 only.
+
 Status: **planning checkpoint**. No rearchitect code has been written yet.
 Established: 2026-08-28, after 7 diagnostic passes + 2 follow-up reviews.
 
