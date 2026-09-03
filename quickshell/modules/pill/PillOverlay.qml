@@ -115,9 +115,11 @@ Item {
         function updateFullscreen(): void {
             var desktop = Quickshell.env("XDG_CURRENT_DESKTOP");
             if (desktop && desktop.toLowerCase().indexOf("niri") >= 0) {
-                if (!niriFsProc.running) {
-                    niriFsProc.output = "";
-                    niriFsProc.running = true;
+                // niriFsProc is Loader-gated (Niri-only); null when inactive.
+                var proc = niriFsLoader.item
+                if (proc && !proc.running) {
+                    proc.output = "";
+                    proc.running = true;
                 }
                 return;
             }
@@ -129,8 +131,13 @@ Item {
             }
         }
 
-        // Niri fullscreen detection via niri msg -j windows IPC
-        Process {
+        // Niri fullscreen detection via niri msg -j windows IPC.
+        // Loader-gated: the Process is never constructed off-Niri; callers
+        // null-check niriFsLoader.item.
+        Loader {
+            id: niriFsLoader
+            active: Compositor.isNiri
+            sourceComponent: Process {
             id: niriFsProc
             property string output: ""
             command: ["niri", "msg", "-j", "windows"]
@@ -168,7 +175,8 @@ Item {
                 }
             }
           }
-          
+        }
+
           // Hyprland fullscreen detection via hyprctl activeworkspace -j
           Process {
             id: hyprFsProc
