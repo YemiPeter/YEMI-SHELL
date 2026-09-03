@@ -287,8 +287,12 @@ ShellRoot {
 
     // Alt+Tab window overview (see modules/altswitcher/AltSwitcher.qml).
     // Driven by the `altSwitcher` IpcHandler below; niri Alt+Tab / Alt+Shift+Tab binds call next/previous.
+    // Niri-only: Loader-gated so the component (and its window/monitoring)
+    // is never instantiated on Hyprland. All `altSwitcher` IPC callers
+    // null-check altSwitcherLoader.item.
     Loader {
         id: altSwitcherLoader
+        active: Compositor.isNiri
         source: "modules/altswitcher/AltSwitcher.qml"
     }
 
