@@ -16,11 +16,11 @@ import QtQuick
 QtObject {
     id: mood
 
-    // --- Surfaces (pure black / near-black) ---------------------------
-    readonly property color tileBg: "#000000"
-    readonly property color cardTop: "#141414"
-    readonly property color cardBot: "#0d0d0d"
-    readonly property color ghost: "#3a3a3a"
+    // --- Surfaces (warm dark, Ricelin parity) -------------------------
+    readonly property color tileBg: "#211711"
+    readonly property color cardTop: "#2e231b"
+    readonly property color cardBot: "#221813"
+    readonly property color ghost: "#594636"
 
     // --- Text (near-white ramp) ---------------------------------------
     readonly property color cream: "#f0f0f0"
@@ -30,10 +30,10 @@ QtObject {
     readonly property color faint: "#757575"
     readonly property color iconDim: "#a0a0a0"
 
-    // --- Borders ------------------------------------------------------
-    readonly property color border: "#3a3a3a"
-    readonly property color hair: "#2a2a2a"
-    readonly property color hairSoft: "#1f1f1f"
+    // --- Borders (warm brown, blends with warm surfaces) --------------
+    readonly property color border: "#3a2a22"
+    readonly property color hair: "#2a1d17"
+    readonly property color hairSoft: "#1f1612"
 
     // --- Effects ------------------------------------------------------
     property real shadowStrength: 0.55
