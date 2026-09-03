@@ -1,5 +1,23 @@
 # Pill Performance Audit — open-path latency & jank
 
+> **STATUS — FINAL MARK (2026-09-03, branch `pill-perf`)**
+>
+> | Item | Status | Commit / note |
+> |---|---|---|
+> | P0 — flameGlow/flameCore/todayWarm storm | ✅ done | `a13b119`, `e15503c` — steady-state log clean |
+> | P1.1 — Glass ¼-res texture (RAM + GPU) | ✅ done | `dc9b30b` (sourceSize + layer.textureSize) |
+> | P1.2 — saturation folded into cached layer | ✅ done | `b84983d` — one pass per wallpaper change, zero per-frame |
+> | P1.3 — single-blur decision (Glass vs layerrule) | ⏳ OPEN — design decision | both blurs still run on Hyprland; halving needs a call |
+> | P2.1 — implicitHeight↔width feedback loops | ⏳ OPEN — needs approval | ~2 h mechanical audit of 18 surfaces |
+> | P2.2 — Loader-gate surfaces | ⏳ OPEN — needs approval | ~0.5–1 day refactor |
+> | P3 — input mask per-frame updates | ✅ won't-fix (by design) | `pillRegion` already Math.max's target geometry, so the open path snaps once; the close path tracks the animated size intentionally so clicks never land on a vanished pill |
+> | P4 — wallpaper thumb decode-at-size | ✅ already satisfied | thumbs decode at 512×220 |
+> | P5 — log hygiene (B4/B5/B6/B7, used-before-declared, Connections) | ✅ done | `e15503c`, `b84983d` |
+>
+> Extra (outside audit): side pills joined the aurora glass theme (`2d5693f`).
+> Verified: steady-state `qs log` carries no binding/deprecation warnings —
+> only the stale recorder thumbnail and a ddcutil hardware read timeout.
+
 **Date:** 2026-09-03
 **Compositor in effect:** Hyprland 0.55.4 · themeStyle `aurora` (Glass live)
 **Hardware reality:** i3-1215U UHD Graphics (iGPU), 1080p @ 120 Hz
