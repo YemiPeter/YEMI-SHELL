@@ -54,7 +54,6 @@ graph TD
   - `globalWallpaperPath`: Current wallpaper from config
   - `autoWallpaperEnabled`: Auto-cycling toggle
   - `autoWallpaperInterval`: Rotation interval (minutes)
-  - `autoWallpaperGenerateColors`: Color regeneration on rotate
 
 **Methods:**
 - `apply(path, darkMode, monitorName)` - Apply wallpaper to target
@@ -287,8 +286,6 @@ graph TD
 | `wallpaperSelectionTarget` | string | "" | Target for wallpaper selection |
 | `autoWallpaperEnable` | bool | false | Auto-cycle wallpapers |
 | `autoWallpaperInterval` | int | 30 | Rotation interval (minutes) |
-| `autoWallpaperGenerateColors` | bool | true | Regenerate colors on rotate |
-| `autoWallpaperFolder` | string | "" | Source folder for auto-rotation |
 | `wallpapersDirectory` | string | "" | Wallpaper directory path |
 | `wallpaperEnableAnimation` | bool | false | Enable GIF/video animation |
 | `wallpaperEnableBlur` | bool | false | Enable wallpaper blur |
