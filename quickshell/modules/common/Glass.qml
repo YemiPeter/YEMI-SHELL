@@ -90,7 +90,17 @@ Rectangle {
         source: root.active && QsSingletons.WallpaperState.current !== ""
             ? "file://" + QsSingletons.WallpaperState.current : ""
         fillMode: Image.PreserveAspectCrop
-        sourceSize: Qt.size(Math.max(1, Math.ceil(width)), Math.max(1, Math.ceil(height)))
+        // Decode + hold the wallpaper at 1/4 resolution on both the RAM side
+        // (sourceSize) and the GPU side (layer.textureSize): the blur kernel
+        // (blurMax >= 24) completely hides the 4x upsampling, while the
+        // sampled texture drops from ~2MP to ~130k pixels. This is what makes
+        // the per-frame re-blur during pill morphs affordable on iGPUs
+        // (pill-perf audit P1.1). Geometry is untouched, so the screenPos
+        // alignment contract above still holds.
+        sourceSize: Qt.size(Math.max(1, Math.ceil(width / 4)), Math.max(1, Math.ceil(height / 4)))
+        layer.enabled: true
+        layer.textureSize: Qt.size(Math.max(1, Math.ceil(width / 4)), Math.max(1, Math.ceil(height / 4)))
+        layer.smooth: true
         cache: true
         asynchronous: true
         smooth: true
