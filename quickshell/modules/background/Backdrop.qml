@@ -97,7 +97,10 @@ PanelWindow {
         id: wallFx
         anchors.fill: wallContainer
         source: root.isGif ? wallContainer : wall
-    visible: QsSingletons.Flags.backdropEnable
+        // Effects apply to the QML-rendered backdrop, which is Niri-only; an
+        // explicit gate here stops blur/saturation/contrast bindings from
+        // evaluating at all when the layer itself is off (Hyprland).
+        visible: QsSingletons.Flags.backdropEnable && Compositor.isNiri
 
     // The WallpaperState singleton's `current` change isn't always picked up by
     // the readonly-property binding chain in time (singleton change signals
