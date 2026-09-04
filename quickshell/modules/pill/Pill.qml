@@ -77,6 +77,37 @@ Item {
     readonly property bool barPillsOpen: surface === "barpills"
     readonly property bool backgroundOpen: surface === "background"
     readonly property bool settingsLike: settingsOpen || appearanceOpen || updatesOpen || barPillsOpen
+
+    /**
+     * Loader-gated surfaces stay instantiated through their close fade via
+     * this single grace slot: `closingGraceSurface` holds the name of the
+     * surface that closed (or was switched away from) most recently, for one
+     * morph duration. PillSurface's opacity fade-out animates over
+     * Motion.morph, so deactivating a Loader the frame `open` flips false
+     * would cut the fade mid-animation; a gated surface's `active` reads
+     * `pill.<x>Open || pill.closingGraceSurface === "<x>"`. Only one surface
+     * can be open at a time, so one slot suffices.
+     */
+    property string closingGraceSurface: ""
+    property string lastSurface: ""
+    Timer {
+        id: closingGraceTimer
+        // +50 ms so the fade-out's final frame isn't raced by the expiry.
+        interval: Motion.morph + 50
+        onTriggered: pill.closingGraceSurface = ""
+    }
+    onSurfaceChanged: {
+        const prev = lastSurface;
+        if (surface.length > 0) {
+            lastSurface = surface;
+            // Direct sub-surface switch (settings -> keybinds): surfaceOpen
+            // never flips, so hand the outgoing surface the grace slot here.
+            if (prev.length > 0 && prev !== surface) {
+                closingGraceSurface = prev;
+                closingGraceTimer.restart();
+            }
+        }
+    }
     /**
      * Actually PLAYING right now — not merely a registered MPRIS endpoint.
      * Browsers (Firefox/Chromium) expose an MPRIS player permanently and
@@ -189,7 +220,7 @@ Item {
         bluetooth: { size: () => Qt.size(linkBt?.desiredW ?? 286 * s, (linkBt?.implicitHeight ?? 0) + 26 * s), ame: linkBt },
         battery: { size: () => Qt.size(batteryW, (battery?.implicitHeight ?? 0) + 36 * s), ame: battery },
         settings:  { size: () => Qt.size(settingsW, (settings?.implicitHeight ?? 0) + 29 * s), ame: settings },
-        keybinds:  { size: () => Qt.size(keybindsW, (keybinds?.implicitHeight ?? 0) + 29 * s), ame: keybinds },
+        keybinds:  { size: () => Qt.size(keybindsW, (keybindsLoader.item?.implicitHeight ?? 0) + 29 * s), ame: keybindsLoader.item ?? null },
         recorder:  { size: () => Qt.size(recorderW, (recorder?.implicitHeight ?? 0) + 33 * s), ame: recorder },
         sysmon:    { size: () => Qt.size(sysmonW, (sysmon?.implicitHeight ?? 0) + 33 * s), ame: sysmon },
         appearance: { size: () => Qt.size(appearanceW, (appearance?.implicitHeight ?? 0) + 29 * s), ame: appearance },
@@ -300,7 +331,7 @@ Item {
      */
     function keybindsMove(dir) {
         if (pill.keybindsOpen)
-            keybinds?.move(dir);
+            keybindsLoader.item?.move(dir);
     }
 
     /**
@@ -309,10 +340,10 @@ Item {
      */
     function keybindsActivate() {
         if (pill.keybindsOpen)
-            keybinds?.activate();
+            keybindsLoader.item?.activate();
     }
 
-    readonly property bool keybindsListening: pill.keybindsOpen && (keybinds?.listening ?? false)
+    readonly property bool keybindsListening: pill.keybindsOpen && (keybindsLoader.item?.listening ?? false)
 
     /**
      * A tile was picked in the standalone quick-record chooser. Screen with several
@@ -356,8 +387,8 @@ Item {
      */
     function surfaceBack() {
         if (pill.keybindsOpen) {
-            if (keybinds?.formOpen)
-                keybinds?.closeForm();
+            if (keybindsLoader.item?.formOpen)
+                keybindsLoader.item?.closeForm();
             else
                 pill.requestSurface("settings");
             return;
@@ -382,8 +413,8 @@ Item {
      * form was open and dismissed, false otherwise so Escape closes the surface.
      */
     function keybindsBack() {
-        if (pill.keybindsOpen && keybinds?.formOpen) {
-            keybinds?.closeForm();
+        if (pill.keybindsOpen && keybindsLoader.item?.formOpen) {
+            keybindsLoader.item?.closeForm();
             return true;
         }
         return false;
@@ -447,11 +478,21 @@ Item {
             power?.releaseFocused();
     }
 
-    onSurfaceOpenChanged: if (surfaceOpen) {
-        pinned = false;
-        if (quickHere && ScreenRec.quickChoosing) {
-            ScreenRec.quickChoosing = false;
-            ScreenRec.quickScreenChoosing = false;
+    onSurfaceOpenChanged: {
+        if (surfaceOpen) {
+            pinned = false;
+            if (quickHere && ScreenRec.quickChoosing) {
+                ScreenRec.quickChoosing = false;
+                ScreenRec.quickScreenChoosing = false;
+            }
+            // A surface opened: nothing needs the grace slot.
+            closingGraceSurface = "";
+            closingGraceTimer.stop();
+        } else if (lastSurface.length > 0) {
+            // Closed: hold the outgoing surface's Loader active through its
+            // opacity fade-out (one morph duration, see closingGraceSurface).
+            closingGraceSurface = lastSurface;
+            closingGraceTimer.restart();
         }
     }
 
@@ -1396,13 +1437,21 @@ Item {
         onRequestSurface: (name) => pill.requestSurface(name)
     }
 
-    Keybinds {
-        id: keybinds
-        s: pill.s
-        open: pill.keybindsOpen
-        morphCloseness: pill.morphCloseness
-        onRequestClose: pill.requestClose()
-        onRequestSurface: (name) => pill.requestSurface(name)
+    Loader {
+        id: keybindsLoader
+        // active follows open plus the close-grace slot so the PillSurface
+        // opacity fade-out completes before the item is destroyed.
+        active: pill.keybindsOpen || pill.closingGraceSurface === "keybinds"
+        anchors.fill: parent
+
+        sourceComponent: Keybinds {
+            id: keybinds
+            s: pill.s
+            open: pill.keybindsOpen
+            morphCloseness: pill.morphCloseness
+            onRequestClose: pill.requestClose()
+            onRequestSurface: (name) => pill.requestSurface(name)
+        }
     }
 
     Recorder {
