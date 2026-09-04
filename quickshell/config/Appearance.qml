@@ -157,10 +157,14 @@ Singleton {
     /// Canonical surface alpha — SINGLE source of truth for pill/bar/popup
     /// solidity. One knob, applied everywhere so once it is solid, everything
     /// is solid. Niri has no layer-blur backends wired, so every surface there
-    /// renders fully solid regardless of Flags.pillOpacity; Hyprland honors the
-    /// Look → Pill opacity stepper. This replaces the two previously-duplicated
-    /// `pillAlpha` copies (Pill.qml / Bar.qml).
-    readonly property real pillAlpha: Compositor.isNiri ? 1.0 : QsSingletons.Flags.pillOpacity
+    /// renders fully solid regardless of Flags.pillOpacity. On Hyprland the
+    /// Look → Pill opacity stepper is honored ONLY while aurora (Glass mode) is
+    /// active — solid mode is always fully opaque, no matter the slider value.
+    /// This replaces the two previously-duplicated `pillAlpha` copies
+    /// (Pill.qml / Bar.qml).
+    readonly property real pillAlpha: Compositor.isNiri
+        ? 1.0
+        : (QsSingletons.Theme.auroraActive ? QsSingletons.Flags.pillOpacity : 1.0)
 
     /// Resolved pill/bar/popup surface color (solid base @ pillAlpha). Every bar
     /// cluster and popup reads this token so the solid/translucent look is uniform
