@@ -184,8 +184,8 @@ Singleton {
     // NOT leak the dynamic token. Do not simplify this back to a bare
     // Dyn.outlineVariant read. Context: audits/06-pill-ui-border-drift.md.
     readonly property color yemiBorder: QsSingletons.Dyn.schemeValid ? (isDynamic ? QsSingletons.Dyn.outlineVariant : activeMood.border) : activeMood.border
-    readonly property color yemiPrimary: isGrayscaleStatic ? "#a0a0a0" : (isDynamic ? QsSingletons.Dyn.primary : QsSingletons.Dyn.primary)
-    readonly property color yemiPrimaryContainer: isGrayscaleStatic ? "#505050" : (isDynamic ? QsSingletons.Dyn.primaryContainer : QsSingletons.Dyn.primaryContainer)
+    readonly property color yemiPrimary: isGrayscaleStatic ? "#a0a0a0" : QsSingletons.Dyn.primary
+    readonly property color yemiPrimaryContainer: isGrayscaleStatic ? "#505050" : QsSingletons.Dyn.primaryContainer
 
     // --- Flame string tokens (always #rrggbb) -------------------------
     // Read from yemiPrimary/yemiPrimaryContainer so the grayscale override
