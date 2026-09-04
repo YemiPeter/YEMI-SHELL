@@ -132,17 +132,17 @@ Item {
     readonly property real hoverPad: 20 * s
     readonly property real hoverW: hoverRow.implicitWidth + 2 * hoverPad
     readonly property real hoverH: 58 * s
-    readonly property real mixerW: 93 * Math.max(4, mixer.faderCount) * s
+    readonly property real mixerW: 93 * Math.max(4, mixer?.faderCount ?? 4) * s
     readonly property real mixerH: 214 * s
-    readonly property real calendarW: (calendar.implicitWidth > 0 ? calendar.implicitWidth : 282 * s) + 36 * s
-    readonly property real calendarH: calendar.implicitHeight + 32 * s
+    readonly property real calendarW: (calendar && calendar.implicitWidth > 0 ? calendar.implicitWidth : 282 * s) + 36 * s
+    readonly property real calendarH: (calendar?.implicitHeight ?? 0) + 32 * s
     readonly property real launcherW: 360 * s
     readonly property real launcherH: 332 * s
     readonly property real clipboardW: 360 * s
     readonly property real clipboardH: 332 * s
     readonly property real wallpaperW: 720 * s
     readonly property real wallpaperH: 172 * s
-    readonly property real powerW: (power.contentWidth > 0 ? power.contentWidth : 330 * s) + 34 * s
+    readonly property real powerW: (power && power.contentWidth > 0 ? power.contentWidth : 330 * s) + 34 * s
     readonly property real powerH: 150 * s
     readonly property real mediaW: 390 * s
     readonly property real mediaH: 150 * s
@@ -185,24 +185,24 @@ Item {
         power:     { size: () => Qt.size(powerW, powerH), ame: power },
         media:     { size: () => Qt.size(mediaW, mediaH), ame: media },
         mixer: { size: () => Qt.size(mixerW, mixerH), ame: mixer },
-        link: { size: () => Qt.size(link.desiredW, link.implicitHeight + 26 * s), ame: link },
-        bluetooth: { size: () => Qt.size(linkBt.desiredW, linkBt.implicitHeight + 26 * s), ame: linkBt },
-        battery: { size: () => Qt.size(batteryW, battery.implicitHeight + 36 * s), ame: battery },
-        settings:  { size: () => Qt.size(settingsW, settings.implicitHeight + 29 * s), ame: settings },
-        keybinds:  { size: () => Qt.size(keybindsW, keybinds.implicitHeight + 29 * s), ame: keybinds },
-        recorder:  { size: () => Qt.size(recorderW, recorder.implicitHeight + 33 * s), ame: recorder },
-        sysmon:    { size: () => Qt.size(sysmonW, sysmon.implicitHeight + 33 * s), ame: sysmon },
-        appearance: { size: () => Qt.size(appearanceW, appearance.implicitHeight + 29 * s), ame: appearance },
-        updates:    { size: () => Qt.size(updatesW, updates.implicitHeight + 29 * s), ame: updates },
-        display:    { size: () => Qt.size(displayW, display.implicitHeight + 29 * s), ame: display },
-        input:      { size: () => Qt.size(inputW, input.implicitHeight + 29 * s), ame: input },
+        link: { size: () => Qt.size(link?.desiredW ?? 330 * s, (link?.implicitHeight ?? 0) + 26 * s), ame: link },
+        bluetooth: { size: () => Qt.size(linkBt?.desiredW ?? 286 * s, (linkBt?.implicitHeight ?? 0) + 26 * s), ame: linkBt },
+        battery: { size: () => Qt.size(batteryW, (battery?.implicitHeight ?? 0) + 36 * s), ame: battery },
+        settings:  { size: () => Qt.size(settingsW, (settings?.implicitHeight ?? 0) + 29 * s), ame: settings },
+        keybinds:  { size: () => Qt.size(keybindsW, (keybinds?.implicitHeight ?? 0) + 29 * s), ame: keybinds },
+        recorder:  { size: () => Qt.size(recorderW, (recorder?.implicitHeight ?? 0) + 33 * s), ame: recorder },
+        sysmon:    { size: () => Qt.size(sysmonW, (sysmon?.implicitHeight ?? 0) + 33 * s), ame: sysmon },
+        appearance: { size: () => Qt.size(appearanceW, (appearance?.implicitHeight ?? 0) + 29 * s), ame: appearance },
+        updates:    { size: () => Qt.size(updatesW, (updates?.implicitHeight ?? 0) + 29 * s), ame: updates },
+        display:    { size: () => Qt.size(displayW, (display?.implicitHeight ?? 0) + 29 * s), ame: display },
+        input:      { size: () => Qt.size(inputW, (input?.implicitHeight ?? 0) + 29 * s), ame: input },
         look:       Compositor.isHyprland
-            ? { size: () => Qt.size(lookW, look.implicitHeight + 29 * s), ame: look }
+            ? { size: () => Qt.size(lookW, (look?.implicitHeight ?? 0) + 29 * s), ame: look }
             : undefined,
-        idlelock:   { size: () => Qt.size(idlelockW, idlelock.implicitHeight + 29 * s), ame: idlelock },
-        fontpicker: { size: () => Qt.size(fontpickerW, fontpicker.implicitHeight + 29 * s), ame: fontpicker },
-        barpills:  { size: () => Qt.size(barPillsW, barPills.implicitHeight + 29 * s), ame: barPills },
-        background: { size: () => Qt.size(backgroundW, background.implicitHeight + 29 * s), ame: background }
+        idlelock:   { size: () => Qt.size(idlelockW, (idlelock?.implicitHeight ?? 0) + 29 * s), ame: idlelock },
+        fontpicker: { size: () => Qt.size(fontpickerW, (fontpicker?.implicitHeight ?? 0) + 29 * s), ame: fontpicker },
+        barpills:  { size: () => Qt.size(barPillsW, (barPills?.implicitHeight ?? 0) + 29 * s), ame: barPills },
+        background: { size: () => Qt.size(backgroundW, (background?.implicitHeight ?? 0) + 29 * s), ame: background }
     })
 
     readonly property string mode: surfaceOpen && surfaces[surface] !== undefined ? surface
@@ -223,7 +223,7 @@ Item {
      * when the mixer is open and a fader consumed the step.
      */
     function mixerStep(deltaPct) {
-        return pill.mixerOpen ? mixer.stepFocused(deltaPct) : false;
+        return pill.mixerOpen ? (mixer?.stepFocused(deltaPct) ?? false) : false;
     }
 
     /**
@@ -232,7 +232,7 @@ Item {
      */
     function mixerFocusMove(dir) {
         if (pill.mixerOpen)
-            mixer.moveFocus(dir);
+            mixer?.moveFocus(dir);
     }
 
     /**
@@ -240,7 +240,7 @@ Item {
      * Returns true when the recorder is open and a revealed fader consumed it.
      */
     function recorderStep(deltaPct) {
-        return pill.recorderOpen ? recorder.stepFocused(deltaPct) : false;
+        return pill.recorderOpen ? (recorder?.stepFocused(deltaPct) ?? false) : false;
     }
 
     /**
@@ -300,7 +300,7 @@ Item {
      */
     function keybindsMove(dir) {
         if (pill.keybindsOpen)
-            keybinds.move(dir);
+            keybinds?.move(dir);
     }
 
     /**
@@ -309,10 +309,10 @@ Item {
      */
     function keybindsActivate() {
         if (pill.keybindsOpen)
-            keybinds.activate();
+            keybinds?.activate();
     }
 
-    readonly property bool keybindsListening: pill.keybindsOpen && keybinds.listening
+    readonly property bool keybindsListening: pill.keybindsOpen && (keybinds?.listening ?? false)
 
     /**
      * A tile was picked in the standalone quick-record chooser. Screen with several
@@ -345,7 +345,7 @@ Item {
      * Escape should close the surface instead.
      */
     function linkBack() {
-        return pill.linkOpen ? link.back() : false;
+        return pill.linkOpen ? (link?.back() ?? false) : false;
     }
 
     /**
@@ -356,8 +356,8 @@ Item {
      */
     function surfaceBack() {
         if (pill.keybindsOpen) {
-            if (keybinds.formOpen)
-                keybinds.closeForm();
+            if (keybinds?.formOpen)
+                keybinds?.closeForm();
             else
                 pill.requestSurface("settings");
             return;
@@ -382,8 +382,8 @@ Item {
      * form was open and dismissed, false otherwise so Escape closes the surface.
      */
     function keybindsBack() {
-        if (pill.keybindsOpen && keybinds.formOpen) {
-            keybinds.closeForm();
+        if (pill.keybindsOpen && keybinds?.formOpen) {
+            keybinds?.closeForm();
             return true;
         }
         return false;
@@ -395,7 +395,7 @@ Item {
      */
     function wallpaperMove(dir) {
         if (pill.wallpaperOpen)
-            wall.move(dir);
+            wall?.move(dir);
     }
 
     /**
@@ -405,10 +405,10 @@ Item {
      */
     function wallpaperActivate() {
         if (pill.wallpaperOpen)
-            wall.activate();
+            wall?.activate();
     }
 
-    readonly property bool wallpaperSearching: pill.wallpaperOpen && wall.searching
+    readonly property bool wallpaperSearching: pill.wallpaperOpen && (wall?.searching ?? false)
 
     /**
      * Route the first printable keystroke over the open wallpaper strip into a
@@ -417,7 +417,7 @@ Item {
      */
     function wallpaperType(ch) {
         if (pill.wallpaperOpen)
-            wall.startSearch(ch);
+            wall?.startSearch(ch);
     }
 
     /**
@@ -426,7 +426,7 @@ Item {
      */
     function powerMove(dir) {
         if (pill.powerOpen)
-            power.move(dir);
+            power?.move(dir);
     }
 
     /**
@@ -435,7 +435,7 @@ Item {
      * consumed the key. No-op (false) unless the power surface is open.
      */
     function powerPress() {
-        return pill.powerOpen ? power.pressFocused() : false;
+        return pill.powerOpen ? (power?.pressFocused() ?? false) : false;
     }
 
     /**
@@ -444,7 +444,7 @@ Item {
      */
     function powerRelease() {
         if (pill.powerOpen)
-            power.releaseFocused();
+            power?.releaseFocused();
     }
 
     onSurfaceOpenChanged: if (surfaceOpen) {
@@ -716,7 +716,7 @@ Item {
         id: ame
         anchors.fill: parent
         s: pill.s
-        heat: pill.powerOpen ? power.holdProgress : 0
+        heat: pill.powerOpen ? (power?.holdProgress ?? 0) : 0
         wake: pill.wakePoint
         wickDir: pill.powerOpen ? 1 : -1
         form: pill.ameSurface ? pill.ameSurface.ameForm
