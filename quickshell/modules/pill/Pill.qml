@@ -77,15 +77,15 @@ Item {
     readonly property bool barPillsOpen: surface === "barpills"
     readonly property bool backgroundOpen: surface === "background"
     readonly property bool settingsLike: settingsOpen || appearanceOpen || updatesOpen || barPillsOpen
-    readonly property bool hasMedia: Mpris.players.values.length > 0
     /**
      * Actually PLAYING right now — not merely a registered MPRIS endpoint.
      * Browsers (Firefox/Chromium) expose an MPRIS player permanently and
      * paused players stay registered, which made the right-edge media bud sit
-     * on the pill with or without music. The bud gates on this instead of
-     * hasMedia. Mirrors Media.qml's active-player pick (p.isPlaying, and the
-     * same skwd-music exclusion) so the bud never advertises a surface that
-     * would show "Nothing playing".
+     * on the pill with or without music. The bud gates on this (NOT on
+     * Mpris.players.values.length, which is always true with a browser open).
+     * Mirrors Media.qml's active-player pick (p.isPlaying, and the same
+     * skwd-music exclusion) so the bud never advertises a surface that would
+     * show "Nothing playing".
      */
     readonly property bool mediaPlaying: Mpris.players.values.some(function(p) {
         return p && p.identity !== "skwd-music" && p.isPlaying;
@@ -553,8 +553,9 @@ Item {
 
     Rectangle {
         id: bud
-        // Gate on mediaPlaying (music actually playing), NOT hasMedia (any
-        // registered player) — see Pill.mediaPlaying above.
+        // Gate on mediaPlaying (music actually playing), NOT on any registered
+        // MPRIS endpoint — a browser alone would keep the bud on the pill.
+        // See Pill.mediaPlaying above.
         readonly property bool shown: pill.mode === "hover" && pill.mediaPlaying
         property real budR: (budArea.containsMouse ? 15 : 12) * pill.s
         width: budR * 2
@@ -606,7 +607,11 @@ Item {
         MouseArea {
             id: budArea
             anchors.fill: parent
-            enabled: bud.shown
+            // Follow the bud's visual presence (opacity fade), not the
+            // instantaneous `shown` bool: when paused, `shown` flips false but
+            // the bud still paints its fade-out, so a per-frame enabled/disabled
+            // here would make it flash un-clickable mid-fade.
+            enabled: bud.opacity > 0.01
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onClicked: pill.requestSurface("media")
@@ -729,8 +734,10 @@ Item {
      * inside the input mask, so "window hovered" means "pointer over the pill (or
      * bud)". That sidesteps the per-item hover flicker the child MouseAreas and
      * the centred width morph would otherwise cause.
+     * Tracks bud.opacity (not bud.shown) so the mask keeps covering the bud
+     * through its fade-out instead of snapping away the frame music pauses.
      */
-    readonly property real inputPadRight: bud.shown ? bud.budR + 2 * s : 0
+    readonly property real inputPadRight: bud.opacity > 0.01 ? bud.budR + 2 * s : 0
     readonly property real inputPadTop: 2 * s
 
     onHoveredChanged: {
