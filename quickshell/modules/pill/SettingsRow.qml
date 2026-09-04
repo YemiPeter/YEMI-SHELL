@@ -88,6 +88,8 @@ Item {
         height: 18 * srow.s
         fillMode: Image.PreserveAspectFit
         source: srow.sourceIcon
+        // 18px slot: decode at 4x, never at native res (skill-audit roundup step 2).
+        sourceSize: Qt.size(72, 72)
         layer.enabled: true
         layer.effect: MultiEffect {
             // The fluent iNiR pack ships monochrome glyphs; recolorize them

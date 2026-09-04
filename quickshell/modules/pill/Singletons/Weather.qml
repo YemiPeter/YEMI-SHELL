@@ -130,6 +130,9 @@ Singleton {
     Process {
         id: ipProc
         command: ["curl", "-s", "--max-time", "8", "http://ip-api.com/json?fields=lat,lon,city"]
+        // Failure path (skill-audit roundup step 3): a dead network or blocked
+        // ip-api used to fail silently and the location went stale with no log.
+        onExited: code => { if (code !== 0) console.warn("[Weather] ip location lookup failed, exit code:", code) }
         stdout: StdioCollector {
             onStreamFinished: {
                 try {
@@ -142,7 +145,9 @@ Singleton {
                         root.writeLoc();
                         root.fetchWeather();
                     }
-                } catch (e) {}
+                } catch (e) {
+                    console.warn("[Weather] ip location response not JSON:", e);
+                }
             }
         }
     }
@@ -153,6 +158,7 @@ Singleton {
             "https://geocoding-api.open-meteo.com/v1/search",
             "--data-urlencode", "name=" + (Flags.weatherCity || ""),
             "--data-urlencode", "count=1"]
+        onExited: code => { if (code !== 0) console.warn("[Weather] geocoding failed, exit code:", code) }
         stdout: StdioCollector {
             onStreamFinished: {
                 try {
@@ -166,7 +172,9 @@ Singleton {
                         root.writeLoc();
                         root.fetchWeather();
                     }
-                } catch (e) {}
+                } catch (e) {
+                    console.warn("[Weather] geocoding response not JSON:", e);
+                }
             }
         }
     }
@@ -219,9 +227,12 @@ Singleton {
                     root.hourly = rows;
                     root.daily = days;
                     root.ready = true;
-                } catch (e) {}
+                } catch (e) {
+                    console.warn("[Weather] forecast response not JSON:", e);
+                }
             }
         }
+        onExited: code => { if (code !== 0) console.warn("[Weather] forecast fetch failed, exit code:", code) }
     }
 
     Timer {

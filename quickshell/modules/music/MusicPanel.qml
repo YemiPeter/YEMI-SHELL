@@ -169,6 +169,9 @@ PanelWindow {
                         anchors.fill: parent
                         source: musicPanel.artUrl
                         fillMode: Image.PreserveAspectCrop
+                        // Decode album art at 2x the 400x180 slot, not at its
+                        // native (often 1000px+) resolution (skill-audit roundup step 2).
+                        sourceSize: Qt.size(800, 360)
                         smooth: true
                         asynchronous: true
                         visible: musicPanel.artUrl !== ""

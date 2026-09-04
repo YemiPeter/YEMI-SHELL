@@ -46,6 +46,9 @@ PanelWindow {
             visible: !root.isGif
             source: root.wallpaperPath !== "" ? "file://" + root.wallpaperPath : ""
             fillMode: Image.PreserveAspectCrop
+            // Decode at display size, not the wallpaper file's native res
+            // (skill-audit roundup step 2).
+            sourceSize: Qt.size(Math.max(1, Math.ceil(width)), Math.max(1, Math.ceil(height)))
             asynchronous: true
             smooth: true
         }

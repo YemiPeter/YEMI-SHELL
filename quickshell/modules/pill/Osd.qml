@@ -254,6 +254,9 @@ Item {
                 anchors.fill: parent
                 source: root.shownArtUrl
                 fillMode: Image.PreserveAspectCrop
+                // Cover art decodes at 4x the 30px slot, not native res
+                // (skill-audit roundup step 2).
+                sourceSize: Qt.size(128, 128)
                 asynchronous: true
                 cache: true
                 visible: status === Image.Ready && root.shownArtUrl !== ""
