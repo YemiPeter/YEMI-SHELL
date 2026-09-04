@@ -1,14 +1,26 @@
 import QtQuick
-import QtQuick.Effects
-import "../../singletons" as QsSingletons
 import "../../config" as QsConfig
 
 /**
- * Frosted aurora glass background.
+ * Aurora glass tint overlay.
  *
- * Ported from iNiR's per-card aurora glass: a blurred copy of the live wallpaper
- * plus a translucent aurora tint, clipped to `radius`. Drop it as the FIRST
- * child of a card so it sits behind the card's content.
+ * Delivers the colored-tint visual identity of the aurora (Glass) theme.
+ * Frost blur is PROVIDED BY THE COMPOSITOR, not inside QML:
+ *   - Hyprland: layerrule = blur on the quickshell/pill/pill-tray namespaces
+ *     blurs the live awww wallpaper pixels behind every translucent pixel of
+ *     the layer surface. This Glass item draws only the tint on top of it.
+ *   - Niri: the Background Backdrop layer owns the wallpaper re-paint, and
+ *     Backdrop's own MultiEffect applies blur to that wallpaper copy BEFORE
+ *     card windows sit on top; this Glass item is still just the tint.
+ *
+ * Historical note (D1 / 8819a34 / revert): this file used to self-blur via a
+ * QtQuick.Effects.MultiEffect sourced from a re-loaded copy of the wallpaper
+ * file. That copy was fed through WallpaperState.current which (diagnostic
+ * confirmed) was stuck at "" forever (WallpaperState FileView blockLoading:true
+ * with no matching reload() call). The self-blur never actually rendered.
+ * Dropping the dead machinery means: no pointless Image decode attempt, no
+ * 1/4-res layer texture, no saturation/bleed/mask code. The compositor is the
+ * single source of truth for actual pixel blur. This Glass item = tint only.
  *
  * Layering contract: when a card is Glass-backed, the Glass IS the surface —
  * the host must not paint its own cardTop/cardBot fill over it (those tokens
@@ -29,117 +41,18 @@ Rectangle {
     readonly property bool active: QsConfig.Appearance.auroraEverywhere
     visible: root.active
 
-    /// True once the wallpaper has decoded. The blur fades in over the tint
-    /// when this flips, so activating aurora (or a wallpaper change) never
-    /// flashes a tint-only card before the frost pops.
-    readonly property bool frostReady: wp.status === Image.Ready
-
     /// Extra scale on the tint's alpha (e.g. Flags.pillOpacity), applied once.
     property real tintScale: 1.0
-
-    // --- Screen geometry (iNiR GlassBackground contract) -------------------
-    // The pill's overlay PanelWindow is fullscreen and edge-anchored, so
-    // window-scene coordinates equal screen coordinates. This position is
-    // computed by summing the ancestor x/y chain rather than mapToItem(null):
-    // mapToItem is a Q_INVOKABLE and does NOT register binding dependencies,
-    // so a mapToItem binding would go stale when the pill or a tooltip moves.
-    // JS property reads ARE tracked, so this re-evaluates on any ancestor
-    // move (pill morph, tooltip anchor, surface open).
-    readonly property point screenPos: {
-        let x = 0;
-        let y = 0;
-        let it = root;
-        while (it) {
-            x += it.x;
-            y += it.y;
-            it = it.parent;
-        }
-        return Qt.point(x, y);
-    }
-
-    /// Screen the hosting window sits on (uniform wallpaper geometry).
-    readonly property real screenW: Screen.width
-    readonly property real screenH: Screen.height
 
     readonly property color tintColor: {
         const c = QsConfig.Appearance.aurora.colSubSurface;
         return Qt.rgba(c.r, c.g, c.b, c.a * root.tintScale);
     }
 
-    // Live wallpaper, blurred. Sourced from the same WallpaperState the
-    // Background layer draws, so the frost matches the user's wallpaper.
-    //
-    // Position-aligned per iNiR's GlassBackground: the Image is SCREEN-sized
-    // and offset by -screenPos, so the card shows exactly the wallpaper region
-    // physically behind it (a true frosted window, not a centered crop).
-    //
-    // The screen-sized source is additionally oversized by `bleed` on every
-    // side: the blur kernel (blur * blurMax ≈ 38px) has no pixels beyond the
-    // item edge, so an exactly-screen-sized source would fade at the screen
-    // borders (iNiR Backdrop.qml's documented "blur edge compensation").
-    // Bleeding real wallpaper pixels past the screen edges keeps the blur
-    // dense everywhere; the maskRect below crops the result back to the
-    // rounded card.
-    Image {
-        id: wp
-        readonly property real bleed: 32
-        x: -root.screenPos.x - bleed
-        y: -root.screenPos.y - bleed
-        width: root.screenW + bleed * 2
-        height: root.screenH + bleed * 2
-        source: root.active && QsSingletons.WallpaperState.current !== ""
-            ? "file://" + QsSingletons.WallpaperState.current : ""
-        fillMode: Image.PreserveAspectCrop
-        // Decode + hold the wallpaper at 1/4 resolution on both the RAM side
-        // (sourceSize) and the GPU side (layer.textureSize): the blur kernel
-        // (blurMax >= 24) completely hides the 4x upsampling, while the
-        // sampled texture drops from ~2MP to ~130k pixels. This is what makes
-        // the per-frame re-blur during pill morphs affordable on iGPUs
-        // (pill-perf audit P1.1). Geometry is untouched, so the screenPos
-        // alignment contract above still holds.
-        sourceSize: Qt.size(Math.max(1, Math.ceil(width / 4)), Math.max(1, Math.ceil(height / 4)))
-        layer.enabled: true
-        layer.textureSize: Qt.size(Math.max(1, Math.ceil(width / 4)), Math.max(1, Math.ceil(height / 4)))
-        layer.smooth: true
-        // Saturation is applied ONCE per wallpaper change here on the cached
-        // 1/4-res layer texture, instead of every frame inside the card-sized
-        // blur MultiEffect below (audit P1.2 — the display MultiEffect no
-        // longer runs a saturation pass at all).
-        layer.effect: MultiEffect {
-            saturation: 0.25
-        }
-        cache: true
-        asynchronous: true
-        smooth: true
-        visible: false
-    }
-
-    // Rounded-rect mask for the blur. White inside the radius, transparent
-    // outside, so it works whether the mask shader samples red or alpha.
-    // root's rect clip only bounds the blur spill; the corners come from here
-    // (clip: true alone crops to the bounding box, not the radius).
-    Rectangle {
-        id: maskRect
-        anchors.fill: parent
-        radius: root.radius
-        color: "white"
-        visible: false
-    }
-
-    MultiEffect {
-        anchors.fill: parent
-        source: wp
-        visible: root.active && root.frostReady
-        opacity: root.active && root.frostReady ? 1 : 0
-        Behavior on opacity { NumberAnimation { duration: 120 } }
-        blurEnabled: true
-        blur: 0.5
-        blurMax: 24
-        maskEnabled: true
-        maskSource: maskRect
-    }
-
-    // Aurora tint — replaces the card's flat gradient in aurora mode.
+    // Aurora tint — the whole content of Glass now. Frost/blur comes from the
+    // compositor layerrule behind us, so no readiness gate, no fade in, no
+    // wallpaper file copy, no mask rect: the tint is fully present whenever
+    // aurora is active and the card exists.
     Rectangle {
         anchors.fill: parent
         color: root.tintColor
