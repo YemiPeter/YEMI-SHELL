@@ -611,12 +611,13 @@ Item {
         //   In the aurora style this fill steps aside and the Glass tint
         //   (scaled by the same flag) is the surface. Hyprland only — niri
         //   renders at full alpha via pill.pillAlpha (no layer blur there).
-        // - border.color alpha (Theme.frameBorder, 0.10) = edge line visibility.
+        // - border.color (Theme.border) = edge line visibility (dynamic:
+        //   Dyn.outlineVariant -> warm hairline; static/no-scheme: activeMood.border)
         // - Top highlight gradient's "0.04" = how strong the glossy shine looks.
         color: Theme.auroraActive ? "transparent"
             : Qt.rgba(Theme.cardBotBase.r, Theme.cardBotBase.g, Theme.cardBotBase.b, pill.pillAlpha)
         border.width: 1
-        border.color: Theme.frameBorder
+        border.color: Theme.border
 
         // Top highlight — same as bar pills
         Rectangle {
