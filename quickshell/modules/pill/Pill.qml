@@ -1545,6 +1545,10 @@ Item {
                 anchors.right: parent.right
                 anchors.top: parent.top
                 s: pill.s
+                // 16*s loader margin on each side (see toastLoader above).
+                // Feeds Toast.settledBodyWidth so the wrapped body text stops
+                // re-wrapping — and re-targeting targetH — every morph frame.
+                settledWidth: pill.toastW - 32 * pill.s
                 live: pill.mode === "toast"
                 notif: Notifs.popups.length > 0 ? Notifs.popups[Notifs.popups.length - 1] : null
                 onOpenCenter: {

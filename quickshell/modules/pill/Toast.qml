@@ -21,6 +21,21 @@ Item {
 
     signal openCenter()
 
+    /**
+     * Width the toast settles at once the pill finishes morphing. The host
+     * (Pill.qml's toastLoader) passes the pill's target toast width minus the
+     * loader's left/right margins; the `width` default preserves the old
+     * behavior for any host that doesn't set it. The wrapped body text
+     * measures against this instead of the live width: the pill's width is
+     * animated for the whole 420 ms morph, and re-wrapping per frame
+     * re-computed implicitHeight — re-targeting the pill's own targetH —
+     * every single frame of the animation.
+     */
+    property real settledWidth: width
+    readonly property real settledBodyWidth: settledWidth
+        - iconTile.width - 10 * s          // col.left: iconTile.right + 10*s
+        - dismiss.implicitWidth - 8 * s    // col.right: dismiss.left - 8*s
+
     readonly property bool critical: notif.urgency === NotificationUrgency.Critical
     readonly property var acts: notif.actions.filter(function(a) { return a.text.length > 0; })
 
@@ -164,7 +179,11 @@ Item {
         }
 
         Text {
-            width: parent.width
+            // Measure against the settled width, not parent.width: col tracks
+            // the pill's animating width during the morph, and re-wrapping
+            // here re-targeted the pill's targetH every frame. See
+            // root.settledWidth above.
+            width: root.settledBodyWidth
             visible: root.notif.body.length > 0
             text: root.notif.body
             color: Theme.dim
