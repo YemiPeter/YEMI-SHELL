@@ -53,6 +53,16 @@ Item {
     readonly property bool ready: img0.status === Image.Ready || img1.status === Image.Ready
     readonly property alias activeIndex: internal.activeIndex
 
+    // Latch: true once ANY slot has decoded at least one frame, never reset.
+    // Not the same as `ready`: ready can read true while a *new* source is
+    // still decoding on the inactive slot (the active image keeps it true),
+    // so gating on `ready` would re-arm blur mid-transition. hasLoadedOnce
+    // flips exactly once, after the first successful decode — consumers that
+    // must not show blur before a real frame exists (Backdrop's wallFx on
+    // Niri: blur-armed MultiEffect over a not-yet-decoded Image renders the
+    // source as a solid color frame) bind to this instead.
+    property bool hasLoadedOnce: false
+
     signal transitionStarted()
     signal transitionFinished()
 
@@ -634,8 +644,10 @@ Item {
             transformOrigin: Item.Center
 
             onStatusChanged: {
-                if (status === Image.Ready)
+                if (status === Image.Ready) {
+                    root.hasLoadedOnce = true
                     internal.handleReady(0, source)
+                }
                 else if (status === Image.Error)
                     internal.handleError(0, source)
             }
@@ -678,8 +690,10 @@ Item {
             transformOrigin: Item.Center
 
             onStatusChanged: {
-                if (status === Image.Ready)
+                if (status === Image.Ready) {
+                    root.hasLoadedOnce = true
                     internal.handleReady(1, source)
+                }
                 else if (status === Image.Error)
                     internal.handleError(1, source)
             }

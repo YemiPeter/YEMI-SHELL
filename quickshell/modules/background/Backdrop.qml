@@ -124,7 +124,16 @@ PanelWindow {
             wall.source = path !== "" ? (path.startsWith("file://") ? path : "file://" + path) : ""
         }
     }
-        blurEnabled: QsSingletons.Flags.backdropBlurRadius > 0 && (!root.isGif || QsSingletons.Flags.backdropEnableAnimatedBlur)
+        // Blur must not arm until the crossfader has decoded at least one
+        // frame: a MultiEffect with blurEnabled over a not-yet-decoded Image
+        // renders the source as a solid color frame (the Niri startup race).
+        // hasLoadedOnce is a latch set on the crossfader's first successful
+        // decode and never reset — not `ready`, which stays true while a NEW
+        // wallpaper decodes and would re-trigger the same race on every
+        // wallpaper change.
+        blurEnabled: QsSingletons.Flags.backdropBlurRadius > 0
+                     && wall.hasLoadedOnce
+                     && (!root.isGif || QsSingletons.Flags.backdropEnableAnimatedBlur)
         blur: QsSingletons.Flags.backdropBlurRadius / 100.0
         blurMax: 64
         saturation: QsSingletons.Flags.backdropSaturation / 100.0
