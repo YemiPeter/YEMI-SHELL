@@ -326,13 +326,17 @@ def derive_block(dominance, mood, use_error_fallback):
     block["on_surface_variant"] = text_on(surface, variant=True)
 
     # ---- Outlines (subtle borders, low contrast by design) ----
-    # Dark mode: darker outlines (darker than surface)
-    # Light mode: lighter outlines (lighter than surface)
+    # Dark mode: darker outlines (darker than surface).
+    #   The old absolute 0.02 lightness floor collapsed BOTH tokens to #080302 on
+    #   any dark wallpaper (anchor < 0.22), producing the "black hairline" around
+    #   buttons that Ricelin never shows. Surface-proportional floors below keep
+    #   the edge a quiet, tinted shadow — visible against the surface, never ink.
+    # Light mode: lighter outlines (lighter than surface).
     if mood == "dark":
-        # Dark mode: outline darker than surface
-        ol = clamp01(anchor - 0.10, 0.02, 0.98)
-        # outline_variant is even darker (or uses a different hue if at boundary)
-        olv = clamp01(anchor - 0.20, 0.02, 0.98)
+        # outline: noticeably darker than surface, scaled so it cannot hit black
+        ol = clamp01(anchor - 0.06, anchor * 0.60, 0.98)
+        # outline_variant: just under the surface — a soft warm frame, never black
+        olv = clamp01(anchor - 0.02, anchor * 0.85, 0.98)
     else:
         # Light mode: outline lighter than surface
         ol = clamp01(anchor + 0.10, 0.02, 0.98)
