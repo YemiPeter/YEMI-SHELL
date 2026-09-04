@@ -325,19 +325,16 @@ def derive_block(dominance, mood, use_error_fallback):
     block["on_surface"] = text_on(surface)
     block["on_surface_variant"] = text_on(surface, variant=True)
 
-    # ---- Outlines (subtle borders, low contrast by design) ----
-    # Dark mode: darker outlines (darker than surface)
-    # Light mode: lighter outlines (lighter than surface)
-    if mood == "dark":
-        # Dark mode: outline darker than surface
-        ol = clamp01(anchor - 0.10, 0.02, 0.98)
-        # outline_variant is even darker (or uses a different hue if at boundary)
-        olv = clamp01(anchor - 0.20, 0.02, 0.98)
-    else:
-        # Light mode: outline lighter than surface
-        ol = clamp01(anchor + 0.10, 0.02, 0.98)
-        # outline_variant is even lighter (or uses a different hue if at boundary)
-        olv = clamp01(anchor + 0.20, 0.02, 0.98)
+    # ---- Outlines (subtle decorative frames — lighter than surface, BOTH moods) ----
+    # Ricelin wallcolors parity: dark outline_variant ≈ base + 0.225 → a warm tan
+    # hairline ABOVE the surface (L ≈ 0.25–0.31); light stays near-white.
+    # History: the original absolute 0.02 lightness floor collapsed BOTH dark
+    # tokens to #080302 (the "black hairline" bug); interim Option A used
+    # darker-than-surface with surface-proportional floors. Both superseded.
+    # Dark/light outline lightness deliberately converges → these two keys are
+    # exempt from the G same-lightness check (decorative frames, not text).
+    ol = clamp01(anchor + 0.10, 0.02, 0.98)
+    olv = clamp01(anchor + 0.20, 0.02, 0.98)
     block["outline"] = hls_to_rgb(h1, ol, s1)
     block["outline_variant"] = hls_to_rgb(h1, olv, s1)
 
@@ -485,9 +482,14 @@ def verify(dominance, dark, light, ref_keys, use_error_fallback):
     report("F-hue-preservation", f_ok, "hue deltas: " + ", ".join(deltas))
 
     # G. Dark vs light: tokens differ by HLS lightness; accent hue unchanged
-    # Compare HLS lightness (the L value used for hue-preserving contrast)
+    # Compare HLS lightness (the L value used for hue-preserving contrast).
+    # outline / outline_variant are EXEMPT: they are decorative frames, lighter
+    # than the surface in BOTH moods by design (Ricelin wallcolors parity), so
+    # their dark/light lightness legitimately converges.
+    outline_exempt = ("outline", "outline_variant")
     same_l = [k for k in ref_keys
-              if abs(rgb_to_hls(dark[k])[1] - rgb_to_hls(light[k])[1]) < 0.02]
+              if k not in outline_exempt
+              and abs(rgb_to_hls(dark[k])[1] - rgb_to_hls(light[k])[1]) < 0.02]
     accent_toks = ("primary", "on_primary", "primary_container", "on_primary_container",
                    "secondary", "secondary_container", "tertiary", "tertiary_container")
     hue_drift = [f"{k}={hue_delta_deg(rgb_to_hls(dark[k])[0], rgb_to_hls(light[k])[0]):.1f}\u00b0"
