@@ -5,15 +5,26 @@
 #   compositor : "hyprland" | "niri"  (passed in from QML, never re-detected here)
 #   action     : "init"  -> restore last wallpaper (or pick one)
 #                "set"   -> set the wallpaper given by [path]
+#                "restore" -> paint [path] (or last from state) WITHOUT touching the
+#                            state file or re-running after-wall.sh color pipeline.
+#                            Used by Niri "hide main wallpaper" → restore: syncAwww
+#                            fires on every startup with backdropHideWallpaper=false
+#                            and a stale frozen path from memory — must repaint awww
+#                            without clobbering the real state file.
 #                (any)   -> pick a random wallpaper from the bag
 #
-# What it always does:
+# What init/set/(random) always do:
 #   * writes the state file ~/.local/state/quickshell-wallpaper
 #   * runs the single color writer after-wall.sh (bash)
-# On Hyprland only:
+# What "restore" does (subset):
+#   * ensures the awww daemon + paints via `awww img`
+#   * NO state-file write, NO after-wall.sh, NO hyprctl reload
+#     (the state file already names the current on-screen pick; restore is
+#      purely "make awww display what it already displayed before being killed")
+# On Hyprland only (init/set/random):
 #   * ensures the awww daemon and paints via `awww img`
 #   * reloads hyprland (so any hyprland-side color consumers refresh)
-# On Niri:
+# On Niri (init/set/random):
 #   * the QML Backdrop layer renders the image from the state file, so no
 #     external daemon is invoked — the dispatcher just records the choice.
 #
@@ -106,6 +117,18 @@ case "$CMD" in
         pic="${1:-}"
         [ -f "$pic" ] || { echo "[set-wallpaper] no such wallpaper: $pic" >&2; exit 1; }
         ;;
+    restore)
+        # "restore" = repaint awww without touching state file or color pipeline.
+        # Path arg is the frozen awww-memory path from Walls.killProc; if absent
+        # (memory file empty on first run) fall back to STATE (same as init).
+        if [ $# -ge 1 ] && [ -n "${1:-}" ] && [ -f "${1:-}" ]; then
+            pic="$1"
+        elif [ -r "$STATE" ] && pic=$(cat "$STATE") && [ -f "$pic" ]; then
+            :
+        else
+            pic=$(pop_bag) || true
+        fi
+        ;;
     *)
         pic=$(pop_bag) || true
         ;;
@@ -143,22 +166,33 @@ fi
 
 # ---------------------------------------------------------------------------
 # Record the choice (QML Backdrop reads this on every compositor)
+# SKIPPED for "restore": the state file already names the real on-screen pick.
+# Restore repaints awww from the frozen memory path, which must NOT overwrite
+# the state file (otherwise every Niri startup clobbers the last real pick).
 # ---------------------------------------------------------------------------
-mkdir -p "$(dirname "$STATE")"
-printf '%s\n' "$pic" > "$STATE"
+if [ "$CMD" != "restore" ]; then
+    mkdir -p "$(dirname "$STATE")"
+    printf '%s\n' "$pic" > "$STATE"
+fi
 
 # ---------------------------------------------------------------------------
 # Paint — every compositor. The Pill picker must repaint the same awww layer
 # skwd's picker paints through, otherwise the desktop wallpaper goes stale on
-# Niri while the QML backdrop changes. hyprctl reload stays Hyprland-only.
+# Niri while the QML backdrop changes. hyprctl reload stays Hyprland-only and
+# only for "real" transitions (restore never reloads).
 # ---------------------------------------------------------------------------
 ensure_daemon || true
 awww img "$pic" "${AWWW_ARGS[@]}" || true
-if [ "$COMPOSITOR" = "hyprland" ]; then
+if [ "$COMPOSITOR" = "hyprland" ] && [ "$CMD" != "restore" ]; then
     hyprctl reload >/dev/null 2>&1 || true
 fi
 
 # ---------------------------------------------------------------------------
-# Single color writer (always)
+# Single color writer (init/set/random only). Restore never runs the color
+# pipeline on purpose: the on-screen wallpaper hasn't changed (we're just
+# re-painting the same awww that was there before it was killed), so the
+# palette stays correct and we avoid re-triggering wallust / reload storms.
 # ---------------------------------------------------------------------------
-bash "$SCRIPTS_DIR/after-wall.sh" "dynamic" "$pic" >/dev/null 2>&1 || true
+if [ "$CMD" != "restore" ]; then
+    bash "$SCRIPTS_DIR/after-wall.sh" "dynamic" "$pic" >/dev/null 2>&1 || true
+fi

@@ -232,10 +232,16 @@ Singleton {
     Process {
         id: restoreProc
         // Bring awww back on the wallpaper it was showing when it was hidden.
+        // Uses "restore" — not "set" — so set-wallpaper.sh only does the paint
+        // step (ensure_daemon + awww img) and intentionally SKIPS writing to
+        // the real state file, skipping after-wall.sh, and skipping hyprctl
+        // reload. Without this, every startup (syncAwww(false)) overwrote the
+        // real state file with the stale frozen awww-memory path, reverting
+        // all picks made while backdropHideWallpaper was on.
         command: ["bash", "-c",
                   "P=$(cat \"$1\" 2>/dev/null); " +
                   "if [ -n \"$P\" ] && [ -f \"$P\" ]; then " +
-                  "  exec bash \"$2\" \"$3\" set \"$P\"; " +
+                  "  exec bash \"$2\" \"$3\" restore \"$P\"; " +
                   "else " +
                   "  exec bash \"$2\" \"$3\" init; " +
                   "fi",
