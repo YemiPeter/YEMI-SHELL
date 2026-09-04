@@ -78,6 +78,18 @@ Item {
     readonly property bool backgroundOpen: surface === "background"
     readonly property bool settingsLike: settingsOpen || appearanceOpen || updatesOpen || barPillsOpen
     readonly property bool hasMedia: Mpris.players.values.length > 0
+    /**
+     * Actually PLAYING right now — not merely a registered MPRIS endpoint.
+     * Browsers (Firefox/Chromium) expose an MPRIS player permanently and
+     * paused players stay registered, which made the right-edge media bud sit
+     * on the pill with or without music. The bud gates on this instead of
+     * hasMedia. Mirrors Media.qml's active-player pick (p.isPlaying, and the
+     * same skwd-music exclusion) so the bud never advertises a surface that
+     * would show "Nothing playing".
+     */
+    readonly property bool mediaPlaying: Mpris.players.values.some(function(p) {
+        return p && p.identity !== "skwd-music" && p.isPlaying;
+    })
 
     /**
      * Subview the link surface should land on when next opened. The wifi glance
@@ -541,7 +553,9 @@ Item {
 
     Rectangle {
         id: bud
-        readonly property bool shown: pill.mode === "hover" && pill.hasMedia
+        // Gate on mediaPlaying (music actually playing), NOT hasMedia (any
+        // registered player) — see Pill.mediaPlaying above.
+        readonly property bool shown: pill.mode === "hover" && pill.mediaPlaying
         property real budR: (budArea.containsMouse ? 15 : 12) * pill.s
         width: budR * 2
         height: budR * 2
