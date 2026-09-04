@@ -31,6 +31,9 @@ Item {
     property var stickyPlayer: null
     readonly property var player: {
         var list = Mpris.players.values;
+        // Skip the internal skwd-music endpoint — same exclusion Media.qml and
+        // Pill.mediaPlaying apply, so the OSD never advertises a sign-off track.
+        list = list.filter(function(p) { return p && p.identity !== "skwd-music"; });
         if (!list || list.length === 0)
             return null;
         for (var i = 0; i < list.length; i++) {

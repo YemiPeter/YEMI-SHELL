@@ -214,30 +214,27 @@ Singleton {
 
     Process {
         id: killProc
-        // Remember which wallpaper awww is displaying right now, then kill it.
-        // The memory file (~/.local/state/quickshell-wallpaper-awww) survives
-        // restarts, so toggle-off / later logins restore exactly what awww was
-        // showing when hide was enabled — even if picks changed while the
-        // backdrop owned the screen.
-        command: ["bash", "-c",
-                  "Q=$(awww query 2>/dev/null); " +
-                  "P=$(printf '%s\\n' \"$Q\" | sed -n 's/.*currently displaying: image: //p' | head -n1); " +
-                  "if [ -n \"$P\" ]; then " +
-                  "  mkdir -p \"$(dirname \"$1\")\"; printf '%s' \"$P\" > \"$1\"; " +
-                  "fi; " +
-                  "pkill -x awww-daemon || true",
-                  "_", awwwMemoryFile]
+        // Kill the awww background layer so the QML Backdrop becomes the sole
+        // renderer. The old freeze-to-memory write (quickshell-wallpaper-awww)
+        // was removed: restoreProc now reads the live state file, so the frozen
+        // value had no remaining consumer and only ever went stale (it captured
+        // what awww showed at hide-time, not the current on-screen pick).
+        command: ["bash", "-c", "pkill -x awww-daemon || true"]
     }
 
     Process {
         id: restoreProc
-        // Bring awww back on the wallpaper it was showing when it was hidden.
+        // Bring awww back in sync with the real on-screen pick. Reads the live
+        // state file (quickshell-wallpaper) — NOT a frozen awww memory file —
+        // because picks made while the backdrop owned the screen never reach
+        // any awww-owned state; restoring from a stale frozen path reverted
+        // awww to an old image on every startup even though Backdrop (state
+        // file) was correct. Falls back to set-wallpaper.sh init when the
+        // state file is empty or names a missing file.
         // Uses "restore" — not "set" — so set-wallpaper.sh only does the paint
         // step (ensure_daemon + awww img) and intentionally SKIPS writing to
         // the real state file, skipping after-wall.sh, and skipping hyprctl
-        // reload. Without this, every startup (syncAwww(false)) overwrote the
-        // real state file with the stale frozen awww-memory path, reverting
-        // all picks made while backdropHideWallpaper was on.
+        // reload.
         command: ["bash", "-c",
                   "P=$(cat \"$1\" 2>/dev/null); " +
                   "if [ -n \"$P\" ] && [ -f \"$P\" ]; then " +
@@ -245,12 +242,8 @@ Singleton {
                   "else " +
                   "  exec bash \"$2\" \"$3\" init; " +
                   "fi",
-                  "_", awwwMemoryFile, root.setScript, Compositor.runningCompositor]
+                  "_", root.stateFile, root.setScript, Compositor.runningCompositor]
     }
-
-    readonly property string awwwMemoryFile:
-        (Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state"))
-        + "/quickshell-wallpaper-awww"
 
     Process {
         id: stateWriteProc
