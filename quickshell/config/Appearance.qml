@@ -174,7 +174,12 @@ Singleton {
     readonly property color yemiSubtle: QsSingletons.Dyn.schemeValid ? ColorUtils.ensureReadable(QsSingletons.Dyn.onSurfaceVariant, yemiTileBg) : activeMood.subtle
     readonly property color yemiDim: QsSingletons.Dyn.schemeValid ? ColorUtils.ensureReadable(QsSingletons.Dyn.outline, yemiTileBg) : activeMood.dim
     readonly property color yemiFaint: QsSingletons.Dyn.schemeValid ? ColorUtils.ensureReadable(QsSingletons.Dyn.outlineVariant, yemiTileBg) : activeMood.faint
-    readonly property color yemiBorder: QsSingletons.Dyn.outlineVariant
+    // ⚠️ DESIGN LOCK — keep the schemeValid/isDynamic fallback chain (sibling
+    // token convention, lines above; Ricelin parity: dyn ? Dyn.outlineVariant :
+    // mood border). Static/no-scheme must resolve to activeMood.border and must
+    // NOT leak the dynamic token. Do not simplify this back to a bare
+    // Dyn.outlineVariant read. Context: audits/06-pill-ui-border-drift.md.
+    readonly property color yemiBorder: QsSingletons.Dyn.schemeValid ? (isDynamic ? QsSingletons.Dyn.outlineVariant : activeMood.border) : activeMood.border
     readonly property color yemiPrimary: isGrayscaleStatic ? "#a0a0a0" : (isDynamic ? QsSingletons.Dyn.primary : QsSingletons.Dyn.primary)
     readonly property color yemiPrimaryContainer: isGrayscaleStatic ? "#505050" : (isDynamic ? QsSingletons.Dyn.primaryContainer : QsSingletons.Dyn.primaryContainer)
 

@@ -615,6 +615,11 @@ Item {
         // - Top highlight gradient's "0.04" = how strong the glossy shine looks.
         color: Theme.auroraActive ? "transparent"
             : Qt.rgba(Theme.cardBotBase.r, Theme.cardBotBase.g, Theme.cardBotBase.b, pill.pillAlpha)
+        // ⚠️ DESIGN LOCK — intentionally Theme.frameBorder (cream @0.10 veil),
+        // NOT Ricelin's Theme.border for the pill BODY. The Ricelin border was
+        // tried here and the user reverted it (read as an unwanted dark line).
+        // An agent diffing against the Ricelin reference will see this drift —
+        // it is deliberate; do not "restore parity" on this line.
         border.width: 1
         border.color: Theme.frameBorder
 
