@@ -9,7 +9,7 @@
 #                            state file or re-running after-wall.sh color pipeline.
 #                            Used by Niri "hide main wallpaper" → restore: syncAwww
 #                            fires on every startup with backdropHideWallpaper=false
-#                            and a stale frozen path from memory — must repaint awww
+#                            and passes the LIVE state-file pick — repaints awww
 #                            without clobbering the real state file.
 #                (any)   -> pick a random wallpaper from the bag
 #
@@ -20,7 +20,7 @@
 #   * ensures the awww daemon + paints via `awww img`
 #   * NO state-file write, NO after-wall.sh, NO hyprctl reload
 #     (the state file already names the current on-screen pick; restore is
-#      purely "make awww display what it already displayed before being killed")
+#      purely "sync awww onto the same pick the QML backdrop is showing")
 # On Hyprland only (init/set/random):
 #   * ensures the awww daemon and paints via `awww img`
 #   * reloads hyprland (so any hyprland-side color consumers refresh)
@@ -119,8 +119,8 @@ case "$CMD" in
         ;;
     restore)
         # "restore" = repaint awww without touching state file or color pipeline.
-        # Path arg is the frozen awww-memory path from Walls.killProc; if absent
-        # (memory file empty on first run) fall back to STATE (same as init).
+        # Path arg is the live state-file pick from Walls.restoreProc; if absent
+        # (state file empty on first run) fall back to STATE (same as init).
         if [ $# -ge 1 ] && [ -n "${1:-}" ] && [ -f "${1:-}" ]; then
             pic="$1"
         elif [ -r "$STATE" ] && pic=$(cat "$STATE") && [ -f "$pic" ]; then
@@ -167,8 +167,9 @@ fi
 # ---------------------------------------------------------------------------
 # Record the choice (QML Backdrop reads this on every compositor)
 # SKIPPED for "restore": the state file already names the real on-screen pick.
-# Restore repaints awww from the frozen memory path, which must NOT overwrite
-# the state file (otherwise every Niri startup clobbers the last real pick).
+# Restore repaints awww from the live state-file pick, which must NOT be
+# rewritten (it already names the on-screen pick; restore's job is purely to
+# sync awww to it, never to touch the state file).
 # ---------------------------------------------------------------------------
 if [ "$CMD" != "restore" ]; then
     mkdir -p "$(dirname "$STATE")"
