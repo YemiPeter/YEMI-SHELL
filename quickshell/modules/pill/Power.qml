@@ -115,8 +115,6 @@ PillSurface {
       keyHeld = false;
       holdingIndex = -1;
       holdProgress = 0;
-      profileTile.kbFocus = false;
-      profileTile.pressed = false;
     }
     
     Item {
