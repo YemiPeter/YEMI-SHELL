@@ -1621,6 +1621,7 @@ Item {
             s: pill.s
             open: pill.backgroundOpen
             morphCloseness: pill.morphCloseness
+            maxSurfaceH: settings?.implicitHeight ?? 0
             onRequestClose: pill.requestClose()
             onRequestSurface: (name) => pill.requestSurface(name)
         }
