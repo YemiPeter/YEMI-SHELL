@@ -177,6 +177,18 @@ ShellRoot {
           QsSingletons.PillState.toggleSurface(target, "link");
       }
 
+      function bluetooth(mon: string): void {
+        var target = mon || (compositor.focusedMonitor?.name || "");
+        if (target.length > 0)
+          QsSingletons.PillState.toggleSurface(target, "bluetooth");
+      }
+
+      function battery(mon: string): void {
+        var target = mon || (compositor.focusedMonitor?.name || "");
+        if (target.length > 0)
+          QsSingletons.PillState.toggleSurface(target, "battery");
+      }
+
       function media(mon: string): void {
         var target = mon || (compositor.focusedMonitor?.name || "");
         if (target.length > 0)
