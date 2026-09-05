@@ -1,5 +1,6 @@
 import QtQuick
 import "../../config" as QsConfig
+import "../../singletons" as QsSingletons
 
 /**
  * Aurora glass tint overlay.
@@ -12,6 +13,17 @@ import "../../config" as QsConfig
  *   - Niri: the Background Backdrop layer owns the wallpaper re-paint, and
  *     Backdrop's own MultiEffect applies blur to that wallpaper copy BEFORE
  *     card windows sit on top; this Glass item is still just the tint.
+ *
+ * No-wallpaper fallback (D4): when WallpaperState.current is empty there is
+ * nothing behind us to frost, and the flat tint over the bare desktop reads
+ * as a dead gray box. In that state the tint swaps to a vertical mood
+ * gradient built from the Dyn palette (the Dominance Engine's colors carry
+ * hardcoded fallbacks, so they are valid even with no wallpaper to sample).
+ * Animated wallpapers need no handling here at all: Glass never samples
+ * wallpaper pixels (post-5d64483 tint-only architecture), and GIF playback
+ * lives entirely in modules/background (Backdrop.qml / Wallpaper.qml
+ * AnimatedImage handling on Niri; awww deliberately refuses GIFs on
+ * Hyprland — see AwwwBackend.supportsMainWallpaper).
  *
  * Historical note (D1 / 8819a34 / revert): this file used to self-blur via a
  * QtQuick.Effects.MultiEffect sourced from a re-loaded copy of the wallpaper
@@ -49,13 +61,39 @@ Rectangle {
         return Qt.rgba(c.r, c.g, c.b, c.a * root.tintScale);
     }
 
+    /// True when no wallpaper is configured (empty state-file → the reactive
+    /// WallpaperState FileView resolves to ""). Note this tracks the SYSTEM
+    /// wallpaper state, not Backdrop's Niri test overrides
+    /// (Flags.backdropWallpaperPath) — a deliberate simplification.
+    readonly property bool wallpaperMissing: QsSingletons.WallpaperState.current === ""
+
+    // Mood-gradient fallback colors (Feature 2 / D4). Built from existing Dyn
+    // palette tokens — warm primaryContainer fading into surface tones — at
+    // tintColor.a so tintScale keeps scaling the alpha exactly once. Dyn's
+    // per-property hardcoded fallbacks guarantee valid colors even with the
+    // Dominance Engine idle (which is exactly the no-wallpaper case).
+    readonly property color moodTop: Qt.rgba(QsSingletons.Dyn.primaryContainer.r, QsSingletons.Dyn.primaryContainer.g, QsSingletons.Dyn.primaryContainer.b, root.tintColor.a)
+    readonly property color moodMid: Qt.rgba(QsSingletons.Dyn.surfaceContainer.r, QsSingletons.Dyn.surfaceContainer.g, QsSingletons.Dyn.surfaceContainer.b, root.tintColor.a)
+    readonly property color moodBottom: Qt.rgba(QsSingletons.Dyn.surfaceContainerLow.r, QsSingletons.Dyn.surfaceContainerLow.g, QsSingletons.Dyn.surfaceContainerLow.b, root.tintColor.a)
+
     // Aurora tint — the whole content of Glass now. Frost/blur comes from the
     // compositor layerrule behind us, so no readiness gate, no fade in, no
     // wallpaper file copy, no mask rect: the tint is fully present whenever
-    // aurora is active and the card exists.
+    // aurora is active and the card exists. With no wallpaper configured the
+    // flat tint swaps to the mood gradient (a Gradient set on a Rectangle
+    // takes precedence over color, so the states cannot stack).
     Rectangle {
         anchors.fill: parent
-        color: root.tintColor
         radius: root.radius
+        gradient: root.wallpaperMissing ? moodGrad : null
+        color: root.wallpaperMissing ? "transparent" : root.tintColor
+    }
+
+    Gradient {
+        id: moodGrad
+        orientation: Gradient.Vertical
+        GradientStop { position: 0.0; color: root.moodTop }
+        GradientStop { position: 0.55; color: root.moodMid }
+        GradientStop { position: 1.0; color: root.moodBottom }
     }
 }
