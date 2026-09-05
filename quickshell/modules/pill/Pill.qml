@@ -232,8 +232,8 @@ Item {
             : undefined,
         idlelock:   { size: () => Qt.size(idlelockW, (idlelockLoader.item?.implicitHeight ?? 0) + 29 * s), ame: idlelockLoader.item ?? null },
         fontpicker: { size: () => Qt.size(fontpickerW, (fontpickerLoader.item?.implicitHeight ?? 0) + 29 * s), ame: fontpickerLoader.item ?? null },
-        barpills:  { size: () => Qt.size(barPillsW, (barPills?.implicitHeight ?? 0) + 29 * s), ame: barPills },
-        background: { size: () => Qt.size(backgroundW, (background?.implicitHeight ?? 0) + 29 * s), ame: background }
+        barpills:  { size: () => Qt.size(barPillsW, (barPillsLoader.item?.implicitHeight ?? 0) + 29 * s), ame: barPillsLoader.item ?? null },
+        background: { size: () => Qt.size(backgroundW, (backgroundLoader.item?.implicitHeight ?? 0) + 29 * s), ame: backgroundLoader.item ?? null }
     })
 
     readonly property string mode: surfaceOpen && surfaces[surface] !== undefined ? surface
@@ -285,7 +285,7 @@ Item {
         if (pill.appearanceOpen)
             return appearanceLoader.item ?? null;
         if (pill.barPillsOpen)
-            return barPills;
+            return barPillsLoader.item ?? null;
         return null;
     }
 
@@ -426,7 +426,7 @@ Item {
      */
     function wallpaperMove(dir) {
         if (pill.wallpaperOpen)
-            wall?.move(dir);
+            wallLoader.item?.move(dir);
     }
 
     /**
@@ -436,10 +436,10 @@ Item {
      */
     function wallpaperActivate() {
         if (pill.wallpaperOpen)
-            wall?.activate();
+            wallLoader.item?.activate();
     }
 
-    readonly property bool wallpaperSearching: pill.wallpaperOpen && (wall?.searching ?? false)
+    readonly property bool wallpaperSearching: pill.wallpaperOpen && (wallLoader.item?.searching ?? false)
 
     /**
      * Route the first printable keystroke over the open wallpaper strip into a
@@ -448,7 +448,7 @@ Item {
      */
     function wallpaperType(ch) {
         if (pill.wallpaperOpen)
-            wall?.startSearch(ch);
+            wallLoader.item?.startSearch(ch);
     }
 
     /**
@@ -1374,12 +1374,18 @@ Item {
         onRequestClose: pill.requestClose()
     }
 
-    Wallpaper {
-        id: wall
-        s: pill.s
-        open: pill.wallpaperOpen
-        morphCloseness: pill.morphCloseness
-        onRequestClose: pill.requestClose()
+    Loader {
+        id: wallLoader
+        active: pill.wallpaperOpen || pill.closingGraceSurface === "wallpaper"
+        anchors.fill: parent
+
+        sourceComponent: Wallpaper {
+            id: wall
+            s: pill.s
+            open: pill.wallpaperOpen
+            morphCloseness: pill.morphCloseness
+            onRequestClose: pill.requestClose()
+        }
     }
 
     Power {
@@ -1590,22 +1596,34 @@ Item {
         }
     }
 
-    BarPills {
-        id: barPills
-        s: pill.s
-        open: pill.barPillsOpen
-        morphCloseness: pill.morphCloseness
-        onRequestClose: pill.requestClose()
-        onRequestSurface: (name) => pill.requestSurface(name)
+    Loader {
+        id: barPillsLoader
+        active: pill.barPillsOpen || pill.closingGraceSurface === "barpills"
+        anchors.fill: parent
+
+        sourceComponent: BarPills {
+            id: barPills
+            s: pill.s
+            open: pill.barPillsOpen
+            morphCloseness: pill.morphCloseness
+            onRequestClose: pill.requestClose()
+            onRequestSurface: (name) => pill.requestSurface(name)
+        }
     }
 
-    Background {
-        id: background
-        s: pill.s
-        open: pill.backgroundOpen
-        morphCloseness: pill.morphCloseness
-        onRequestClose: pill.requestClose()
-        onRequestSurface: (name) => pill.requestSurface(name)
+    Loader {
+        id: backgroundLoader
+        active: pill.backgroundOpen || pill.closingGraceSurface === "background"
+        anchors.fill: parent
+
+        sourceComponent: Background {
+            id: background
+            s: pill.s
+            open: pill.backgroundOpen
+            morphCloseness: pill.morphCloseness
+            onRequestClose: pill.requestClose()
+            onRequestSurface: (name) => pill.requestSurface(name)
+        }
     }
 
     Osd {
