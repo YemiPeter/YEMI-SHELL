@@ -221,14 +221,14 @@ Item {
         battery: { size: () => Qt.size(batteryW, (battery?.implicitHeight ?? 0) + 36 * s), ame: battery },
         settings:  { size: () => Qt.size(settingsW, (settings?.implicitHeight ?? 0) + 29 * s), ame: settings },
         keybinds:  { size: () => Qt.size(keybindsW, (keybindsLoader.item?.implicitHeight ?? 0) + 29 * s), ame: keybindsLoader.item ?? null },
-        recorder:  { size: () => Qt.size(recorderW, (recorder?.implicitHeight ?? 0) + 33 * s), ame: recorder },
-        sysmon:    { size: () => Qt.size(sysmonW, (sysmon?.implicitHeight ?? 0) + 33 * s), ame: sysmon },
+        recorder:  { size: () => Qt.size(recorderW, (recorderLoader.item?.implicitHeight ?? 0) + 33 * s), ame: recorderLoader.item ?? null },
+        sysmon:    { size: () => Qt.size(sysmonW, (sysmonLoader.item?.implicitHeight ?? 0) + 33 * s), ame: sysmonLoader.item ?? null },
         appearance: { size: () => Qt.size(appearanceW, (appearance?.implicitHeight ?? 0) + 29 * s), ame: appearance },
-        updates:    { size: () => Qt.size(updatesW, (updates?.implicitHeight ?? 0) + 29 * s), ame: updates },
+        updates:    { size: () => Qt.size(updatesW, (updatesLoader.item?.implicitHeight ?? 0) + 29 * s), ame: updatesLoader.item ?? null },
         display:    { size: () => Qt.size(displayW, (display?.implicitHeight ?? 0) + 29 * s), ame: display },
         input:      { size: () => Qt.size(inputW, (input?.implicitHeight ?? 0) + 29 * s), ame: input },
         look:       Compositor.isHyprland
-            ? { size: () => Qt.size(lookW, (look?.implicitHeight ?? 0) + 29 * s), ame: look }
+            ? { size: () => Qt.size(lookW, (lookLoader.item?.implicitHeight ?? 0) + 29 * s), ame: lookLoader.item ?? null }
             : undefined,
         idlelock:   { size: () => Qt.size(idlelockW, (idlelock?.implicitHeight ?? 0) + 29 * s), ame: idlelock },
         fontpicker: { size: () => Qt.size(fontpickerW, (fontpicker?.implicitHeight ?? 0) + 29 * s), ame: fontpicker },
@@ -271,7 +271,7 @@ Item {
      * Returns true when the recorder is open and a revealed fader consumed it.
      */
     function recorderStep(deltaPct) {
-        return pill.recorderOpen ? (recorder?.stepFocused(deltaPct) ?? false) : false;
+        return pill.recorderOpen ? (recorderLoader.item?.stepFocused(deltaPct) ?? false) : false;
     }
 
     /**
@@ -1454,21 +1454,35 @@ Item {
         }
     }
 
-    Recorder {
-        id: recorder
-        s: pill.s
-        screenName: pill.screenName
-        open: pill.recorderOpen
-        morphCloseness: pill.morphCloseness
-        onRequestClose: pill.requestClose()
+    Loader {
+        id: recorderLoader
+        // active follows open plus the close-grace slot so the PillSurface
+        // opacity fade-out completes before the item is destroyed.
+        active: pill.recorderOpen || pill.closingGraceSurface === "recorder"
+        anchors.fill: parent
+
+        sourceComponent: Recorder {
+            id: recorder
+            s: pill.s
+            screenName: pill.screenName
+            open: pill.recorderOpen
+            morphCloseness: pill.morphCloseness
+            onRequestClose: pill.requestClose()
+        }
     }
 
-    SysmonSurface {
-        id: sysmon
-        s: pill.s
-        open: pill.sysmonOpen
-        morphCloseness: pill.morphCloseness
-        onRequestClose: pill.requestClose()
+    Loader {
+        id: sysmonLoader
+        active: pill.sysmonOpen || pill.closingGraceSurface === "sysmon"
+        anchors.fill: parent
+
+        sourceComponent: SysmonSurface {
+            id: sysmon
+            s: pill.s
+            open: pill.sysmonOpen
+            morphCloseness: pill.morphCloseness
+            onRequestClose: pill.requestClose()
+        }
     }
 
     Appearance {
@@ -1480,13 +1494,19 @@ Item {
         onRequestSurface: (name) => pill.requestSurface(name)
     }
 
-    Updates {
-        id: updates
-        s: pill.s
-        open: pill.updatesOpen
-        morphCloseness: pill.morphCloseness
-        onRequestClose: pill.requestClose()
-        onRequestSurface: (name) => pill.requestSurface(name)
+    Loader {
+        id: updatesLoader
+        active: pill.updatesOpen || pill.closingGraceSurface === "updates"
+        anchors.fill: parent
+
+        sourceComponent: Updates {
+            id: updates
+            s: pill.s
+            open: pill.updatesOpen
+            morphCloseness: pill.morphCloseness
+            onRequestClose: pill.requestClose()
+            onRequestSurface: (name) => pill.requestSurface(name)
+        }
     }
 
     Display {
@@ -1507,13 +1527,19 @@ Item {
         onRequestSurface: (name) => pill.requestSurface(name)
     }
 
-    Look {
-        id: look
-        s: pill.s
-        open: pill.lookOpen
-        morphCloseness: pill.morphCloseness
-        onRequestClose: pill.requestClose()
-        onRequestSurface: (name) => pill.requestSurface(name)
+    Loader {
+        id: lookLoader
+        active: pill.lookOpen || pill.closingGraceSurface === "look"
+        anchors.fill: parent
+
+        sourceComponent: Look {
+            id: look
+            s: pill.s
+            open: pill.lookOpen
+            morphCloseness: pill.morphCloseness
+            onRequestClose: pill.requestClose()
+            onRequestSurface: (name) => pill.requestSurface(name)
+        }
     }
 
     IdleLock {
