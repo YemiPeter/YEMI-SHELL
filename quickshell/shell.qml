@@ -10,6 +10,7 @@ import QtQuick 6.10
 import "services" as QsServices
 import "singletons" as QsSingletons
 import "modules/pill" as Pill
+import "modules/pill/Singletons"
 import "modules/background" as Background
 
 ShellRoot {
@@ -186,6 +187,59 @@ ShellRoot {
         var target = mon || (compositor.focusedMonitor?.name || "");
         if (target.length > 0)
           QsSingletons.PillState.toggleSurface(target, "sysmon");
+      }
+
+      /// Alias for sysmon (matches the old pill/shell.qml handler's pattern).
+      function system(mon: string): void {
+        var target = mon || (compositor.focusedMonitor?.name || "");
+        if (target.length > 0)
+          QsSingletons.PillState.toggleSurface(target, "sysmon");
+      }
+
+      /// Opens the recorder surface (source chooser + controls).
+      function recorder(mon: string): void {
+        var target = mon || (compositor.focusedMonitor?.name || "");
+        if (target.length > 0)
+          QsSingletons.PillState.toggleSurface(target, "recorder");
+      }
+
+      /// Aliases to the recorder surface — the source chooser already covers
+      /// both "pick a screen/window" and "start/stop", so a distinct surface
+      /// would be redundant.
+      function screenrec(mon: string): void {
+        var target = mon || (compositor.focusedMonitor?.name || "");
+        if (target.length > 0)
+          QsSingletons.PillState.toggleSurface(target, "recorder");
+      }
+
+      /// Same alias as screenrec.
+      function record(mon: string): void {
+        var target = mon || (compositor.focusedMonitor?.name || "");
+        if (target.length > 0)
+          QsSingletons.PillState.toggleSurface(target, "recorder");
+      }
+
+      /**
+       * Quick-record keybind (SUPER+D): one button cycles the whole flow with
+       * no surface. Recording → stop. Counting down → cancel. A chooser
+       * already up on this monitor → dismiss. Otherwise open the standalone
+       * source chooser on the focused monitor `mon`, so only that pill
+       * renders it.
+       */
+      function quickRecord(mon: string): void {
+        var target = mon || (compositor.focusedMonitor?.name || "");
+        if (ScreenRec.recording) {
+          ScreenRec.stop();
+        } else if (ScreenRec.counting) {
+          ScreenRec.cancel();
+        } else if (ScreenRec.quickChoosing) {
+          ScreenRec.quickChoosing = false;
+          ScreenRec.quickScreenChoosing = false;
+        } else {
+          ScreenRec.quickMon = target;
+          ScreenRec.quickScreenChoosing = false;
+          ScreenRec.quickChoosing = true;
+        }
       }
 
       function peek(mon: string): void {
