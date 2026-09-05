@@ -223,15 +223,15 @@ Item {
         keybinds:  { size: () => Qt.size(keybindsW, (keybindsLoader.item?.implicitHeight ?? 0) + 29 * s), ame: keybindsLoader.item ?? null },
         recorder:  { size: () => Qt.size(recorderW, (recorderLoader.item?.implicitHeight ?? 0) + 33 * s), ame: recorderLoader.item ?? null },
         sysmon:    { size: () => Qt.size(sysmonW, (sysmonLoader.item?.implicitHeight ?? 0) + 33 * s), ame: sysmonLoader.item ?? null },
-        appearance: { size: () => Qt.size(appearanceW, (appearance?.implicitHeight ?? 0) + 29 * s), ame: appearance },
+        appearance: { size: () => Qt.size(appearanceW, (appearanceLoader.item?.implicitHeight ?? 0) + 29 * s), ame: appearanceLoader.item ?? null },
         updates:    { size: () => Qt.size(updatesW, (updatesLoader.item?.implicitHeight ?? 0) + 29 * s), ame: updatesLoader.item ?? null },
-        display:    { size: () => Qt.size(displayW, (display?.implicitHeight ?? 0) + 29 * s), ame: display },
-        input:      { size: () => Qt.size(inputW, (input?.implicitHeight ?? 0) + 29 * s), ame: input },
+        display:    { size: () => Qt.size(displayW, (displayLoader.item?.implicitHeight ?? 0) + 29 * s), ame: displayLoader.item ?? null },
+        input:      { size: () => Qt.size(inputW, (inputLoader.item?.implicitHeight ?? 0) + 29 * s), ame: inputLoader.item ?? null },
         look:       Compositor.isHyprland
             ? { size: () => Qt.size(lookW, (lookLoader.item?.implicitHeight ?? 0) + 29 * s), ame: lookLoader.item ?? null }
             : undefined,
-        idlelock:   { size: () => Qt.size(idlelockW, (idlelock?.implicitHeight ?? 0) + 29 * s), ame: idlelock },
-        fontpicker: { size: () => Qt.size(fontpickerW, (fontpicker?.implicitHeight ?? 0) + 29 * s), ame: fontpicker },
+        idlelock:   { size: () => Qt.size(idlelockW, (idlelockLoader.item?.implicitHeight ?? 0) + 29 * s), ame: idlelockLoader.item ?? null },
+        fontpicker: { size: () => Qt.size(fontpickerW, (fontpickerLoader.item?.implicitHeight ?? 0) + 29 * s), ame: fontpickerLoader.item ?? null },
         barpills:  { size: () => Qt.size(barPillsW, (barPills?.implicitHeight ?? 0) + 29 * s), ame: barPills },
         background: { size: () => Qt.size(backgroundW, (background?.implicitHeight ?? 0) + 29 * s), ame: background }
     })
@@ -283,7 +283,7 @@ Item {
         if (pill.settingsOpen)
             return settings;
         if (pill.appearanceOpen)
-            return appearance;
+            return appearanceLoader.item ?? null;
         if (pill.barPillsOpen)
             return barPills;
         return null;
@@ -1485,13 +1485,19 @@ Item {
         }
     }
 
-    Appearance {
-        id: appearance
-        s: pill.s
-        open: pill.appearanceOpen
-        morphCloseness: pill.morphCloseness
-        onRequestClose: pill.requestClose()
-        onRequestSurface: (name) => pill.requestSurface(name)
+    Loader {
+        id: appearanceLoader
+        active: pill.appearanceOpen || pill.closingGraceSurface === "appearance"
+        anchors.fill: parent
+
+        sourceComponent: Appearance {
+            id: appearance
+            s: pill.s
+            open: pill.appearanceOpen
+            morphCloseness: pill.morphCloseness
+            onRequestClose: pill.requestClose()
+            onRequestSurface: (name) => pill.requestSurface(name)
+        }
     }
 
     Loader {
@@ -1509,22 +1515,34 @@ Item {
         }
     }
 
-    Display {
-        id: display
-        s: pill.s
-        open: pill.displayOpen
-        morphCloseness: pill.morphCloseness
-        onRequestClose: pill.requestClose()
-        onRequestSurface: (name) => pill.requestSurface(name)
+    Loader {
+        id: displayLoader
+        active: pill.displayOpen || pill.closingGraceSurface === "display"
+        anchors.fill: parent
+
+        sourceComponent: Display {
+            id: display
+            s: pill.s
+            open: pill.displayOpen
+            morphCloseness: pill.morphCloseness
+            onRequestClose: pill.requestClose()
+            onRequestSurface: (name) => pill.requestSurface(name)
+        }
     }
 
-    Input {
-        id: input
-        s: pill.s
-        open: pill.inputOpen
-        morphCloseness: pill.morphCloseness
-        onRequestClose: pill.requestClose()
-        onRequestSurface: (name) => pill.requestSurface(name)
+    Loader {
+        id: inputLoader
+        active: pill.inputOpen || pill.closingGraceSurface === "input"
+        anchors.fill: parent
+
+        sourceComponent: Input {
+            id: input
+            s: pill.s
+            open: pill.inputOpen
+            morphCloseness: pill.morphCloseness
+            onRequestClose: pill.requestClose()
+            onRequestSurface: (name) => pill.requestSurface(name)
+        }
     }
 
     Loader {
@@ -1542,22 +1560,34 @@ Item {
         }
     }
 
-    IdleLock {
-        id: idlelock
-        s: pill.s
-        open: pill.idlelockOpen
-        morphCloseness: pill.morphCloseness
-        onRequestClose: pill.requestClose()
-        onRequestSurface: (name) => pill.requestSurface(name)
+    Loader {
+        id: idlelockLoader
+        active: pill.idlelockOpen || pill.closingGraceSurface === "idlelock"
+        anchors.fill: parent
+
+        sourceComponent: IdleLock {
+            id: idlelock
+            s: pill.s
+            open: pill.idlelockOpen
+            morphCloseness: pill.morphCloseness
+            onRequestClose: pill.requestClose()
+            onRequestSurface: (name) => pill.requestSurface(name)
+        }
     }
 
-    FontPicker {
-        id: fontpicker
-        s: pill.s
-        open: pill.fontpickerOpen
-        morphCloseness: pill.morphCloseness
-        onRequestClose: pill.requestClose()
-        onRequestSurface: (name) => pill.requestSurface(name)
+    Loader {
+        id: fontpickerLoader
+        active: pill.fontpickerOpen || pill.closingGraceSurface === "fontpicker"
+        anchors.fill: parent
+
+        sourceComponent: FontPicker {
+            id: fontpicker
+            s: pill.s
+            open: pill.fontpickerOpen
+            morphCloseness: pill.morphCloseness
+            onRequestClose: pill.requestClose()
+            onRequestSurface: (name) => pill.requestSurface(name)
+        }
     }
 
     BarPills {
