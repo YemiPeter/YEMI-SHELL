@@ -1,5 +1,5 @@
 # Audit 01 — Design & Architecture
-*Refreshed 2026-09-05 on branch `pill-perf`. Outdated entries deleted; see git history for the old snapshot.*
+*Refreshed 2026-09-05 (2nd pass) on branch `pill-perf`. Outdated entries deleted; see git history for the old snapshot.*
 
 ## Resolved since last audit ✅
 - ~~Shadow strategy split per compositor~~ — **done.** Single gate `Compositor.qmlShadows` (= `isNiri`) in `compositor/Compositor.qml`; every shadow site (Pill, Bar, Tray, AppIcons ×2) checks it. Hyprland gets zero QML shadows → the blur-halo bug class is closed.
@@ -39,10 +39,9 @@ Not part of the original audit; surfaced during D1–D4 work.
 - **Backdrop's blur-before-image-ready race** (solid color until blur radius manually touched) — fixed with a `hasLoadedOnce` latch on the crossfader's `Image.Ready` signal (`278b981`).
 - **Power.qml console error on every surface close** (phantom `kbFocus`/`pressed` property assignment on a Repeater id) — deleted, dead code, zero functional impact (`0d98472`).
 - **Background.qml's height self-clamp silently broken** (NaN from an unresolvable cross-file `settings.implicitHeight` id reference) — fixed by passing `maxSurfaceH` in from Pill.qml where the id is actually in scope (`4bd2797`).
-- **Two IpcHandlers both claiming `target: "pill"`, one fully dead** (`modules/pill/shell.qml`, deleted in `6555425`) — the live handler was missing 8 functions the dead one appeared to define. 5 ported and verified (system/recorder/screenrec/record/quickRecord, `456b200`); bluetooth/battery confirmed to map to real existing surfaces (see carry-forward below).
+- **Two IpcHandlers both claiming `target: "pill"`, one fully dead** (`modules/pill/shell.qml`, deleted in `6555425`) — the live handler was missing 8 functions the dead one appeared to define. 5 ported and verified (system/recorder/screenrec/record/quickRecord, `456b200`); bluetooth/battery confirmed to map to real existing surfaces and **ported** (`ec07661`). Live pill IPC target now exposes all 20 functions.
 
 ## Still open / carry forward ⏳
-- **bluetooth/battery IPC function aliases** — confirmed safe and scoped (both map to real surfaces: `linkBt`/`"bluetooth"`, `BatterySurface`/`"battery"`); awaiting go-ahead.
 - **10 of D2's Loader-gated surfaces need manual visual verification** (not just log-clean): updates, look, appearance, display, input, idlelock, fontpicker, barpills, background, recorder.
 - **`wsId` parallax staleness bug** — `Niri.qml`'s `linkWorkspacesToMonitors()` mutates plain objects with no signal emission; parallax may not update on real workspace switches.
 - **Dead `modules/background/Wallpaper.qml` deletion** — parked; Yemi has asked not to touch git on this file for now.

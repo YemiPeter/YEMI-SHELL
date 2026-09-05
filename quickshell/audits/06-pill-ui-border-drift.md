@@ -1,6 +1,6 @@
 # Audit 06 — Unexpected black border lines on buttons (pill UI border drift)
 
-**Date:** 2026-09-04 · **Branch:** `pill-perf` · **Base commit:** `b0755f7`
+**Date:** 2026-09-05 · **Branch:** `pill-perf` · **Base commit:** `ec07661`
 
 **Scope:** Visual drift between the local quickshell pill UI and the original
 Ricelin reference, focused on the "black hairline around buttons/tiles" that the
