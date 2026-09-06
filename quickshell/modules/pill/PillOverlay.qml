@@ -274,13 +274,19 @@ Item {
             surface: overlay.surface
             forcePinned: QsSingletons.PillState.peekMon === root.modelData.name
             opacity: overlay.monFullscreen ? 0 : 1
+            // EXIT-only easing fix: when returning from fullscreen (monFullscreen -> false),
+            // opacity uses InQuint so it stays near 0 while the OutCubic y-transform is
+            // still mid-slide (OutCubic y covers most of its distance early), then rises
+            // late in the curve. ENTER keeps the original OutCubic pair — it is already
+            // synchronized (opacity reaches 0 exactly as y settles).
             Behavior on opacity {
                 NumberAnimation {
                     duration: 200
-                    easing.type: Easing.OutCubic
+                    easing.type: overlay.monFullscreen ? Easing.OutCubic : Easing.InQuint
                 }
             }
             transform: Translate {
+                id: fsTranslate
                 y: overlay.monFullscreen ? -(pill.height + overlay.topGap) : 0
                 Behavior on y {
                     NumberAnimation {
