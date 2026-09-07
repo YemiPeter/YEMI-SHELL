@@ -44,7 +44,6 @@ Not part of the original audit; surfaced during D1–D4 work.
 - **`wsId` parallax staleness on Niri** — `Niri.qml`'s `linkWorkspacesToMonitors()` mutated `activeWorkspace` on plain JS monitor objects, which emits no change signal, so a workspace switch only reached consumers when the *next* monitors poll completed (~0.5-1s later). Fixed by rebuilding + reassigning the monitors map (fires the `var` change notification) and re-linking from `parseWorkspaces()` in the same cycle; `BackdropParallax.wsId` also force-reads `Compositor.monitors` since `monitorFor()`'s internal reads don't reliably register binding dependencies (`9cf6505`). **Niri-only by construction** — parallax is Loader-gated to `Compositor.isNiri` (`Backdrop.qml:57`), and Hyprland's monitor objects are real notifying C++ properties, so nothing Hyprland-side was touched. Approach mirrors iNiR's notifying-property pattern (`~/iNiR`, `NiriService.qml`). Full event-stream socket (niri IPC, replacing the 500ms poll) is a possible future upgrade, not a bug.
 
 ## Still open / carry forward ⏳
-- **Dead `modules/background/Wallpaper.qml` deletion** — parked; Yemi has asked not to touch git on this file for now.
 - **Niri `spawn-at-startup` runs `set-wallpaper.sh niri init` unconditionally** even when `backdropHideWallpaper` is true, contradicting the hide feature's intent — flagged, not decided.
 
 ## Invariants to keep (do not regress)
