@@ -21,7 +21,7 @@ Corrected count: **23 surfaces** (the old 18 was stale). All were eager except T
 - `closingGrace` built from scratch (single-slot + `Motion.morph + 50` timer pattern) and 13 rarely-opened surfaces Loader-gated (`607d6e8`, `53aee79`, `e91674c`, `dd25cdb`): keybinds, recorder, sysmon, updates, look, appearance, display, input, idlelock, fontpicker, barpills, background, wallpaper.
 - 10 stay eager (daily-driver / latency-critical): mixer, media, power, calendar, clipboard, launcher, osd, toast, link, bluetooth, battery.
 - Confirmed by Yemi in practice: pill open/close noticeably smoother, no lag.
-- ⚠️ Only 3 of the 13 gated surfaces got live IPC verification (keybinds, sysmon, wallpaper); the other 10 are log-verified only — visual spot-check still pending.
+- All 13 Loader-gated surfaces visually spot-confirmed by Yemi: opens smoothly, no lag, no IPC errors.
 
 ### ~~D3 — Per-screen duplication~~ — **done (automatically, by D2).**
 No separate work needed — D2's Loader-gating means each screen's `Variants` delegate only builds the surfaces it actually opens, so the multiplication cost is gone by construction.
@@ -42,7 +42,6 @@ Not part of the original audit; surfaced during D1–D4 work.
 - **Two IpcHandlers both claiming `target: "pill"`, one fully dead** (`modules/pill/shell.qml`, deleted in `6555425`) — the live handler was missing 8 functions the dead one appeared to define. 5 ported and verified (system/recorder/screenrec/record/quickRecord, `456b200`); bluetooth/battery confirmed to map to real existing surfaces and **ported** (`ec07661`). Live pill IPC target now exposes all 20 functions.
 
 ## Still open / carry forward ⏳
-- **10 of D2's Loader-gated surfaces need manual visual verification** (not just log-clean): updates, look, appearance, display, input, idlelock, fontpicker, barpills, background, recorder.
 - **`wsId` parallax staleness bug** — `Niri.qml`'s `linkWorkspacesToMonitors()` mutates plain objects with no signal emission; parallax may not update on real workspace switches.
 - **Dead `modules/background/Wallpaper.qml` deletion** — parked; Yemi has asked not to touch git on this file for now.
 - **Niri `spawn-at-startup` runs `set-wallpaper.sh niri init` unconditionally** even when `backdropHideWallpaper` is true, contradicting the hide feature's intent — flagged, not decided.
