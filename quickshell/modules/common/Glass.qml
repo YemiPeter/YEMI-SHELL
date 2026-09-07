@@ -21,8 +21,8 @@ import "../../singletons" as QsSingletons
  * hardcoded fallbacks, so they are valid even with no wallpaper to sample).
  * Animated wallpapers need no handling here at all: Glass never samples
  * wallpaper pixels (post-5d64483 tint-only architecture), and GIF playback
- * lives entirely in modules/background (Backdrop.qml / Wallpaper.qml
- * AnimatedImage handling on Niri; awww deliberately refuses GIFs on
+ * lives entirely in modules/background/Backdrop.qml's AnimatedImage on Niri;
+ * awww deliberately refuses GIFs on
  * Hyprland — see AwwwBackend.supportsMainWallpaper).
  *
  * Historical note (D1 / 8819a34 / revert): this file used to self-blur via a
