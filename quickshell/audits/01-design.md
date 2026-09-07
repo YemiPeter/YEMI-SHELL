@@ -31,7 +31,7 @@ No separate work needed — D2's Loader-gating means each screen's `Variants` de
 ### D4 — Glass polish backlog (folded from `plans/pill-aurora-glass-audit.md` §7 on its deletion)
 - **Animated (GIF) wallpaper support** — investigated, **no Glass.qml change needed**: GIF handling already correctly lives in `Backdrop.qml` for Niri; Hyprland's awww deliberately excludes `.gif` entirely. Scope decision documented in Glass.qml's header.
 - **Mood-gradient fallback when no wallpaper is set** — **done** (`139fa6e`), verified via pixel-diff screenshot comparison.
-- Still open, not started, low priority: blur params as a user setting; frost-alignment verification during the fullscreen Translate transform (`shell.qml:437` — opacity is 0 while it runs, but the timing relationship was never directly verified).
+- Still open, not started, low priority: blur params as a user setting. ~~Frost-alignment verification during the fullscreen Translate transform~~ — **done** (`c08c441`): the opacity↔y-transform timing was captured at 10ms resolution and corrected (EXIT opacity now stays ~0 until the OutCubic slide completes, then rises on InQuint as the pill lands).
 
 ## Bugs found and fixed along the way ✅
 Not part of the original audit; surfaced during D1–D4 work.
@@ -40,13 +40,12 @@ Not part of the original audit; surfaced during D1–D4 work.
 - **Power.qml console error on every surface close** (phantom `kbFocus`/`pressed` property assignment on a Repeater id) — deleted, dead code, zero functional impact (`0d98472`).
 - **Background.qml's height self-clamp silently broken** (NaN from an unresolvable cross-file `settings.implicitHeight` id reference) — fixed by passing `maxSurfaceH` in from Pill.qml where the id is actually in scope (`4bd2797`).
 - **Two IpcHandlers both claiming `target: "pill"`, one fully dead** (`modules/pill/shell.qml`, deleted in `6555425`) — the live handler was missing 8 functions the dead one appeared to define. 5 ported and verified (system/recorder/screenrec/record/quickRecord, `456b200`); bluetooth/battery confirmed to map to real existing surfaces and **ported** (`ec07661`). Live pill IPC target now exposes all 20 functions.
+- **Fullscreen pill opacity ran the stale easing on direction flip** — the shared `Behavior on opacity` snapshotted the wrong easing when entering/exiting fullscreen (EXIT rushed to ~57% opacity mid-slide; ENTER stayed opaque through the slide). Replaced with `State`+`Transition` per-direction easings (ENTER `OutCubic`, EXIT `InQuint`), making stale snapshots structurally impossible; verified with 10ms trajectory captures across toggle cycles (`c08c441`).
+- **`wsId` parallax staleness on Niri** — `Niri.qml`'s `linkWorkspacesToMonitors()` mutated `activeWorkspace` on plain JS monitor objects, which emits no change signal, so a workspace switch only reached consumers when the *next* monitors poll completed (~0.5-1s later). Fixed by rebuilding + reassigning the monitors map (fires the `var` change notification) and re-linking from `parseWorkspaces()` in the same cycle; `BackdropParallax.wsId` also force-reads `Compositor.monitors` since `monitorFor()`'s internal reads don't reliably register binding dependencies (`9cf6505`). **Niri-only by construction** — parallax is Loader-gated to `Compositor.isNiri` (`Backdrop.qml:57`), and Hyprland's monitor objects are real notifying C++ properties, so nothing Hyprland-side was touched. Approach mirrors iNiR's notifying-property pattern (`~/iNiR`, `NiriService.qml`). Full event-stream socket (niri IPC, replacing the 500ms poll) is a possible future upgrade, not a bug.
 
 ## Still open / carry forward ⏳
 - **Dead `modules/background/Wallpaper.qml` deletion** — parked; Yemi has asked not to touch git on this file for now.
 - **Niri `spawn-at-startup` runs `set-wallpaper.sh niri init` unconditionally** even when `backdropHideWallpaper` is true, contradicting the hide feature's intent — flagged, not decided.
-
-## Resolved this audit ✅ (recent)
-- **`wsId` parallax staleness bug** — `linkWorkspacesToMonitors()` now rebuilds and reassigns the monitors map (fires the `var` change notification) and `parseWorkspaces()` re-links in the same cycle as the switch, so parallax/OSD/workspace pills update without the old ~0.5-1s lag; `BackdropParallax.wsId` force-reads `Compositor.monitors` (`9cf6505`). Approach mirrors iNiR's notifying-property pattern. Full event-stream (niri IPC socket, replacing the 500ms poll) remains a possible future upgrade, not a bug.
 
 ## Invariants to keep (do not regress)
 - `Glass` must be the surface itself in aurora mode — never paint a card fill on top of it (double-dim).
