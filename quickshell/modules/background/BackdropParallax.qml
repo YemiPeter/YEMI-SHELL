@@ -17,6 +17,12 @@ Item {
     readonly property bool parallaxOn: QsSingletons.Flags.parallaxEnable
     readonly property real parallaxScale: root.parallaxOn ? QsSingletons.Flags.parallaxZoom : 1.0
     readonly property int wsId: {
+        // Force-read the tracked monitors property: monitorFor()'s internal
+        // reads don't reliably register binding dependencies (same lesson as
+        // the bar's Workspaces.wsState), and Niri re-links activeWorkspace by
+        // reassigning its monitors map on every workspace parse. Without this,
+        // the parallax could lag a switch by a poll cycle.
+        void Compositor.monitors
         const m = Compositor.monitorFor(root.monitorScreen)
         return (m && m.activeWorkspace) ? m.activeWorkspace.id : 1
     }

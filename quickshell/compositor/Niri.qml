@@ -234,6 +234,12 @@ Item {
 
             _niriState.workspaces = newWorkspaces;
             _niriState.focusedWorkspace = newFocusedWorkspace;
+
+            // Re-link activeWorkspace onto the monitor rows and reassign the
+            // monitors map, so consumers that read monitors (parallax, OSD,
+            // bar/pill workspaces) refresh in the same poll cycle as the
+            // switch instead of waiting for the next monitors parse.
+            root.linkWorkspacesToMonitors();
         } catch (e) {
             console.warn("Failed to parse workspace data:", e);
         }
@@ -325,31 +331,44 @@ Item {
     }
 
     /**
-     * After both monitors and workspaces have been parsed, link each workspace
-     * to its monitor's activeWorkspace property so consumers that expect
-     * Hyprland-like monitor.activeWorkspace work.
-     */
-    /**
-     * After both monitors and workspaces have been parsed, link each workspace
-     * to its monitor's activeWorkspace property so consumers that expect
+     * After monitors and/or workspaces have been parsed, link each output's
+     * active workspace into its monitor row so consumers that expect
      * Hyprland-like monitor.activeWorkspace work.
      *
      * Niri's is_active means "this workspace is currently shown on its output"
      * — exactly one per monitor — so every monitor gets its own activeWorkspace.
      * is_focused is global (one across all outputs), kept only as a fallback.
+     *
+     * IMPORTANT: this rebuilds and REASSIGNS the monitors map rather than
+     * mutating activeWorkspace on the existing plain JS objects. A field write
+     * on a plain JS object emits no change signal, so QML bindings could not
+     * see it — a workspace switch only reached the parallax / OSD / workspace
+     * pills when the NEXT monitors poll happened (~0.5-1s later). Reassigning
+     * the property var fires the change notification, and because bindings
+     * re-evaluate only after the synchronous call stack completes, consumers
+     * always observe the fully linked map.
      */
     function linkWorkspacesToMonitors(): void {
         var ws = _niriState.workspaces;
         var mons = _niriState.monitors;
+        var linked = {};
+        for (var output in mons) {
+            // Shallow-copy each monitor row so the new map is a distinct
+            // object; the copy starts with no active workspace.
+            var mon = mons[output];
+            var copy = {};
+            for (var k in mon)
+                copy[k] = mon[k];
+            copy.activeWorkspace = null;
+            linked[output] = copy;
+        }
         for (var wsId in ws) {
             var w = ws[wsId];
-            if (w.output && mons[w.output]) {
-                var mon = mons[w.output];
-                if (w.isActive || w.is_focused) {
-                    mon.activeWorkspace = w;
-                }
+            if (w.output && linked[w.output] && (w.isActive || w.is_focused)) {
+                linked[w.output].activeWorkspace = w;
             }
         }
+        _niriState.monitors = linked;
     }
     
     // Connections to listen for Niri events if available
