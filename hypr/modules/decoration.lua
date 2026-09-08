@@ -2,7 +2,7 @@
 
 general {
     gaps_in = 8
-    gaps_out = 11
+    gaps_out = 10
     layout = dwindle
     border_size = 0
 }
