@@ -319,12 +319,24 @@ Item {
                 }
             }
 
+            // Link the freshly parsed rows to the CURRENT workspaces BEFORE
+            // publishing. _niriState.monitors is a notifying property and the
+            // engine's binding cascade re-evaluates consumers (e.g. the OSD's
+            // activeWsName) the instant it changes, so publishing the map with
+            // activeWorkspace still null — even transiently between two
+            // assignments inside this function — made activeWsName flip
+            // '' → 'WS n' on every poll cycle, re-triggering the workspace OSD
+            // flash every ~500ms and pinning the pill in the workspace morph
+            // forever (hideTimer never got to expire).
+            var ws = _niriState.workspaces;
+            for (var wsId in ws) {
+                var w = ws[wsId];
+                if (w.output && newMonitors[w.output] && (w.isActive || w.is_focused))
+                    newMonitors[w.output].activeWorkspace = w;
+            }
+
             _niriState.monitors = newMonitors;
             _niriState.focusedMonitor = newFocusedMonitor;
-
-            // Link workspaces to monitors: after monitors update, assign activeWorkspace
-            // by matching workspace output to monitor name
-            root.linkWorkspacesToMonitors();
         } catch (e) {
             console.warn("Failed to parse monitor data:", e);
         }
