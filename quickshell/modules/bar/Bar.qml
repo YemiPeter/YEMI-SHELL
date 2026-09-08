@@ -86,67 +86,61 @@ Item {
             spacing: 8 * root.s
 
             // Workspaces pill
-            Rectangle {
-                id: leftModule
-                height: 28 * root.s
-                width: leftContent.implicitWidth + 16 * root.s
-                radius: 14
-                // Aurora glass IS the fill (Glass layering contract — mirrors
-                // the center pill body); solid pillBg in the yemi style only.
-                color: QsSingletons.Theme.auroraActive ? "transparent" : pillBg
-                border.width: 1
-                border.color: pillBorder
-
-                Glass {
-                    anchors.fill: parent
-                    radius: leftModule.radius
-                    tintScale: root.pillAlpha
+            Loader {
+                id: workspacesLoader
+                asynchronous: false
+                source: "components/BarPill.qml"
+                Binding {
+                    target: workspacesLoader.item
+                    property: "customHeight"
+                    value: 28 * root.s
+                    when: workspacesLoader.status === Loader.Ready
+                    restoreMode: Binding.RestoreBinding
                 }
-
-                Behavior on width {
-                    NumberAnimation {
-                        duration: 350;
-                        easing.bezierCurve: [0.34, 1.56, 0.64, 1]
-                    }
+                Binding {
+                    target: workspacesLoader.item
+                    property: "customRadius"
+                    value: 14
+                    when: workspacesLoader.status === Loader.Ready
+                    restoreMode: Binding.RestoreBinding
                 }
-
-                // Top highlight
-                Rectangle {
-                    anchors.top: parent.top
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.margins: 1 * root.s
-                    height: parent.height / 2
-                    radius: parent.radius - 1
-                    gradient: Gradient {
-                        GradientStop { position: 0.0; color: highlightTop }
-                        GradientStop { position: 1.0; color: "transparent" }
-                    }
+                Binding {
+                    target: workspacesLoader.item
+                    property: "customSpacing"
+                    value: 10 * root.s
+                    when: workspacesLoader.status === Loader.Ready
+                    restoreMode: Binding.RestoreBinding
                 }
-
-                RowLayout {
-                    id: leftContent
-                    anchors.centerIn: parent
-                    spacing: 10 * root.s
-
-                    Loader {
-                        id: workspacesLoader
-                        Layout.alignment: Qt.AlignVCenter
-                        asynchronous: false
-                        source: "components/Workspaces.qml"
-                        Binding {
-                            target: workspacesLoader.item
-                            property: "screen"
-                            value: root.screen
-                            when: workspacesLoader.status === Loader.Ready && root.screen !== undefined
-                            restoreMode: Binding.RestoreBinding
-                        }
-                    }
+                Binding {
+                    target: workspacesLoader.item
+                    property: "customDuration"
+                    value: 350
+                    when: workspacesLoader.status === Loader.Ready
+                    restoreMode: Binding.RestoreBinding
+                }
+                Binding {
+                    target: workspacesLoader.item
+                    property: "bezierCurve"
+                    value: [0.34, 1.56, 0.64, 1]
+                    when: workspacesLoader.status === Loader.Ready
+                    restoreMode: Binding.RestoreBinding
+                }
+                Binding {
+                    target: workspacesLoader.item
+                    property: "screen"
+                    value: root.screen
+                    when: workspacesLoader.status === Loader.Ready && root.screen !== undefined
+                    restoreMode: Binding.RestoreBinding
+                }
+                Binding {
+                    target: workspacesLoader.item
+                    property: "barWindow"
+                    value: root.barWindow
+                    when: workspacesLoader.status === Loader.Ready && root.barWindow !== undefined
+                    restoreMode: Binding.RestoreBinding
                 }
             }
-
-            }
-
+ 
             // Running-apps strip — bare icons (no pill chrome) that sit next
             // to the workspace pill. Sibling of leftPills inside leftGroup so
             // hiding the pill doesn't hide the icons.
@@ -160,9 +154,9 @@ Item {
                 source: "components/AppIcons.qml"
                 Binding {
                     target: appIconsLoader.item
-                    property: "screen"
-                    value: root.screen
-                    when: appIconsLoader.status === Loader.Ready && root.screen !== undefined
+                    property: "barWindow"
+                    value: root.barWindow
+                    when: appIconsLoader.status === Loader.Ready && root.barWindow !== undefined
                     restoreMode: Binding.RestoreBinding
                 }
             }
@@ -194,284 +188,166 @@ Item {
             spacing: 6 * root.s
 
             // ═══ PILL 1: Network + Bluetooth (Connectivity) ═══
-            Rectangle {
-                id: connectivityPill
-                height: 28 * root.s
-                width: connectivityContent.implicitWidth + 16 * root.s
-                radius: 14 * root.s
-                // Aurora glass IS the fill (Glass layering contract).
-                color: QsSingletons.Theme.auroraActive ? "transparent" : pillBg
-                border.width: 1
-                border.color: pillBorder
-
-                Glass {
-                    anchors.fill: parent
-                    radius: connectivityPill.radius
-                    tintScale: root.pillAlpha
+            Loader {
+                id: connectivityLoader
+                asynchronous: false
+                source: "components/BarPill.qml"
+                Binding {
+                    target: connectivityLoader.item
+                    property: "customHeight"
+                    value: 28 * root.s
+                    when: connectivityLoader.status === Loader.Ready
+                    restoreMode: Binding.RestoreBinding
                 }
-
-                Behavior on width {
-                    NumberAnimation {
-                        duration: 250;
-                        easing.type: Easing.OutCubic
-                    }
+                Binding {
+                    target: connectivityLoader.item
+                    property: "customRadius"
+                    value: 14 * root.s
+                    when: connectivityLoader.status === Loader.Ready
+                    restoreMode: Binding.RestoreBinding
                 }
-
-                // Highlight
-                Rectangle {
-                    anchors.top: parent.top
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.margins: 1 * root.s
-                    height: parent.height / 2
-                    radius: parent.radius - 1
-                    gradient: Gradient {
-                        GradientStop { position: 0.0; color: highlightTop }
-                        GradientStop { position: 1.0; color: "transparent" }
-                    }
+                Binding {
+                    target: connectivityLoader.item
+                    property: "customSpacing"
+                    value: 4 * root.s
+                    when: connectivityLoader.status === Loader.Ready
+                    restoreMode: Binding.RestoreBinding
                 }
-
-                Row {
-                    id: connectivityContent
-                    anchors.centerIn: parent
-                    spacing: 4 * root.s
-
-                    Loader {
-                        id: networkLoader
-                        anchors.verticalCenter: parent.verticalCenter
-                        asynchronous: false
-                        source: "components/Network.qml"
-                        Binding {
-                            target: networkLoader.item
-                            property: "barWindow"
-                            value: root.barWindow
-                            when: networkLoader.status === Loader.Ready && root.barWindow !== undefined
-                            restoreMode: Binding.RestoreBinding
-                        }
-                        Binding {
-                            target: networkLoader.item
-                            property: "screenName"
-                            value: root.screenName
-                            when: networkLoader.status === Loader.Ready
-                            restoreMode: Binding.RestoreBinding
-                        }
-                    }
-
-                    // Separator
-                    Rectangle {
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: 1
-                        height: 12 * root.s
-                        radius: 0.5 * root.s
-                        color: pillSeparator
-                    }
-
-                    Loader {
-                        id: bluetoothLoader
-                        anchors.verticalCenter: parent.verticalCenter
-                        asynchronous: false
-                        source: "components/Bluetooth.qml"
-                        Binding {
-                            target: bluetoothLoader.item
-                            property: "barWindow"
-                            value: root.barWindow
-                            when: bluetoothLoader.status === Loader.Ready && root.barWindow !== undefined
-                            restoreMode: Binding.RestoreBinding
-                        }
-                        Binding {
-                            target: bluetoothLoader.item
-                            property: "screenName"
-                            value: root.screenName
-                            when: bluetoothLoader.status === Loader.Ready
-                            restoreMode: Binding.RestoreBinding
-                        }
-                    }
+                Binding {
+                    target: connectivityLoader.item
+                    property: "customDuration"
+                    value: 250
+                    when: connectivityLoader.status === Loader.Ready
+                    restoreMode: Binding.RestoreBinding
+                }
+                Binding {
+                    target: connectivityLoader.item
+                    property: "barWindow"
+                    value: root.barWindow
+                    when: connectivityLoader.status === Loader.Ready && root.barWindow !== undefined
+                    restoreMode: Binding.RestoreBinding
+                }
+                Binding {
+                    target: connectivityLoader.item
+                    property: "screenName"
+                    value: root.screenName
+                    when: connectivityLoader.status === Loader.Ready
+                    restoreMode: Binding.RestoreBinding
+                }
+                Binding {
+                    target: connectivityLoader.item
+                    property: "pillSeparator"
+                    value: root.pillSeparator
+                    when: connectivityLoader.status === Loader.Ready
+                    restoreMode: Binding.RestoreBinding
                 }
             }
-
+ 
             // ═══ PILL 2: Brightness + Volume (Audio/Display) ═══
-            Rectangle {
-                id: audioPill
-                height: 28 * root.s
-                width: audioContent.implicitWidth + 16 * root.s
-                radius: 14 * root.s
-                // Aurora glass IS the fill (Glass layering contract).
-                color: QsSingletons.Theme.auroraActive ? "transparent" : pillBg
-                border.width: 1
-                border.color: pillBorder
-
-                Glass {
-                    anchors.fill: parent
-                    radius: audioPill.radius
-                    tintScale: root.pillAlpha
+            Loader {
+                id: audioLoader
+                asynchronous: false
+                source: "components/BarPill.qml"
+                Binding {
+                    target: audioLoader.item
+                    property: "customHeight"
+                    value: 28 * root.s
+                    when: audioLoader.status === Loader.Ready
+                    restoreMode: Binding.RestoreBinding
                 }
-
-                Behavior on width {
-                    NumberAnimation {
-                        duration: 250;
-                        easing.type: Easing.OutCubic
-                    }
+                Binding {
+                    target: audioLoader.item
+                    property: "customRadius"
+                    value: 14 * root.s
+                    when: audioLoader.status === Loader.Ready
+                    restoreMode: Binding.RestoreBinding
                 }
-
-                // Highlight
-                Rectangle {
-                    anchors.top: parent.top
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.margins: 1 * root.s
-                    height: parent.height / 2
-                    radius: parent.radius - 1
-                    gradient: Gradient {
-                        GradientStop { position: 0.0; color: highlightTop }
-                        GradientStop { position: 1.0; color: "transparent" }
-                    }
+                Binding {
+                    target: audioLoader.item
+                    property: "customSpacing"
+                    value: 6 * root.s
+                    when: audioLoader.status === Loader.Ready
+                    restoreMode: Binding.RestoreBinding
                 }
-
-                Row {
-                    id: audioContent
-                    anchors.centerIn: parent
-                    spacing: 6 * root.s
-
-                    Loader {
-                        id: brightnessLoader
-                        anchors.verticalCenter: parent.verticalCenter
-                        asynchronous: false
-                        source: "components/Brightness.qml"
-                        Binding {
-                            target: brightnessLoader.item
-                            property: "barWindow"
-                            value: root.barWindow
-                            when: brightnessLoader.status === Loader.Ready && root.barWindow !== undefined
-                            restoreMode: Binding.RestoreBinding
-                        }
-                        Binding {
-                            target: brightnessLoader.item
-                            property: "screenName"
-                            value: root.screenName
-                            when: brightnessLoader.status === Loader.Ready
-                            restoreMode: Binding.RestoreBinding
-                        }
-                    }
-
-                    // Separator
-                    Rectangle {
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: 1
-                        height: 12 * root.s
-                        radius: 0.5 * root.s
-                        color: pillSeparator
-                    }
-
-                    Loader {
-                        id: volumeLoader
-                        anchors.verticalCenter: parent.verticalCenter
-                        asynchronous: false
-                        source: "components/Volume.qml"
-                        Binding {
-                            target: volumeLoader.item
-                            property: "barWindow"
-                            value: root.barWindow
-                            when: volumeLoader.status === Loader.Ready && root.barWindow !== undefined
-                            restoreMode: Binding.RestoreBinding
-                        }
-                        Binding {
-                            target: volumeLoader.item
-                            property: "screenName"
-                            value: root.screenName
-                            when: volumeLoader.status === Loader.Ready
-                            restoreMode: Binding.RestoreBinding
-                        }
-                    }
+                Binding {
+                    target: audioLoader.item
+                    property: "customDuration"
+                    value: 250
+                    when: audioLoader.status === Loader.Ready
+                    restoreMode: Binding.RestoreBinding
+                }
+                Binding {
+                    target: audioLoader.item
+                    property: "barWindow"
+                    value: root.barWindow
+                    when: audioLoader.status === Loader.Ready && root.barWindow !== undefined
+                    restoreMode: Binding.RestoreBinding
+                }
+                Binding {
+                    target: audioLoader.item
+                    property: "screenName"
+                    value: root.screenName
+                    when: audioLoader.status === Loader.Ready
+                    restoreMode: Binding.RestoreBinding
+                }
+                Binding {
+                    target: audioLoader.item
+                    property: "pillSeparator"
+                    value: root.pillSeparator
+                    when: audioLoader.status === Loader.Ready
+                    restoreMode: Binding.RestoreBinding
                 }
             }
-
+ 
             // ═══ PILL 3: Battery + Tray ═══
-            Rectangle {
-                id: powerPill
-                height: 28 * root.s
-                width: powerContent.implicitWidth + 16 * root.s
-                radius: 14 * root.s
-                // Aurora glass IS the fill (Glass layering contract).
-                color: QsSingletons.Theme.auroraActive ? "transparent" : pillBg
-                border.width: 1
-                border.color: pillBorder
-
-                Glass {
-                    anchors.fill: parent
-                    radius: powerPill.radius
-                    tintScale: root.pillAlpha
+            Loader {
+                id: powerLoader
+                asynchronous: false
+                source: "components/BarPill.qml"
+                Binding {
+                    target: powerLoader.item
+                    property: "customHeight"
+                    value: 28 * root.s
+                    when: powerLoader.status === Loader.Ready
+                    restoreMode: Binding.RestoreBinding
                 }
-
-                Behavior on width {
-                    NumberAnimation {
-                        duration: 250;
-                        easing.type: Easing.OutCubic
-                    }
+                Binding {
+                    target: powerLoader.item
+                    property: "customRadius"
+                    value: 14 * root.s
+                    when: powerLoader.status === Loader.Ready
+                    restoreMode: Binding.RestoreBinding
                 }
-
-                // Highlight
-                Rectangle {
-                    anchors.top: parent.top
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.margins: 1 * root.s
-                    height: parent.height / 2
-                    radius: parent.radius - 1
-                    gradient: Gradient {
-                        GradientStop { position: 0.0; color: highlightTop }
-                        GradientStop { position: 1.0; color: "transparent" }
-                    }
+                Binding {
+                    target: powerLoader.item
+                    property: "customSpacing"
+                    value: 6 * root.s
+                    when: powerLoader.status === Loader.Ready
+                    restoreMode: Binding.RestoreBinding
                 }
-
-                Row {
-                    id: powerContent
-                    anchors.centerIn: parent
-                    spacing: 6 * root.s
-
-                    // Status Indicators (Caffeine, DND)
-                    Loader {
-                        id: statusIndicatorsLoader
-                        anchors.verticalCenter: parent.verticalCenter
-                        asynchronous: false
-                        source: "components/StatusIndicators.qml"
-                        visible: item ? item.hasActiveIndicators : false
-                    }
-
-                    // Separator (only if status indicators visible)
-                    Rectangle {
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: 1
-                        height: 12 * root.s
-                        radius: 0.5 * root.s
-                        color: pillSeparator
-                        visible: statusIndicatorsLoader.item ? statusIndicatorsLoader.item.hasActiveIndicators : false
-                    }
-
-                    // Battery
-                    Loader {
-                        id: batteryLoader
-                        anchors.verticalCenter: parent.verticalCenter
-                        asynchronous: false
-                        source: "components/Battery.qml"
-                        Binding {
-                            target: batteryLoader.item
-                            property: "screenName"
-                            value: root.screenName
-                            when: batteryLoader.status === Loader.Ready
-                            restoreMode: Binding.RestoreBinding
-                        }
-                    }
-
-                    // System Tray (only if has items)
-                    Loader {
-                        id: systemTrayLoader
-                        anchors.verticalCenter: parent.verticalCenter
-                        asynchronous: false
-                        // source: "components/SystemTray.qml"
-                        visible: item ? item.hasItems : false
-                    }
+                Binding {
+                    target: powerLoader.item
+                    property: "customDuration"
+                    value: 250
+                    when: powerLoader.status === Loader.Ready
+                    restoreMode: Binding.RestoreBinding
+                }
+                Binding {
+                    target: powerLoader.item
+                    property: "screenName"
+                    value: root.screenName
+                    when: powerLoader.status === Loader.Ready
+                    restoreMode: Binding.RestoreBinding
+                }
+                Binding {
+                    target: powerLoader.item
+                    property: "barWindow"
+                    value: root.barWindow
+                    when: powerLoader.status === Loader.Ready && root.barWindow !== undefined
+                    restoreMode: Binding.RestoreBinding
                 }
             }
+        }
         }
     }
 }

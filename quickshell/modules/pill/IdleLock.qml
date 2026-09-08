@@ -77,7 +77,7 @@ SettingsSurface {
  Timer {
   id: debounceTimer
   interval: 300
-  onTriggered: doApply()
+  onTriggered: root.doApply()
  }
 
  function apply() {

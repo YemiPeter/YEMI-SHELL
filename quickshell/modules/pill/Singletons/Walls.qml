@@ -28,6 +28,11 @@ Singleton {
     readonly property int count: entries.length
     property string current: ""
     property bool pending: false
+    // True once the directory has been listed at least once. The strip uses it
+    // to tell "still building the first snapshot" apart from "truly no files":
+    // until the first list lands, entries is [] while the thumbnail pass runs,
+    // so the surface must not claim the folder is empty.
+    property bool loaded: false
 
     readonly property string wpDir: Quickshell.env("HOME") + "/Pictures/Wallpapers"
     readonly property string thumbDir: (Quickshell.env("XDG_CACHE_HOME") || (Quickshell.env("HOME") + "/.cache")) + "/quickshell-wp-thumbs/"
@@ -127,6 +132,7 @@ Singleton {
                     });
                 }
                 root.entries = out;
+                root.loaded = true;
                 stateProc.running = true;
             }
         }
