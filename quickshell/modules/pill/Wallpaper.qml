@@ -485,7 +485,16 @@ PillSurface {
 
     Text {
         anchors.centerIn: parent
-        visible: root.itemCount === 0 && !searchProc.running
+        visible: !Walls.loaded && !searchProc.running
+        text: "preparing…"
+        color: Theme.faint
+        font.family: Theme.font
+        font.pixelSize: 10.5 * root.s
+    }
+
+    Text {
+        anchors.centerIn: parent
+        visible: root.itemCount === 0 && !searchProc.running && Walls.loaded
         text: {
             if (!root.searching)
                 return "No wallpapers in ~/Pictures/Wallpapers";

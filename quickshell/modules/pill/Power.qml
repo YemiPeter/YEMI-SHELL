@@ -193,16 +193,16 @@ PillSurface {
             Rectangle {
               anchors.fill: parent
               radius: Motion.rTile * root.s
-              color: kbFocus ? Theme.frameBg : "transparent"
+              color: cycleTile.kbFocus ? Theme.frameBg : "transparent"
               border.width: 1
-              border.color: kbFocus ? Theme.frameBorder : Theme.border
+              border.color: cycleTile.kbFocus ? Theme.frameBorder : Theme.border
             }
             GlyphIcon {
               anchors.centerIn: parent
               width: 22 * root.s
               height: 22 * root.s
               name: cycleTile.currentGlyph
-              color: accent
+              color: cycleTile.accent
               stroke: 1.9
             }
             MouseArea {
