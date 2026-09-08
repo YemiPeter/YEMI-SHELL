@@ -31,9 +31,11 @@ spawn-at-startup "bash" "-c" "systemctl --user start hyprpolkitagent"
 // Start this Quickshell config when Niri starts.
 spawn-at-startup "bash" "-c" "quickshell -p $HOME/.config/quickshell/shell.qml"
 
-// ── Wallpaper auto-restore (YemiShell) ──────────────────────────────────────
-// Paint the last wallpaper on login via the compositor-aware dispatcher. On
-// Niri the QML Backdrop renders it from the state file, so no external daemon
-// is needed. The dispatcher is the single source, identical to the Pill picker
-// and the random keybind path.
-spawn-at-startup "bash" "-c" "'$HOME/.config/quickshell/scripts/set-wallpaper.sh' niri init || true"
+// ── Wallpaper (YemiShell) ────────────────────────────────────────────────────
+// Intentionally NOT painted here. The shell is the sole wallpaper painter
+// (iNiR method): Walls.qml's Component.onCompleted runs syncAwww() on startup,
+// which either restores awww from the state file (hide OFF) or kills the awww
+// daemon so the QML Backdrop's mood-gradient is the only renderer (hide ON).
+// A spawn-at-startup `set-wallpaper.sh niri init` used to sit here, but it
+// painted unconditionally — ignoring backdropHideWallpaper — so every login
+// flashed the real wallpaper before the shell could hide it.
