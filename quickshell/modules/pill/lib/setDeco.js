@@ -31,13 +31,15 @@ function setField(text, name, valueLiteral) {
 }
 
 /**
- * Locates a `blockName = { ... }` table and returns its substring, balanced to
- * the matching close brace so a nested table (decoration holds shadow and blur)
- * does not end the scan early. Returns `{ start, end, body }` where `start`/`end`
- * bracket the inner body between the braces, or null when the block is absent.
+ * Locates a `blockName = { ... }` (or bare `blockName { ... }` — decoration.lua
+ * uses the bare hyprlang form for nested blocks like `blur` and `shadow`) and
+ * returns its substring, balanced to the matching close brace so a nested table
+ * (decoration holds shadow and blur) does not end the scan early. Returns
+ * `{ start, end, body }` where `start`/`end` bracket the inner body between the
+ * braces, or null when the block is absent.
  */
 function getBlock(text, blockName) {
-    var head = new RegExp(blockName + "\\s*=\\s*\\{");
+    var head = new RegExp(blockName + "\\s*(?:=\\s*)?\\{");
     var m = head.exec(text);
     if (!m)
         return null;

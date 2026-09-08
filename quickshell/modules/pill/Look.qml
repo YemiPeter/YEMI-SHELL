@@ -30,10 +30,9 @@ SettingsSurface {
     property int gapsOut: 12
     property int rounding: 12
     property int borderSize: 2
-    // BLUR DISABLED
-    // property bool blurOn: true
-    // property int blurSize: 8
-    // property int blurPasses: 3
+    property bool blurOn: true
+    property int blurSize: 3
+    property int blurPasses: 2
     property real activeOpacity: 1.0
     property real inactiveOpacity: 1.0
 
@@ -68,12 +67,11 @@ SettingsSurface {
         var bs = parseInt(SetDeco.getField(t, "border_size"), 10);
         root.borderSize = isNaN(bs) ? 2 : bs;
 
-        // BLUR DISABLED
-        // root.blurOn = SetDeco.getBlockField(t, "blur", "enabled") === "true";
-        // var bz = parseInt(SetDeco.getBlockField(t, "blur", "size"), 10);
-        // root.blurSize = isNaN(bz) ? 8 : bz;
-        // var bp = parseInt(SetDeco.getBlockField(t, "blur", "passes"), 10);
-        // root.blurPasses = isNaN(bp) ? 3 : bp;
+        root.blurOn = SetDeco.getBlockField(t, "blur", "enabled") === "true";
+        var bz = parseInt(SetDeco.getBlockField(t, "blur", "size"), 10);
+        root.blurSize = isNaN(bz) ? 3 : bz;
+        var bp = parseInt(SetDeco.getBlockField(t, "blur", "passes"), 10);
+        root.blurPasses = isNaN(bp) ? 2 : bp;
 
         var ao = parseFloat(SetDeco.getField(t, "active_opacity"));
         root.activeOpacity = isNaN(ao) ? 1.0 : ao;
@@ -109,6 +107,22 @@ SettingsSurface {
             "hl.config({ decoration = { active_opacity = " + root.activeOpacity.toFixed(2)
             + ", inactive_opacity = " + root.inactiveOpacity.toFixed(2) + " } })"];
         opacityRefresh.running = true;
+    }
+
+    /**
+     * Same as writeDeco, but scoped to decoration.lua's `blur` block. `enabled`
+     * exists in both the sibling `shadow` and `blur` blocks, so a plain
+     * top-level rewrite would hit the wrong one — SetDeco.setBlockField splices
+     * inside the matched block only. Reloads Hyprland so the frost changes at
+     * once.
+     */
+    function writeBlur(name, literal) {
+        var res = SetDeco.setBlockField(root.decoText, "blur", name, literal);
+        if (!res.ok)
+            return;
+        root.decoText = res.text;
+        decoWriter.setText(res.text);
+        reloadProc.running = true;
     }
 
     FileView {
@@ -370,8 +384,6 @@ function resetToDefault() {
                 }
             }
 
-            // BLUR DISABLED
-            /*
             GroupLabel { text: "Blur" }
 
             FieldRow {
@@ -422,7 +434,6 @@ function resetToDefault() {
                     }
                 }
             }
-            */
 
             GroupLabel { text: "Opacity" }
 

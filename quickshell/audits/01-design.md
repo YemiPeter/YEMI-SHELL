@@ -31,7 +31,7 @@ No separate work needed — D2's Loader-gating means each screen's `Variants` de
 ### D4 — Glass polish backlog (folded from `plans/pill-aurora-glass-audit.md` §7 on its deletion)
 - **Animated (GIF) wallpaper support** — investigated, **no Glass.qml change needed**: GIF handling already correctly lives in `Backdrop.qml` for Niri; Hyprland's awww deliberately excludes `.gif` entirely. Scope decision documented in Glass.qml's header.
 - **Mood-gradient fallback when no wallpaper is set** — **done** (`139fa6e`), verified via pixel-diff screenshot comparison.
-- Still open, not started, low priority: blur params as a user setting. ~~Frost-alignment verification during the fullscreen Translate transform~~ — **done** (`c08c441`): the opacity↔y-transform timing was captured at 10ms resolution and corrected (EXIT opacity now stays ~0 until the OutCubic slide completes, then rises on InQuint as the pill lands).
+- D4 backlog: ~~blur params as a user setting~~ — **done**: the Look card's Blur section (Enabled toggle, Strength, Passes steppers) was re-enabled in `Look.qml` (it had been commented out as "BLUR DISABLED") plus a restored `writeBlur()` scoped to decoration.lua's `blur` block. Root cause of the original disable discovered along the way: `SetDeco.getBlock()` required `blur = {`, but decoration.lua uses the bare hyprlang form `blur {`, so every block-scoped read/write silently failed — fixed in `setDeco.js` (accepts both forms; verified end-to-end against the live file: seed reads real values, shadow block untouched, byte-identical round-trip). ~~Frost-alignment verification during the fullscreen Translate transform~~ — **done** (`c08c441`): the opacity↔y-transform timing was captured at 10ms resolution and corrected (EXIT opacity now stays ~0 until the OutCubic slide completes, then rises on InQuint as the pill lands).
 
 ## Bugs found and fixed along the way ✅
 Not part of the original audit; surfaced during D1–D4 work.
@@ -45,7 +45,7 @@ Not part of the original audit; surfaced during D1–D4 work.
 - **Niri login flashed the wallpaper even with "hide wallpaper" ON** — `spawn-at-startup` ran `set-wallpaper.sh niri init` unconditionally (the script never checked `backdropHideWallpaper`), painting via awww before the shell existed; two painters with opposite intents. Resolved with the iNiR method (shell is the sole painter): the spawn line was removed from `niri/config.d/50-startup.kdl`; `Walls.qml`'s `Component.onCompleted → syncAwww()` already handles both startup cases (restore awww from the state file when hide is OFF, kill the daemon and let the mood-gradient own the screen when hide is ON). `niri validate` passes. Trade-off to be aware of: with hide OFF the desktop is black for the shell's startup gap instead of showing an early awww paint.
 
 ## Still open / carry forward ⏳
-- Low priority, not started: D4 blur params as a user setting (see D4 above).
+- Low priority, not started: exposing the Look card's existing blur knobs on Niri too (Backdrop's `backdropBlurRadius` flag already exists; only the shared UI wiring is missing). Hyprland side is fully covered by the Look card's Blur section.
 
 ## Invariants to keep (do not regress)
 - `Glass` must be the surface itself in aurora mode — never paint a card fill on top of it (double-dim).
