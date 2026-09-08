@@ -2,7 +2,7 @@
 
 general {
     gaps_in = 8
-    gaps_out = 11
+    gaps_out = 10
     layout = dwindle
     border_size = 0
 }
@@ -24,8 +24,8 @@ decoration {
 
     blur {
         enabled = true
-        size = 3
-        passes = 2
+        size = 2
+        passes = 3
         ignore_opacity = true
         new_optimizations = true
         special = true
