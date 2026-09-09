@@ -1,14 +1,16 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import qs.compositor
 import "Singletons"
 
 /**
  * BAR sub-surface: per-element visibility toggles for the floating bar strip —
- * the left (workspaces) pill, the right (status) pills, both at once, the
- * dock-style running-app strip, and the floating drop shadow. Reached from
- * Appearance via the "Bar" nav row and morphs back to it on the back chevron or
- * an empty click.
+ * the left (workspaces) pill, the right (status) pills, both at once, and the
+ * dock-style running-app strip. The floating drop shadow row is Niri-only
+ * (QML shadows render as a frosted halo under Hyprland's layer blur) so it
+ * is hidden on Hyprland. Reached from Appearance via the "Bar" nav row and
+ * morphs back to it on the back chevron or an empty click.
  */
 SettingsSurface {
     id: root
@@ -21,7 +23,9 @@ SettingsSurface {
         { item: sidesRow, kind: "toggle", get: function () { return Flags.barLeftVisible || Flags.barRightVisible; }, set: function (v) { Flags.barLeftVisible = v; Flags.barRightVisible = v; } },
         { item: appsRow, kind: "toggle", get: function () { return Flags.barAppIcons; }, set: function (v) { Flags.barAppIcons = v; } },
         { item: tintRow, kind: "toggle", get: function () { return Flags.barAppIconTint; }, set: function (v) { Flags.barAppIconTint = v; } },
-        { item: shadowRow, kind: "toggle", get: function () { return Flags.barShadow; }, set: function (v) { Flags.barShadow = v; } }
+        // Floating shadow is a Niri-only feature (Compositor.qmlShadows):
+        // keep it out of keyboard nav on Hyprland where the row is hidden.
+        ...(Compositor.isNiri ? [{ item: shadowRow, kind: "toggle", get: function () { return Flags.barShadow; }, set: function (v) { Flags.barShadow = v; } }] : [])
     ]
 
     // White-filled copies of the fluent icons (the pack ships them baked
@@ -113,6 +117,8 @@ SettingsSurface {
          SettingsRow {
             id: tintRow
             surface: root
+            // Last row on Hyprland where the Niri-only shadow row is hidden.
+            last: !Compositor.isNiri
             sourceIcon: root.icRoot + "paint-bucket.svg"
             sourceIconColor: "#FFFFFF"
             name: "Icon tint"
@@ -129,6 +135,9 @@ SettingsSurface {
             id: shadowRow
             surface: root
             last: true
+            // Niri-only: QML shadows read as a frosted halo under Hyprland's
+            // layer blur (see Compositor.qmlShadows), so hide the toggle there.
+            visible: Compositor.isNiri
             sourceIcon: root.icRoot + "dark-theme.svg"
             sourceIconColor: "#FFFFFF"
             name: "Floating shadow"
