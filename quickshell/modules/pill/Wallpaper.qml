@@ -76,6 +76,15 @@ PillSurface {
      */
     property real pos: 0
 
+    /**
+     * Window anchor for the strip's fixed delegate slots: the wallpaper index
+     * the chase position is currently rounded to. Slots fan out ±6 from here,
+     * so the strip only ever holds 13 live tiles regardless of library size.
+     */
+    readonly property int windowAnchor: itemCount > 0
+        ? Math.max(0, Math.min(itemCount - 1, Math.round(pos)))
+        : 0
+
     clip: true
 
     readonly property var slotW:      [196, 126, 104, 88, 74]
@@ -298,21 +307,30 @@ PillSurface {
     }
 
     Repeater {
-        model: root.items
+        // Fixed 13-slot window: slot 6 rides the chase anchor (windowAnchor),
+        // the rest fan out to |offset| 6 — past the visible range (opacity
+        // hits 0 at 5), so slots slide in and out without ever resetting the
+        // model. The old full-library model built one delegate tree per
+        // wallpaper on open; on a thousand-entry library that stalled the
+        // morph before it started and starved the async thumbnail decodes.
+        model: 13
 
         delegate: Item {
             id: tile
 
             required property int index
-            required property var modelData
 
-            readonly property string thumb: modelData.thumb !== undefined ? modelData.thumb : ""
-            readonly property bool remote: modelData.image !== undefined
+            /** Library index this slot renders; null past either strip end. */
+            readonly property int wallIndex: root.windowAnchor + index - 6
+            readonly property var entry: root.items[wallIndex] ?? null
+
+            readonly property string thumb: entry && entry.thumb !== undefined ? entry.thumb : ""
+            readonly property bool remote: entry !== null && entry.image !== undefined
             readonly property string thumbSource: remote ? thumb : ("file://" + thumb)
 
-            readonly property real off: index - root.pos
+            readonly property real off: wallIndex - root.pos
             readonly property real ao: Math.abs(off)
-            readonly property bool focused: Math.round(root.pos) === index
+            readonly property bool focused: Math.round(root.pos) === wallIndex
             readonly property real bright: root.slotLerp(root.slotBright, ao)
             readonly property real sat: root.slotLerp(root.slotSat, ao)
             readonly property real corner: (8 + 2 * Math.max(0, 1 - ao)) * root.s
@@ -337,7 +355,9 @@ PillSurface {
             x: root.width / 2 + root.offsetX(off) - width / 2
             y: (root.height - height) / 2
             z: 10 - ao
-            visible: ao <= 5
+            // entry null past either strip end: the slot hides entirely, the
+            // same way the old full-array model simply had no delegate there.
+            visible: entry !== null && ao <= 5
             opacity: edgeFade * (ao <= 4 ? 1 : Math.max(0, 5 - ao))
 
             onFocusedChanged: if (!focused) trashHeat.cancel()
@@ -360,7 +380,7 @@ PillSurface {
                 Image {
                     id: thumbImage
                     anchors.fill: parent
-                    source: tile.ao <= 6 ? tile.thumbSource : ""
+                    source: tile.entry && tile.ao <= 6 ? tile.thumbSource : ""
                     sourceSize.width: 512
                     sourceSize.height: 220
                     fillMode: Image.PreserveAspectCrop
@@ -410,7 +430,7 @@ PillSurface {
 
                 Text {
                     anchors.centerIn: parent
-                    visible: tile.focused && tile.remote && dlProc.running && dlProc.target === tile.modelData.image
+                    visible: tile.focused && tile.remote && dlProc.running && dlProc.target === tile.entry.image
                     text: "saving…"
                     color: Theme.cream
                     font.family: Theme.font
@@ -421,7 +441,7 @@ PillSurface {
                     anchors.bottom: parent.bottom
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.bottomMargin: 6 * root.s
-                    visible: tile.focused && tile.remote && tile.modelData.w > 0 && !(dlProc.running && dlProc.target === tile.modelData.image)
+                    visible: tile.focused && tile.remote && tile.entry.w > 0 && !(dlProc.running && dlProc.target === tile.entry.image)
                     width: resText.implicitWidth + 12 * root.s
                     height: resText.implicitHeight + 5 * root.s
                     radius: height / 2
@@ -429,7 +449,7 @@ PillSurface {
                     Text {
                         id: resText
                         anchors.centerIn: parent
-                        text: tile.modelData.w + "×" + tile.modelData.h
+                        text: tile.entry.w + "×" + tile.entry.h
                         color: Theme.bright
                         font.family: Theme.font
                         font.pixelSize: 9.5 * root.s
@@ -444,7 +464,7 @@ PillSurface {
                 color: "transparent"
                 border.width: 1
                 border.color: {
-                    if (tile.remote && dlProc.failed.length && dlProc.failed === tile.modelData.image)
+                    if (tile.remote && dlProc.failed.length && dlProc.failed === tile.entry.image)
                         return Theme.vermLit;
                     return tile.committing ? Theme.vermLit : Theme.border;
                 }
@@ -455,7 +475,7 @@ PillSurface {
                 id: trashHeat
                 tapThreshold: 0.25
                 enabled: !tile.remote
-                onConfirmed: if (!tile.remote) Walls.trash(tile.modelData.path)
+                onConfirmed: if (tile.entry && !tile.remote) Walls.trash(tile.entry.path)
                 onTapped: {
                     root.activate();
                 }
@@ -468,7 +488,7 @@ PillSurface {
                 onPressed: {
                     // Set focus first so tile.focused is true for the rest of this handler
                     if (!tile.focused)
-                        root.focusIndex = tile.index;
+                        root.focusIndex = tile.wallIndex;
                     if (tile.remote)
                         root.activate();
                     else

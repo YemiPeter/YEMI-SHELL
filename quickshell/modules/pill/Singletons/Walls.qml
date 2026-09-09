@@ -126,7 +126,17 @@ Singleton {
                         thumb: root.thumbDir + name + ".png"
                     });
                 }
-                root.entries = out;
+                // A no-op refresh used to reassign `entries` unconditionally,
+                // resetting the strip's model on every open — every visible
+                // tile was torn down and its thumbnail re-decoded from disk
+                // mid-morph (the recurring blank-thumb flash). Skip the
+                // assignment when the listing is identical (paths + mtimes).
+                var old = root.entries;
+                var same = old.length === out.length;
+                for (var i = 0; same && i < out.length; i++)
+                    same = old[i].path === out[i].path && old[i].mtime === out[i].mtime;
+                if (!same)
+                    root.entries = out;
                 stateProc.running = true;
             }
         }
