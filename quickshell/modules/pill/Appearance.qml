@@ -202,7 +202,7 @@ SettingsSurface {
             captionOnFocus: true
             icon: "monitor"
             name: "Bar"
-            sub: "Pills, app icons, shadow"
+            sub: Compositor.isNiri ? "Pills, app icons, shadow" : "Pills, app icons"
 
             GlyphIcon {
                 width: 16 * root.s

@@ -148,7 +148,8 @@ Singleton {
             property bool barAppIcons: true
             property bool barAppIconTint: false
             // Floating drop shadow behind the bar strip, center pill, and app
-            // icons so they read as lifted off the wallpaper.
+            // icons so they read as lifted off the wallpaper. Niri-only: the
+            // toggle is hidden on Hyprland (see Compositor.qmlShadows).
             property bool barShadow: true
     property bool backdropEffects: true
     property real backdropDim: 0.20
