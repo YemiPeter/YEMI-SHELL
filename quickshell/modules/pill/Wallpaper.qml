@@ -331,6 +331,16 @@ PillSurface {
             readonly property real off: wallIndex - root.pos
             readonly property real ao: Math.abs(off)
             readonly property bool focused: Math.round(root.pos) === wallIndex
+
+            /**
+             * Hit-test focus, mirroring the reference strip: true the moment
+             * focusIndex points here, even while pos is still gliding. Input
+             * (press/release/click) keys off this so a tap on the arriving
+             * tile counts immediately; `focused` above stays pos-driven for
+             * visuals so the shadow rides the glide instead of jumping.
+             */
+            readonly property bool selected: root.focusIndex === wallIndex
+
             readonly property real bright: root.slotLerp(root.slotBright, ao)
             readonly property real sat: root.slotLerp(root.slotSat, ao)
             readonly property real corner: (8 + 2 * Math.max(0, 1 - ao)) * root.s
@@ -361,6 +371,12 @@ PillSurface {
             opacity: edgeFade * (ao <= 4 ? 1 : Math.max(0, 5 - ao))
 
             onFocusedChanged: if (!focused) trashHeat.cancel()
+
+            // Slots are reused as the anchor moves: when this slot is handed
+            // to a different wallpaper, any trash heat it was carrying dies
+            // with the press — a mid-glide meter must never land on (and
+            // trash) the wallpaper that slid into the slot.
+            onWallIndexChanged: if (trashHeat.holding) trashHeat.cancel()
 
             ClippingRectangle {
                 id: card
@@ -486,19 +502,21 @@ PillSurface {
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onPressed: {
-                    // Set focus first so tile.focused is true for the rest of this handler
-                    if (!tile.focused)
-                        root.focusIndex = tile.wallIndex;
+                    // Only the centered wallpaper answers a press (reference
+                    // semantics): arming the trash heat on a neighbour used to
+                    // leave the fill running after a quick tap-release during
+                    // the glide — it completed on its own and trashed whatever
+                    // wallpaper the slot had re-bound to.
+                    if (!tile.selected)
+                        return;
                     if (tile.remote)
                         root.activate();
                     else
                         trashHeat.press();
                 }
-                onReleased: if (tile.focused && !tile.remote) trashHeat.release()
+                onReleased: if (tile.selected && !tile.remote) trashHeat.release()
                 onExited: trashHeat.cancel()
-                onClicked: {
-                    // focusIndex is now set in onPressed — nothing left for onClicked
-                }
+                onClicked: if (!tile.selected) root.focusIndex = tile.wallIndex
             }
         }
     }
