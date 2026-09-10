@@ -19,9 +19,11 @@
 !systemd/user/
 !systemd/user/cliphist-wipe.service
 
-# ── Whitelist this file and README ───────────────────────────────────────────
+# ── Whitelist these root files ────────────────────────────────────────────────
 !.gitignore
 !README.md
+!LICENSE
+!install.sh
 
 # ── Recurse into whitelisted dirs (git requires this) ────────────────────────
 !quickshell/**
