@@ -465,7 +465,7 @@ PillSurface {
                     Text {
                         id: resText
                         anchors.centerIn: parent
-                        text: tile.entry.w + "×" + tile.entry.h
+                        text: tile.entry ? (tile.entry.w + "×" + tile.entry.h) : ""
                         color: Theme.bright
                         font.family: Theme.font
                         font.pixelSize: 9.5 * root.s

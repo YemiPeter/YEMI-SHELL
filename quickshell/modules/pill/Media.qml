@@ -5,6 +5,7 @@ import QtQuick.Effects
 import Quickshell.Widgets
 import Quickshell.Services.Mpris
 import "Singletons"
+import "../common/widgets"
 
 /**
  * Now-playing card. Album art bleeds edge-to-edge on the left, faded into the
@@ -528,6 +529,29 @@ PillSurface {
                     commit();
                     root.dragging = false;
                 }
+            }
+
+            // --- Audio visualizer (waveform under the progress stroke) ---
+            CavaProcess {
+                id: cavaProc
+                active: root.playing
+                visible: false
+            }
+
+            WaveVisualizer {
+                anchors.left: parent.left
+                anchors.leftMargin: root.textX
+                anchors.right: parent.right
+                anchors.rightMargin: root.edgePad
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 8 * root.s
+                height: 18 * root.s
+                live: root.playing
+                colorMed: "white"
+                opacity: root.playing ? 0.6 : 0
+                Behavior on opacity { NumberAnimation { duration: Motion.fast } }
+                Behavior on height { NumberAnimation { duration: Motion.fast } }
+                visible: root.hasPlayer
             }
         }
     }
