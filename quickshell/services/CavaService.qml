@@ -87,7 +87,11 @@ Singleton {
         interval: 800
         repeat: false
         onTriggered: {
-            cavaProc.running = false
+            if (!root.active) {
+                configGen.running = false
+                cavaProc.running = false
+                root.points = []
+            }
         }
     }
 
@@ -99,8 +103,8 @@ Singleton {
                   root.cfgFramerate, root.cfgSensitivity, root.effectiveBars,
                   root.cfgStereo ? "true" : "false", root.playerDesktopEntry]
         running: false
-        onExited: {
-            if (root.active && !cavaProc.running) {
+        onExited: (code, _status) => {
+            if (code === 0 && root.active && !cavaProc.running) {
                 cavaProc.running = true
             }
         }
@@ -112,19 +116,19 @@ Singleton {
         running: false
         stdinEnabled: false
         onRunningChanged: {
-            if (!running && root._pendingRestart && root.active) {
-                root._pendingRestart = false
-                configGen.running = true
+            if (!running) {
+                root.points = []
+                if (root._pendingRestart && root.active) {
+                    root._pendingRestart = false
+                    configGen.running = true
+                }
             }
         }
 
         stdout: SplitParser {
             onRead: data => {
-                var vals = data.trim().split(/[\s,]+/).map(function(v) {
-                    var f = parseFloat(v)
-                    return isNaN(f) ? 0 : f
-                })
-                root.points = vals
+                // Cava ASCII frames separate bars with ';'
+                root.points = data.split(";").map(p => parseFloat(p.trim())).filter(p => !isNaN(p))
             }
         }
     }

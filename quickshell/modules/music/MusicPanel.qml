@@ -426,26 +426,23 @@ PanelWindow {
                     z: -1
                 }
 
-                // --- Audio visualizer ---
+                // --- Full-card cava wave (iNiR BarMediaPlayerItem style):
+                // above the blurred art (z: 0), below content (z: 2); the
+                // card's clip rounds the corners. ---
                 CavaProcess {
                     id: musicCavaProc
                     active: musicPanel.playerStatus === "Playing"
                     visible: false
                 }
 
-                WaveVisualizer {
-                    anchors.left: parent.left
-                    anchors.leftMargin: 15
-                    anchors.right: parent.right
-                    anchors.rightMargin: 15
-                    anchors.bottom: parent.bottom
-                    anchors.bottomMargin: 10
-                    height: 14 * QsTheme.Motion.scale
-                    live: musicPanel.playerStatus === "Playing"
-                    colorMed: QsTheme.Theme.verm
-                    opacity: musicPanel.playerStatus === "Playing" ? 0.8 : 0
+                CavaWavyLine {
+                    z: 1
+                    anchors.fill: parent
+                    opacity: musicPanel.playerStatus === "Playing" ? 0.7 : 0
+                    color: QsTheme.Theme.verm
+                    lineWidth: 2.5
+                    amplitudeScale: 0.4
                     Behavior on opacity { NumberAnimation { duration: 250 } }
-                    Behavior on height { NumberAnimation { duration: 250 } }
                 }
             }
 
