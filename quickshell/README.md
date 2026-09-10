@@ -25,9 +25,6 @@ A dynamic, wallpaper-driven shell interface built on Quickshell. Features:
 
 # Reload colors
 qs ipc call colors reload
-
-# Toggle palette mode
-./scripts/toggle-colormode.sh
 ```
 
 ## Project Structure
@@ -44,7 +41,6 @@ quickshell/
 │   └── Flags.qml     # Session flags
 │
 ├── services/         # Backend services
-│   ├── Matugen.qml   # Wallpaper color service
 │   └── *.qml         # Audio, Network, Brightness, etc.
 │
 ├── modules/          # UI components
@@ -53,18 +49,10 @@ quickshell/
 │   └── osd/          # On-screen displays
 │
 ├── scripts/          # Automation scripts
-│   ├── wallcolors.py # Color extraction from wallpaper
-│   └── after-wall.sh # Wallpaper change pipeline
-│
-├── docs/             # Documentation
-│   ├── INDEX.md      # Documentation index
-│   ├── color-system/ # Color system docs
-│   ├── architecture/ # Architecture blueprints
-│   └── audit/        # Audit reports
-│
-└── plans/            # Work-in-progress
-    ├── audit-report.md
-    └── INIR_THEME_SYSTEM_MAP.md
+│   ├── after-wall.sh # Wallpaper change and color pipeline
+│   ├── dominance-engine.py # Material 3 palette derivation
+│   ├── dominance-extract.py # Dominance-ranked color extraction
+│   └── wallcolors.py # Compatibility color pipeline
 ```
 
 ## Documentation Index
