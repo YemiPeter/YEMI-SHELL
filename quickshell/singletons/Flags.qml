@@ -95,6 +95,7 @@ Singleton {
     property alias wallpaperAnimatedBlurStrength: adapter.wallpaperAnimatedBlurStrength
     property alias wallpaperDim: adapter.wallpaperDim
     property alias wallpaperDynamicDim: adapter.wallpaperDynamicDim
+    property alias mediaCavaWave: adapter.mediaCavaWave
 
     FileView {
         id: file
@@ -190,6 +191,8 @@ Singleton {
             property int wallpaperAnimatedBlurStrength: 70
             property real wallpaperDim: 0
             property real wallpaperDynamicDim: 0
+            // Full-card cava wave on the media surfaces (pill card + music panel)
+            property bool mediaCavaWave: true
         }
     }
 }
