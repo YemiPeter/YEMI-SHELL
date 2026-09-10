@@ -6,6 +6,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick.Effects
 import "../../singletons" as QsTheme
+import "../common/widgets"
 
 PanelWindow {
     id: musicPanel
@@ -423,6 +424,28 @@ PanelWindow {
                     visible: musicPanel.gifSelectorOpen
                     onClicked: musicPanel.gifSelectorOpen = false
                     z: -1
+                }
+
+                // --- Audio visualizer ---
+                CavaProcess {
+                    id: musicCavaProc
+                    active: musicPanel.playerStatus === "Playing"
+                    visible: false
+                }
+
+                WaveVisualizer {
+                    anchors.left: parent.left
+                    anchors.leftMargin: 15
+                    anchors.right: parent.right
+                    anchors.rightMargin: 15
+                    anchors.bottom: parent.bottom
+                    anchors.bottomMargin: 10
+                    height: 14 * QsTheme.Motion.scale
+                    live: musicPanel.playerStatus === "Playing"
+                    colorMed: QsTheme.Theme.verm
+                    opacity: musicPanel.playerStatus === "Playing" ? 0.8 : 0
+                    Behavior on opacity { NumberAnimation { duration: 250 } }
+                    Behavior on height { NumberAnimation { duration: 250 } }
                 }
             }
 
