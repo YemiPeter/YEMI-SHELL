@@ -343,9 +343,30 @@ Item {
             z: -1
             enabled: overlay.surfaceOpen
             onClicked: (mouse) => {
+                console.log("[backdebug] click at", mouse.x, mouse.y,
+                            "pill:", pill.x, pill.y, pill.width, pill.height,
+                            "contains:", pill.contains(mouse),
+                            "stripLimit:", pillRegion.y + 40 * pill.s);
                 if (!pill.contains(mouse)) {
                     QsSingletons.PillState.close()
+                } else if (mouse.y <= pillRegion.y + 40 * pill.s) {
+                    // Press on the header strip steps the open surface back
+                    // one level (settings sub-surface → index, keybinds form →
+                    // list); the settings index itself dismisses. The header
+                    // controls are pure visuals, so presses over them fall
+                    // through to here — this is the only back-arrow handler.
+                    pill.surfaceBack()
                 }
+            }
+        }
+
+        // TEMPORARY back-arrow debug IPC — remove with the [backdebug] logs.
+        IpcHandler {
+            target: "backdebug"
+
+            function back(): void {
+                console.log("[backdebug] ipc back() on mon", root.modelData.name);
+                pill.surfaceBack()
             }
         }
     }

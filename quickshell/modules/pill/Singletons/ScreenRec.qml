@@ -435,13 +435,27 @@ Singleton {
                         continue;
                     var path = cols[2];
                     var name = path.substring(path.lastIndexOf("/") + 1);
-                    out.push({
-                        path: path,
-                        name: name,
-                        mtime: mtime,
-                        sizeLabel: root.humanSize(parseFloat(cols[1])),
-                        thumb: root.thumbDir + name.replace(/\.mp4$/, "") + ".jpg"
-                    });
+                var thumbPath = root.thumbDir + name.replace(/\.mp4$/, "") + ".jpg";
+                    if (!Qt.openUrlExternally ? "" : "") {
+                        var fs = Quickshell.platforms.local.FileSystem;
+                        var thumbFile = fs.file(thumbPath);
+                        if (thumbFile.exists)
+                            out.push({
+                                path: path,
+                                name: name,
+                                mtime: mtime,
+                                sizeLabel: root.humanSize(parseFloat(cols[1])),
+                                thumb: thumbPath
+                            });
+                    } else {
+                        out.push({
+                            path: path,
+                            name: name,
+                            mtime: mtime,
+                            sizeLabel: root.humanSize(parseFloat(cols[1])),
+                            thumb: thumbPath
+                        });
+                    }
                 }
                 root.recent = out;
             }

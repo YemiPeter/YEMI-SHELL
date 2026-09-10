@@ -162,7 +162,7 @@ Singleton {
     // DDC detection - safe if ddcutil missing (process fails, no crash)
     Process {
         id: ddcProc
-        command: ["ddcutil", "detect", "--brief"]
+        command: ["timeout", "5", "ddcutil", "detect", "--brief"]
         stdout: SplitParser {
             splitMarker: "\n\n"
             onRead: data => {
@@ -179,7 +179,11 @@ Singleton {
                 }
             }
         }
-        onExited: root.ddcMonitorsChanged()
+        onExited: code => {
+            if (code === 124) console.warn("Brightness: ddcutil detect timed out");
+            else if (code !== 0) console.warn("Brightness: ddcutil detect failed, exit code:", code);
+            root.ddcMonitorsChanged();
+        }
     }
 
     onMonitorsChanged: {
@@ -189,6 +193,9 @@ Singleton {
 
     Process {
         id: setProc
+        onExited: code => {
+            if (code !== 0) console.warn("Brightness: ddcutil setvcp failed on bus", busNum, "exit code:", code);
+        }
     }
 
     component BrightnessMonitor: QtObject {
@@ -221,7 +228,7 @@ Singleton {
         function initialize() {
             monitor.ready = false
             if (monitor.isDdc) {
-                initProc.command = ["ddcutil", "-b", busNum, "getvcp", "10", "--brief"]
+                initProc.command = ["timeout", "3", "ddcutil", "-b", busNum, "getvcp", "10", "--brief"]
                 initProc.running = true
             } else {
                 // Internal screen: mirror the proven root backlight path
@@ -241,6 +248,11 @@ Singleton {
                         monitor.brightness = current / monitor.rawMaxBrightness
                     monitor.ready = true
                 }
+            }
+            onExited: code => {
+                if (code === 124) console.warn("Brightness: ddcutil getvcp timed out on bus", busNum);
+                else if (code !== 0) console.warn("Brightness: ddcutil getvcp failed on bus", busNum, "exit code:", code);
+                monitor.ready = true; // Always mark ready to unblock UI, even if failed
             }
         }
 

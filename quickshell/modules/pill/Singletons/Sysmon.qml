@@ -121,18 +121,7 @@ Singleton {
         autoStopTimer.restart()
     }
 
-    // Register an always-visible consumer (e.g. bar) that disables auto-stop.
-    function keepAlive() {
-        root._persistentConsumers++
-        autoStopTimer.stop()
-        ensureRunning()
-    }
-
-    function releaseKeepAlive() {
-        root._persistentConsumers = Math.max(0, root._persistentConsumers - 1)
-        if (root._persistentConsumers === 0 && !root.open && root._runningRequested)
-            autoStopTimer.restart()
-    }
+    
 
     function stop() {
         root._runningRequested = false
