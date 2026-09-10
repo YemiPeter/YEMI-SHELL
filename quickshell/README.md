@@ -1,6 +1,6 @@
 # QuickShell QML Rice Config
 
-> **Repository:** `/home/yemi/.config/quickshell`  
+> **Repository:** `$HOME/.config/quickshell`  
 > **Framework:** Quickshell (Qt 6.10 QML framework)  
 > **Shell ID:** `yemi-shell`  
 > **Desktop:** Linux (Hyprland/Niri compatible)  

@@ -1,6 +1,7 @@
 # Editor/agent tool state
 .codex
 .codex/
+.kilo/
 .kiro/
 .lingma/
 .roo/
@@ -8,6 +9,8 @@
 
 # Runtime logs & transient state
 *.log
+*.pyc
+__pycache__/
 app_usage.json
 state/colormode
 watch_*
