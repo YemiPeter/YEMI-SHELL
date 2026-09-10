@@ -267,8 +267,12 @@ function resetToDefault() {
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
             spacing: 1 * root.s
+            // Keep the text column clear of the right-aligned control
+            width: Math.max(0, parent.width - ctrl.width - 12 * root.s)
 
             Text {
+                width: parent.width
+                elide: Text.ElideRight
                 text: frow.label
                 color: Theme.cream
                 font.family: Theme.font
@@ -277,7 +281,9 @@ function resetToDefault() {
             }
 
             Text {
+                width: parent.width
                 visible: frow.caption.length > 0
+                elide: Text.ElideRight
                 text: frow.caption
                 color: Theme.faint
                 font.family: Theme.font
@@ -473,7 +479,7 @@ function resetToDefault() {
 
             FieldRow {
                 label: "Pill opacity"
-                caption: "How see-through the pill sits (Hyprland only — niri stays solid)"
+                caption: "Pill transparency (Hyprland only)"
                 Stepper {
                     value: Flags.pillOpacity
                     display: Flags.pillOpacity.toFixed(2)
