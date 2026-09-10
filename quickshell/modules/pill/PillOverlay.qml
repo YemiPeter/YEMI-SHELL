@@ -345,6 +345,13 @@ Item {
             onClicked: (mouse) => {
                 if (!pill.contains(mouse)) {
                     QsSingletons.PillState.close()
+                } else if (mouse.y <= pillRegion.y + 40 * pill.s) {
+                    // Press on the header strip steps the open surface back
+                    // one level (settings sub-surface → index, keybinds form →
+                    // list); the settings index itself dismisses. The header
+                    // controls are pure visuals, so presses over them fall
+                    // through to here — this is the only back-arrow handler.
+                    pill.surfaceBack()
                 }
             }
         }

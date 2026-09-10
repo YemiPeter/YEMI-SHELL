@@ -401,7 +401,7 @@ Item {
             pill.requestSurface("appearance");
             return;
         }
-        if (pill.appearanceOpen || pill.updatesOpen || pill.displayOpen || pill.inputOpen || pill.lookOpen || pill.idlelockOpen) {
+        if (pill.appearanceOpen || pill.updatesOpen || pill.displayOpen || pill.inputOpen || pill.lookOpen || pill.idlelockOpen || pill.backgroundOpen) {
             pill.requestSurface("settings");
             return;
         }
