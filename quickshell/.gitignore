@@ -1,6 +1,7 @@
 # Editor/agent tool state
 .codex
 .codex/
+.kilo/
 .kiro/
 .lingma/
 .roo/

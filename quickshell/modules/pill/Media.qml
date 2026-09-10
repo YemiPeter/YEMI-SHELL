@@ -144,6 +144,7 @@ PillSurface {
         color: "transparent"
 
         Rectangle {
+            id: wallContainerBg
             anchors.fill: parent
             gradient: Gradient {
                 // Base tokens + one design alpha each: the resolved
@@ -152,6 +153,24 @@ PillSurface {
                 GradientStop { position: 0.0; color: Qt.alpha(Theme.cardTopBase, 0.88) }
                 GradientStop { position: 1.0; color: Qt.alpha(Theme.cardBotBase, 0.93) }
             }
+        }
+
+        // --- Full-card cava wave (iNiR BarMediaPlayerItem style): above the
+        // background wash, below art/text/controls; clipped by this card. ---
+        CavaProcess {
+            id: cavaProc
+            active: root.playing && Flags.mediaCavaWave
+            visible: false
+        }
+
+        CavaWavyLine {
+            anchors.fill: parent
+            visible: root.hasPlayer && Flags.mediaCavaWave
+            opacity: root.playing ? 0.5 : 0
+            color: "white"
+            lineWidth: 2.5
+            amplitudeScale: 0.4
+            Behavior on opacity { NumberAnimation { duration: Motion.fast } }
         }
 
         Item {
@@ -529,29 +548,6 @@ PillSurface {
                     commit();
                     root.dragging = false;
                 }
-            }
-
-            // --- Audio visualizer (waveform under the progress stroke) ---
-            CavaProcess {
-                id: cavaProc
-                active: root.playing
-                visible: false
-            }
-
-            WaveVisualizer {
-                anchors.left: parent.left
-                anchors.leftMargin: root.textX
-                anchors.right: parent.right
-                anchors.rightMargin: root.edgePad
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 8 * root.s
-                height: 18 * root.s
-                live: root.playing
-                colorMed: "white"
-                opacity: root.playing ? 0.6 : 0
-                Behavior on opacity { NumberAnimation { duration: Motion.fast } }
-                Behavior on height { NumberAnimation { duration: Motion.fast } }
-                visible: root.hasPlayer
             }
         }
     }

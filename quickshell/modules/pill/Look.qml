@@ -486,6 +486,18 @@ function resetToDefault() {
                 }
             }
 
+            GroupLabel { text: "Media" }
+
+            FieldRow {
+                label: "Cava wave"
+                caption: "Audio wave over the media cards"
+                LinkToggle {
+                    s: root.s
+                    on: Flags.mediaCavaWave
+                    onToggled: Flags.mediaCavaWave = !Flags.mediaCavaWave
+                }
+            }
+
             Item { width: 1; height: 10 * root.s }
         }
     }
