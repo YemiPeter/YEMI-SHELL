@@ -531,14 +531,15 @@ PillSurface {
                 }
             }
 
-            // --- Audio visualizer (waveform under the progress stroke) ---
+            // --- Audio visualizer (wavy line under the progress stroke,
+            // port of iNiR's BarMediaPlayerItem CavaWavyLine) ---
             CavaProcess {
                 id: cavaProc
                 active: root.playing
                 visible: false
             }
 
-            WaveVisualizer {
+            CavaWavyLine {
                 anchors.left: parent.left
                 anchors.leftMargin: root.textX
                 anchors.right: parent.right
@@ -546,12 +547,13 @@ PillSurface {
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 8 * root.s
                 height: 18 * root.s
-                live: root.playing
-                colorMed: "white"
+                visible: root.hasPlayer
                 opacity: root.playing ? 0.6 : 0
+                color: "white"
+                lineWidth: 2.5
+                amplitudeScale: 1.2
                 Behavior on opacity { NumberAnimation { duration: Motion.fast } }
                 Behavior on height { NumberAnimation { duration: Motion.fast } }
-                visible: root.hasPlayer
             }
         }
     }
