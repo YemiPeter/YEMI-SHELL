@@ -334,8 +334,6 @@ def derive_block(dominance, mood, use_error_fallback):
     # 0.02 lightness floor, which collapsed BOTH tokens to #080302 — black
     # hairlines around every button. THAT was the bug; this derivation is the
     # fix. Full rationale + validation matrix:
-    #   audits/06-pill-ui-border-drift.md (§5 Fix 1B)
-    #   plans/pill-perf-outline-option-b-migration.md
     # Dark/light outline lightness deliberately converges → these two keys are
     # exempt from the G same-lightness check (decorative frames, not text).
     ol = clamp01(anchor + 0.10, 0.02, 0.98)
