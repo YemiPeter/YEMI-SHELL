@@ -395,6 +395,8 @@ SettingsSurface {
         Text {
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
+            width: Math.max(0, parent.width - ctrl.width - 12 * root.s)
+            elide: Text.ElideRight
             text: frow.label
             color: Theme.cream
             font.family: Theme.font
