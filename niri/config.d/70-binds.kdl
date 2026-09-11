@@ -28,7 +28,7 @@ binds {
     Mod+T { spawn "ghostty"; }                                                                           // Terminal (ghostty)
 
     // File manager
-    Mod+E { spawn "/home/yemi/.config/hypr/scripts/file-manager.sh"; }                                   // File manager (dolphin > thunar > nautilus)
+    Mod+E { spawn "bash" "-c" "$HOME/.config/hypr/scripts/file-manager.sh"; }                                   // File manager (dolphin > thunar > nautilus)
 
     // Close window
     Mod+Q { close-window; }                                                                             // Close window
@@ -38,7 +38,7 @@ binds {
     Mod+Shift+W { spawn "skwd" "wall" "toggle"; }                                                        // Skwd wall toggle
 
     // Lock screen
-    Mod+X allow-when-locked=true { spawn "/home/yemi/.config/hypr/scripts/lock.sh"; }                    // Lock screen
+    Mod+X allow-when-locked=true { spawn "bash" "-c" "$HOME/.config/hypr/scripts/lock.sh"; }                    // Lock screen
 
     // Music
     Mod+M { spawn "qs" "ipc" "call" "music" "toggle"; }                                                  // Music player

@@ -67,7 +67,9 @@ kitty/current-theme.conf
 ghostty/skwd-theme
 ghostty/themes/ii-auto.bak
 
-fish/fish_variables
+gtk-3.0/bookmarks
+
+fish/fish_variables*
 
 skwd-wall/.bootstrapped
 skwd-wall/config.json.bak*
