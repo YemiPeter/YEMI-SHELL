@@ -1,3 +1,0 @@
-[templates.shell_colors]
-input_path = "~/.config/quickshell/dist/matugen/templates/shell-colors.qml"
-output_path = "~/.config/quickshell/state/colors.qml"
