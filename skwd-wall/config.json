@@ -56,9 +56,9 @@
   ],
   "components": {
     "wallpaperSelector": {
-      "displayMode": "slices",
+      "displayMode": "hex",
       "sliceSpacing": -30,
-      "hexScrollStep": 1,
+      "hexScrollStep": 3,
       "customPresets": {
         "C1_slices": {
           "expandedWidth": 800,
@@ -84,12 +84,14 @@
       "visibleCount": 14,
       "skewOffset": 28,
       "hexRadius": 100,
-      "hexRows": 2,
-      "hexCols": 7,
+      "hexRows": 6,
+      "hexCols": 10,
       "hexArc": true,
       "hexArcIntensity": 1,
       "gridThumbWidth": 200,
-      "gridThumbHeight": 100
+      "gridThumbHeight": 100,
+      "gridColumns": 9,
+      "gridRows": 6
     }
   },
   "wallpaperMute": true,
