@@ -273,59 +273,18 @@ Item {
             screenName: root.modelData.name
             surface: overlay.surface
             forcePinned: QsSingletons.PillState.peekMon === root.modelData.name
-            // Fullscreen opacity is state-driven (see states/transitions below):
-            // hidden while fullscreen, visible otherwise. Each direction gets its
-            // own hardcoded easing via a dedicated Transition, so an interrupted
-            // or reversed animation can never reuse the previous direction's
-            // easing (the old conditional Behavior snapshotted the stale curve).
-            states: [
-                State {
-                    name: "fullscreen"
-                    when: overlay.monFullscreen
-                    PropertyChanges {
-                        target: pill
-                        opacity: 0
-                    }
-                },
-                State {
-                    name: "normal"
-                    when: !overlay.monFullscreen
-                    PropertyChanges {
-                        target: pill
-                        opacity: 1
-                    }
+            // Fullscreen opacity — simple conditional + Behavior (pre-c08c441
+            // form, WIFIDBG verification: states/transitions + layer.enabled
+            // on niri break Shape strokes in WifiGlyph).
+            opacity: overlay.monFullscreen ? 0 : 1
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: 200
+                    easing.type: Easing.OutCubic
                 }
-            ]
-            transitions: [
-                // ENTER fullscreen: hide the pill. OutCubic fade stays synchronized
-                // with the OutCubic y-transform (both cover most distance early).
-                Transition {
-                    from: "normal"
-                    to: "fullscreen"
-                    NumberAnimation {
-                        target: pill
-                        property: "opacity"
-                        duration: 200
-                        easing.type: Easing.OutCubic
-                    }
-                },
-                // EXIT fullscreen: return the pill. InQuint keeps opacity near 0
-                // while the OutCubic y-transform is still mid-slide (OutCubic y
-                // covers most of its distance early), then rises late in the
-                // curve so the pill fades in as it settles.
-                Transition {
-                    from: "fullscreen"
-                    to: "normal"
-                    NumberAnimation {
-                        target: pill
-                        property: "opacity"
-                        duration: 200
-                        easing.type: Easing.InQuint
-                    }
-                }
-            ]
-            transform: Translate {
-                y: overlay.monFullscreen ? -(pill.height + overlay.topGap) : 0
+            }
+            transform: Translate { // WIFIDBG: y pinned to 0, Behavior kept
+                y: 0
                 Behavior on y {
                     NumberAnimation {
                         duration: 200
