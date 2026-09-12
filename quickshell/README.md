@@ -25,9 +25,6 @@ A dynamic, wallpaper-driven shell interface built on Quickshell. Features:
 
 # Reload colors
 qs ipc call colors reload
-
-# Toggle palette mode
-./scripts/toggle-colormode.sh
 ```
 
 ## Project Structure
@@ -44,7 +41,6 @@ quickshell/
 │   └── Flags.qml     # Session flags
 │
 ├── services/         # Backend services
-│   ├── Matugen.qml   # Wallpaper color service
 │   └── *.qml         # Audio, Network, Brightness, etc.
 │
 ├── modules/          # UI components
@@ -53,39 +49,23 @@ quickshell/
 │   └── osd/          # On-screen displays
 │
 ├── scripts/          # Automation scripts
-│   ├── wallcolors.py # Color extraction from wallpaper
-│   └── after-wall.sh # Wallpaper change pipeline
-│
-├── docs/             # Documentation
-│   ├── INDEX.md      # Documentation index
-│   ├── color-system/ # Color system docs
-│   ├── architecture/ # Architecture blueprints
-│   └── audit/        # Audit reports
-│
-└── plans/            # Work-in-progress
-    ├── audit-report.md
-    └── INIR_THEME_SYSTEM_MAP.md
+│   ├── after-wall.sh # Wallpaper change and color pipeline
+│   ├── dominance-engine.py # Material 3 palette derivation
+│   ├── dominance-extract.py # Dominance-ranked color extraction
+│   └── wallcolors.py # Compatibility color pipeline
 ```
-
-## Documentation Index
-
-| Category | Document | Purpose |
-|----------|----------|---------|
-| **Color System** | [docs/color-system/INIR_THEME_SYSTEM_MAP.md](docs/color-system/INIR_THEME_SYSTEM_MAP.md) | Theme tokens, Dyn.qml, Theme.qml, Flags.qml |
-| **Color System** | [docs/color-system/YEMI_COLOR_WALLPAPER_AUDIT.md](docs/color-system/YEMI_COLOR_WALLPAPER_AUDIT.md) | Wallpaper processing audit |
-| **Color System** | [docs/color-system/UNIFIED_PIPELINE.md](docs/color-system/UNIFIED_PIPELINE.md) | Color architecture |
-| **Color System** | [docs/color-system/COLOR_FIX_PLAN.md](docs/color-system/COLOR_FIX_PLAN.md) | Color fix roadmap |
-| **Architecture** | [docs/architecture/INIR_SETTINGS_BLUEPRINT_MASTER.md](docs/architecture/INIR_SETTINGS_BLUEPRINT_MASTER.md) | iNiR settings system |
-| **Audit** | [plans/audit-report.md](plans/audit-report.md) | Full codebase audit |
 
 ## Color System
 
-The color system uses a dynamic/static toggle pattern:
+The default color pipeline is wallpaper-driven:
 
-1. **dyn mode** (default): Colors extracted from wallpaper via `wallcolors.py`
-2. **static mode**: Fixed warm neutral palette
+1. `dominance-extract.py` ranks eight representative colors from the wallpaper.
+2. `dominance-engine.py` derives dark and light Material 3 token sets.
+3. `after-wall.sh` writes the v2 `colors.json` contract consumed by `Dyn.qml`.
 
-Colors flow: `wallpaper → wallcolors.py → colors.json → Dyn.qml → Theme.qml → UI components`
+`wallcolors.py` remains available only for the `YEMI_LEGACY_COLORS=1` compatibility path.
+
+Colors flow: `wallpaper → dominance-extract.py → dominance-engine.py → colors.json → Dyn.qml → Theme.qml → UI components`
 
 ### Color Files
 
