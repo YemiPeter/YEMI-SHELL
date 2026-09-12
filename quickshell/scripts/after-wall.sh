@@ -4,7 +4,7 @@
 #
 # v2 default path: uses the dominance engine to write ~/.cache/yemi-shell/colors.json in the
 # v2 schema (version, generator, wallpaper, seed, scheme_type, dark.{24}, light.{24})
-# and fans out terminal.json + hypr-colors.lua from Matugen's base16 output.
+# and fans out terminal.json + hypr-colors.lua from the dominance palette.
 #
 # Legacy path: set YEMI_LEGACY_COLORS=1 to use the original wallcolors.py pipeline,
 # which writes colors.json (old pill schema), terminal.json and hypr-colors.lua
@@ -82,7 +82,7 @@ else
     mkdir -p "$CACHE"
 
     # Run the dominance engine once — it emits BOTH dark and light in one call,
-    # so the two-run Matugen + jq merge is replaced by a single capture.
+    # so color derivation and dark/light emission happen in a single capture.
     ENGINE_JSON="$(python3 "$SCRIPTS/dominance-engine.py" "$WALL_PATH" 2>/dev/null || true)"
 
     if [ -z "$ENGINE_JSON" ]; then
@@ -100,8 +100,7 @@ else
     # -------------------------------------------------------------------------
     # terminal.json — fan-out source for apply-terminal-colors.py (single source
     # of truth for all terminal emulators). Derived from the dominance palette's
-    # dark block (Matugen base16 is gone). Basic mapping; readability polish is
-    # Phase 4.
+    # dark block. Basic mapping; readability polish is Phase 4.
     # -------------------------------------------------------------------------
     printf '%s' "$ENGINE_JSON" | jq -c \
         '{term0:.dark.surface_container_lowest,

@@ -201,7 +201,7 @@ ShellRoot {
           QsSingletons.PillState.toggleSurface(target, "sysmon");
       }
 
-      /// Alias for sysmon (matches the old pill/shell.qml handler's pattern).
+      /// Alias for sysmon (matches the legacy handler's pattern).
       function system(mon: string): void {
         var target = mon || (compositor.focusedMonitor?.name || "");
         if (target.length > 0)
