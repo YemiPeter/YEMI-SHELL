@@ -324,14 +324,8 @@ Item {
                     }
                 }
             ]
-            transform: Translate {
-                y: overlay.monFullscreen ? -(pill.height + overlay.topGap) : 0
-                Behavior on y {
-                    NumberAnimation {
-                        duration: 200
-                        easing.type: Easing.OutCubic
-                    }
-                }
+            transform: Translate { // WIFIDBG disabled
+                y: 0
             }
             onRequestSurface: (name) => QsSingletons.PillState.toggleSurface(root.modelData.name, name)
             onRequestClose: QsSingletons.PillState.close()

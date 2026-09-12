@@ -6,12 +6,12 @@ import Quickshell.Io
 /**
  * Live wallpaper-derived palette (colors.json v2).
  *
- * after-wall.sh (the single writer) runs matugen and writes a v2 contract to
+ * after-wall.sh (the single writer) runs dominance-engine.py and writes a v2 contract to
  * ~/.cache/yemi-shell/colors.json:
  *
  *   {
  *     "version": 2,
- *     "generator": "matugen",
+ *     "generator": "dominance",
  *     "dark":  { ... 24 material tokens ... },
  *     "light": { ... 24 material tokens ... }
  *   }

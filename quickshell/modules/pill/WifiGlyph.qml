@@ -34,6 +34,25 @@ Item {
         ? root.height / 2 - (arcs.boundingRect.y + arcs.boundingRect.height / 2) * root.u
         : (root.height - 24 * root.u) / 2
 
+    // [WIFIDBG] temporary geometry diagnostics — remove after investigation
+    Timer {
+        interval: 2500
+        running: true
+        repeat: true
+        property int n: 0
+        onTriggered: {
+            n++
+            console.log("[WIFIQ]", n, "s =", root.s.toFixed(3),
+                "u =", root.u.toFixed(4),
+                "w =", root.width.toFixed(2), "h =", root.height.toFixed(2),
+                "bx =", arcs.boundingRect.x.toFixed(2), "by =", arcs.boundingRect.y.toFixed(2),
+                "bw =", arcs.boundingRect.width.toFixed(2), "bh =", arcs.boundingRect.height.toFixed(2),
+                "glyphX =", root.glyphX.toFixed(2), "glyphY =", root.glyphY.toFixed(2),
+                "arcsVisible =", arcs.visible, "rootVisible =", root.visible,
+                "rootOpacity =", root.opacity.toFixed(2))
+        }
+    }
+
     Shape {
         id: arcs
 
@@ -47,23 +66,23 @@ Item {
         preferredRendererType: Shape.CurveRenderer
 
         ShapePath {
-            strokeColor: root.litCount >= 1 ? Theme.iconDim : root.offColor
+            strokeColor: "red" // WIFIDBG
             fillColor: "transparent"
-            strokeWidth: (2 / root.u) * root.s
+            strokeWidth: (6 / root.u) * root.s
             capStyle: ShapePath.RoundCap
             PathSvg { path: "M9.17 13.17 A4 4 0 0 1 14.83 13.17" }
         }
         ShapePath {
-            strokeColor: root.litCount >= 2 ? Theme.iconDim : root.offColor
+            strokeColor: "red" // WIFIDBG
             fillColor: "transparent"
-            strokeWidth: (2 / root.u) * root.s
+            strokeWidth: (6 / root.u) * root.s
             capStyle: ShapePath.RoundCap
             PathSvg { path: "M6.34 10.34 A8 8 0 0 1 17.66 10.34" }
         }
         ShapePath {
-            strokeColor: root.litCount >= 3 ? Theme.iconDim : root.offColor
+            strokeColor: "red" // WIFIDBG
             fillColor: "transparent"
-            strokeWidth: (2 / root.u) * root.s
+            strokeWidth: (6 / root.u) * root.s
             capStyle: ShapePath.RoundCap
             PathSvg { path: "M3.5 7.5 A12 12 0 0 1 20.5 7.5" }
         }

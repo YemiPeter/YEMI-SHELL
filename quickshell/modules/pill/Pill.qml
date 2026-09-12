@@ -141,6 +141,25 @@ Item {
     readonly property var wifiNets: (wifiDev && wifiDev.networks) ? wifiDev.networks.values : []
     readonly property var wifiActive: wifiNets.find(function(n) { return n && n.connected }) || null
     readonly property real wifiLevel: (wifiActive && wifiActive.signalStrength) || 0
+
+    // [WIFIDBG] temporary diagnostics — remove after investigation
+    Timer {
+        interval: 1500
+        running: true
+        repeat: true
+        property int ticks: 0
+        onTriggered: {
+            ticks++;
+            console.log("[WIFIDBG] tick", ticks,
+                "s =", pill.s,
+                "wifiDev =", pill.wifiDev ? pill.wifiDev.name : "null",
+                "wifiOn =", pill.wifiOn,
+                "nets =", pill.wifiNets.length,
+                "active =", pill.wifiActive ? pill.wifiActive.name : "null",
+                "level =", pill.wifiLevel);
+        }
+    }
+
     readonly property bool surfaceOpen: surface.length > 0
     property bool hoverLatch: false
     readonly property bool expanded: surfaceOpen || held || hoverLatch
