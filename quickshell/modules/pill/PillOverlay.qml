@@ -264,66 +264,20 @@ Item {
         //   ✗  anchors.topMargin: topGap  (silent ReferenceError)
         // Same applies to `enabled: overlay.surfaceOpen` on the backdrop
         // MouseArea below and `y: overlay.monFullscreen ? …` in the Translate.
-        Pill {
-            id: pill
-            anchors.top: parent.top
-            anchors.topMargin: overlay.topGap
-            anchors.horizontalCenter: parent.horizontalCenter
-            s: overlay.s
-            screenName: root.modelData.name
-            surface: overlay.surface
-            forcePinned: QsSingletons.PillState.peekMon === root.modelData.name
-            // Fullscreen opacity is state-driven (see states/transitions below):
-            // hidden while fullscreen, visible otherwise. Each direction gets its
-            // own hardcoded easing via a dedicated Transition, so an interrupted
-            // or reversed animation can never reuse the previous direction's
-            // easing (the old conditional Behavior snapshotted the stale curve).
-            states: [
-                State {
-                    name: "fullscreen"
-                    when: overlay.monFullscreen
-                    PropertyChanges {
-                        target: pill
-                        opacity: 0
-                    }
-                },
-                State {
-                    name: "normal"
-                    when: !overlay.monFullscreen
-                    PropertyChanges {
-                        target: pill
-                        opacity: 1
-                    }
-                }
-            ]
-            transitions: [
-                // ENTER fullscreen: hide the pill. OutCubic fade stays synchronized
-                // with the OutCubic y-transform (both cover most distance early).
-                Transition {
-                    from: "normal"
-                    to: "fullscreen"
-                    NumberAnimation {
-                        target: pill
-                        property: "opacity"
-                        duration: 200
-                        easing.type: Easing.OutCubic
-                    }
-                },
-                // EXIT fullscreen: return the pill. InQuint keeps opacity near 0
-                // while the OutCubic y-transform is still mid-slide (OutCubic y
-                // covers most of its distance early), then rises late in the
-                // curve so the pill fades in as it settles.
-                Transition {
-                    from: "fullscreen"
-                    to: "normal"
-                    NumberAnimation {
-                        target: pill
-                        property: "opacity"
-                        duration: 200
-                        easing.type: Easing.InQuint
-                    }
-                }
-            ]
+        // ── Pill transform host ──────────────────────────────────────────────
+        // The fullscreen-slide Translate (with its Behavior) lives on this
+        // wrapper, OUTSIDE the pill's layer.enabled boundary. A Behavior-
+        // animated transform on the layered item itself breaks stroked
+        // ShapePath rendering inside the layer FBO on Niri (WifiGlyph arcs
+        // vanish; see Compositor.qmlShadows — the layer is niri-only). The
+        // wrapper is anchored at the overlay origin, so pill.x/y/width/height
+        // and the pillRegion input mask keep their exact previous coords.
+        // ⚠️ QML SCOPE RULE: bindings must qualify `overlay.` / `pill.` (see
+        // the comment above — named-instance bindings do not auto-climb).
+        Item {
+            id: pillMover
+            anchors.fill: parent
+
             transform: Translate {
                 y: overlay.monFullscreen ? -(pill.height + overlay.topGap) : 0
                 Behavior on y {
@@ -333,8 +287,70 @@ Item {
                     }
                 }
             }
-            onRequestSurface: (name) => QsSingletons.PillState.toggleSurface(root.modelData.name, name)
-            onRequestClose: QsSingletons.PillState.close()
+
+            Pill {
+                id: pill
+                anchors.top: parent.top
+                anchors.topMargin: overlay.topGap
+                anchors.horizontalCenter: parent.horizontalCenter
+                s: overlay.s
+                screenName: root.modelData.name
+                surface: overlay.surface
+                forcePinned: QsSingletons.PillState.peekMon === root.modelData.name
+                // Fullscreen opacity is state-driven (see states/transitions below):
+                // hidden while fullscreen, visible otherwise. Each direction gets its
+                // own hardcoded easing via a dedicated Transition, so an interrupted
+                // or reversed animation can never reuse the previous direction's
+                // easing (the old conditional Behavior snapshotted the stale curve).
+                states: [
+                    State {
+                        name: "fullscreen"
+                        when: overlay.monFullscreen
+                        PropertyChanges {
+                            target: pill
+                            opacity: 0
+                        }
+                    },
+                    State {
+                        name: "normal"
+                        when: !overlay.monFullscreen
+                        PropertyChanges {
+                            target: pill
+                            opacity: 1
+                        }
+                    }
+                ]
+                transitions: [
+                    // ENTER fullscreen: hide the pill. OutCubic fade stays synchronized
+                    // with the OutCubic y-transform (both cover most distance early).
+                    Transition {
+                        from: "normal"
+                        to: "fullscreen"
+                        NumberAnimation {
+                            target: pill
+                            property: "opacity"
+                            duration: 200
+                            easing.type: Easing.OutCubic
+                        }
+                    },
+                    // EXIT fullscreen: return the pill. InQuint keeps opacity near 0
+                    // while the OutCubic y-transform is still mid-slide (OutCubic y
+                    // covers most of its distance early), then rises late in the
+                    // curve so the pill fades in as it settles.
+                    Transition {
+                        from: "fullscreen"
+                        to: "normal"
+                        NumberAnimation {
+                            target: pill
+                            property: "opacity"
+                            duration: 200
+                            easing.type: Easing.InQuint
+                        }
+                    }
+                ]
+                onRequestSurface: (name) => QsSingletons.PillState.toggleSurface(root.modelData.name, name)
+                onRequestClose: QsSingletons.PillState.close()
+            }
         }
 
         // ── Backdrop close area ──────────────────────────────────────────────
@@ -343,10 +359,6 @@ Item {
             z: -1
             enabled: overlay.surfaceOpen
             onClicked: (mouse) => {
-                console.log("[backdebug] click at", mouse.x, mouse.y,
-                            "pill:", pill.x, pill.y, pill.width, pill.height,
-                            "contains:", pill.contains(mouse),
-                            "stripLimit:", pillRegion.y + 40 * pill.s);
                 if (!pill.contains(mouse)) {
                     QsSingletons.PillState.close()
                 } else if (mouse.y <= pillRegion.y + 40 * pill.s) {
@@ -357,16 +369,6 @@ Item {
                     // through to here — this is the only back-arrow handler.
                     pill.surfaceBack()
                 }
-            }
-        }
-
-        // TEMPORARY back-arrow debug IPC — remove with the [backdebug] logs.
-        IpcHandler {
-            target: "backdebug"
-
-            function back(): void {
-                console.log("[backdebug] ipc back() on mon", root.modelData.name);
-                pill.surfaceBack()
             }
         }
     }

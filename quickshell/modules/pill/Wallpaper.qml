@@ -196,6 +196,12 @@ PillSurface {
         function onEntriesChanged() {
             if (!root.searching && root.focusIndex >= Walls.count)
                 root.focusIndex = Math.max(0, Walls.count - 1);
+            if (root.active)
+                root.centerOnCurrent();
+        }
+        function onCurrentChanged() {
+            if (root.active)
+                root.centerOnCurrent();
         }
     }
 
