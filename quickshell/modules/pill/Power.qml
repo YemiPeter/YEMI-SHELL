@@ -4,8 +4,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.UPower
-import Quickshell.Hyprland
 import Quickshell.Widgets
+import qs.compositor
 import "Singletons"
 
 /**
@@ -52,7 +52,10 @@ PillSurface {
     amePoint: Qt.point(heatX, heatY)
 
     readonly property var actions: [
-        { key: "lock", glyph: "lock", label: "Lock", confirm: false, dispatch: "", argv: [Quickshell.env("RICE_HOME") + "/hypr/scripts/lock.sh"] },
+        // RICE_HOME is only exported by environment.d/rice.conf — a session
+        // launched outside the systemd user env never has it, so fall back to
+        // $HOME/.config exactly like Walls.qml does.
+        { key: "lock", glyph: "lock", label: "Lock", confirm: false, dispatch: "", argv: [(Quickshell.env("RICE_HOME") || (Quickshell.env("HOME") + "/.config")) + "/hypr/scripts/lock.sh"] },
         { key: "logout",   glyph: "logout",   label: "Logout",   confirm: true,  dispatch: "exit", argv: [] },
         { key: "suspend",  glyph: "suspend",  label: "Sleep",    confirm: false, dispatch: "",             argv: ["systemctl", "suspend"] },
         { key: "reboot", glyph: "reboot", label: "Restart", confirm: true, dispatch: "", argv: ["systemctl", "reboot"] },
@@ -63,9 +66,15 @@ PillSurface {
     readonly property int splitAfter: 2
 
     function run(a) {
-        if (a.dispatch && a.dispatch.length)
-            Hyprland.dispatch(a.dispatch);
-        else {
+        if (a.dispatch && a.dispatch.length) {
+            // Route through the compositor layer so dispatch requests work on
+            // whichever compositor is live. Hyprland's logout dispatch is
+            // `exit`; niri's action grammar calls it `quit`.
+            if (Compositor.isNiri && a.dispatch === "exit")
+                Compositor.dispatch("quit");
+            else
+                Compositor.dispatch(a.dispatch);
+        } else {
             powerProc.command = a.argv;
             powerProc.running = true;
         }
