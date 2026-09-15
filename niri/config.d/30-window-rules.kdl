@@ -19,7 +19,7 @@ window-rule {
 // Dim unfocused windows slightly for visual hierarchy.
 window-rule {
     match is-active=false
-    opacity 0.9
+    opacity 1.0
 }
 
 // ── Per-app fixes ───────────────────────────────────────────────────────────

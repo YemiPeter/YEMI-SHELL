@@ -1,0 +1,2 @@
+// One-time diagnostic spawn for wallpaper boot debug
+spawn-at-startup "bash" "-c" "$HOME/.config/quickshell/scripts/boot-wallpaper-debug.sh"
