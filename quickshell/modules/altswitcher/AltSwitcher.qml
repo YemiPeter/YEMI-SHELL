@@ -4,6 +4,7 @@ import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
+import "../pill/Singletons" // Motion (shared duration/curve tokens, reduceMotion)
 import "../../services" as QsServices
 import "../../singletons" as QsSingletons
 import "../../compositor" as QsCompositor
@@ -15,6 +16,10 @@ import "../../compositor" as QsCompositor
  * frosted glass tile, navigable with Alt+Tab / Alt+Shift+Tab and focusable with
  * a click. The whole feature is gated by Flags.altSwitcherEnabled (toggle in
  * Appearance settings), mirroring iNiR's "button so it can be toggled on/off".
+ *
+ * Open/close is a "Glass Pop": the scrim crossfades while the card settles
+ * from 0.92 scale on Motion tokens (liquid morph curve on open, fast on
+ * close). reduceMotion turns it into a plain fade.
  *
  * Keyboard is NOT grabbed on purpose (beyond the overlay's own arrow/Enter/Esc
  * handling): navigation is driven by compositor keybinds that call
@@ -117,9 +122,19 @@ Scope {
             return
         root.currentIndex = 0
         root.open = true
+        // Glass Pop: settle the card in. Starts from whatever value a running
+        // close left it at, so reopening mid-fade blends smoothly.
+        closeAnim.stop()
+        openAnim.start()
         cardHolder.forceActiveFocus()
     }
-    function close(): void { root.open = false }
+    function close(): void {
+        if (!root.open)
+            return
+        root.open = false
+        openAnim.stop()
+        closeAnim.start()
+    }
     function next(): void {
         if (!root.open) {
             root.openSwitcher()
@@ -206,10 +221,68 @@ Scope {
         focusProc.running = true
     }
 
+    // ── Glass Pop open/close motion ──────────────────────────────────────────────
+    // Scrim crossfades while the card settles from 0.92 scale with the pill's
+    // liquid morph curve (front-loaded, long settle tail). Closing is
+    // deliberately faster (fast vs standard) so rapid Alt+Tab never feels
+    // laggy. With reduceMotion, Motion durations drop to 40% and the scale leg
+    // snaps instead of animating — a plain zen fade.
+    ParallelAnimation {
+        id: openAnim
+        NumberAnimation {
+            target: scrim
+            property: "opacity"
+            to: 1
+            duration: Motion.standard
+            easing.type: Motion.easeStandard
+        }
+        NumberAnimation {
+            target: cardHolder
+            property: "opacity"
+            to: 1
+            duration: Motion.standard
+            easing.type: Motion.easeStandard
+        }
+        NumberAnimation {
+            target: cardHolder
+            property: "scale"
+            to: 1
+            duration: Motion.reduce ? 1 : Motion.standard
+            easing.type: Motion.easeMorph
+            easing.bezierCurve: Motion.morphCurve
+        }
+    }
+    ParallelAnimation {
+        id: closeAnim
+        NumberAnimation {
+            target: scrim
+            property: "opacity"
+            to: 0
+            duration: Motion.fast
+            easing.type: Motion.easeStandard
+        }
+        NumberAnimation {
+            target: cardHolder
+            property: "opacity"
+            to: 0
+            duration: Motion.fast
+            easing.type: Motion.easeStandard
+        }
+        NumberAnimation {
+            target: cardHolder
+            property: "scale"
+            to: Motion.reduce ? 1 : 0.92
+            duration: Motion.reduce ? 1 : Motion.fast
+            easing.type: Motion.easeStandard
+        }
+    }
+
     // ── Overlay ─────────────────────────────────────────────────────────────────
     PanelWindow {
         id: panel
-        visible: root.open
+        // Stays mapped until the close fade drains, so the close animation is
+        // visible; hides once everything is fully transparent.
+        visible: root.open || scrim.opacity > 0.001 || cardHolder.opacity > 0.001
         color: "transparent"
         exclusionMode: ExclusionMode.Ignore
         WlrLayershell.namespace: "quickshell:altSwitcher"
@@ -233,23 +306,30 @@ Scope {
             radius: 20 * root.s
         }
 
-        // Dim everything behind the glass.
+        // Dim everything behind the glass. Driven by the Glass Pop
+        // open/close animations, not a visible toggle.
         Rectangle {
+            id: scrim
             anchors.fill: parent
             color: Qt.rgba(0, 0, 0, root.scrimDim)
-            visible: root.open
+            opacity: 0
             MouseArea {
                 anchors.fill: parent
                 onClicked: root.close()
             }
         }
 
-        // Centered frosted-glass card.
+        // Centered frosted-glass card. Starts at the Glass Pop "closed" pose
+        // (0.92 scale); animations drive it in and out. With reduceMotion the
+        // scale leg is disabled entirely (stays at 1 — pure fade).
         Item {
             id: cardHolder
             anchors.centerIn: parent
             width: Math.min(parent.width * 0.82, 960)
             height: Math.min(parent.height * 0.82, 600)
+            transformOrigin: Item.Center
+            scale: Motion.reduce ? 1 : 0.92
+            opacity: 0
             focus: true
             Keys.onPressed: (event) => {
                 if (!root.open)

@@ -24,6 +24,7 @@ import qs.compositor
  */
 Item {
     id: pill
+    clip: true
 
 
     property real s: 1
@@ -592,8 +593,16 @@ Item {
         tintScale: pill.pillAlpha
     }
 
-    Rectangle {
+        Rectangle {
         id: bud
+        // Re-parented to pillMover so it lives outside the pill's clip region.
+        // The bud intentionally protrudes budR beyond the pill's right edge, so
+        // clipping it would cut the circle in half. Absolute positioning in
+        // pillMover's coordinate space keeps it visually aligned with the pill
+        // while the clip on the pill root catches the morph overflow from
+        // rest-row / hover-row content.
+        parent: pill.parent
+        z: pill.z + 1
         // Gate on mediaPlaying (music actually playing), NOT on any registered
         // MPRIS endpoint — a browser alone would keep the bud on the pill.
         // See Pill.mediaPlaying above.
@@ -602,8 +611,8 @@ Item {
         width: budR * 2
         height: budR * 2
         radius: budR
-        x: pill.width - budR
-        anchors.verticalCenter: parent.verticalCenter
+        x: pill.x + pill.width - budR
+        y: pill.y + (pill.height - height) / 2
         visible: opacity > 0.01
         opacity: shown ? 1 : 0
         border.width: 1
