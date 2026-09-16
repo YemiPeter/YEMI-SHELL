@@ -4,6 +4,7 @@ import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
+import "../pill/Singletons" // Motion (shared duration/curve tokens, reduceMotion)
 import "../../services" as QsServices
 import "../../singletons" as QsSingletons
 import "../../compositor" as QsCompositor
@@ -15,6 +16,11 @@ import "../../compositor" as QsCompositor
  * frosted glass tile, navigable with Alt+Tab / Alt+Shift+Tab and focusable with
  * a click. The whole feature is gated by Flags.altSwitcherEnabled (toggle in
  * Appearance settings), mirroring iNiR's "button so it can be toggled on/off".
+ *
+ * Open/close is a Caelestia-style spring reveal (see the "Open/close motion"
+ * section below): the scrim crossfades, the card pops from 85% scale with a
+ * Material 3 expressive overshoot curve, and the tile grid cascades in with a
+ * per-index stagger. reduceMotion turns it into a plain fade.
  *
  * Keyboard is NOT grabbed on purpose (beyond the overlay's own arrow/Enter/Esc
  * handling): navigation is driven by compositor keybinds that call
@@ -116,6 +122,8 @@ Scope {
         if (!compositor.runningCompositor)
             return
         root.currentIndex = 0
+        // reveal flips and the Behavior below drives the whole spring — no
+        // manual animation objects, so close→reopen interruptions blend.
         root.open = true
         cardHolder.forceActiveFocus()
     }
@@ -206,10 +214,30 @@ Scope {
         focusProc.running = true
     }
 
+    // ── Open/close motion ────────────────────────────────────────────────────────
+    // Caelestia-style single-reveal driver (their modules/*/Wrapper.qml
+    // `offsetScale` pattern): every animated property derives from one `reveal`
+    // scalar (0 closed → 1 open), so a close interrupted by a reopen — or the
+    // reverse — blends perfectly with zero animation juggling. The open curve
+    // is Material 3's expressive default spatial spring (overshoot + settle,
+    // same tokens caelestia's components/Anim.qml uses); close is deliberately
+    // faster so rapid Alt+Tab never feels laggy. reduceMotion: Motion durations
+    // drop to 40%, and the pose legs below collapse to a plain fade.
+    readonly property real reveal: root.open ? 1 : 0
+    Behavior on reveal {
+        NumberAnimation {
+            duration: root.open ? Motion.expressive : Motion.fast
+            easing.type: root.open ? Motion.easeMorph : Motion.easeStandard
+            easing.bezierCurve: Motion.springCurve
+        }
+    }
+
     // ── Overlay ─────────────────────────────────────────────────────────────────
     PanelWindow {
         id: panel
-        visible: root.open
+        // Stays mapped until the reveal fade drains, so the close animation is
+        // visible; hides once everything is fully transparent.
+        visible: root.reveal > 0.001
         color: "transparent"
         exclusionMode: ExclusionMode.Ignore
         WlrLayershell.namespace: "quickshell:altSwitcher"
@@ -233,23 +261,33 @@ Scope {
             radius: 20 * root.s
         }
 
-        // Dim everything behind the glass.
+        // Dim everything behind the glass. Crossfades with the reveal driver.
         Rectangle {
+            id: scrim
             anchors.fill: parent
             color: Qt.rgba(0, 0, 0, root.scrimDim)
-            visible: root.open
+            opacity: root.reveal
             MouseArea {
                 anchors.fill: parent
                 onClicked: root.close()
             }
         }
 
-        // Centered frosted-glass card.
+        // Centered frosted-glass card. Closed pose: 15% smaller and 18px low;
+        // the reveal driver's spring curve pops it in with a visible
+        // overshoot-settle. reduceMotion keeps the card at identity — a pure
+        // fade. Explicit x/y centering (not anchors.centerIn) so the settle
+        // offset can share the y binding.
         Item {
             id: cardHolder
-            anchors.centerIn: parent
+            x: (parent.width - width) / 2
+            y: (parent.height - height) / 2
+                + (Motion.reduce ? 0 : (1 - root.reveal) * 18 * root.s)
             width: Math.min(parent.width * 0.82, 960)
             height: Math.min(parent.height * 0.82, 600)
+            transformOrigin: Item.Center
+            scale: Motion.reduce ? 1 : 0.85 + 0.15 * root.reveal
+            opacity: root.reveal
             focus: true
             Keys.onPressed: (event) => {
                 if (!root.open)
@@ -343,8 +381,27 @@ Scope {
                                     id: tile
                                     required property var modelData
                                     required property int index
+
+                                    // Staggered grid reveal: each tile's opacity
+                                    // and rise derive from the shared reveal
+                                    // driver with an index-based delay, so the
+                                    // grid cascades in during the open spring
+                                    // and dissolves out on close. At rest
+                                    // (reveal 0 or 1) every tile is fully
+                                    // computed — no per-tile animation state.
+                                    readonly property real delay: Math.min(0.55,
+                                        Math.floor(index / Math.max(1, root._cols)) * 0.07
+                                        + (index % Math.max(1, root._cols)) * 0.035)
+                                    readonly property real t: root.reveal >= 1 ? 1
+                                        : Math.max(0, Math.min(1,
+                                            (root.reveal - delay) / Math.max(0.001, 1 - delay)))
+
                                     width: root.tileWidth * root.s
                                     height: root.tileHeight * root.s
+                                    opacity: Motion.reduce ? root.reveal : t
+                                    transform: Translate {
+                                        y: (Motion.reduce ? (1 - root.reveal) : (1 - tile.t)) * 14 * root.s
+                                    }
                                     radius: 12 * root.s
                                     color: index === root.currentIndex
                                         ? Qt.alpha(root.cPrimary, 0.18)
