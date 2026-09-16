@@ -76,7 +76,10 @@ ShellRoot {
         }
 
         function open(): void {
-            if (altSwitcherLoader.item) altSwitcherLoader.item.open()
+            // NOTE: `open()` on the item resolves to the `property bool open`
+            // (properties shadow same-named functions in QML), so call the
+            // unshadowed openSwitcher() instead.
+            if (altSwitcherLoader.item) altSwitcherLoader.item.openSwitcher()
         }
 
         function close(): void {
@@ -352,13 +355,14 @@ ShellRoot {
     }
 
     // Alt+Tab window overview (see modules/altswitcher/AltSwitcher.qml).
-    // Driven by the `altSwitcher` IpcHandler below; niri Alt+Tab / Alt+Shift+Tab binds call next/previous.
-    // Niri-only: Loader-gated so the component (and its window/monitoring)
-    // is never instantiated on Hyprland. All `altSwitcher` IPC callers
+    // Driven by the `altSwitcher` IpcHandler above; compositor binds call
+    // next/previous (niri: Alt+Tab in config.d/70-binds.kdl, Hyprland:
+    // ALT+Tab in hypr modules/binds.lua). Instantiated on niri and Hyprland
+    // so both compositors get the overview; all `altSwitcher` IPC callers
     // null-check altSwitcherLoader.item.
     Loader {
         id: altSwitcherLoader
-        active: Compositor.isNiri
+        active: Compositor.isNiri || Compositor.isHyprland
         source: "modules/altswitcher/AltSwitcher.qml"
     }
 

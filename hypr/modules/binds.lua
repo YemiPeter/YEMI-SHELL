@@ -116,6 +116,10 @@ binde = $mod CTRL, Down, resizeactive, 0 20                      # Resize window
 bind = $mod, Tab, cyclenext, next                                # Cycle windows forward
 bind = $mod SHIFT, Tab, cyclenext, prev                          # Cycle windows backward
 
+# Alt+Tab — YemiShell Overview (altSwitcher). See modules/altswitcher/AltSwitcher.qml
+bind = ALT, Tab, exec, qs ipc call altSwitcher next              # Open / cycle YemiShell Overview (Alt+Tab)
+bind = ALT SHIFT, Tab, exec, qs ipc call altSwitcher previous    # Prev in YemiShell Overview
+
 # Mouse binds
 bindm = $mod, mouse:272, movewindow
 bindm = $mod, mouse:273, resizewindow
