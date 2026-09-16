@@ -20,6 +20,16 @@ Singleton {
      * easeMorph (BezierSpline).
      */
     readonly property var morphCurve: [0.16, 1, 0.3, 1, 1, 1]
+
+    /**
+     * Material 3 expressive "spring" — the tokens caelestia shell
+     * (components/Anim.qml and the module Wrapper.qml files) drives its pop-in
+     * surfaces with. Unlike morphCurve's soft settle, this curve overshoots
+     * past 1.0 before settling, so a scale/position driven by it visibly
+     * "springs". Use with easeMorph (BezierSpline).
+     */
+    readonly property int expressive: Math.round(500 * mult)       // M3 expressive default spatial
+    readonly property var springCurve: [0.34, 1.56, 0.64, 1, 1, 1] // M3 cubic-bezier(0.34, 1.56, 0.64, 1)
     readonly property real rSmall: 7
     readonly property real rTile:  13
 
