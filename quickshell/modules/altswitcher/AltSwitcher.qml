@@ -11,22 +11,28 @@ import "../../compositor" as QsCompositor
 /**
  * AltSwitcher — the Alt+Tab window overview.
  *
- * A full-screen overlay (niri-only) that shows every open window as a frosted
- * glass tile, navigable with Alt+Tab / Alt+Shift+Tab and focusable with a click.
- * The whole feature is gated by Flags.altSwitcherEnabled (toggle in Appearance
- * settings), mirroring iNiR's "button so it can be toggled on/off".
+ * A full-screen overlay (niri + Hyprland) that shows every open window as a
+ * frosted glass tile, navigable with Alt+Tab / Alt+Shift+Tab and focusable with
+ * a click. The whole feature is gated by Flags.altSwitcherEnabled (toggle in
+ * Appearance settings), mirroring iNiR's "button so it can be toggled on/off".
  *
- * Keyboard is NOT grabbed here on purpose: navigation is driven by compositor
- * keybinds (niri Alt+Tab / Alt+Shift+Tab) that call `qs ipc call altSwitcher
- * next|previous`, so tapping Tab cycles without a focus fight between the
- * overlay and the compositor. Mod+Tab is left to niri's own toggle-overview.
+ * Keyboard is NOT grabbed on purpose (beyond the overlay's own arrow/Enter/Esc
+ * handling): navigation is driven by compositor keybinds that call
+ * `qs ipc call altSwitcher next|previous` — niri Alt+Tab / Alt+Shift+Tab in
+ * config.d/70-binds.kdl, Hyprland ALT/ALT SHIFT+Tab in hypr modules/binds.lua.
+ * Tapping Tab cycles without a focus fight between the overlay and the
+ * compositor. Mod+Tab is left to niri's own toggle-overview.
  */
 Scope {
     id: root
 
     // ── Tunables ──────────────────────────────────────────────────────────────
     readonly property real scrimDim: 0.35          // 0..1 darkness behind the glass
-    readonly property bool blurGlass: true         // frosted backdrop via compositor BackgroundEffect
+    // Frosted backdrop via compositor BackgroundEffect (ext-background-effect):
+    // niri-only. Hyprland doesn't implement that protocol — its blur comes from
+    // the `layerrule = blur on, match:namespace quickshell*` rules in
+    // hyprland.conf, which already cover this overlay's layer namespace.
+    readonly property bool blurGlass: compositor.isNiri
     readonly property int tileWidth: 224
     readonly property int tileHeight: 116
     readonly property int tileGap: 12
@@ -41,6 +47,7 @@ Scope {
     // ── Compositor data ───────────────────────────────────────────────────────
     readonly property var compositor: QsCompositor.Compositor
     readonly property bool isNiri: compositor.runningCompositor === "niri"
+    readonly property bool isHyprland: compositor.runningCompositor === "hyprland"
 
     // ── Runtime state ──────────────────────────────────────────────────────────
     property bool open: false
@@ -48,19 +55,41 @@ Scope {
     readonly property real s: QsSingletons.Flags.uiScale
 
     // Live, sorted window list (by workspace idx, then app name).
+    //
+    // Niri toplevels expose { id, app_id, title, workspace_id }; Hyprland
+    // toplevels expose { address, title, workspace: { id }, lastIpcObject
+    // { class, initialClass, ... } }. normalizeWindow() maps both shapes onto
+    // one plain-JS row so sorting, the delegate and focusWindow never care
+    // which compositor is running.
     readonly property var windows: (function () {
-        const raw = (compositor.toplevels || []).slice()
-        raw.sort(function (a, b) {
-            const wa = compositor.workspaces.find(function (w) { return w.id === a.workspace_id })
-            const wb = compositor.workspaces.find(function (w) { return w.id === b.workspace_id })
-            const ia = wa ? (wa.idx ?? 0) : 0
-            const ib = wb ? (wb.idx ?? 0) : 0
+        const mapped = (compositor.toplevels || [])
+            .map(function (w) { return root.normalizeWindow(w) })
+            .filter(function (w) { return w !== null })
+        mapped.sort(function (a, b) {
+            const wa = compositor.workspaces.find(function (w) { return w.id === a.wsId })
+            const wb = compositor.workspaces.find(function (w) { return w.id === b.wsId })
+            const ia = wa ? (wa.idx ?? wa.id ?? 0) : 0
+            const ib = wb ? (wb.idx ?? wb.id ?? 0) : 0
             if (ia !== ib)
                 return ia - ib
-            return String(a.app_id || "").localeCompare(String(b.app_id || ""))
+            return String(a.app).localeCompare(String(b.app))
         })
-        return raw
+        return mapped
     })()
+
+    function normalizeWindow(w: var): var {
+        if (!w)
+            return null
+        const ipc = w.lastIpcObject || {}
+        return {
+            // niri uses a numeric id; Hyprland uses the address string ("0x…").
+            id: w.id ?? w.address ?? "",
+            address: w.address ?? null,
+            app: w.app_id ?? ipc.class ?? ipc.initialClass ?? w.appid ?? "",
+            title: w.title ?? ipc.title ?? "",
+            wsId: w.workspace_id ?? w.workspace?.id ?? ipc.workspace?.id ?? null
+        }
+    }
 
     readonly property int count: root.windows.length
 
@@ -82,7 +111,9 @@ Scope {
     function openSwitcher(): void {
         if (!QsSingletons.Flags.altSwitcherEnabled)
             return
-        if (!root.isNiri)
+        // Instantiation itself is gated in shell.qml (niri + Hyprland); only
+        // refuse on an unknown compositor so IPC stays a no-op there.
+        if (!compositor.runningCompositor)
             return
         root.currentIndex = 0
         root.open = true
@@ -164,6 +195,13 @@ Scope {
     function focusWindow(w: var): void {
         if (!w)
             return
+        // Hyprland focuses by address through the unified dispatch path
+        // (same convention as bar AppIcons). Niri uses its IPC action.
+        if (root.isHyprland) {
+            if (w.address)
+                compositor.dispatch("focuswindow address:" + String(w.address))
+            return
+        }
         focusProc.command = ["niri", "msg", "action", "focus-window", "--id", String(w.id)]
         focusProc.running = true
     }
@@ -336,7 +374,7 @@ Scope {
 
                                             Text {
                                                 Layout.fillWidth: true
-                                                text: root.appLabel(modelData.app_id)
+                                                text: root.appLabel(modelData.app)
                                                 color: root.cText
                                                 font.family: QsSingletons.Theme.font
                                                 font.pixelSize: 13 * root.s
@@ -345,7 +383,7 @@ Scope {
                                             }
                                             Text {
                                                 Layout.fillWidth: true
-                                                text: modelData.title || root.wsLabel(modelData.workspace_id)
+                                                text: modelData.title || root.wsLabel(modelData.wsId)
                                                 color: root.cSubText
                                                 font.family: QsSingletons.Theme.font
                                                 font.pixelSize: 11 * root.s
@@ -355,7 +393,7 @@ Scope {
                                             }
                                             Item { Layout.fillHeight: true }
                                             Text {
-                                                text: root.wsLabel(modelData.workspace_id)
+                                                text: root.wsLabel(modelData.wsId)
                                                 color: root.cPrimary
                                                 font.family: QsSingletons.Theme.font
                                                 font.pixelSize: 10 * root.s
