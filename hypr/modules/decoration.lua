@@ -23,8 +23,8 @@ decoration {
     }
 
     blur {
-        enabled = true
-        size = 3
+        enabled = false
+        size = 4
         passes = 2
         ignore_opacity = true
         new_optimizations = true
