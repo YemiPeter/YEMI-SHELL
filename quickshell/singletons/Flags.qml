@@ -51,6 +51,7 @@ Singleton {
     property alias recordDesktop: adapter.recordDesktop
     property alias recordClearedBefore: adapter.recordClearedBefore
     property alias altSwitcherEnabled: adapter.altSwitcherEnabled
+    property alias altSwitcherAdvanceOnTap: adapter.altSwitcherAdvanceOnTap
     property alias barLeftVisible: adapter.barLeftVisible
     property alias barRightVisible: adapter.barRightVisible
     property alias barAppIcons: adapter.barAppIcons
@@ -141,6 +142,10 @@ Singleton {
             property string weatherCity: ""
             property real recordClearedBefore: 0
             property bool altSwitcherEnabled: true
+            // Advance-on-tap: each Alt+Tab tap moves the highlight AND focuses
+            // that window immediately (iNiR's next() does this unconditionally;
+            // here it is a user toggle, default off).
+            property bool altSwitcherAdvanceOnTap: false
             // Side-pill visibility (bar left = workspaces, right = network /
             // volume / battery). The pill remains the always-available surface;
             // these let users collapse the bar to a single-pill layout.

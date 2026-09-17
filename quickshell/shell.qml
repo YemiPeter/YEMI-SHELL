@@ -93,6 +93,13 @@ ShellRoot {
         function previous(): void {
             if (altSwitcherLoader.item) altSwitcherLoader.item.previous()
         }
+
+        // Alt-release hook (Hyprland bindr ALT ALT_L). Gated on
+        // altSwitcherAdvanceOnTap inside the switcher, so the classic
+        // Esc / click-away dismissal is untouched when the feature is off.
+        function releaseCommit(): void {
+            if (altSwitcherLoader.item) altSwitcherLoader.item.commitAndClose()
+        }
     }
 
     // === Settings IPC Handler ===
