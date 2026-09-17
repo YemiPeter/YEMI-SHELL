@@ -119,6 +119,9 @@ bind = $mod SHIFT, Tab, cyclenext, prev                          # Cycle windows
 # Alt+Tab — YemiShell Overview (altSwitcher). See modules/altswitcher/AltSwitcher.qml
 bind = ALT, Tab, exec, qs ipc call altSwitcher next              # Open / cycle YemiShell Overview (Alt+Tab)
 bind = ALT SHIFT, Tab, exec, qs ipc call altSwitcher previous    # Prev in YemiShell Overview
+# Releasing Alt commits and closes the Overview — only when the Panels →
+# "Advance on tap" flag is on (gated inside the switcher, no-op otherwise).
+bindr = ALT, ALT_L, exec, qs ipc call altSwitcher releaseCommit
 
 # Mouse binds
 bindm = $mod, mouse:272, movewindow

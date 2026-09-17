@@ -125,16 +125,25 @@ Scope {
             root.openSwitcher()
             return
         }
-        if (root.count > 0)
+        if (root.count > 0) {
             root.currentIndex = (root.currentIndex + 1) % root.count
+            // Advance-on-tap (iNiR behaviour, here toggleable): every tap
+            // commits immediately — focus moves with the highlight.
+            if (QsSingletons.Flags.altSwitcherAdvanceOnTap)
+                root.focusWindow(root.windows[root.currentIndex])
+        }
     }
     function previous(): void {
         if (!root.open) {
             root.openSwitcher()
             return
         }
-        if (root.count > 0)
+        if (root.count > 0) {
             root.currentIndex = (root.currentIndex - 1 + root.count) % root.count
+            // Mirrors next(): each tap commits immediately when enabled.
+            if (QsSingletons.Flags.altSwitcherAdvanceOnTap)
+                root.focusWindow(root.windows[root.currentIndex])
+        }
     }
 
     // ── Keyboard grid navigation (arrows + Enter/Esc) ──────────────────────────
@@ -192,14 +201,33 @@ Scope {
                 console.log("[AltSwitcher] focus-window exited", code)
         }
     }
+    // Alt-release commit: when advance-on-tap is enabled, releasing Alt
+    // dismisses the switcher by itself (each tap already focused its window,
+    // so re-focusing the current one on release is an idempotent safety net).
+    // With the feature off this is a no-op — the classic Esc / click-away
+    // dismissal stays untouched.
+    function commitAndClose(): void {
+        if (!root.open || !QsSingletons.Flags.altSwitcherAdvanceOnTap)
+            return
+        if (root.count > 0 && root.currentIndex >= 0 && root.currentIndex < root.count)
+            root.focusWindow(root.windows[root.currentIndex])
+        root.close()
+    }
+
     function focusWindow(w: var): void {
         if (!w)
             return
         // Hyprland focuses by address through the unified dispatch path
         // (same convention as bar AppIcons). Niri uses its IPC action.
         if (root.isHyprland) {
-            if (w.address)
-                compositor.dispatch("focuswindow address:" + String(w.address))
+            // Hyprland expects the full 0x-prefixed address (toplevels may
+            // expose it without the prefix; the bare form is rejected with
+            // "No such window found").
+            let addr = String(w.address ?? "")
+            if (addr.length > 0 && addr.indexOf("0x") !== 0)
+                addr = "0x" + addr
+            if (addr.length > 0)
+                compositor.dispatch("focuswindow address:" + addr)
             return
         }
         focusProc.command = ["niri", "msg", "action", "focus-window", "--id", String(w.id)]
