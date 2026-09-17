@@ -385,6 +385,13 @@ ShellRoot {
         id: altSwitcherLoader
         active: Compositor.isNiri || Compositor.isHyprland
         source: "modules/altswitcher/AltSwitcher.qml"
+        // TEMP-DEBUG (removed after verify)
+        onActiveChanged: console.log("[DBG-LOADER] active=", active)
+        onItemChanged: console.log("[DBG-LOADER] item=", item === null ? "null" : "ok")
+        Component.onCompleted: console.log("[DBG-LOADER] completed active=", active,
+            "xdg=", Quickshell.env("XDG_CURRENT_DESKTOP"),
+            "session=", Quickshell.env("DESKTOP_SESSION"),
+            "detected=", Compositor.runningCompositor, "isHypr=", Compositor.isHyprland)
     }
 
     // === Path Properties ===

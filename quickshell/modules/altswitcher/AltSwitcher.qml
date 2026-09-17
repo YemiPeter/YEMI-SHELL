@@ -8,6 +8,7 @@ import Quickshell.Widgets
 import "../../services" as QsServices
 import "../../singletons" as QsSingletons
 import "../../compositor" as QsCompositor
+import "../pill/lib/setDeco.js" as SetDeco
 
 /**
  * AltSwitcher — the Alt+Tab window overview.
@@ -54,6 +55,53 @@ Scope {
     property bool open: false
     property int currentIndex: 0
     readonly property real s: QsSingletons.Flags.uiScale
+
+    // ── General-blur connection (Hyprland) ─────────────────────────────────────
+    // The Look surface's blur toggle (decoration.lua blur.enabled) gates ALL
+    // compositor blur, including this layer's layerrule frost. When it is off
+    // the card goes solid so text stays readable; when on, the opacity setting
+    // controls how much frosted desktop shows through. Niri has no Look surface
+    // — the opacity setting applies directly and frost comes from
+    // BackgroundEffect (already card-scoped).
+    //
+    // Read reactively rather than snapshotted on open: with watchChanges opted
+    // in, Look's write (followed by its Hyprland reload) lands here on its own.
+    // NOTE watchChanges defaults to false, so it must be set explicitly — and an
+    // imperative reload()-then-text() read is NOT a substitute, because reload is
+    // asynchronous and text() still holds the previous contents when read.
+    readonly property string decoPath: Quickshell.env("RICE_HOME") + "/hypr/modules/decoration.lua"
+    FileView {
+        id: decoFile
+        path: root.decoPath
+        blockLoading: true
+        watchChanges: true
+        printErrors: false
+    }
+    readonly property bool generalBlurOn: SetDeco.getBlockField(decoFile.text(), "blur", "enabled") !== "false"
+    // Belt and braces on top of the watch: reread when the overlay opens. The
+    // binding above picks up the fresh contents whenever the async read lands, so
+    // this costs nothing and covers a watch that misses an edit.
+    onOpenChanged: if (root.open) decoFile.reload()
+    readonly property real cardOpacity: !isHyprland || generalBlurOn
+        ? QsSingletons.Flags.altSwitcherBackgroundOpacity : 1.0
+    // TEMP-DEBUG (removed after verify): proves whether the binding flips live.
+    onCardOpacityChanged: console.log("[DBG-CARDOPACITY]", root.cardOpacity, "generalBlurOn=", root.generalBlurOn)
+    Component.onCompleted: console.log("[DBG-CARDOPACITY-INIT]", root.cardOpacity, "path=", root.decoPath, "textLen=", decoFile.text().length)
+    onOpenChanged: console.log("[DBG-OPEN]", root.open)
+    Timer {
+        interval: 1000
+        running: true
+        repeat: true
+        onTriggered: console.log("[DBG-TEXT] len=", decoFile.text().length,
+            "field=", SetDeco.getBlockField(decoFile.text(), "blur", "enabled"),
+            "cardOpacity=", root.cardOpacity, "open=", root.open)
+    }
+
+    // ── Alignment (list layout only) ───────────────────────────────────────────
+    readonly property bool alignRight: root.layoutList
+        && QsSingletons.Flags.altSwitcherPanelAlignment === "right"
+    // Gap kept between the right-aligned card and the screen edge.
+    readonly property real alignMargin: 24 * root.s
 
     // ── Layout preset ─────────────────────────────────────────────────────────
     // Which visual design the overlay uses. All three live in this one file as
@@ -443,10 +491,14 @@ Scope {
             onClicked: root.close()
         }
 
-        // Centered frosted-glass card. Zen fade: pure opacity, no transforms.
+        // Frosted-glass card. Zen fade: pure opacity, no transforms. Centered
+        // normally; in the list layout the alignment setting can pin it to the
+        // right edge instead so it never covers the centred window it describes.
         Item {
             id: cardHolder
-            anchors.centerIn: parent
+            anchors.verticalCenter: parent.verticalCenter
+            x: root.alignRight ? parent.width - width - root.alignMargin
+                               : Math.round((parent.width - width) / 2)
             width: root.cardW
             height: root.cardH
             opacity: root.open ? 1 : 0
@@ -475,7 +527,7 @@ Scope {
                     id: card
                         anchors.fill: parent
                         radius: 20
-                        color: Qt.alpha(root.cSurface, 0.72)
+                        color: Qt.alpha(root.cSurface, root.cardOpacity)
                         border.color: root.cBorder
                         border.width: 1
                         clip: true
