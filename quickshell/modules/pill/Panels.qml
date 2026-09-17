@@ -16,7 +16,8 @@ SettingsSurface {
     implicitHeight: content.implicitHeight
 
     rows: [
-        { item: altTabRow, kind: "toggle", get: function () { return Flags.altSwitcherEnabled; }, set: function (v) { Flags.altSwitcherEnabled = v; } }
+        { item: altTabRow, kind: "toggle", get: function () { return Flags.altSwitcherEnabled; }, set: function (v) { Flags.altSwitcherEnabled = v; } },
+        { item: advanceOnTapRow, kind: "toggle", get: function () { return Flags.altSwitcherAdvanceOnTap; }, set: function (v) { Flags.altSwitcherAdvanceOnTap = v; } }
     ]
 
     Column {
@@ -39,12 +40,27 @@ SettingsSurface {
             surface: root
             name: "Overview (Alt+Tab)"
             icon: "app-window"
-            last: true
+            last: false
 
             LinkToggle {
                 s: root.s
                 on: Flags.altSwitcherEnabled
                 onToggled: Flags.altSwitcherEnabled = !Flags.altSwitcherEnabled
+            }
+        }
+
+        SettingsRow {
+            id: advanceOnTapRow
+            surface: root
+            name: "Advance on tap"
+            sub: "Alt+Tab switches windows immediately"
+            icon: "arrows-right-left"
+            last: true
+
+            LinkToggle {
+                s: root.s
+                on: Flags.altSwitcherAdvanceOnTap
+                onToggled: Flags.altSwitcherAdvanceOnTap = !Flags.altSwitcherAdvanceOnTap
             }
         }
     }
