@@ -140,7 +140,7 @@ Scope {
         advanceHideTimer.stop()
         root.open = false
     }
-    function next(): void {
+                    function next(): void {
         if (!root.open) {
             root.openSwitcher()
             // Advance-on-tap: the FIRST tap already switches (classic Alt+Tab
@@ -151,12 +151,13 @@ Scope {
                 advanceHideTimer.restart()
             }
             return
-        }
+                }
         if (root.count > 0) {
             root.currentIndex = (root.currentIndex + 1) % root.count
             // Advance-on-tap (iNiR behaviour, here toggleable): every tap
             // commits immediately — focus moves with the highlight.
             if (QsSingletons.Flags.altSwitcherAdvanceOnTap) {
+                console.log("[AltSwitcher-debug] ELSE next() count=", root.count, "currentIndex=", root.currentIndex, "w.count=", root.windows.length, "addr=", root.windows[root.currentIndex]?.address)
                 root.focusWindow(root.windows[root.currentIndex])
                 // iNiR's auto-hide: closes shortly after the last tap, which
                 // is what makes releasing Alt feel like it closes itself.
@@ -264,7 +265,7 @@ Scope {
             // Hyprland expects the full 0x-prefixed address (toplevels may
             // expose it without the prefix; the bare form is rejected with
             // "No such window found").
-            let addr = String(w.address ?? "")
+                                     let addr = String(w.address ?? "")
             if (addr.length > 0 && addr.indexOf("0x") !== 0)
                 addr = "0x" + addr
             if (addr.length > 0)
