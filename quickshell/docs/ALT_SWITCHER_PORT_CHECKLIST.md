@@ -79,7 +79,7 @@ file. Proposed names mirror iNiR's config keys so the mapping stays obvious:
 
 ## Phase 1 — Behaviour (user's priority requests)
 
-### ☐ 1.1 — Advance-on-tap: keybind tap focuses the next window
+### ✅ 1.1 — Advance-on-tap: keybind tap focuses the next window
 
 | Field | Detail |
 |---|---|
@@ -106,11 +106,25 @@ file. Proposed names mirror iNiR's config keys so the mapping stays obvious:
 | **Files** | `modules/altswitcher/AltSwitcher.qml`, `singletons/Flags.qml`, `modules/pill/Panels.qml` (toggle row + interlock) |
 | **Acceptance** | No-Visual-UI on → Alt+Tab switches windows with **no overlay ever appearing**. Repeated taps cycle forward/back. Pause > 800 ms then tap → starts from the most-recent window. Advance-on-tap row shows ON and cannot be turned off while this is on. Turning No-Visual-UI off restores the overlay + normal toggle control. |
 | **Status** | ⬜ not started |
+
+### ✅ 1.3 — Card-only overlay (no screen takeover)
+
+| Field | Detail |
+|---|---|
+| **Goal** | The switcher is **just the frosted card** — no full-screen dim, no screen takeover. Kill the Hyprland layer wobble. |
+| **New flag** | none — architectural change |
+| **Problem** | The layer was a full-monitor transparent window with a 0.35-alpha scrim filling it. Consequences: (a) toggling Alt visually covered the whole screen like an "overview mode"; (b) `ignore_alpha 0` blur therefore applied to **every** pixel (scrim alpha > 0), frosting the whole desktop; (c) Hyprland's `animation = layersIn, …, bounce, slide` animated that full-screen surface, so opening wobbled the entire monitor down and back. |
+| **Change** | (1) Deleted the full-screen `scrim` `Rectangle` from `AltSwitcher.qml` — the layer is now transparent everywhere but the card. (2) `hyprland.conf`: blur / `ignore_alpha` rules scoped so only the card's pixels frost (the card is the only opaque region). (3) `layerrule = animation …, fade` replacing the global bounce+slide for this namespace — opens as a soft fade, no wobble. |
+| **Note** | Removing the scrim alone killed the desktop-wide blur automatically, since no other pixel has alpha > 0. |
+| **Files** | `modules/altswitcher/AltSwitcher.qml`, `hypr/hyprland.conf` |
+| **Commit** | `ce23687 altswitcher: card-only overlay, no screen takeover` |
+| **Status** | ✅ **DONE** — verified live: only the card frosts, open is a fade (no bounce), close unmaps the layer. |
+
 ---
 
 ## Phase 2 — Visuals
 
-### ☐ 2.1 — Scrim dim (%)
+### ❌ 2.1 — Scrim dim (%) — *cancelled by 1.3 (no scrim exists)*
 
 | Field | Detail |
 |---|---|
