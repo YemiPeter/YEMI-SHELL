@@ -24,7 +24,7 @@ decoration {
 
     blur {
         enabled = true
-        size = 3
+        size = 4
         passes = 2
         ignore_opacity = true
         new_optimizations = true

@@ -140,7 +140,7 @@ Scope {
         advanceHideTimer.stop()
         root.open = false
     }
-    function next(): void {
+                    function next(): void {
         if (!root.open) {
             root.openSwitcher()
             // Advance-on-tap: the FIRST tap already switches (classic Alt+Tab
@@ -151,12 +151,13 @@ Scope {
                 advanceHideTimer.restart()
             }
             return
-        }
+                }
         if (root.count > 0) {
             root.currentIndex = (root.currentIndex + 1) % root.count
             // Advance-on-tap (iNiR behaviour, here toggleable): every tap
             // commits immediately — focus moves with the highlight.
             if (QsSingletons.Flags.altSwitcherAdvanceOnTap) {
+                console.log("[AltSwitcher-debug] ELSE next() count=", root.count, "currentIndex=", root.currentIndex, "w.count=", root.windows.length, "addr=", root.windows[root.currentIndex]?.address)
                 root.focusWindow(root.windows[root.currentIndex])
                 // iNiR's auto-hide: closes shortly after the last tap, which
                 // is what makes releasing Alt feel like it closes itself.
@@ -264,7 +265,7 @@ Scope {
             // Hyprland expects the full 0x-prefixed address (toplevels may
             // expose it without the prefix; the bare form is rejected with
             // "No such window found").
-            let addr = String(w.address ?? "")
+                                     let addr = String(w.address ?? "")
             if (addr.length > 0 && addr.indexOf("0x") !== 0)
                 addr = "0x" + addr
             if (addr.length > 0)
@@ -279,7 +280,7 @@ Scope {
     PanelWindow {
         id: panel
         // Stays mapped until the fade drains so the close animation is visible.
-        visible: root.open || scrim.opacity > 0.001 || cardHolder.opacity > 0.001
+        visible: root.open || cardHolder.opacity > 0.001
         color: "transparent"
         exclusionMode: ExclusionMode.Ignore
         WlrLayershell.namespace: "quickshell:altSwitcher"
@@ -303,24 +304,13 @@ Scope {
             radius: 20 * root.s
         }
 
-        // Dim everything behind the glass. Zen fade: crossfades in over 300ms,
-        // out over 140ms (faster close so rapid Alt+Tab never feels laggy).
-        // Durations are local on purpose — no shared Motion changes.
-        Rectangle {
-            id: scrim
+        // Click-away to close. Invisible — there is deliberately NO full-screen
+        // backdrop: the card is the only visible content, so the compositor's
+        // blur (hyprland.conf layerrules on this namespace) frosts just the
+        // card's pixels instead of the whole desktop.
+        MouseArea {
             anchors.fill: parent
-            color: Qt.rgba(0, 0, 0, root.scrimDim)
-            opacity: root.open ? 1 : 0
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: root.open ? 300 : 140
-                    easing.type: Easing.OutCubic
-                }
-            }
-            MouseArea {
-                anchors.fill: parent
-                onClicked: root.close()
-            }
+            onClicked: root.close()
         }
 
         // Centered frosted-glass card. Zen fade: pure opacity, no transforms.
