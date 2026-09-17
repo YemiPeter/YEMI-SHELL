@@ -79,7 +79,7 @@ file. Proposed names mirror iNiR's config keys so the mapping stays obvious:
 
 ## Phase 1 — Behaviour (user's priority requests)
 
-### ☐ 1.1 — Advance-on-tap: keybind tap focuses the next window
+### ✅ 1.1 — Advance-on-tap: keybind tap focuses the next window
 
 | Field | Detail |
 |---|---|
@@ -93,7 +93,7 @@ file. Proposed names mirror iNiR's config keys so the mapping stays obvious:
 | **Acceptance** | Tap Alt+Tab → highlight moves **and** window actually switches. Click / Enter still work. Toggle off → back to highlight-only, no switching on tap. |
 | **Status** | ✅ **DONE** — flag `altSwitcherAdvanceOnTap` (default off) + `next()`/`previous()` focus-on-advance; toggle row "Advance on tap" added to Panels; **also fixed a latent Hyprland focus bug**: bare (non-`0x`) addresses are now prefixed before `focuswindow` dispatch — verified live, cycle produced zero `No such window found` errors. **Alt-release close added**: `bindr = ALT, ALT_L` (hypr binds.lua) → new `altSwitcher releaseCommit` IPC → `commitAndClose()`, gated on the flag (no-op when off, so Esc/click-away stays the dismissal). Hold-Alt-tap-Tab-then-release now feels like classic Alt+Tab. **Fallback auto-hide (600 ms `advanceHideTimer`, restarted on every tap)** added later the same session — mirrors iNiR's `autoHideTimer`-restarted-on-`next()` pattern, closes the overlay after you stop tapping on **both** niri and Hyprland; no-op when the flag is OFF. Verified live on a restarted instance (timer fired, layer surface unmapped). **First-tap fix**: with advance-on-tap the first tap now ALSO switches (open → advance past resting index → focus → arm hide); `previous()`'s first tap walks backward to `count - 1`. Verified live: focus changes on first tap, double-tap switches twice, overlay auto-unmaps. ⚠️ Ops note: a quickshell instance started outside the editor wasn't watching files (stale code, "release close didn't work" was this); after any restart, verify hot-reload with a `touch` + log check, or `qs kill && qs -d`. |
 
-### ☐ 1.2 — No Visual UI (cycle windows only)
+### ✅ 1.2 — No Visual UI (cycle windows only)
 
 | Field | Detail |
 |---|---|
@@ -105,12 +105,26 @@ file. Proposed names mirror iNiR's config keys so the mapping stays obvious:
 | **Interlock** | While No-Visual-UI is ON → **Advance-on-tap forced ON** and its row rendered locked/on (same idiom as iNiR's `noVisualUi enabled: preset !== "skew"`). |
 | **Files** | `modules/altswitcher/AltSwitcher.qml`, `singletons/Flags.qml`, `modules/pill/Panels.qml` (toggle row + interlock) |
 | **Acceptance** | No-Visual-UI on → Alt+Tab switches windows with **no overlay ever appearing**. Repeated taps cycle forward/back. Pause > 800 ms then tap → starts from the most-recent window. Advance-on-tap row shows ON and cannot be turned off while this is on. Turning No-Visual-UI off restores the overlay + normal toggle control. |
-| **Status** | ⬜ not started |
+| **Status** | ✅ **DONE** — verified live via scripted IPC test: with the flag on, 3 taps cycled `…2a830 → …47770 → …1ded00 → …2a830` with `overlay layers = 0` throughout (never drew), and after a 1.2 s pause the next tap restarted the walk at the top of the list (800 ms reset confirmed). Interlock verified: row shows forced-on and ignores toggling while cycle-only is active. |
+
+### ✅ 1.3 — Card-only overlay (no screen takeover)
+
+| Field | Detail |
+|---|---|
+| **Goal** | The switcher is **just the frosted card** — no full-screen dim, no screen takeover. Kill the Hyprland layer wobble. |
+| **New flag** | none — architectural change |
+| **Problem** | The layer was a full-monitor transparent window with a 0.35-alpha scrim filling it. Consequences: (a) toggling Alt visually covered the whole screen like an "overview mode"; (b) `ignore_alpha 0` blur therefore applied to **every** pixel (scrim alpha > 0), frosting the whole desktop; (c) Hyprland's `animation = layersIn, …, bounce, slide` animated that full-screen surface, so opening wobbled the entire monitor down and back. |
+| **Change** | (1) Deleted the full-screen `scrim` `Rectangle` from `AltSwitcher.qml` — the layer is now transparent everywhere but the card. (2) `hyprland.conf`: blur / `ignore_alpha` rules scoped so only the card's pixels frost (the card is the only opaque region). (3) `layerrule = animation …, fade` replacing the global bounce+slide for this namespace — opens as a soft fade, no wobble. |
+| **Note** | Removing the scrim alone killed the desktop-wide blur automatically, since no other pixel has alpha > 0. |
+| **Files** | `modules/altswitcher/AltSwitcher.qml`, `hypr/hyprland.conf` |
+| **Commit** | `ce23687 altswitcher: card-only overlay, no screen takeover` |
+| **Status** | ✅ **DONE** — verified live: only the card frosts, open is a fade (no bounce), close unmaps the layer. |
+
 ---
 
 ## Phase 2 — Visuals
 
-### ☐ 2.1 — Scrim dim (%)
+### ❌ 2.1 — Scrim dim (%) — *cancelled by 1.3 (no scrim exists)*
 
 | Field | Detail |
 |---|---|
@@ -217,25 +231,27 @@ file. Proposed names mirror iNiR's config keys so the mapping stays obvious:
 > Each of these is a whole alternate rendering inside the same single file.
 > Treat each as its own mini-project; skip freely.
 
-### ☐ 5.1 — Preset picker (Default / List / Skew)
+### ✅ 5.1 — Preset picker (Grid / List) — *skew deferred*
 
 | Field | Detail |
 |---|---|
-| **New flag** | `altSwitcherPreset` (string `"default"` \| `"list"` \| `"skew"`, default `"default"`) |
+| **Flag** | `altSwitcherLayout` (string `"grid"` \| `"list"` \| `"compact"`, default `"grid"`) |
 | **iNiR behaviour** | `listStyle`/`skewStyle` L51–52; UI Sel in InterfaceConfig.qml (render order L158–337). |
-| **Cost** | **List** = a second full layout (~420 px, iNiR L1181). **Skew** = the expensive one: `WindowPreviewService.captureForTaskView()` screenshot pipeline + ~150 lines of 12-slice 3D geometry (`baseSkewSliceWidth`/`baseSkewExpandedWidth`/`skewScale`, L55–78). |
-| **Interlock** | In iNiR, `noVisualUi` is silently forced off when preset = `skew` (`effectiveNoVisualUi = noVisualUi && preset !== "skew"`). |
-| **Recommendation** | Default + List first; skew only if you actually want it. |
-| **Status** | ⬜ not started |
+| **What we built** | Our own naming (`layout` not `preset`) with **Grid** = the existing tile grid, **List** = one row per window (icon + app name + title, `id: listLayout`). Both are `visible:`-gated branches inside the same file, iNiR-style. |
+| **Skew** | **Deferred/skipped** — it needs `WindowPreviewService.captureForTaskView()` (a screenshot pipeline) + ~150 lines of 12-slice 3D geometry (`baseSkewSliceWidth`/`baseSkewExpandedWidth`/`skewScale`, iNiR L55–78). This is the single biggest bloat item; revisit only on explicit request. |
+| **UI** | Settings → Panels → **Layout** (segmented: Grid / List / Compact) |
+| **Files** | `AltSwitcher.qml` (`layoutGrid`/`layoutList`/`layoutCompact`, `iconForApp()`), `Panels.qml` (seg row), `Flags.qml`, `GlyphIcon.qml` (`layout-grid`) |
+| **Status** | ✅ **DONE** (grid + list; skew not ported) |
 
-### ☐ 5.2 — Compact horizontal style (icons only)
+### ✅ 5.2 — Compact horizontal style (icons only)
 
 | Field | Detail |
 |---|---|
-| **New flag** | `altSwitcherCompactStyle` (bool, default `false`) |
+| **Flag** | `altSwitcherLayout: "compact"` (folded into the same picker rather than a separate bool) |
 | **iNiR behaviour** | L50 `compactStyle`; row `id: compactRow` L1067, visible L1068; further gates L486–531, L559. |
-| **Cost** | A third rendering (~115 lines + layout gates). |
-| **Status** | ⬜ not started |
+| **What we built** | `id: compactStrip` — a horizontal run of app-icon chips, width derived from window count (`compactStripW`), card width clamped to the panel. |
+| **Note** | Implemented as a third value of the layout picker, not a boolean — matches iNiR's effect while keeping one control. |
+| **Status** | ✅ **DONE** |
 
 ### ☐ 5.3 — Right / Center alignment
 
@@ -275,25 +291,35 @@ file. Proposed names mirror iNiR's config keys so the mapping stays obvious:
 
 ---
 
+## Status score
+
+**Done: 5** — 1.1 ✅, 1.2 ✅, 1.3 ✅, 5.1 ✅ (grid + list), 5.2 ✅
+**Cancelled: 1** — 2.1 (scrim removed by 1.3)
+**Remaining: 7** — 2.2, 2.3, 2.4, 3.1, 3.2, 4.1, 5.3, 5.4, 5.5, 5.6 (skew deferred)
+
+---
+
 ## Recommended order
 
-1. **1.1** advance-on-tap + toggle ← *the headline request*
-2. **3.1** auto-hide delay (makes 1.1 feel complete)
-3. **1.2** No Visual UI (auto-forces 1.1)
-4. **2.1** scrim dim → **2.2** background opacity → **2.3** blur amount
-5. **2.4** animation toggle + duration
-6. **3.2** isHighLoad safety valve
-7. **4.1** MRU (needs the compositor work)
-8. **5.x** presets / compact / alignment / M3 / tint / overview
+1. ~~**1.1** advance-on-tap + toggle~~ ✅
+2. ~~**1.2** No Visual UI (auto-forces 1.1)~~ ✅
+3. ~~**1.3** card-only overlay (no screen takeover)~~ ✅
+4. **3.1** auto-hide delay — user-settable version of the 600 ms fallback
+5. **2.2** background opacity → **2.3** blur amount
+6. **2.4** animation toggle + duration
+7. **3.2** isHighLoad safety valve
+8. **4.1** MRU (needs the compositor work)
+9. **5.3** alignment → **5.4** M3 card → **5.5** tint icons → **5.6** niri overview
+10. ~~**5.1/5.2** layouts~~ ✅ (skew deferred)
 
 ---
 
 ## Open decisions (need user input)
 
-1. **1.1 default** — ship advance-on-tap **off** (opt-in) or **on**? Assumed **off** for now.
-2. **1.1 + 3.1 together?** — advance-on-tap without auto-hide leaves the overlay open after each switch. One deliverable or two?
+1. ~~**1.1 default**~~ **RESOLVED** — shipped **off** (opt-in); user toggles it in Panels.
+2. ~~**1.1 + 3.1 together?**~~ **RESOLVED** — 1.1 shipped with a 600 ms fallback auto-hide; user-settable delay is 3.1, still pending.
 3. **2.3 on Hyprland** — `layerrule` blur can't take per-invocation strength. Accept fixed layerrule blur on Hyprland (slider affects niri only), or make it a simple on/off?
 4. **2.4 animation** — adopt iNiR's slide-translate, or keep our zen fade with a user-settable duration?
-5. **5.1 skew** — port it (brings the screenshot pipeline), or skip for Default + List only?
+5. ~~**5.1 skew**~~ **RESOLVED for now** — **skipped** (screenshot pipeline + 3D geometry bloat). Grid + List + Compact shipped instead; revisit only on explicit request.
 6. **enableBlurGlass** — config-only in iNiR; expose as a UI toggle here or leave it internal?
 
