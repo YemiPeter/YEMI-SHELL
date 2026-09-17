@@ -211,6 +211,13 @@ ShellRoot {
           QsSingletons.PillState.toggleSurface(target, "sysmon");
       }
 
+      /// Opens the Panels sub-surface (window-switcher + overlay toggles).
+      function panels(mon: string): void {
+        var target = mon || (compositor.focusedMonitor?.name || "");
+        if (target.length > 0)
+          QsSingletons.PillState.toggleSurface(target, "panels");
+      }
+
       /// Opens the recorder surface (source chooser + controls).
       function recorder(mon: string): void {
         var target = mon || (compositor.focusedMonitor?.name || "");
