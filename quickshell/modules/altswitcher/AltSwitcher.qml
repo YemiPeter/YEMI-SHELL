@@ -209,7 +209,8 @@ Scope {
     // ── Overlay ─────────────────────────────────────────────────────────────────
     PanelWindow {
         id: panel
-        visible: root.open
+        // Stays mapped until the fade drains so the close animation is visible.
+        visible: root.open || scrim.opacity > 0.001 || cardHolder.opacity > 0.001
         color: "transparent"
         exclusionMode: ExclusionMode.Ignore
         WlrLayershell.namespace: "quickshell:altSwitcher"
@@ -233,23 +234,39 @@ Scope {
             radius: 20 * root.s
         }
 
-        // Dim everything behind the glass.
+        // Dim everything behind the glass. Zen fade: crossfades in over 300ms,
+        // out over 140ms (faster close so rapid Alt+Tab never feels laggy).
+        // Durations are local on purpose — no shared Motion changes.
         Rectangle {
+            id: scrim
             anchors.fill: parent
             color: Qt.rgba(0, 0, 0, root.scrimDim)
-            visible: root.open
+            opacity: root.open ? 1 : 0
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: root.open ? 300 : 140
+                    easing.type: Easing.OutCubic
+                }
+            }
             MouseArea {
                 anchors.fill: parent
                 onClicked: root.close()
             }
         }
 
-        // Centered frosted-glass card.
+        // Centered frosted-glass card. Zen fade: pure opacity, no transforms.
         Item {
             id: cardHolder
             anchors.centerIn: parent
             width: Math.min(parent.width * 0.82, 960)
             height: Math.min(parent.height * 0.82, 600)
+            opacity: root.open ? 1 : 0
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: root.open ? 300 : 140
+                    easing.type: Easing.OutCubic
+                }
+            }
             focus: true
             Keys.onPressed: (event) => {
                 if (!root.open)
