@@ -311,7 +311,7 @@ file. Proposed names mirror iNiR's config keys so the mapping stays obvious:
 
 **Done: 5** — 1.1 ✅, 1.2 ✅, 1.3 ✅, 5.1 ✅ (grid + list), 5.2 ✅
 **Cancelled: 1** — 2.1 (scrim removed by 1.3)
-**Remaining: 7** — 2.2, 2.3, 2.4, 3.1, 3.2, 4.1, 5.3, 5.4, 5.5, 5.6 (skew deferred)
+**Remaining: 10** — 2.2, 2.3, 2.4 · 3.1, 3.2 · 4.1 · 5.3, 5.4, 5.5, 5.6 (skew deferred)
 
 ---
 
