@@ -225,6 +225,13 @@ ShellRoot {
           QsSingletons.PillState.toggleSurface(target, "panels");
       }
 
+      /// Opens the Alt+Tab settings card (layout, no-visual-ui, advance-on-tap).
+      function alttab(mon: string): void {
+        var target = mon || (compositor.focusedMonitor?.name || "");
+        if (target.length > 0)
+          QsSingletons.PillState.toggleSurface(target, "alttab");
+      }
+
       /// Opens the recorder surface (source chooser + controls).
       function recorder(mon: string): void {
         var target = mon || (compositor.focusedMonitor?.name || "");

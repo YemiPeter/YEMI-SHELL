@@ -76,9 +76,10 @@ Item {
     readonly property bool idlelockOpen: surface === "idlelock"
     readonly property bool fontpickerOpen: surface === "fontpicker"
     readonly property bool barPillsOpen: surface === "barpills"
+    readonly property bool altTabOpen: surface === "alttab"
     readonly property bool backgroundOpen: surface === "background"
     readonly property bool panelsOpen: surface === "panels"
-    readonly property bool settingsLike: settingsOpen || appearanceOpen || updatesOpen || barPillsOpen || panelsOpen
+    readonly property bool settingsLike: settingsOpen || appearanceOpen || updatesOpen || barPillsOpen || altTabOpen || panelsOpen
 
     /**
      * Loader-gated surfaces stay instantiated through their close fade via
@@ -192,6 +193,7 @@ Item {
     readonly property real idlelockW: 392 * s
     readonly property real fontpickerW: 360 * s
     readonly property real barPillsW: 392 * s
+    readonly property real altTabW: 392 * s
     readonly property real backgroundW: 392 * s
     readonly property real panelsW: 392 * s
     readonly property real toastW: 342 * s
@@ -236,6 +238,7 @@ Item {
         idlelock:   { size: () => Qt.size(idlelockW, (idlelockLoader.item?.implicitHeight ?? 0) + 29 * s), ame: idlelockLoader.item ?? null },
         fontpicker: { size: () => Qt.size(fontpickerW, (fontpickerLoader.item?.implicitHeight ?? 0) + 29 * s), ame: fontpickerLoader.item ?? null },
         barpills:  { size: () => Qt.size(barPillsW, (barPillsLoader.item?.implicitHeight ?? 0) + 29 * s), ame: barPillsLoader.item ?? null },
+        alttab:    { size: () => Qt.size(altTabW, (altTabLoader.item?.implicitHeight ?? 0) + 29 * s), ame: altTabLoader.item ?? null },
         background: { size: () => Qt.size(backgroundW, (backgroundLoader.item?.implicitHeight ?? 0) + 29 * s), ame: backgroundLoader.item ?? null },
         panels:     { size: () => Qt.size(panelsW, (panelsLoader.item?.implicitHeight ?? 0) + 29 * s), ame: panelsLoader.item ?? null }
     })
@@ -403,6 +406,10 @@ Item {
         }
         if (pill.barPillsOpen) {
             pill.requestSurface("appearance");
+            return;
+        }
+        if (pill.altTabOpen) {
+            pill.requestSurface("panels");
             return;
         }
         if (pill.appearanceOpen || pill.updatesOpen || pill.displayOpen || pill.inputOpen || pill.lookOpen || pill.idlelockOpen || pill.panelsOpen) {
@@ -1617,6 +1624,21 @@ Item {
             id: barPills
             s: pill.s
             open: pill.barPillsOpen
+            morphCloseness: pill.morphCloseness
+            onRequestClose: pill.requestClose()
+            onRequestSurface: (name) => pill.requestSurface(name)
+        }
+    }
+
+    Loader {
+        id: altTabLoader
+        active: pill.altTabOpen || pill.closingGraceSurface === "alttab"
+        anchors.fill: parent
+
+        sourceComponent: AltTab {
+            id: altTab
+            s: pill.s
+            open: pill.altTabOpen
             morphCloseness: pill.morphCloseness
             onRequestClose: pill.requestClose()
             onRequestSurface: (name) => pill.requestSurface(name)

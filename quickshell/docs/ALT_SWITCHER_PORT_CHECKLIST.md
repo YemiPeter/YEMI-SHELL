@@ -291,6 +291,22 @@ file. Proposed names mirror iNiR's config keys so the mapping stays obvious:
 
 ---
 
+## Structure work (shell navigation, outside the iNiR port)
+
+**✅ Alt Tab has its own morphing card** — mirroring how `Appearance.qml`'s
+"Bar" row morphs into `BarPills.qml`:
+
+| Piece | Detail |
+|---|---|
+| **Panels index** | `Panels.qml` no longer lists the alt rows flat; it is now an **index card** with a single **"Alt Tab"** nav row (`kind: "nav"`, surface `"alttab"`, chevron-right) — the exact idiom of Appearance's "Bar" row. |
+| **ALT TAB card** | New `modules/pill/AltTab.qml` (`backSurface: "panels"`, header "ALT TAB"), holding the four alt settings: **Overview (Alt+Tab)** toggle, **No visual UI** toggle, **Advance on tap** toggle (with the cycle-only forced-on lock), **Layout** segmented picker (Grid / List / Icons) — each with its own keyboard-nav `rows` registry. |
+| **Pill wiring** | `altTabOpen` flag, `altTabW` width, `alttab:` entry in the `surfaces` registry, Loader with the closing-grace fade, `settingsLike` updated, Escape/back routes ALT TAB → Panels → settings. |
+| **IPC** | `qs ipc call pill alttab <mon>` (sibling of the `panels` verb). |
+| **Flow** | Settings → Panels → [Alt Tab row] → morph → ALT TAB card → tweak → back chevron → Panels → back → Settings. |
+| **Status** | ✅ **DONE** — verified live: fresh config load, `pill alttab` IPC opens the card, the full morph chain (settings → panels → alttab → back → panels → settings) runs clean. |
+
+---
+
 ## Status score
 
 **Done: 5** — 1.1 ✅, 1.2 ✅, 1.3 ✅, 5.1 ✅ (grid + list), 5.2 ✅
