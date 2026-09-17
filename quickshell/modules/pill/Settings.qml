@@ -8,8 +8,9 @@ import "Singletons"
  * SETTINGS index: a short list of categories grouped into Shell and Control.
  * Each row carries its glyph, name and caption, and morphs the pill into that
  * category's sub-surface. Arrow keys move the focused row with the glowing seam
- * and Return opens it. The Shell group holds Appearance and Display; the Control
- * group holds Keybinds and Updates.
+ * and Return opens it. The Shell group holds Appearance, Panels, Display,
+ * Input and Background; the Control group holds Keybinds, Idle / Lock and
+ * Updates.
  */
 SettingsSurface {
     id: root
@@ -19,6 +20,7 @@ SettingsSurface {
     rows: (function () {
         var list = [
             { item: appearanceRow, kind: "nav", surface: "appearance" },
+            { item: panelsRow, kind: "nav", surface: "panels" },
             { item: lookRow, kind: "nav", surface: "look" },
             { item: displayRow, kind: "nav", surface: "display" },
             { item: inputRow, kind: "nav", surface: "input" },
@@ -70,6 +72,23 @@ SettingsSurface {
                 height: 16 * root.s
                 name: "chevron-right"
                 color: root.focusRowItem === appearanceRow ? Theme.cream : Theme.iconDim
+                stroke: 2.2
+            }
+        }
+
+        SettingsRow {
+            id: panelsRow
+            surface: root
+            captionOnFocus: true
+            icon: "app-window"
+            name: "Panels"
+            sub: "Alt+Tab, overlay panels"
+
+            GlyphIcon {
+                width: 16 * root.s
+                height: 16 * root.s
+                name: "chevron-right"
+                color: root.focusRowItem === panelsRow ? Theme.cream : Theme.iconDim
                 stroke: 2.2
             }
         }

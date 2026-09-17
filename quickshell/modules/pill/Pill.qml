@@ -24,6 +24,7 @@ import qs.compositor
  */
 Item {
     id: pill
+    clip: true
 
 
     property real s: 1
@@ -76,7 +77,8 @@ Item {
     readonly property bool fontpickerOpen: surface === "fontpicker"
     readonly property bool barPillsOpen: surface === "barpills"
     readonly property bool backgroundOpen: surface === "background"
-    readonly property bool settingsLike: settingsOpen || appearanceOpen || updatesOpen || barPillsOpen
+    readonly property bool panelsOpen: surface === "panels"
+    readonly property bool settingsLike: settingsOpen || appearanceOpen || updatesOpen || barPillsOpen || panelsOpen
 
     /**
      * Loader-gated surfaces stay instantiated through their close fade via
@@ -401,7 +403,7 @@ Item {
             pill.requestSurface("appearance");
             return;
         }
-        if (pill.appearanceOpen || pill.updatesOpen || pill.displayOpen || pill.inputOpen || pill.lookOpen || pill.idlelockOpen) {
+        if (pill.appearanceOpen || pill.updatesOpen || pill.displayOpen || pill.inputOpen || pill.lookOpen || pill.idlelockOpen || pill.panelsOpen) {
             pill.requestSurface("settings");
             return;
         }
@@ -592,8 +594,16 @@ Item {
         tintScale: pill.pillAlpha
     }
 
-    Rectangle {
+        Rectangle {
         id: bud
+        // Re-parented to pillMover so it lives outside the pill's clip region.
+        // The bud intentionally protrudes budR beyond the pill's right edge, so
+        // clipping it would cut the circle in half. Absolute positioning in
+        // pillMover's coordinate space keeps it visually aligned with the pill
+        // while the clip on the pill root catches the morph overflow from
+        // rest-row / hover-row content.
+        parent: pill.parent
+        z: pill.z + 1
         // Gate on mediaPlaying (music actually playing), NOT on any registered
         // MPRIS endpoint — a browser alone would keep the bud on the pill.
         // See Pill.mediaPlaying above.
@@ -602,8 +612,8 @@ Item {
         width: budR * 2
         height: budR * 2
         radius: budR
-        x: pill.width - budR
-        anchors.verticalCenter: parent.verticalCenter
+        x: pill.x + pill.width - budR
+        y: pill.y + (pill.height - height) / 2
         visible: opacity > 0.01
         opacity: shown ? 1 : 0
         border.width: 1
@@ -1606,6 +1616,22 @@ Item {
             s: pill.s
             open: pill.barPillsOpen
             morphCloseness: pill.morphCloseness
+            onRequestClose: pill.requestClose()
+            onRequestSurface: (name) => pill.requestSurface(name)
+        }
+    }
+
+    Loader {
+        id: panelsLoader
+        active: pill.panelsOpen || pill.closingGraceSurface === "panels"
+        anchors.fill: parent
+
+        sourceComponent: Panels {
+            id: panels
+            s: pill.s
+            open: pill.panelsOpen
+            morphCloseness: pill.morphCloseness
+            maxSurfaceH: settings?.implicitHeight ?? 0
             onRequestClose: pill.requestClose()
             onRequestSurface: (name) => pill.requestSurface(name)
         }

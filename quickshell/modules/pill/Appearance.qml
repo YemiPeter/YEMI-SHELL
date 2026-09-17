@@ -64,7 +64,6 @@ SettingsSurface {
         { item: moodRow, kind: "seg", vals: ["dark", "light"], get: function () { return Flags.systemMood; }, set: function (v) { Flags.systemMood = v; root.applyMode(); } },
         { item: scaleRow, kind: "seg", vals: [0.9, 1.0, 1.1, 1.25], get: function () { return Flags.uiScale; }, set: function (v) { Flags.uiScale = v; } },
         { item: motionRow, kind: "toggle", get: function () { return Flags.reduceMotion; }, set: function (v) { Flags.reduceMotion = v; } },
-        { item: overviewRow, kind: "toggle", get: function () { return Flags.altSwitcherEnabled; }, set: function (v) { Flags.altSwitcherEnabled = v; } },
         { item: pillsRow, kind: "nav", surface: "barpills" },
         { item: fontRow, kind: "nav", surface: "fontpicker" }
     ]
@@ -180,19 +179,6 @@ SettingsSurface {
                 s: root.s
                 on: Flags.reduceMotion
                 onToggled: Flags.reduceMotion = !Flags.reduceMotion
-            }
-        }
-
-        SettingsRow {
-            id: overviewRow
-            surface: root
-            name: "Overview (Alt+Tab)"
-            icon: "app-window"
-
-            LinkToggle {
-                s: root.s
-                on: Flags.altSwitcherEnabled
-                onToggled: Flags.altSwitcherEnabled = !Flags.altSwitcherEnabled
             }
         }
 
