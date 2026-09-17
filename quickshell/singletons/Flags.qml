@@ -52,6 +52,8 @@ Singleton {
     property alias recordClearedBefore: adapter.recordClearedBefore
     property alias altSwitcherEnabled: adapter.altSwitcherEnabled
     property alias altSwitcherAdvanceOnTap: adapter.altSwitcherAdvanceOnTap
+    property alias altSwitcherLayout: adapter.altSwitcherLayout
+    property alias altSwitcherNoVisualUi: adapter.altSwitcherNoVisualUi
     property alias barLeftVisible: adapter.barLeftVisible
     property alias barRightVisible: adapter.barRightVisible
     property alias barAppIcons: adapter.barAppIcons
@@ -146,6 +148,13 @@ Singleton {
             // that window immediately (iNiR's next() does this unconditionally;
             // here it is a user toggle, default off).
             property bool altSwitcherAdvanceOnTap: false
+            // Layout preset for the switcher overlay: "grid" (default tile
+            // grid), "list" (vertical rows) or "compact" (icon-only strip).
+            property string altSwitcherLayout: "grid"
+            // Cycle-only mode (iNiR's "No visual UI"): Alt+Tab never draws the
+            // overlay — each tap focuses the next window directly. Implies
+            // advance-on-tap, since there is no UI left to confirm with.
+            property bool altSwitcherNoVisualUi: false
             // Side-pill visibility (bar left = workspaces, right = network /
             // volume / battery). The pill remains the always-available surface;
             // these let users collapse the bar to a single-pill layout.

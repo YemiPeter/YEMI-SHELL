@@ -17,7 +17,11 @@ SettingsSurface {
 
     rows: [
         { item: altTabRow, kind: "toggle", get: function () { return Flags.altSwitcherEnabled; }, set: function (v) { Flags.altSwitcherEnabled = v; } },
-        { item: advanceOnTapRow, kind: "toggle", get: function () { return Flags.altSwitcherAdvanceOnTap; }, set: function (v) { Flags.altSwitcherAdvanceOnTap = v; } }
+        { item: noVisualUiRow, kind: "toggle", get: function () { return Flags.altSwitcherNoVisualUi; }, set: function (v) { Flags.altSwitcherNoVisualUi = v; } },
+        { item: advanceOnTapRow, kind: "toggle", get: function () { return Flags.altSwitcherAdvanceOnTap || Flags.altSwitcherNoVisualUi; }, set: function (v) { if (!Flags.altSwitcherNoVisualUi) Flags.altSwitcherAdvanceOnTap = v; } },
+        { item: layoutRow, kind: "seg", vals: ["grid", "list", "compact"],
+          get: function () { return Flags.altSwitcherLayout; },
+          set: function (v) { Flags.altSwitcherLayout = v; } }
     ]
 
     Column {
@@ -50,17 +54,57 @@ SettingsSurface {
         }
 
         SettingsRow {
-            id: advanceOnTapRow
+            id: noVisualUiRow
             surface: root
-            name: "Advance on tap"
-            sub: "Alt+Tab switches windows immediately"
-            icon: "arrows-right-left"
-            last: true
+            name: "No visual UI"
+            sub: "Cycle windows without showing the switcher"
+            icon: "visibility-off"
+            last: false
 
             LinkToggle {
                 s: root.s
-                on: Flags.altSwitcherAdvanceOnTap
-                onToggled: Flags.altSwitcherAdvanceOnTap = !Flags.altSwitcherAdvanceOnTap
+                on: Flags.altSwitcherNoVisualUi
+                onToggled: Flags.altSwitcherNoVisualUi = !Flags.altSwitcherNoVisualUi
+            }
+        }
+
+        SettingsRow {
+            id: advanceOnTapRow
+            surface: root
+            name: "Advance on tap"
+            sub: Flags.altSwitcherNoVisualUi ? "Forced on by cycle-only mode" : "Alt+Tab switches windows immediately"
+            icon: "arrows-right-left"
+            last: false
+
+            LinkToggle {
+                s: root.s
+                // Cycle-only mode has no UI left to confirm a selection with,
+                // so it forces this on and locks the toggle.
+                on: Flags.altSwitcherAdvanceOnTap || Flags.altSwitcherNoVisualUi
+                onToggled: {
+                    if (!Flags.altSwitcherNoVisualUi)
+                        Flags.altSwitcherAdvanceOnTap = !Flags.altSwitcherAdvanceOnTap
+                }
+            }
+        }
+
+        SettingsRow {
+            id: layoutRow
+            surface: root
+            name: "Layout"
+            sub: "Switcher design"
+            icon: "layout-grid"
+            last: true
+
+            SettingsSeg {
+                s: root.s
+                options: [
+                    { label: "Grid", value: "grid" },
+                    { label: "List", value: "list" },
+                    { label: "Icons", value: "compact" }
+                ]
+                value: Flags.altSwitcherLayout
+                onPicked: (v) => Flags.altSwitcherLayout = v
             }
         }
     }
