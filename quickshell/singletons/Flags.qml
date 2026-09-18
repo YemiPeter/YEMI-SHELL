@@ -54,6 +54,8 @@ Singleton {
     property alias altSwitcherAdvanceOnTap: adapter.altSwitcherAdvanceOnTap
     property alias altSwitcherLayout: adapter.altSwitcherLayout
     property alias altSwitcherNoVisualUi: adapter.altSwitcherNoVisualUi
+    property alias altSwitcherBackgroundOpacity: adapter.altSwitcherBackgroundOpacity
+    property alias altSwitcherPanelAlignment: adapter.altSwitcherPanelAlignment
     property alias barLeftVisible: adapter.barLeftVisible
     property alias barRightVisible: adapter.barRightVisible
     property alias barAppIcons: adapter.barAppIcons
@@ -155,6 +157,12 @@ Singleton {
             // overlay — each tap focuses the next window directly. Implies
             // advance-on-tap, since there is no UI left to confirm with.
             property bool altSwitcherNoVisualUi: false
+            // Card frost strength: fill opacity of the switcher card. Applies
+            // only while the general Look blur is on (Hyprland); with blur off
+            // the card goes solid so text stays readable.
+            property real altSwitcherBackgroundOpacity: 0.72
+            // Horizontal placement of the switcher card (list layout only).
+            property string altSwitcherPanelAlignment: "center"
             // Side-pill visibility (bar left = workspaces, right = network /
             // volume / battery). The pill remains the always-available surface;
             // these let users collapse the bar to a single-pill layout.
