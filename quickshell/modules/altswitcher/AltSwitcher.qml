@@ -240,6 +240,15 @@ Scope {
 
     readonly property int count: root.windows.length
 
+    // High-load safety valve (ported from iNiR, L101). With a very crowded
+    // window list the backdrop blur and the open/close fade cost more than they
+    // add, so both are dropped rather than letting the switcher stutter.
+    // NOTE: on Hyprland the frosted backdrop is compositor-side (the
+    // `layerrule = blur` on our namespace in hyprland.conf), which QML cannot
+    // switch per window-count; there the valve only drops the fade.
+    readonly property bool isHighLoad: root.count > 15
+    readonly property bool effectiveBlurGlass: root.blurGlass && !root.isHighLoad
+
     onWindowsChanged: {
         if (root.currentIndex >= root.count)
             root.currentIndex = Math.max(0, root.count - 1)
@@ -464,7 +473,7 @@ Scope {
         // Frost the backdrop behind the card via the compositor (ext-background-effect),
         // NOT a MultiEffect on the card — blurring the card's own layer smears the text.
         // BackgroundEffect is an *attached* object (like WlrLayershell), not a child item.
-        BackgroundEffect.blurRegion: root.blurGlass ? blurRegion : null
+        BackgroundEffect.blurRegion: root.effectiveBlurGlass ? blurRegion : null
 
         Region {
             id: blurRegion
@@ -493,6 +502,10 @@ Scope {
             height: root.cardH
             opacity: root.open ? 1 : 0
             Behavior on opacity {
+                // High-load valve: skip the fade so the overlay unmaps the
+                // instant it closes instead of holding a full-screen layer up
+                // for another 140 ms.
+                enabled: !root.isHighLoad
                 NumberAnimation {
                     duration: root.open ? 300 : 140
                     easing.type: Easing.OutCubic

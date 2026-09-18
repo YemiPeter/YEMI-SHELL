@@ -137,7 +137,7 @@ file. Proposed names mirror iNiR's config keys so the mapping stays obvious:
 | **Acceptance** | Change value in Settings → Panels → scrim darkness changes live; `0` = no dim, `100` = pure black. Survives shell restart (persisted). |
 | **Status** | ⬜ not started |
 
-### ☐ 2.2 — Background opacity (%)
+### ✅ 2.2 — Background opacity (%)
 
 | Field | Detail |
 |---|---|
@@ -150,7 +150,7 @@ file. Proposed names mirror iNiR's config keys so the mapping stays obvious:
 | **Acceptance** | Card becomes translucent at lower values; text stays readable; Hyprland layerrule blur shows through. |
 | **Status** | ⬜ not started |
 
-### ☐ 2.3 — Blur amount (%) + enable blur glass
+### ❌ 2.3 — Blur amount (%) + enable blur glass — *discarded (over-engineering)*
 
 | Field | Detail |
 |---|---|
@@ -163,7 +163,7 @@ file. Proposed names mirror iNiR's config keys so the mapping stays obvious:
 | **Acceptance** | Value changes visibly on niri. On Hyprland the behaviour is documented (either fixed by layerrule or gracefully ignored — **no errors**). |
 | **Status** | ⬜ not started |
 
-### ☐ 2.4 — Slide animation toggle + duration (ms)
+### ❌ 2.4 — Slide animation toggle + duration (ms) — *discarded (over-engineering)*
 
 | Field | Detail |
 |---|---|
@@ -180,7 +180,7 @@ file. Proposed names mirror iNiR's config keys so the mapping stays obvious:
 
 ## Phase 3 — Timing & safety
 
-### ☐ 3.1 — Auto-hide delay after selection (ms)
+### ❌ 3.1 — Auto-hide delay after selection (ms) — *discarded (over-engineering; 600ms fallback shipped in 1.1)*
 
 | Field | Detail |
 |---|---|
@@ -194,7 +194,7 @@ file. Proposed names mirror iNiR's config keys so the mapping stays obvious:
 | **Acceptance** | Tap Alt+Tab, stop → overlay closes after the set delay. Rapid taps keep it open. Esc/click still close immediately. Delay adjustable. |
 | **Status** | ⬜ not started |
 
-### ☐ 3.2 — `isHighLoad` auto-degrade (>15 windows)
+### ✅ 3.2 — `isHighLoad` auto-degrade (>15 windows)
 
 | Field | Detail |
 |---|---|
@@ -205,13 +205,18 @@ file. Proposed names mirror iNiR's config keys so the mapping stays obvious:
 | **Change** | Add `isHighLoad` (`windows.length > 15`) and AND it into both effective values. |
 | **Files** | `modules/altswitcher/AltSwitcher.qml` only |
 | **Acceptance** | With >15 windows, switcher still opens smoothly with no blur/animation; below threshold, settings take effect normally. |
-| **Status** | ⬜ not started |
+| **Implementation** | `readonly property bool isHighLoad: root.count > 15`; `effectiveBlurGlass = root.blurGlass && !isHighLoad` feeds `BackgroundEffect.blurRegion`; the open/close fade's `Behavior on opacity` gains `enabled: !root.isHighLoad` so the overlay unmaps without a 140 ms tail. |
+| **Platform note** | `blurGlass` is niri-only (Hyprland's blur comes from the compositor-side `layerrule` on our namespace, which QML cannot switch per window-count), so on Hyprland the valve's observable effect is the skipped fade. |
+| **Evidence (state)** | Live log while spawning windows: `count= 16 isHighLoad= false` → `count= 17 isHighLoad= true` → … → `count= 20 isHighLoad= true` — the threshold flips exactly above 15, and the switcher still opened and cycled at 20 windows. |
+| **Evidence (behaviour)** | With the open fade temporarily amplified to 4000 ms so it clears the measurement noise floor (`hyprctl layers` keeps reporting the surface for a further ~800 ms after unmap), the layer's mapped lifetime after close was **4249 ms at 7 windows** (fade ran) vs **816 ms at 20 windows** (fade skipped, leaving only surface-destruction latency) — a 5.2× separation. Fade restored to 300 ms afterwards. |
+| **Caveat** | `hyprctl layers` (~20 ms per poll, stale until the compositor next renders) and `grim` (~120 ms capture) cannot resolve a 140 ms tail directly; the amplified-fade run is what makes the behaviour measurable. Screenshot differencing is additionally blocked by the animated wallpaper. |
+| **Status** | ✅ done |
 
 ---
 
 ## Phase 4 — Data layer
 
-### ☐ 4.1 — Most-recently-used first
+### ❌ 4.1 — Most-recently-used first — *discarded (over-engineering)*
 
 | Field | Detail |
 |---|---|
@@ -253,7 +258,7 @@ file. Proposed names mirror iNiR's config keys so the mapping stays obvious:
 | **Note** | Implemented as a third value of the layout picker, not a boolean — matches iNiR's effect while keeping one control. |
 | **Status** | ✅ **DONE** |
 
-### ☐ 5.3 — Right / Center alignment
+### ✅ 5.3 — Right / Center alignment
 
 | Field | Detail |
 |---|---|
@@ -262,7 +267,7 @@ file. Proposed names mirror iNiR's config keys so the mapping stays obvious:
 | **Cost** | Low **if** presets already exist (just a position binding). Pairs with the slide animation, which is right-aligned only. |
 | **Status** | ⬜ not started |
 
-### ☐ 5.4 — Material 3 card layout
+### ❌ 5.4 — Material 3 card layout — *discarded (over-engineering)*
 
 | Field | Detail |
 |---|---|
@@ -271,7 +276,7 @@ file. Proposed names mirror iNiR's config keys so the mapping stays obvious:
 | **Cost** | Moderate — new card styling rather than new geometry. |
 | **Status** | ⬜ not started |
 
-### ☐ 5.5 — Tint app icons (monochrome)
+### ⬜ 5.5 — Tint app icons (monochrome) — *queued*
 
 | Field | Detail |
 |---|---|
@@ -280,7 +285,7 @@ file. Proposed names mirror iNiR's config keys so the mapping stays obvious:
 | **Cost** | Needs `ColorUtils` + icon colorisation we don't currently wire. |
 | **Status** | ⬜ not started |
 
-### ☐ 5.6 — Show Niri overview while switching
+### ⬜ 5.6 — Show Niri overview while switching — *niri-only; row hidden on Hyprland so it is not mistaken for a working toggle*
 
 | Field | Detail |
 |---|---|
@@ -309,9 +314,9 @@ file. Proposed names mirror iNiR's config keys so the mapping stays obvious:
 
 ## Status score
 
-**Done: 5** — 1.1 ✅, 1.2 ✅, 1.3 ✅, 5.1 ✅ (grid + list), 5.2 ✅
-**Cancelled: 1** — 2.1 (scrim removed by 1.3)
-**Remaining: 10** — 2.2, 2.3, 2.4 · 3.1, 3.2 · 4.1 · 5.3, 5.4, 5.5, 5.6 (skew deferred)
+**Done: 8** — 1.1, 1.2, 1.3, 2.2, 3.2, 5.1, 5.2, 5.3 ✅
+**Cancelled/discarded: 5** — 2.1 (no scrim), 2.3, 2.4, 3.1 (fallback shipped), 4.1 (over-engineering)
+**Remaining: 2** — 5.5 tint app icons (monochrome), 5.6 niri overview (skew + M3 deferred/discarded; 5.6 is niri-only and its row stays hidden on Hyprland)
 
 ---
 
@@ -320,13 +325,12 @@ file. Proposed names mirror iNiR's config keys so the mapping stays obvious:
 1. ~~**1.1** advance-on-tap + toggle~~ ✅
 2. ~~**1.2** No Visual UI (auto-forces 1.1)~~ ✅
 3. ~~**1.3** card-only overlay (no screen takeover)~~ ✅
-4. **3.1** auto-hide delay — user-settable version of the 600 ms fallback
-5. **2.2** background opacity → **2.3** blur amount
-6. **2.4** animation toggle + duration
-7. **3.2** isHighLoad safety valve
-8. **4.1** MRU (needs the compositor work)
-9. **5.3** alignment → **5.4** M3 card → **5.5** tint icons → **5.6** niri overview
-10. ~~**5.1/5.2** layouts~~ ✅ (skew deferred)
+4. ~~**2.2** background opacity (linked to the Look blur toggle)~~ ✅
+5. ~~**3.2** isHighLoad safety valve~~ ✅
+6. **5.5** tint app icons (monochrome) — next
+7. **5.6** show Niri overview while switching — niri-only, row hidden on Hyprland so it is not mistaken for a working toggle
+8. ~~**5.1/5.2** layouts~~ ✅ (skew deferred)
+9. ~~**5.3** alignment~~ ✅ · **3.1** auto-hide delay / **2.3** blur amount / **2.4** animation toggle / **4.1** MRU / **5.4** M3 card — discarded as over-engineering
 
 ---
 
