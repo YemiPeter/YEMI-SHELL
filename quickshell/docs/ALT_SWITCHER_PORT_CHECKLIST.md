@@ -276,14 +276,15 @@ file. Proposed names mirror iNiR's config keys so the mapping stays obvious:
 | **Cost** | Moderate — new card styling rather than new geometry. |
 | **Status** | ⬜ not started |
 
-### ⬜ 5.5 — Tint app icons (monochrome) — *queued*
+### ✅ 5.5 — Tint app icons (monochrome) — *done*
 
 | Field | Detail |
 |---|---|
 | **New flag** | `altSwitcherMonochromeIcons` (bool, default `false`) |
 | **iNiR behaviour** | L1128, L1550 — icons rendered against the theme foreground instead of full colour. |
-| **Cost** | Needs `ColorUtils` + icon colorisation we don't currently wire. |
-| **Status** | ⬜ not started |
+| **Port** | `MultiEffect { colorization: 1.0 }` on the list-row icons — same idiom as the bar's `AppIcons.qml` tint (`Flags.barAppIconTint`). |
+| **Tint source** | **`cPrimary` → `Theme.onGlow`** — the accent token of the Yemi colour system (Dyn wallpaper-derived scheme / mood fallback / grayscale-static). Matches the bar's tint (`theme.onGlow`) and iNiR's `colPrimary` tint; NOT the plain text colour, so the tint follows palette changes automatically. |
+| **Status** | ✅ **DONE** — verified live on Hyprland (list layout, right-aligned): flag ON renders every app icon in the uniform accent green (`onGlow`); flag OFF restores natural brand colours (orange kitty, dark Antigravity). Restart-guaranteed captures `/tmp/tv6_on.png` vs `/tmp/tv7_off.png`. |
 
 ### ⬜ 5.6 — Show Niri overview while switching — *niri-only; row hidden on Hyprland so it is not mistaken for a working toggle*
 
@@ -314,9 +315,9 @@ file. Proposed names mirror iNiR's config keys so the mapping stays obvious:
 
 ## Status score
 
-**Done: 8** — 1.1, 1.2, 1.3, 2.2, 3.2, 5.1, 5.2, 5.3 ✅
+**Done: 9** — 1.1, 1.2, 1.3, 2.2, 3.2, 5.1, 5.2, 5.3, 5.5 ✅
 **Cancelled/discarded: 5** — 2.1 (no scrim), 2.3, 2.4, 3.1 (fallback shipped), 4.1 (over-engineering)
-**Remaining: 2** — 5.5 tint app icons (monochrome), 5.6 niri overview (skew + M3 deferred/discarded; 5.6 is niri-only and its row stays hidden on Hyprland)
+**Remaining: 1** — 5.6 niri overview (skew + M3 deferred/discarded; 5.6 is niri-only and its row stays hidden on Hyprland)
 
 ---
 
@@ -327,7 +328,7 @@ file. Proposed names mirror iNiR's config keys so the mapping stays obvious:
 3. ~~**1.3** card-only overlay (no screen takeover)~~ ✅
 4. ~~**2.2** background opacity (linked to the Look blur toggle)~~ ✅
 5. ~~**3.2** isHighLoad safety valve~~ ✅
-6. **5.5** tint app icons (monochrome) — next
+6. ~~**5.5** tint app icons (monochrome)~~ ✅
 7. **5.6** show Niri overview while switching — niri-only, row hidden on Hyprland so it is not mistaken for a working toggle
 8. ~~**5.1/5.2** layouts~~ ✅ (skew deferred)
 9. ~~**5.3** alignment~~ ✅ · **3.1** auto-hide delay / **2.3** blur amount / **2.4** animation toggle / **4.1** MRU / **5.4** M3 card — discarded as over-engineering

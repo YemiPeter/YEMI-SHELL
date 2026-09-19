@@ -23,6 +23,9 @@ import "Singletons"
  * that toggle is off the card renders solid, so the opacity only bites when the
  * general blur is on. "Alignment" is a list-layout-only control: grid and icons
  * are centred by definition, so the row appears only while Layout is "List".
+ * "Tint app icons" flattens every app icon to the card's foreground colour
+ * (iNiR's monochrome icons), which is what makes the list/icon layouts read as
+ * one surface instead of a row of brand colours.
  */
 SettingsSurface {
     id: root
@@ -77,7 +80,10 @@ SettingsSurface {
         // never swallow an arrow key.
         ...(listLayout ? [{ item: alignRow, kind: "seg", vals: ["center", "right"],
               get: function () { return Flags.altSwitcherPanelAlignment; },
-              set: function (v) { Flags.altSwitcherPanelAlignment = v; } }] : [])
+              set: function (v) { Flags.altSwitcherPanelAlignment = v; } }] : []),
+        { item: monoIconsRow, kind: "toggle",
+          get: function () { return Flags.altSwitcherMonochromeIcons; },
+          set: function (v) { Flags.altSwitcherMonochromeIcons = v; } }
     ]
 
     /**
@@ -264,6 +270,21 @@ SettingsSurface {
                 ]
                 value: Flags.altSwitcherPanelAlignment
                 onPicked: (v) => Flags.altSwitcherPanelAlignment = v
+            }
+        }
+
+        SettingsRow {
+            id: monoIconsRow
+            surface: root
+            name: "Tint app icons"
+            sub: "Draw icons in the card foreground instead of full colour"
+            icon: "palette"
+            last: false
+
+            LinkToggle {
+                s: root.s
+                on: Flags.altSwitcherMonochromeIcons
+                onToggled: Flags.altSwitcherMonochromeIcons = !Flags.altSwitcherMonochromeIcons
             }
         }
 
