@@ -149,6 +149,13 @@ Scope {
     // commit — it forces advance-on-tap on regardless of the user's toggle.
     readonly property bool advanceOnTap: QsSingletons.Flags.altSwitcherAdvanceOnTap || root.noVisualUi
 
+    // ── Monochrome app icons (iNiR's "Tint app icons") ─────────────────────────
+    // Colorises every app icon to the card's foreground so the switcher reads as
+    // one flat surface instead of a wall of brand colours. Uses the same
+    // MultiEffect colorisation as the bar's app icons (AppIcons.qml).
+    readonly property bool monoIcons: QsSingletons.Flags.altSwitcherMonochromeIcons
+    readonly property color iconTintColor: root.cPrimary
+
     property bool quickSwitchDone: false
     property int noUiIndex: 0
     property var noUiSnapshot: []
@@ -722,6 +729,14 @@ Scope {
                                             asynchronous: true
                                             smooth: true
                                             source: root.iconForApp(listRow.modelData.app)
+                                            // Monochrome mode: colorise the icon
+                                            // to the card foreground (see the
+                                            // monoIcons block above).
+                                            layer.enabled: root.monoIcons
+                                            layer.effect: MultiEffect {
+                                                colorization: root.monoIcons ? 1.0 : 0.0
+                                                colorizationColor: root.iconTintColor
+                                            }
                                         }
 
                                         ColumnLayout {
@@ -811,6 +826,12 @@ Scope {
                                         asynchronous: true
                                         smooth: true
                                         source: root.iconForApp(chip.modelData.app)
+                                        // Monochrome mode: see the monoIcons block.
+                                        layer.enabled: root.monoIcons
+                                        layer.effect: MultiEffect {
+                                            colorization: root.monoIcons ? 1.0 : 0.0
+                                            colorizationColor: root.iconTintColor
+                                        }
                                     }
 
                                     MouseArea {
