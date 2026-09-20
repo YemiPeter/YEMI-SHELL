@@ -226,6 +226,11 @@ Item {
             height: 4 * root.s
             radius: 2 * root.s
             color: Theme.threadBg
+            // Gate the fills to the groove. Their widths ease on Motion.fast
+            // while the track itself resizes instantly as the pill morphs shut,
+            // so without this the lagging fill paints past the groove's end.
+            // Same idiom as the battery bar below.
+            clip: true
 
             /**
              * Animated position of the 100% mark on the track, as a fraction of
@@ -393,6 +398,8 @@ Item {
             height: 4 * root.s
             radius: 2 * root.s
             color: Theme.threadBg
+            // Gate the fill like the volume and battery bars — see volTrack.
+            clip: true
 
             Rectangle {
                 anchors.left: parent.left
