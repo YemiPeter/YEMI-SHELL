@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell.Io
 import Quickshell.Services.Pipewire
 import "Singletons"
+import qs.services as QsServices
 
 /**
  * Mixer surface: header with DND / Keep-Awake chips and a row of four vertical
@@ -367,7 +368,10 @@ PillSurface {
           valueLabel: (root.sink && root.sink.audio && root.sink.audio.muted)
             ? "off"
             : (Math.round((root.sink && root.sink.audio ? root.sink.audio.volume : 0) * 100) + "%")
-          onMoved: (v) => { if (root.sink && root.sink.audio) root.sink.audio.volume = v; }
+          // Routed through the service (not a raw node write) so a drag obeys
+          // the Master Audio safeguard's clamp and the ramp absorbs the jump
+          // instead of tripping the illegal-increment guard mid-drag.
+          onMoved: (v) => QsServices.Audio.setVolume(v)
         
           MouseArea {
             id: volMute
