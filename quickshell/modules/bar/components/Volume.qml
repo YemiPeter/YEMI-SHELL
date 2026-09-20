@@ -104,8 +104,12 @@ Item {
         cursorShape: Qt.PointingHandCursor
         
         onWheel: wheel => {
+            // The -l limit rides the Master Audio safe max, so the wheel can
+            // push into boost territory (125/150%) once the card allows it.
+            // Default stays 100%.
+            var lim = String(Math.round(audio.effectiveMax * 100) / 100)
             var delta = wheel.angleDelta.y > 0 ? "2%+" : "2%-"
-            volAdjProc.command = ["wpctl", "set-volume", "-l", "1.0", "@DEFAULT_AUDIO_SINK@", delta]
+            volAdjProc.command = ["wpctl", "set-volume", "-l", lim, "@DEFAULT_AUDIO_SINK@", delta]
             volAdjProc.running = true
         }
 

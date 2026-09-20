@@ -5,7 +5,12 @@ import "Singletons"
  * Vertical filament fader. A thin matte thread with a rising fill and a flat
  * tick marker. Dim at rest; saturates and reveals its readout when focused.
  * Hover targeting is owned by the parent surface, which maps pointer position
- * to a fader column and drives `focused`. No knob, no glow. Value is 0..1.
+ * to a fader column and drives `focused`. No knob, no glow.
+ *
+ * Value is absolute (0..rangeMax, where 1.0 = 100%). `rangeMax` defaults to 1
+ * so non-audio faders are untouched; the volume fader binds it to
+ * Audio.effectiveMax so the track, tick, drag and keyboard steps all stretch
+ * when the Master Audio safe max is raised above 100%.
  */
 Item {
     id: root
@@ -13,6 +18,8 @@ Item {
     property real s: 1
     property string icon: ""
     property real value: 0.5
+    /// Top of the fader's range in absolute units (1.0 = 100%).
+    property real rangeMax: 1
     property string valueLabel: ""
     property string subLabel: ""
     property bool focused: false
@@ -40,12 +47,21 @@ Item {
     implicitWidth: 54 * s
     implicitHeight: trackH + (subLabel.length ? 52 : 44) * s
 
+    /// Normalised 0..1 position of `value` within 0..rangeMax. Drives the fill
+    /// and the tick so both stay honest when the range stretches past 100%.
+    readonly property real norm: {
+        const span = Math.max(0.01, root.rangeMax)
+        return Math.max(0, Math.min(1, root.value / span))
+    }
+
     /**
-     * Nudge the value by a signed percentage (e.g. +1 / -1), clamped to 0..100%,
-     * emitting `moved` and `committed` so live hardware updates on each step.
+     * Nudge the value by a signed percentage (e.g. +1 / -1) of the fader's
+     * full range, emitting `moved` and `committed` so live hardware updates on
+     * each step.
      */
     function step(deltaPct) {
-        const v = Math.max(0, Math.min(1, root.value + deltaPct / 100));
+        const span = Math.max(0.01, root.rangeMax)
+        const v = Math.max(0, Math.min(root.rangeMax, root.value + deltaPct / 100 * span));
         root.moved(v);
         root.committed(v);
     }
@@ -70,7 +86,7 @@ Item {
                 anchors.bottom: parent.bottom
                 anchors.left: parent.left
                 anchors.right: parent.right
-                height: parent.height * Math.max(0, Math.min(1, root.value))
+                height: parent.height * root.norm
                 radius: parent.radius
                 gradient: Gradient {
                     GradientStop { position: 0.0; color: root.lit ? Theme.vermLit : Theme.vermDim }
@@ -84,7 +100,7 @@ Item {
             id: tick
             anchors.horizontalCenter: parent.horizontalCenter
             y: Math.max(0, Math.min(root.trackH - height,
-                (1 - Math.max(0, Math.min(1, root.value))) * root.trackH - height / 2))
+                (1 - root.norm) * root.trackH - height / 2))
             width: 11 * root.s
             height: 2.5 * root.s
             radius: 2 * root.s
@@ -100,7 +116,8 @@ Item {
             anchors.margins: -10 * root.s
             preventStealing: true
             function setFromY(my) {
-                const v = 1 - Math.max(0, Math.min(1, (my - 10 * root.s) / root.trackH));
+                const span = Math.max(0.01, root.rangeMax)
+                const v = (1 - Math.max(0, Math.min(1, (my - 10 * root.s) / root.trackH))) * span;
                 root.moved(v);
             }
             onPressed: (e) => setFromY(e.y)
