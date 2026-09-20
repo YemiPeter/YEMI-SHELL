@@ -36,7 +36,10 @@ Singleton {
                 if (match) {
                     const vol = Math.round(parseFloat(match[1]) * 100)
                     if (vol !== root.percentage) {
-                        root.percentage = Math.max(0, Math.min(150, vol))
+                        // Display follows the Master Audio safe max; the Audio
+                        // service is what enforces the actual cap.
+                        const cap = Math.round((QsSingletons.Flags.audioSafeMax ?? 1.5) * 100)
+                        root.percentage = Math.max(0, Math.min(cap, vol))
                     }
                 }
             }
