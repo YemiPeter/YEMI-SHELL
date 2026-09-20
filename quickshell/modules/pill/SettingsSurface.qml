@@ -11,9 +11,10 @@ import QtQuick
  *
  * Each `rows` entry pairs a row item with its control kind and the backing getter
  * and setter: `seg` steps a segmented choice, `toggle` flips a boolean, `nav`
- * morphs to another surface. The host routes arrow keys through `kbMove`,
- * `kbAdjust` and `kbActivate`; hover and clicks route through `reportRowHover`
- * and `activateRow`, keeping `kbIndex` and the seam in sync.
+ * morphs to another surface, `act` runs a one-shot action. The host routes arrow
+ * keys through `kbMove`, `kbAdjust` and `kbActivate`; hover and clicks route
+ * through `reportRowHover` and `activateRow`, keeping `kbIndex` and the seam in
+ * sync.
  */
 PillSurface {
     id: root
@@ -75,6 +76,8 @@ PillSurface {
             r.set(!r.get());
         else if (r.kind === "nav")
             root.requestSurface(r.surface);
+        else if (r.kind === "act" && r.act)
+            r.act();
     }
 
     /**
@@ -94,6 +97,8 @@ PillSurface {
             r.set(!r.get());
         else if (r.kind === "nav")
             root.requestSurface(r.surface);
+        else if (r.kind === "act" && r.act)
+            r.act();
         else if (r.kind === "seg") {
             var i = r.vals.indexOf(r.get());
             r.set(r.vals[((i < 0 ? 0 : i) + 1) % r.vals.length]);
