@@ -213,12 +213,13 @@ PanelWindow {
                 }
             }
             
-            // Volume slider
+            // Volume slider — `to` rides the Master Audio safe max so the drag can
+            // reach 125/150% once the card allows it. Default stays 100%.
             Slider {
                 id: volumeSlider
                 Layout.fillWidth: true
                 from: 0
-                to: 150
+                to: audio.effectiveMax * 100
                 value: audio.percentage
                 
                 onMoved: {

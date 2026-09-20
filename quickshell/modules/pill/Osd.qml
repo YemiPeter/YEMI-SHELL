@@ -4,6 +4,7 @@ import Quickshell.Services.Pipewire
 import Quickshell.Services.Mpris
 import Quickshell.Io
 import qs.compositor
+import qs.services as QsServices
 import "Singletons"
 
 Item {
@@ -26,7 +27,9 @@ Item {
 
     readonly property var sink: Pipewire.defaultAudioSink
     readonly property bool muted: sink && sink.audio ? sink.audio.muted : false
-    readonly property real volume: sink && sink.audio ? Math.max(0, Math.min(1, sink.audio.volume)) : 0
+    // Absolute volume that can exceed 1 when the safe max is raised; the bar
+    // below normalises against Audio.effectiveMax instead of hard-clamping.
+    readonly property real volume: sink && sink.audio ? Math.max(0, sink.audio.volume) : 0
 
     property var stickyPlayer: null
     readonly property var player: {
@@ -214,6 +217,7 @@ Item {
         }
 
         Rectangle {
+            id: volTrack
             anchors.left: volGlyph.right
             anchors.leftMargin: 12 * root.s
             anchors.right: volPct.left
@@ -223,15 +227,56 @@ Item {
             radius: 2 * root.s
             color: Theme.threadBg
 
+            /**
+             * Animated position of the 100% mark on the track, as a fraction of
+             * the track width. At rest it is 1.0 — the whole track IS the first
+             * hundred percent, exactly the old display. The moment volume climbs
+             * past 100 (and the safe max allows boost), it eases down to
+             * 1/effectiveMax, so the 0-100 segment smoothly shrinks and makes
+             * room for the 100-max zone to land in; the track's total length
+             * never changes. Dropping back to 100 or below eases it out again.
+             */
+            readonly property bool boostLive: root.volume > 1.001 && QsServices.Audio.effectiveMax > 1.001
+            property real hundredMark: boostLive ? 1.0 / QsServices.Audio.effectiveMax : 1.0
+            Behavior on hundredMark {
+                NumberAnimation { duration: Motion.standard; easing.type: Motion.easeStandard }
+            }
+
             Rectangle {
+                id: volFill
                 anchors.left: parent.left
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
-                width: parent.width * root.volume
+                // 0-100 segment maps to `hundredMark` of the track; the boost
+                // zone maps to whatever remains. With a 100 safe max this
+                // reduces to the old min(1, volume) exactly.
+                width: parent.width * (function () {
+                    var em = QsServices.Audio.effectiveMax
+                    var k = volTrack.hundredMark
+                    if (em <= 1.001)
+                        return Math.min(1, root.volume)
+                    if (root.volume <= 1.0)
+                        return Math.min(1, root.volume) * k
+                    return k + (Math.min(root.volume, em) - 1.0) / (em - 1.0) * (1.0 - k)
+                })()
                 radius: parent.radius
                 color: root.muted ? Theme.vermDim : Theme.vermLit
                 Behavior on width { NumberAnimation { duration: Motion.fast } }
                 Behavior on color { ColorAnimation { duration: Motion.fast } }
+            }
+
+            // Faint tick where 100% lands once the track re-seats — makes the
+            // boost zone readable instead of the fill just stopping early.
+            Rectangle {
+                anchors.verticalCenter: parent.verticalCenter
+                x: parent.width * volTrack.hundredMark - width / 2
+                width: 1.5 * root.s
+                height: 8 * root.s
+                radius: width / 2
+                color: Theme.faint
+                opacity: volTrack.boostLive ? 0.55 : 0
+                visible: opacity > 0.01
+                Behavior on opacity { NumberAnimation { duration: Motion.standard } }
             }
         }
     }
