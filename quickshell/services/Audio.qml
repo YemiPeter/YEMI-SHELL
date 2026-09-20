@@ -5,6 +5,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Pipewire
+import "../singletons" as QsSingletons
 
 /**
  * A richer wrapper for default Pipewire audio sink and source.
@@ -14,14 +15,29 @@ import Quickshell.Services.Pipewire
  * whole-waffle dependencies (qs.modules.common, qs.services.deferred, Config,
  * Translation, playSystemSound) were removed or replaced with safe defaults so
  * this stays a self-contained singleton on the current branch.
+ *
+ * The safeguard is user-owned: `safeguard` and `protectionMax` read the Master
+ * Audio flags (Flags.qml), so the card in the Panels index is the single place
+ * that arms them — the service only enforces what that card says. The
+ * duplicate-stream guard and the Bluetooth auto-switch are unconditional
+ * service behaviour, not toggles. `effectiveMax` is the one ceiling every
+ * writer (keybinds, OSD, mixer fader, bar popup, the card) clamps to.
  */
 Singleton {
     id: root
 
-    // Volume protection settings (replaces Config.options.audio.protection.*)
-    property bool volumeProtection: true
-    property real protectionMax: 0.99
+    // Volume safeguard, driven by the Master Audio flags:
+    //   safeguard ON  -> clamp at protectionMax and ramp big jumps
+    //   safeguard OFF -> plain behaviour, capped at hardMaxValue (200%)
+    readonly property bool safeguard: QsSingletons.Flags.audioSafeguard
+    property bool volumeProtection: root.safeguard
+    property real protectionMax: QsSingletons.Flags.audioSafeMax
     property real protectionMaxIncrease: 0.10
+
+    /// The single ceiling every volume writer clamps to.
+    readonly property real effectiveMax: root.safeguard
+        ? Math.min(root.protectionMax, root.hardMaxValue)
+        : root.hardMaxValue
 
     // Misc props
     property bool ready: sink?.ready ?? rawSink?.ready ?? false
@@ -55,7 +71,7 @@ Singleton {
         if (!s || !s.audio) return 0
         const vol = s.audio.volume
         if (vol === undefined || vol === null || isNaN(vol)) return 0
-        return Math.max(0, Math.min(1.5, vol))
+        return Math.max(0, Math.min(root.hardMaxValue, vol))
     }
     readonly property int percentage: Math.round(volume * 100)
 
@@ -119,6 +135,201 @@ Singleton {
     readonly property list<var> inputAppNodes: root.appNodes(false)
     readonly property list<var> outputDevices: root.devices(true)
     readonly property list<var> inputDevices: root.devices(false)
+
+    // ── Stream guard: "the same source playing twice" ──────────────────────────
+    /**
+     * Streams that are actually feeding the sink right now: unmuted, non-silent
+     * app nodes. A PipeWire stream node exists while its client holds it, so
+     * silence + mute is the only portable "not playing" signal we have.
+     */
+    readonly property var activeStreams: root.outputAppNodes.filter(node =>
+        node.audio && !node.audio.muted && node.audio.volume > 0.0001)
+
+    /**
+     * Stable grouping key for a stream. Prefers the app name so two Firefox
+     * tabs (separate stream nodes, same application) collapse into one group,
+     * then the binary, then the media name.
+     */
+    function streamKey(node) {
+        if (!node) return ""
+        const p = node.properties ?? {}
+        return String(p["application.name"] ?? p["application.process.binary"]
+            ?? p["media.software"] ?? p["node.name"] ?? node.name ?? "")
+    }
+
+    /** Friendly label for a stream row: app name, then the media title. */
+    function streamLabel(node) {
+        if (!node) return "Unknown"
+        const p = node.properties ?? {}
+        const app = String(p["application.name"] ?? p["application.process.binary"] ?? node.name ?? "Unknown")
+        const media = String(p["media.name"] ?? "")
+        return media.length > 0 && media.toLowerCase() !== app.toLowerCase() ? app + " — " + media : app
+    }
+
+    /**
+     * Every group of 2+ active streams sharing one source, newest id first.
+     * This is what the card lists so the user can see the stack they cannot
+     * hear apart — and what the auto-mute guard acts on.
+     */
+    readonly property var duplicateGroups: {
+        const byKey = {}
+        for (const node of root.activeStreams) {
+            const key = root.streamKey(node)
+            if (key.length === 0) continue
+            if (byKey[key] === undefined) byKey[key] = []
+            byKey[key].push(node)
+        }
+        const out = []
+        for (const key in byKey) {
+            if (byKey[key].length < 2) continue
+            const nodes = byKey[key].slice().sort((a, b) => Number(b.id ?? 0) - Number(a.id ?? 0))
+            out.push({ key: key, nodes: nodes })
+        }
+        return out
+    }
+
+    readonly property int duplicateCount: root.duplicateGroups.length
+
+    /**
+     * Mute every duplicate but the newest in each group (higher PipeWire id =
+     * newer stream). The guard below uses this on every tick, so the behaviour
+     * is unconditional: the same source can never stack on itself.
+     */
+    function muteOlderDuplicates(): int {
+        let muted = 0
+        for (const group of root.duplicateGroups) {
+            for (let i = 1; i < group.nodes.length; i++) {
+                const node = group.nodes[i]
+                if (node?.audio && !node.audio.muted) {
+                    node.audio.muted = true
+                    muted++
+                }
+            }
+        }
+        return muted
+    }
+
+    // ── Duplicate-stream guard (always on) ─────────────────────────────────────
+    // When a NEW stream starts from a source that is already playing, the older
+    // stream(s) are muted so the newcomer is the one you hear. When the newcomer
+    // stops, the previously muted streams are unmuted again. A timer rather than
+    // a signal because the grouping is derived state; the list is tiny, so the
+    // poll is cheap. Tracking "new arrivals" by id keeps the guard from fighting
+    // a user who deliberately unmutes an older stream.
+    property var _knownStreamIds: []
+    property var _dupMutedByGuard: ({})
+
+    function enforceDuplicateGuard(): void {
+        const actives = root.activeStreams
+        const ids = actives.map(n => String(n.id))
+
+        // 1. Restore streams the guard muted once the newcomer that silenced
+        //    them is gone.
+        let restored = 0
+        for (const id in root._dupMutedByGuard) {
+            const entry = root._dupMutedByGuard[id]
+            if (ids.indexOf(String(entry.newestId)) !== -1) continue
+            const node = root.outputAppNodes.find(n => String(n.id) === id)
+            if (node?.audio && node.audio.muted)
+                node.audio.muted = false
+            restored++
+            delete root._dupMutedByGuard[id]
+        }
+
+        // 2. Mute older duplicates whenever a brand-new stream joins a source
+        //    that already has one playing.
+        let muted = 0
+        for (const group of root.duplicateGroups) {
+            const newest = group.nodes[0]
+            if (!newest) continue
+            const newestId = String(newest.id)
+            // Only react to arrivals we have not seen active before.
+            if (root._knownStreamIds.indexOf(newestId) !== -1) continue
+            for (let i = 1; i < group.nodes.length; i++) {
+                const older = group.nodes[i]
+                const olderId = String(older.id)
+                if (!older?.audio || older.audio.muted) continue
+                if (olderId in root._dupMutedByGuard) continue
+                root._dupMutedByGuard[olderId] = { newestId: newestId }
+                older.audio.muted = true
+                muted++
+            }
+        }
+
+        root._knownStreamIds = ids
+        if (muted > 0)
+            console.info("[audio] duplicate guard: muted", muted, "older stream(s); restored:", restored)
+    }
+
+    Timer {
+        interval: 900
+        repeat: true
+        running: true
+        onTriggered: root.enforceDuplicateGuard()
+    }
+
+    // ── Bluetooth auto-switch ──────────────────────────────────────────────────
+    // A newly connected Bluetooth sink becomes the default output immediately,
+    // so plugging in a speaker "just works" without opening KDE settings. When
+    // that sink disappears again, the last non-Bluetooth default is restored.
+    // A manual device pick always wins until the next connect/disconnect cycle.
+
+    /** True when a sink node is a Bluetooth device (bluezapi/bluez node names). */
+    function isBluetoothSink(node): bool {
+        if (!node) return false
+        const p = node.properties ?? {}
+        const api = String(p["device.api"] ?? "").toLowerCase()
+        const name = String(p["node.name"] ?? node.name ?? "").toLowerCase()
+        return api.includes("bluez") || name.includes("bluez")
+    }
+
+    // Device ids seen on the previous outputDevices evaluation.
+    property var _knownSinkDeviceIds: ({})
+    // Suppress auto-switching while the initial device list populates at boot.
+    property bool _btDevicesInitialised: false
+    // The most recent default sink that was NOT Bluetooth — the fallback target.
+    property var _lastNonBtSinkNode: null
+
+    onOutputDevicesChanged: {
+        const current = {}
+        const fresh = []
+        for (const d of root.outputDevices) {
+            const k = String(d.id)
+            current[k] = true
+            if (!(k in root._knownSinkDeviceIds)) fresh.push(d)
+        }
+        root._knownSinkDeviceIds = current
+
+        if (!root._btDevicesInitialised) {
+            root._btDevicesInitialised = true
+            return // never auto-switch while the startup list populates
+        }
+
+        for (const d of fresh) {
+            if (root.isBluetoothSink(d)) {
+                console.info("[audio] Bluetooth sink connected — switching output:", root.friendlyDeviceName(d))
+                root.setDefaultSink(d)
+                return // first newly connected speaker wins
+            }
+        }
+
+        // A device vanished: if the current default was that Bluetooth sink,
+        // fall back to the last non-Bluetooth default that still exists.
+        if (root.sink && !(String(root.sink.id) in current) && root.isBluetoothSink(root.sink)
+                && root._lastNonBtSinkNode && (String(root._lastNonBtSinkNode.id) in current)) {
+            console.info("[audio] Bluetooth sink gone — restoring:", root.friendlyDeviceName(root._lastNonBtSinkNode))
+            root.setDefaultSink(root._lastNonBtSinkNode)
+        }
+    }
+
+
+    function toggleStreamMute(node): void {
+        if (node?.audio) node.audio.muted = !node.audio.muted
+    }
+
+    function setStreamVolume(node, target: real): void {
+        if (node?.audio) node.audio.volume = Math.max(0, Math.min(root.hardMaxValue, target))
+    }
 
     // Signals
     signal sinkProtectionTriggered(string reason)
@@ -245,9 +456,7 @@ Singleton {
     // wpctl is fired before the QML guard so USB/device-route sinks are always reachable
     // even when Quickshell has not fully tracked the node yet.
     function setVolume(target: real): void {
-        const protectionEnabled = root.volumeProtection
-        const maxAllowed = protectionEnabled ? root.protectionMax : root.hardMaxValue
-        const clamped = Math.max(0, Math.min(Math.min(maxAllowed, root.hardMaxValue), target))
+        const clamped = Math.max(0, Math.min(root.effectiveMax, target))
 
         // Always send to wpctl regardless of QML node availability.
         if (!wpctlSetSinkVolume.running) {
@@ -257,7 +466,7 @@ Singleton {
 
         if (!root.sink?.audio) return
 
-        if (!protectionEnabled) {
+        if (!root.volumeProtection) {
             root.sink.audio.volume = clamped
             return
         }
@@ -302,12 +511,33 @@ Singleton {
 
     function increaseVolume() {
         // Fire wpctl relative increment first — works even when sink?.audio is not yet tracked.
+        // While the safeguard is armed the QML write below (and the protection
+        // watcher) pulls the sink back under effectiveMax, so the async wpctl
+        // bump can never park the device above the cap.
         if (!wpctlIncrementSinkVolume.running)
             wpctlIncrementSinkVolume.running = true
         if (!root.sink?.audio) return
         const currentVolume = root.sink.audio.volume
         const step = currentVolume < 0.1 ? 0.01 : 0.02
-        root.sink.audio.volume = Math.min(root.hardMaxValue, currentVolume + step)
+        root.sink.audio.volume = Math.min(root.effectiveMax, currentVolume + step)
+    }
+
+    /**
+     * Step the master sink by a signed percentage (e.g. +5 / -5), clamped to
+     * `effectiveMax`. This is the card's keyboard/stepper path — it goes through
+     * wpctl so a device whose volume lives at the route level still moves, then
+     * ramps the QML node when it is tracked.
+     */
+    function stepVolume(deltaPct: real): void {
+        if (!root.sink?.audio) {
+            // Untracked sink: relative wpctl is the only lever we have.
+            if (deltaPct > 0 && !wpctlIncrementSinkVolume.running)
+                wpctlIncrementSinkVolume.running = true
+            if (deltaPct < 0 && !wpctlDecrementSinkVolume.running)
+                wpctlDecrementSinkVolume.running = true
+            return
+        }
+        root.setVolume(root.sink.audio.volume + deltaPct / 100)
     }
 
     function decreaseVolume() {
@@ -362,6 +592,10 @@ Singleton {
         _sinkProtectionConn.lastReady = false
         _sinkProtectionConn.lastVolume = 0
         _rampTimerInternal.running = false
+        // Remember the last non-Bluetooth default so the Bluetooth auto-switch
+        // has something sensible to restore when the speaker disconnects.
+        if (root.sink && !root.isBluetoothSink(root.sink))
+            root._lastNonBtSinkNode = root.sink
     }
 
     Connections { // Protection against sudden volume changes
@@ -385,7 +619,7 @@ Singleton {
                 return
             }
             const maxAllowedIncrease = root.protectionMaxIncrease
-            const maxAllowed = root.protectionMax
+            const maxAllowed = root.effectiveMax
 
             if (newVolume - lastVolume > maxAllowedIncrease) {
                 sink.audio.volume = lastVolume
@@ -399,25 +633,4 @@ Singleton {
     }
 
     Component.onCompleted: _refreshMicState()
-
-    // IPC handlers for external control (keybinds, etc.)
-    IpcHandler {
-        target: "audio"
-
-        function volumeUp(): void {
-            root.increaseVolume()
-        }
-
-        function volumeDown(): void {
-            root.decreaseVolume()
-        }
-
-        function mute(): void {
-            root.toggleMute()
-        }
-
-        function micMute(): void {
-            root.toggleMicMute()
-        }
-    }
 }
