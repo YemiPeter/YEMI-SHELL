@@ -82,7 +82,7 @@ SettingsSurface {
             captionOnFocus: true
             icon: "app-window"
             name: "Panels"
-            sub: "Alt+Tab, overlay panels"
+            sub: "Alt+Tab, master audio, overlay panels"
 
             GlyphIcon {
                 width: 16 * root.s

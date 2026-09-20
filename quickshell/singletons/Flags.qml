@@ -57,6 +57,9 @@ Singleton {
     property alias altSwitcherBackgroundOpacity: adapter.altSwitcherBackgroundOpacity
     property alias altSwitcherPanelAlignment: adapter.altSwitcherPanelAlignment
     property alias altSwitcherMonochromeIcons: adapter.altSwitcherMonochromeIcons
+    // Smart audio safeguard (Master Audio card in the Panels index).
+    property alias audioSafeguard: adapter.audioSafeguard
+    property alias audioSafeMax: adapter.audioSafeMax
     property alias barLeftVisible: adapter.barLeftVisible
     property alias barRightVisible: adapter.barRightVisible
     property alias barAppIcons: adapter.barAppIcons
@@ -167,6 +170,16 @@ Singleton {
             // Tint the app icons to the card's foreground colour so the switcher
             // reads as one flat mono surface (iNiR's "Tint app icons").
             property bool altSwitcherMonochromeIcons: false
+            // ── Smart audio safeguard (Master Audio card) ──────────────────────
+            // Master switch for the whole volume-safeguard system. ON: every
+            // writer (keybinds, OSD, mixer fader, bar popup, this card) clamps
+            // to audioSafeMax and the jump-guard/ramp stay armed. OFF: the cap
+            // lifts to the hard ceiling (hardMaxValue, 200%) and nothing is
+            // stepped — the plain, unguarded behaviour.
+            property bool audioSafeguard: true
+            // The loudest the sink may go while the safeguard is on. 1.0 = 100%
+            // (unity); above that is deliberate boost territory.
+            property real audioSafeMax: 1.0
             // Side-pill visibility (bar left = workspaces, right = network /
             // volume / battery). The pill remains the always-available surface;
             // these let users collapse the bar to a single-pill layout.
