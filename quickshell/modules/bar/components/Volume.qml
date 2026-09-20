@@ -113,9 +113,7 @@ Item {
             volAdjProc.running = true
         }
 
-        onClicked: {
-            Quickshell.execDetached(["pavucontrol"])
-        }
+        onClicked: QsSingletons.PillState.toggleSurface(root.screenName, "masteraudio")
     }
 
     Process {
