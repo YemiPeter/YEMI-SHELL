@@ -4,6 +4,7 @@ import Quickshell.Services.Pipewire
 import Quickshell.Services.Mpris
 import Quickshell.Io
 import qs.compositor
+import qs.services as QsServices
 import "Singletons"
 
 Item {
@@ -26,7 +27,9 @@ Item {
 
     readonly property var sink: Pipewire.defaultAudioSink
     readonly property bool muted: sink && sink.audio ? sink.audio.muted : false
-    readonly property real volume: sink && sink.audio ? Math.max(0, Math.min(1, sink.audio.volume)) : 0
+    // Absolute volume that can exceed 1 when the safe max is raised; the bar
+    // below normalises against Audio.effectiveMax instead of hard-clamping.
+    readonly property real volume: sink && sink.audio ? Math.max(0, sink.audio.volume) : 0
 
     property var stickyPlayer: null
     readonly property var player: {
@@ -227,7 +230,7 @@ Item {
                 anchors.left: parent.left
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
-                width: parent.width * root.volume
+                width: parent.width * Math.min(1, root.volume / Math.max(0.01, QsServices.Audio.effectiveMax))
                 radius: parent.radius
                 color: root.muted ? Theme.vermDim : Theme.vermLit
                 Behavior on width { NumberAnimation { duration: Motion.fast } }

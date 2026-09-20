@@ -364,6 +364,10 @@ PillSurface {
           s: root.s
           icon: (root.sink && root.sink.audio && root.sink.audio.muted) ? "speaker-off" : "speaker"
           focused: root.focusIndex === root.faderCount - 2
+          // The track stretches with the Master Audio safe max: at the default
+          // 100% this is the old 0..1 fader; raise the safe max and the same
+          // drag reaches 125/150%.
+          rangeMax: QsServices.Audio.effectiveMax
           value: root.sink && root.sink.audio ? root.sink.audio.volume : 0
           valueLabel: (root.sink && root.sink.audio && root.sink.audio.muted)
             ? "off"

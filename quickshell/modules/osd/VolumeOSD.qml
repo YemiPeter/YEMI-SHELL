@@ -121,7 +121,7 @@ PanelWindow {
                 color: Qt.rgba(0.8, 0.8, 0.8, 0.15) // Default color
                 
                 Rectangle {
-                    width: parent.width * (root.currentVolume / 100)
+                    width: parent.width * Math.min(1, root.currentVolume / Math.max(1, Math.round((QsServices.Audio.effectiveMax ?? 1) * 100)))
                     height: parent.height
                     radius: 3
                     color: root.currentMuted ? Qt.rgba(0.8, 0.8, 0.8, 0.4) : Qt.rgba(0.2, 0.6, 1.0, 1.0) // Default color
