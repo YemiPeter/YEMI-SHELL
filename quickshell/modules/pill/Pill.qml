@@ -77,9 +77,10 @@ Item {
     readonly property bool fontpickerOpen: surface === "fontpicker"
     readonly property bool barPillsOpen: surface === "barpills"
     readonly property bool altTabOpen: surface === "alttab"
+    readonly property bool masterAudioOpen: surface === "masteraudio"
     readonly property bool backgroundOpen: surface === "background"
     readonly property bool panelsOpen: surface === "panels"
-    readonly property bool settingsLike: settingsOpen || appearanceOpen || updatesOpen || barPillsOpen || altTabOpen || panelsOpen
+    readonly property bool settingsLike: settingsOpen || appearanceOpen || updatesOpen || barPillsOpen || altTabOpen || panelsOpen || masterAudioOpen
 
     /**
      * Loader-gated surfaces stay instantiated through their close fade via
@@ -194,6 +195,7 @@ Item {
     readonly property real fontpickerW: 360 * s
     readonly property real barPillsW: 392 * s
     readonly property real altTabW: 392 * s
+    readonly property real masterAudioW: 392 * s
     readonly property real backgroundW: 392 * s
     readonly property real panelsW: 392 * s
     readonly property real toastW: 342 * s
@@ -239,6 +241,7 @@ Item {
         fontpicker: { size: () => Qt.size(fontpickerW, (fontpickerLoader.item?.implicitHeight ?? 0) + 29 * s), ame: fontpickerLoader.item ?? null },
         barpills:  { size: () => Qt.size(barPillsW, (barPillsLoader.item?.implicitHeight ?? 0) + 29 * s), ame: barPillsLoader.item ?? null },
         alttab:    { size: () => Qt.size(altTabW, (altTabLoader.item?.implicitHeight ?? 0) + 29 * s), ame: altTabLoader.item ?? null },
+        masteraudio: { size: () => Qt.size(masterAudioW, (masterAudioLoader.item?.implicitHeight ?? 0) + 29 * s), ame: masterAudioLoader.item ?? null },
         background: { size: () => Qt.size(backgroundW, (backgroundLoader.item?.implicitHeight ?? 0) + 29 * s), ame: backgroundLoader.item ?? null },
         panels:     { size: () => Qt.size(panelsW, (panelsLoader.item?.implicitHeight ?? 0) + 29 * s), ame: panelsLoader.item ?? null }
     })
@@ -293,6 +296,12 @@ Item {
             return appearanceLoader.item ?? null;
         if (pill.barPillsOpen)
             return barPillsLoader.item ?? null;
+        if (pill.panelsOpen)
+            return panelsLoader.item ?? null;
+        if (pill.altTabOpen)
+            return altTabLoader.item ?? null;
+        if (pill.masterAudioOpen)
+            return masterAudioLoader.item ?? null;
         return null;
     }
 
@@ -409,6 +418,10 @@ Item {
             return;
         }
         if (pill.altTabOpen) {
+            pill.requestSurface("panels");
+            return;
+        }
+        if (pill.masterAudioOpen) {
             pill.requestSurface("panels");
             return;
         }
@@ -1654,6 +1667,21 @@ Item {
             id: panels
             s: pill.s
             open: pill.panelsOpen
+            morphCloseness: pill.morphCloseness
+            onRequestClose: pill.requestClose()
+            onRequestSurface: (name) => pill.requestSurface(name)
+        }
+    }
+
+    Loader {
+        id: masterAudioLoader
+        active: pill.masterAudioOpen || pill.closingGraceSurface === "masteraudio"
+        anchors.fill: parent
+
+        sourceComponent: MasterAudio {
+            id: masterAudio
+            s: pill.s
+            open: pill.masterAudioOpen
             morphCloseness: pill.morphCloseness
             onRequestClose: pill.requestClose()
             onRequestSurface: (name) => pill.requestSurface(name)

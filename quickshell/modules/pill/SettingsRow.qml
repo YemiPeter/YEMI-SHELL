@@ -24,6 +24,10 @@ Item {
     property string name: ""
     property string sub: ""
     property bool last: false
+    // Set false to suppress the bottom hairline even when this is not the last
+    // row — used when a row owns an inline expander (the list below is part of
+    // the same control, so a divider would split it from itself).
+    property bool showHairline: true
     property bool captionOnFocus: false
     default property alias control: controlSlot.data
 
@@ -142,6 +146,6 @@ Item {
         anchors.right: parent.right
         height: 1
         color: Theme.hairSoft
-        visible: !srow.last
+        visible: !srow.last && srow.showHairline
     }
 }
