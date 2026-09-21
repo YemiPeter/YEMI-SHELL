@@ -76,7 +76,7 @@ bind = $mod, P, pseudo                                           # Pseudo
 bind = $mod, J, layoutmsg, togglesplit                           # Toggle split
 
 # Skwd wall toggle
-bind = $mod SHIFT, W, exec, skwd wall toggle                     # Skwd wall toggle
+bind = $mod SHIFT, W, exec, skwd-wall-v2                     # Skwd wall toggle
 
 # Define
 bind = , Menu, exec, ~/.config/scripts/define.sh
