@@ -182,8 +182,16 @@ fi
 # Niri while the QML backdrop changes. hyprctl reload stays Hyprland-only and
 # only for "real" transitions (restore never reloads).
 # ---------------------------------------------------------------------------
-ensure_daemon || true
-awww img "$pic" "${AWWW_ARGS[@]}" || true
+# Paint — every compositor. Engine selection: skwd-helm (v2) is the adopted
+# background owner once installed (v1->v2 migration); awww stays the fallback
+# and pre-migration painter. skwd v2's effects are configured in its own v2
+# config, so the awww transition args above only apply to the awww path.
+if command -v skwd-helm >/dev/null 2>&1; then
+    skwd-helm apply "$pic" || true
+else
+    ensure_daemon || true
+    awww img "$pic" "${AWWW_ARGS[@]}" || true
+fi
 if [ "$COMPOSITOR" = "hyprland" ] && [ "$CMD" != "restore" ]; then
     hyprctl reload >/dev/null 2>&1 || true
 fi
