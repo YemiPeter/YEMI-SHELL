@@ -183,11 +183,14 @@ fi
 # only for "real" transitions (restore never reloads).
 # ---------------------------------------------------------------------------
 # Paint — every compositor. Engine selection: skwd-helm (v2) is the adopted
-# background owner once installed (v1->v2 migration); awww stays the fallback
-# and pre-migration painter. skwd v2's effects are configured in its own v2
-# config, so the awww transition args above only apply to the awww path.
-if command -v skwd-helm >/dev/null 2>&1; then
-    skwd-helm apply "$pic" || true
+# background owner once installed (v1->v2 migration); awww stays the fallback.
+# The helm branch is exit-checked: if the binary exists but dies (e.g. newer
+# GLIBC than the system before an update), we fall through to awww so the
+# screen always repaints and never desyncs from the state file. skwd v2's
+# effects are configured in its own v2 config, so the awww transition args
+# above only apply to the awww path.
+if command -v skwd-helm >/dev/null 2>&1 && skwd-helm apply "$pic"; then
+    :
 else
     ensure_daemon || true
     awww img "$pic" "${AWWW_ARGS[@]}" || true
