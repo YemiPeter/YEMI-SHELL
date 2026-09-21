@@ -58,6 +58,7 @@ PillSurface {
     onFocusIndexChanged: {
         hintShown = false;
         hintDwell.restart();
+        autoApply.restart();
     }
 
     onItemsChanged: if (focusIndex >= itemCount) focusIndex = Math.max(0, itemCount - 1);
@@ -69,12 +70,44 @@ PillSurface {
     }
 
     /**
+     * Scroll-to-set: once the strip comes to rest — focus unchanged and the
+     * glide settled for the full dwell — the centered wallpaper is applied on
+     * its own, no tap needed. Guards keep this to the plain local-strip flow:
+     * search results still need an explicit pick (selecting downloads), the
+     * backdrop selection flow keeps its deliberate tap, and re-applying the
+     * wallpaper already on screen is skipped so opening the pill (which
+     * centers on current) is never itself a trigger.
+     */
+    Timer {
+        id: autoApply
+        interval: 550
+        onTriggered: {
+            if (!root.active || root.searching)
+                return;
+            if (Math.abs(root.pos - root.focusIndex) > 0.01)
+                return;
+            var entry = root.items[root.focusIndex];
+            if (!entry || entry.image !== undefined)
+                return;
+            if (Flags.wallpaperSelectionTarget === "backdrop")
+                return;
+            if (entry.path === Walls.current)
+                return;
+            root.activate();
+        }
+    }
+
+    /**
      * Continuous view position chasing focusIndex. The strip renders from this
      * single value, so any input rate (40Hz key autorepeat, wheel bursts) stays
      * coherent: lag is bounded by the chase time constant, not piled up across
      * per-tile retargeting animations.
      */
     property real pos: 0
+
+    // Any view motion (chase glide included) delays scroll-to-set; the dwell
+    // timer below only fires once both focus and the glide are still.
+    onPosChanged: autoApply.restart()
 
     /**
      * Window anchor for the strip's fixed delegate slots: the wallpaper index
@@ -555,7 +588,7 @@ PillSurface {
         anchors.bottomMargin: 11 * root.s
         visible: root.itemCount > 0 && !root.searching
         opacity: root.hintShown ? 1 : 0
-        text: "tap to set · hold to delete"
+        text: "scroll to set · hold to delete"
         color: Theme.subtle
         font.family: Theme.font
         font.pixelSize: 10 * root.s
