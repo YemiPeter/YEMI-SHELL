@@ -74,9 +74,10 @@ QuickShell is a Qt 6.10 / QML desktop shell for Hyprland and Niri compositors. I
 │   └── Niri.qml                # Niri backend
 ├── scripts/                    # Shell scripts for IPC & utilities
 ├── assets/gifs/                # GIF assets for wallpaper picker
-├── state/                      # Runtime state files
-└── YEMI SHELL DOC/             # Generated documentation
+└── state/                      # Runtime state files
 ```
+
+> Documentation lives at the repo root in `docs/`, not inside `quickshell/`.
 
 ---
 
