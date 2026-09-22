@@ -61,7 +61,7 @@
       "hexScrollStep": 1,
       "customPresets": {
         "C1_slices": {
-          "expandedWidth": 480,
+          "expandedWidth": 800,
           "sliceHeight": 270,
           "sliceWidth": 68,
           "visibleCount": 18,
@@ -69,7 +69,7 @@
           "skewOffset": 20
         },
         "C2_slices": {
-          "expandedWidth": 480,
+          "expandedWidth": 800,
           "sliceHeight": 270,
           "sliceWidth": 68,
           "visibleCount": 18,
@@ -78,7 +78,7 @@
         }
       },
       "roundCorners": true,
-      "expandedWidth": 360,
+      "expandedWidth": 600,
       "sliceHeight": 200,
       "sliceWidth": 52,
       "visibleCount": 20,

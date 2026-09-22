@@ -282,7 +282,7 @@ ShellRoot {
     function applyWallpaper(wallpaper) {
         root.currentWallpaper = wallpaper.path
         root.walApplying = true
- applyWallProc.command = ["bash", "-c", "skwd wall apply '{\"name\":\"'" + wallpaper.name + "'\"}'"]
+ applyWallProc.command = ["skwd-helm", "apply", wallpaper.path]
  applyWallProc.running = true
     }
 
