@@ -194,6 +194,29 @@ Singleton {
         onExited: stateProc.running = true
     }
 
+    // ── skwd-picker return path ──────────────────────────────────────────────
+    // $mod+Shift+W opens skwd's OWN picker, which never touches
+    // set-wallpaper.sh. Without this watcher such a pick repainted the
+    // wallpaper but left the state file and the whole palette stale — skwd
+    // still emits skwd.wall.applied, so skwd-wall-sync.sh consumes that event,
+    // writes the state file and re-runs the single color writer. Idempotent
+    // with the dispatcher: picks that DID go through set-wallpaper.sh produce
+    // the same path, so the sync script sees no change and skips re-theming.
+    Process {
+        id: skwdSyncProc
+        // Hyprland-only for now: that is the compositor this return path was
+        // verified on. Niri keeps its existing backdrop lifecycle untouched.
+        running: Compositor.isHyprland
+        command: ["bash", (Quickshell.env("RICE_HOME") || (Quickshell.env("HOME") + "/.config")) + "/quickshell/scripts/skwd-wall-sync.sh"]
+        onExited: skwdSyncRestart.start()
+    }
+
+    Timer {
+        id: skwdSyncRestart
+        interval: 2000
+        onTriggered: if (!skwdSyncProc.running) skwdSyncProc.running = true
+    }
+
     Component.onCompleted: {
         refresh();
         syncSkwd(QsSingletons.Flags.backdropHideWallpaper, true);
