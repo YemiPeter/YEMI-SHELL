@@ -104,6 +104,8 @@ Singleton {
     property alias wallpaperAnimatedBlurStrength: adapter.wallpaperAnimatedBlurStrength
     property alias wallpaperDim: adapter.wallpaperDim
     property alias wallpaperDynamicDim: adapter.wallpaperDynamicDim
+    property alias wallpaperVideoEngine: adapter.wallpaperVideoEngine
+    property alias wallpaperVideoAutoPause: adapter.wallpaperVideoAutoPause
     property alias mediaCavaWave: adapter.mediaCavaWave
 
     FileView {
@@ -230,6 +232,17 @@ Singleton {
             property int wallpaperAnimatedBlurStrength: 70
             property real wallpaperDim: 0
             property real wallpaperDynamicDim: 0
+            // ── Animated wallpaper engine (mpvpaper) ────────────────────────────
+            // Video (mp4/webm/mkv/avi/mov) and GIF wallpapers are routed through
+            // mpvpaper: mpv hardware-decodes in its own process on a layer-shell
+            // background surface, fully outside quickshell's render loop. This is
+            // dramatically cheaper than QML AnimatedImage (CPU decodes every GIF
+            // frame at full size inside the shell process). OFF falls back to the
+            // QML paths (crossfader for images, AnimatedImage for GIFs).
+            property bool wallpaperVideoEngine: true
+            // Pass mpvpaper's auto-pause: mpv pauses (≈0% CPU) whenever the
+            // wallpaper surface is hidden (fullscreen apps over it, screen off).
+            property bool wallpaperVideoAutoPause: true
             // Full-card cava wave on the media surfaces (pill card + music panel)
             property bool mediaCavaWave: true
         }

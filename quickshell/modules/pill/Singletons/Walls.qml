@@ -10,12 +10,12 @@ import "../../../singletons" as QsSingletons
  * the wallpaper strip opens instantly without shelling out on demand. A
  * refresh first runs the thumbnail script (generating missing 512px previews
  * and pruning ones whose source is gone), then re-lists the directory
- * newest-first and finally re-reads the state file wallpaper.sh maintains, so
- * `current` always names the wallpaper on screen. Thumbnails land before the
- * list so strip delegates never bind to a not-yet-existing file; a refresh
- * arriving while the pipeline runs sets `pending` and replays once the state
- * lands. Applying routes through wallpaper.sh so the picker shares the exact
- * transition, palette and state path with the random keybind.
+ * newest-first and finally re-reads the state file set-wallpaper.sh maintains,
+ * so `current` always names the wallpaper on screen. Thumbnails land before
+ * the list so strip delegates never bind to a not-yet-existing file; a
+ * refresh arriving while the pipeline runs sets `pending` and replays once
+ * the state lands. Applying routes through set-wallpaper.sh so the picker
+ * shares the exact paint, palette and state path with the random keybind.
  *
  * Entries are plain objects: { path, name, mtime, thumb } where path is the
  * absolute source file, mtime its modification time in epoch seconds and
@@ -47,10 +47,10 @@ Singleton {
     }
 
     /**
-     * wallpaper.sh blocks through the whole transition (awww wave, wallust,
-     * reload), easily 1-2s; a pick landing in that window used to be silently
+     * set-wallpaper.sh blocks through the whole paint + color pipeline,
+     * easily 1-2s; a pick landing in that window used to be silently
      * swallowed. Now the newest request is queued and replayed once the
-     * running transition exits, so rapid iteration converges on the last pick.
+     * running paint exits, so rapid iteration converges on the last pick.
      */
     property string queuedApply: ""
     property string lastAppliedPath: ""
@@ -61,17 +61,17 @@ Singleton {
             return;
         }
         root.lastAppliedPath = path;
-        // "Hide main wallpaper": don't push the pick to the external wallpaper
-        // daemon (skwd/wallpaper.sh) — the QuickShell backdrop overlay is the
-        // sole renderer, matching iNiR's backdrop.hideWallpaper semantics.
+        // "Hide main wallpaper": don't push the pick to skwd — the QuickShell
+        // backdrop overlay is the sole renderer, matching iNiR's
+        // backdrop.hideWallpaper semantics.
         // Keep the in-memory current so Backdrop shows the pick, and still run
         // the color pipeline.
-        // Niri-only: no Backdrop on Hyprland, so never skip the real paint (awww) here.
+        // Niri-only: no Backdrop on Hyprland, so never skip the real paint (skwd) here.
         if (QsSingletons.Flags.backdropHideWallpaper && Compositor.isNiri) {
             root.current = path;
             // Still record the pick in the state file: WallpaperState (which
-            // Backdrop actually renders) watches it, and it lets the awww
-            // restore (toggle off / next login) land on the last pick.
+            // Backdrop actually renders) watches it, and it lets the skwd
+            // resume / next-login restore land on the last pick.
             stateWriteProc.wallPath = path;
             stateWriteProc.running = true;
             afterWallProc.wallPath = path;
@@ -108,7 +108,7 @@ Singleton {
 
     Process {
         id: listProc
-        command: ["sh", "-c", "find \"$1\" -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' -o -iname '*.gif' \\) -printf '%T@\\t%p\\n' | sort -rn", "_", root.wpDir]
+        command: ["sh", "-c", "find \"$1\" -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' -o -iname '*.gif' -o -iname '*.mp4' -o -iname '*.webm' -o -iname '*.mkv' -o -iname '*.mov' \\) -printf '%T@\\t%p\\n' | sort -rn", "_", root.wpDir]
         stdout: StdioCollector {
             onStreamFinished: {
                 var lines = this.text.split("\n");
@@ -196,55 +196,55 @@ Singleton {
 
     Component.onCompleted: {
         refresh();
-        syncAwww(QsSingletons.Flags.backdropHideWallpaper);
+        syncSkwd(QsSingletons.Flags.backdropHideWallpaper, true);
     }
 
-    // ── "Hide wallpaper" ↔ awww lifecycle ────────────────────────────────────
-    // Niri: when the setting is ON, the awww background layer is killed so the
-    // QML Backdrop becomes the only wallpaper. When turned OFF (or at startup
-    // with the setting OFF), awww is brought back painting the state file's
-    // pick via the dispatcher's init. Hyprland keeps awww alive regardless —
-    // killing it there would leave a black desktop under the overlay.
-    function syncAwww(hide) {
+    // ── "Hide wallpaper" ↔ skwd lifecycle ────────────────────────────────────
+    // Niri: when the setting is ON, skwd's paint is frozen (skwd-helm pause)
+    // so the QML Backdrop becomes the only renderer; when turned OFF (or at
+    // startup with the setting OFF) it is resumed. Hyprland keeps skwd
+    // painting regardless — pausing it there would leave a frozen desktop
+    // under the shell. (skwd-helm pause/resume replaces the old awww
+    // kill/restore lifecycle; awww was retired.)
+    function syncSkwd(hide, initial) {
         if (!Compositor.isNiri)
             return;
         if (hide) {
-            killProc.running = true;
-        } else if (!restoreProc.running) {
-            restoreProc.running = true;
+            pauseProc.running = true;
+        } else if (initial) {
+            // Startup with hide OFF: skwd repaints its own last wallpaper on
+            // launch, but the state file is the shell's source of truth and
+            // the two can diverge (e.g. picks made while the backdrop owned
+            // the screen). Re-apply the state-file pick via the dispatcher's
+            // "restore" — paint only, no state write, no color pipeline.
+            syncProc.running = true;
+        } else {
+            resumeProc.running = true;
         }
     }
 
     Connections {
         target: QsSingletons.Flags
         function onBackdropHideWallpaperChanged() {
-            root.syncAwww(QsSingletons.Flags.backdropHideWallpaper);
+            root.syncSkwd(QsSingletons.Flags.backdropHideWallpaper, false);
         }
     }
 
     Process {
-        id: killProc
-        // Kill the awww background layer so the QML Backdrop becomes the sole
-        // renderer. The old freeze-to-memory write (quickshell-wallpaper-awww)
-        // was removed: restoreProc now reads the live state file, so the frozen
-        // value had no remaining consumer and only ever went stale (it captured
-        // what awww showed at hide-time, not the current on-screen pick).
-        command: ["bash", "-c", "pkill -x awww-daemon || true"]
+        id: pauseProc
+        command: ["skwd-helm", "pause"]
     }
 
     Process {
-        id: restoreProc
-        // Bring awww back in sync with the real on-screen pick. Reads the live
-        // state file (quickshell-wallpaper) — NOT a frozen awww memory file —
-        // because picks made while the backdrop owned the screen never reach
-        // any awww-owned state; restoring from a stale frozen path reverted
-        // awww to an old image on every startup even though Backdrop (state
-        // file) was correct. Falls back to set-wallpaper.sh init when the
+        id: resumeProc
+        command: ["skwd-helm", "resume"]
+    }
+
+    Process {
+        id: syncProc
+        // Startup sync (Niri, hide OFF): bring skwd onto the state file's
+        // pick via set-wallpaper.sh restore. Falls back to init when the
         // state file is empty or names a missing file.
-        // Uses "restore" — not "set" — so set-wallpaper.sh only does the paint
-        // step (ensure_daemon + awww img) and intentionally SKIPS writing to
-        // the real state file, skipping after-wall.sh, and skipping hyprctl
-        // reload.
         command: ["bash", "-c",
                   "P=$(cat \"$1\" 2>/dev/null); " +
                   "if [ -n \"$P\" ] && [ -f \"$P\" ]; then " +

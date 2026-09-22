@@ -33,9 +33,9 @@ spawn-at-startup "bash" "-c" "quickshell -p $HOME/.config/quickshell/shell.qml"
 
 // ── Wallpaper (YemiShell) ────────────────────────────────────────────────────
 // Intentionally NOT painted here. The shell is the sole wallpaper painter
-// (iNiR method): Walls.qml's Component.onCompleted runs syncAwww() on startup,
-// which either restores awww from the state file (hide OFF) or kills the awww
-// daemon so the QML Backdrop's mood-gradient is the only renderer (hide ON).
-// A spawn-at-startup `set-wallpaper.sh niri init` used to sit here, but it
-// painted unconditionally — ignoring backdropHideWallpaper — so every login
-// flashed the real wallpaper before the shell could hide it.
+// (iNiR method): Walls.qml's Component.onCompleted runs syncSkwd() on startup,
+// which either re-applies the state-file pick through skwd via the dispatcher
+// (hide OFF) or pauses skwd so the QML Backdrop's mood-gradient is the only
+// renderer (hide ON). A spawn-at-startup `set-wallpaper.sh niri init` used to
+// sit here, but it painted unconditionally — ignoring backdropHideWallpaper —
+// so every login flashed the real wallpaper before the shell could hide it.

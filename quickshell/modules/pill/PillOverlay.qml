@@ -126,6 +126,9 @@ Item {
 
             // Hyprland: query hyprctl activeworkspace -j for live fullscreen state
             // hyprFsProc is Loader-gated (Hyprland-only); null when inactive.
+            // NOTE: the loader instantiates asynchronously, so `.item` is null
+            // for the first few frames after startup — the caller is a Timer
+            // now, so a miss here simply retries on the next tick.
 
             var proc = hyprFsLoader.item
 
@@ -209,17 +212,35 @@ Item {
                   var isFullscreen = !!(ws && ws.hasfullscreen);
                   overlay.monFullscreen = isFullscreen;
                 } catch (e) {
+                  // Unparseable output (truncated read, hyprctl hiccup): fail
+                  // OPEN. A stuck-true flag hides every pill surface with no
+                  // event left to clear it, which is far worse than briefly
+                  // showing the pill over a fullscreen window.
+                  overlay.monFullscreen = false;
                 }
               } else {
+                // Same reasoning as the parse failure above: never leave the
+                // pill stranded in the hidden state because a query failed.
+                overlay.monFullscreen = false;
               }
             }
           }
         }
           
-          // Poll fullscreen state every 500ms (Niri has no event-driven IPC for this)
+          // Poll fullscreen state. Niri has no event-driven IPC for this, and
+          // Hyprland needs a safety net too: Component.onCompleted fires
+          // before the gated Loader has produced its item, so the one-shot
+          // check silently no-ops. Without a retry, `monFullscreen` keeps
+          // whatever value it latched (a `fullscreen` raw event arriving
+          // during shell startup was enough to strand it at true), and every
+          // pill surface is then hidden by the fullscreen-slide transform
+          // with no event left to clear it.
+          // Hyprland polls slower than Niri: it gets event-driven updates via
+          // the Compositor.rawEvent Connections below, so the timer only has
+          // to cover the startup race and missed/coalesced events.
         Timer {
-            interval: 500
-            running: Compositor.runningCompositor === "niri"
+            interval: Compositor.runningCompositor === "niri" ? 500 : 2000
+            running: Compositor.runningCompositor === "niri" || Compositor.runningCompositor === "hyprland"
             repeat: true
             triggeredOnStart: true
             onTriggered: overlay.updateFullscreen()

@@ -11,8 +11,17 @@
   <policy domain="coder" rights="none" pattern="*"/>
   <policy domain="coder" rights="read | write" pattern="{PNG,JPEG,JPG,GIF,WEBP,BMP,TIFF}"/>
   <policy domain="path" rights="none" pattern="@*"/>
-  <policy domain="resource" name="memory" value="256MiB"/>
-  <policy domain="resource" name="map" value="512MiB"/>
+  <!--
+    Pixel-cache budget: large wallpaper sources (2048x1080+, animated WebP/GIF
+    with dozens of frames) need ~9MiB per frame. The old 256MiB/512MiB caps
+    made `magick "${src}[0]"` fail with "cache resources exhausted" on any
+    source above ~1080p, so every wallpaper thumbnail silently failed
+    (stderr was discarded by the caller). 2GiB memory / 4GiB map covers a
+    single decoded frame comfortably while still bounding a hostile file;
+    callers must select frame [0] to avoid decoding full animations.
+  -->
+  <policy domain="resource" name="memory" value="2GiB"/>
+  <policy domain="resource" name="map" value="4GiB"/>
   <policy domain="resource" name="disk" value="1GiB"/>
   <policy domain="resource" name="time" value="30"/>
 </policymap>

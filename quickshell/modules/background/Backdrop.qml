@@ -40,12 +40,30 @@ PanelWindow {
     readonly property string effectiveWallpaper: (!QsSingletons.Flags.backdropUseMainWallpaper && QsSingletons.Flags.backdropWallpaperPath !== "") ? QsSingletons.Flags.backdropWallpaperPath : QsSingletons.WallpaperState.current
     readonly property string _wpPath: root.effectiveWallpaper || ""
     readonly property bool isGif: root._wpPath.toLowerCase().endsWith(".gif")
+    readonly property bool isVideo: {
+        const lower = root._wpPath.toLowerCase();
+        return lower.endsWith(".mp4") || lower.endsWith(".webm") || lower.endsWith(".mkv")
+            || lower.endsWith(".avi") || lower.endsWith(".mov");
+    }
+    readonly property bool isAnimated: root.isGif || root.isVideo
+
+    // When the mpvpaper engine flag is on, animated picks (video AND gif) are
+    // owned by mpvpaper: mpv hardware-decodes in its own process on a
+    // layer-shell background surface, outside quickshell's render loop. The
+    // QML layers below hide entirely in that case — nothing here can render a
+    // video, and QML's AnimatedImage was the GIF lag source (CPU frame decode
+    // inside the shell process). With the engine off, GIFs fall back to the
+    // QML AnimatedImage path below; videos have no QML fallback.
+    readonly property bool mpvpaperOwns: QsSingletons.Flags.wallpaperVideoEngine && root.isAnimated
 
     // Whether the QML-rendered image is actually shown.
-    // Niri: QML *is* the wallpaper, always show it.
+    // Niri: QML *is* the wallpaper, always show it — except animated picks
+    // owned by mpvpaper, which render on their own layer surface.
     // Hyprland: awww paints the real wallpaper; the QML backdrop is Niri-only
     // and does not render here, so the image layer is never shown.
-    readonly property bool showImageLayer: Compositor.isNiri && !QsSingletons.Flags.backdropHideWallpaper
+    readonly property bool showImageLayer: Compositor.isNiri
+                                           && !QsSingletons.Flags.backdropHideWallpaper
+                                           && !root.mpvpaperOwns
 
     // Niri-only backdrop layer. On Hyprland, awww owns the wallpaper and the
     // QML overlay must not run (no parallax, no crossfader, no effects).
@@ -85,7 +103,7 @@ PanelWindow {
             id: gifWallpaper
             anchors.fill: parent
             visible: root.showImageLayer && root.isGif
-            playing: root.isGif && QsSingletons.Flags.backdropEnableAnimation
+            playing: root.showImageLayer && root.isGif && QsSingletons.Flags.backdropEnableAnimation
             source: root._wpPath !== "" ? (root._wpPath.startsWith("file://") ? root._wpPath : "file://" + root._wpPath) : ""
             fillMode: Image.PreserveAspectCrop
             asynchronous: true
