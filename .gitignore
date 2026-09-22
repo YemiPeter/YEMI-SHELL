@@ -2,6 +2,7 @@
 *
 
 # ── Whitelist personal config dirs ───────────────────────────────────────────
+!docs/
 !quickshell/
 !niri/
 !hypr/
@@ -26,6 +27,7 @@
 !install.sh
 
 # ── Recurse into whitelisted dirs (git requires this) ────────────────────────
+!docs/**
 !quickshell/**
 !niri/**
 !hypr/**
@@ -52,7 +54,6 @@ quickshell/.kiro/
 quickshell/.codex
 quickshell/.roomodes
 quickshell/PLANS/
-quickshell/YEMI\ SHELL\ DOC/
 quickshell/*.broken
 quickshell/*.bak
 quickshell/watch_*
