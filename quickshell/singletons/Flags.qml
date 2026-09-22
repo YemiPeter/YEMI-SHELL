@@ -85,15 +85,7 @@ Singleton {
     property alias wallpaperHideWhenFullscreen: adapter.wallpaperHideWhenFullscreen
     property alias wallpaperMultiMonitorEnable: adapter.wallpaperMultiMonitorEnable
     property alias wallpaperSelectionTarget: adapter.wallpaperSelectionTarget
-    property alias autoWallpaperEnable: adapter.autoWallpaperEnable
-    property alias autoWallpaperInterval: adapter.autoWallpaperInterval
     property alias wallpapersDirectory: adapter.wallpapersDirectory
-    property alias transitionEnable: adapter.transitionEnable
-    property alias transitionType: adapter.transitionType
-    property alias transitionDirection: adapter.transitionDirection
-    property alias transitionDuration: adapter.transitionDuration
-    property alias transitionFps: adapter.transitionFps
-    property alias transitionStep: adapter.transitionStep
     property alias parallaxEnable: adapter.parallaxEnable
     property alias parallaxZoom: adapter.parallaxZoom
     property alias parallaxStrength: adapter.parallaxStrength
@@ -213,15 +205,7 @@ Singleton {
     property bool wallpaperHideWhenFullscreen: false
     property bool wallpaperMultiMonitorEnable: false
     property string wallpaperSelectionTarget: ""
-    property bool autoWallpaperEnable: false
-    property int autoWallpaperInterval: 30
     property string wallpapersDirectory: ""
-    property bool transitionEnable: true
-    property string transitionType: "fade"
-    property string transitionDirection: "right"
-    property int transitionDuration: 800
-    property int transitionFps: 60
-    property int transitionStep: 90
             property bool parallaxEnable: true
             property real parallaxZoom: 1.08
             property real parallaxStrength: 0.5

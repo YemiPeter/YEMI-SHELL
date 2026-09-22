@@ -20,10 +20,8 @@ import "../../singletons" as QsSingletons
  * gradient built from the Dyn palette (the Dominance Engine's colors carry
  * hardcoded fallbacks, so they are valid even with no wallpaper to sample).
  * Animated wallpapers need no handling here at all: Glass never samples
- * wallpaper pixels (post-5d64483 tint-only architecture), and GIF playback
- * lives entirely in modules/background/Backdrop.qml's AnimatedImage on Niri;
- * awww deliberately refuses GIFs on
- * Hyprland — see AwwwBackend.supportsMainWallpaper).
+ * wallpaper pixels (post-5d64483 tint-only architecture), and playback is
+ * owned by skwd-wall v2 on every compositor, not by QML.
  *
  * Historical note (D1 / 8819a34 / revert): this file used to self-blur via a
  * QtQuick.Effects.MultiEffect sourced from a re-loaded copy of the wallpaper

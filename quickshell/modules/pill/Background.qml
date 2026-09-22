@@ -451,77 +451,6 @@ SettingsSurface {
             }
 
             Group {
-                id: transitionsGroup
-                title: "Wallpaper transitions"
-                collapsed: false
-
-                readonly property var transitionTypes: ["none", "simple", "fade", "left", "right", "top", "bottom", "wipe", "wave", "grow", "center", "outer"]
-                readonly property var transitionDirs: ["left", "right", "top", "bottom"]
-                readonly property int transitionTypeIndex: Math.max(0, transitionTypes.indexOf(Flags.transitionType))
-                readonly property int transitionDirIndex: Math.max(0, transitionDirs.indexOf(Flags.transitionDirection))
-                readonly property bool isDirectional: ["wipe", "wave", "left", "right", "top", "bottom"].indexOf(Flags.transitionType) >= 0
-
-                FieldRow {
-                    label: "Enable transitions"
-                    caption: "Animate wallpaper changes"
-                    LinkToggle {
-                        s: root.s
-                        on: Flags.transitionEnable
-                        onToggled: Flags.transitionEnable = !Flags.transitionEnable
-                    }
-                }
-
-                FieldRow {
-                    label: "Transition style"
-                    caption: transitionsGroup.transitionTypes[transitionsGroup.transitionTypeIndex]
-                    visible: Flags.transitionEnable
-                    height: Flags.transitionEnable ? 34 * root.s : 0
-                    Stepper {
-                        style: "arrow"
-                        value: transitionsGroup.transitionTypeIndex
-                        display: transitionsGroup.transitionTypes[transitionsGroup.transitionTypeIndex]
-                        onStepped: (dir) => {
-                            var idx = transitionsGroup.transitionTypeIndex
-                            var next = Math.max(0, Math.min(transitionsGroup.transitionTypes.length - 1, idx + dir))
-                            Flags.transitionType = transitionsGroup.transitionTypes[next]
-                        }
-                    }
-                }
-
-                FieldRow {
-                    label: "Transition direction"
-                    caption: Flags.transitionDirection
-                    visible: Flags.transitionEnable && transitionsGroup.isDirectional
-                    height: (Flags.transitionEnable && transitionsGroup.isDirectional) ? 34 * root.s : 0
-                    Stepper {
-                        style: "arrow"
-                        value: transitionsGroup.transitionDirIndex
-                        display: transitionsGroup.transitionDirs[transitionsGroup.transitionDirIndex]
-                        onStepped: (dir) => {
-                            var next = Math.max(0, Math.min(transitionsGroup.transitionDirs.length - 1, transitionsGroup.transitionDirIndex + dir))
-                            Flags.transitionDirection = transitionsGroup.transitionDirs[next]
-                        }
-                    }
-                }
-
-                FieldRow {
-                    label: "Transition duration"
-                    caption: "How long the transition takes (ms)"
-                    visible: Flags.transitionEnable
-                    height: Flags.transitionEnable ? 34 * root.s : 0
-                    Stepper {
-                        value: Flags.transitionDuration
-                        display: Flags.transitionDuration + " ms"
-                        onStepped: (dir) => {
-                            var next = Math.max(200, Math.min(3000, Flags.transitionDuration + dir * 100))
-                            if (next === Flags.transitionDuration) return
-                            Flags.transitionDuration = next
-                        }
-                    }
-                }
-            }
-
-            Group {
                 title: "Wallpapers folder"
                 collapsed: false
 
@@ -546,37 +475,6 @@ SettingsSurface {
                             var val = text.trim()
                             Flags.wallpapersDirectory = val
                             QsConfig.Config.setNestedValue("wallpapers.directory", val)
-                        }
-                    }
-                }
-            }
-
-            Group {
-                title: "Shuffle wallpapers"
-                collapsed: false
-
-                FieldRow {
-                    label: "Shuffle automatically"
-                    caption: "Pick a random wallpaper from the folder periodically"
-                    LinkToggle {
-                        s: root.s
-                        on: Flags.autoWallpaperEnable
-                        onToggled: Flags.autoWallpaperEnable = !Flags.autoWallpaperEnable
-                    }
-                }
-
-                FieldRow {
-                    label: "Change every"
-                    caption: "How often to pick a new wallpaper"
-                    visible: Flags.autoWallpaperEnable
-                    height: Flags.autoWallpaperEnable ? 34 * root.s : 0
-                    Stepper {
-                        value: Flags.autoWallpaperInterval
-                        display: Flags.autoWallpaperInterval + " min"
-                        onStepped: (dir) => {
-                            var next = Math.max(1, Math.min(1440, Flags.autoWallpaperInterval + dir * 5))
-                            if (next === Flags.autoWallpaperInterval) return
-                            Flags.autoWallpaperInterval = next
                         }
                     }
                 }

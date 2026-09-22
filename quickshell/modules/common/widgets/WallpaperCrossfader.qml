@@ -7,18 +7,21 @@ import "../../../singletons" as QsSingletons
 
 /**
  * Wallpaper crossfader: two-slot QML-based transition engine for backdrop
- * wallpaper changes. Ported from iNiR's WallpaperCrossfader and adapted to
- * yemi shell's Flags singleton and awww transition type vocabulary.
+ * wallpaper changes.
+ *
+ * NOTE: this is the BACKDROP's transition engine only. skwd-wall v2 owns the
+ * actual wallpaper paint and its own crossfade, so nothing here drives a
+ * real wallpaper change — the flags that used to configure it live in the
+ * fragment below and are read nowhere else.
  *
  * Public API:
  *   source         — the new wallpaper path; setting it triggers a transition
  *   fillMode       — Image fill mode for both slots (default PreserveAspectCrop)
  *   sourceSize     — decoded size cap for both slots
  *
- * Reads from Flags (set via the pill's "Wallpaper transitions" group):
+ * Reads (legacy, see below):
  *   transitionEnable     — master switch
- *   transitionType       — awww type: none/simple/fade/left/right/top/bottom/
- *                          wipe/wave/grow/center/outer
+ *   transitionType       — awww type vocabulary
  *   transitionDirection  — angle for wipe/wave: left/right/top/bottom
  *   transitionDuration   — duration in ms (200-3000, default 800)
  *
@@ -37,12 +40,19 @@ Item {
     property int fillMode: Image.PreserveAspectCrop
     property size sourceSize
 
-    // ── Config from Flags (single-writer is flags.json) ──────────────────
-    property int transitionBaseDuration: QsSingletons.Flags.transitionDuration
-    property int transitionDuration: QsSingletons.Flags.transitionDuration
-    property string transitionType: QsSingletons.Flags.transitionType
-    property string transitionDirection: QsSingletons.Flags.transitionDirection
-    property bool enableTransitions: QsSingletons.Flags.transitionEnable
+    // ── Legacy transition config (inert) ─────────────────────────────────
+    // These read the pill's old "Wallpaper transitions" keys, which were
+    // removed from the UI along with the shuffle group. They are awww-era
+    // leftovers: skwd-wall v2 owns wallpaper paint AND its own crossfade, so
+    // nothing in this component reaches the real wallpaper layer anymore.
+    // Kept as literals rather than dropped so `transitionType` /
+    // `transitionDuration` stay valid inputs to _normalizedTransitionType()
+    // below; do not re-expose these as a settings group.
+    property int transitionBaseDuration: 800
+    property int transitionDuration: 800
+    property string transitionType: "fade"
+    property string transitionDirection: "right"
+    property bool enableTransitions: true
     readonly property list<real> _defaultBezier: [0.54, 0.0, 0.34, 0.99]
     readonly property list<real> transitionBezierCurve: [_defaultBezier[0], _defaultBezier[1], _defaultBezier[2], _defaultBezier[3], 1, 1]
     readonly property list<real> transitionMoveCurve: _positionCurveFor(_effectiveType)
