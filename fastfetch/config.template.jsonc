@@ -1,3 +1,9 @@
+//   _____ _____ _____ _____ _____ _____ _____ _____ _____ 
+//  |   __|  _  |   __|_   _|   __|   __|_   _|     |  |  |
+//  |   __|     |__   | | | |   __|   __| | | |   --|     |
+//  |__|  |__|__|_____| |_| |__|  |_____| |_| |_____|__|__|  HYPRLAND
+//
+//  by YEMI 
 {
   "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/master/doc/json_schema.json",
   "logo": {
@@ -30,100 +36,94 @@
     {
       "type": "os",
       "key": " ",
-      "keyColor": "{{primary}}"
+      "keyColor": "{{key_head}}"
     },
     {
       "type": "kernel",
       "key": " ",
-      "keyColor": "{{primary}}"
+      "keyColor": "{{key_head}}"
     },
     {
       "type": "packages",
       "format": "{} (pacman)",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "white"
     },
     {
       "type": "shell",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "white"
     },
     {
       "type": "terminal",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "white"
     },
     {
       "type": "wm",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "white"
     },
     {
       "type": "display",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "white"
     },
     {
       "type": "cpu",
       "format": "{1}",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "white"
     },
     {
       "type": "gpu",
       "format": "{2}",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "white"
     },
     {
       "type": "gpu",
       "format": "{3}",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "white"
     },
     {
       "type": "memory",
       "key": "󰍛 ",
-      "keyColor": "{{bright}}"
+      "keyColor": "white"
     },
     {
       "type": "swap",
       "key": "󰾴 ",
-      "keyColor": "{{bright}}"
+      "keyColor": "white"
     },
     {
       "type": "disk",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "white"
     },
     {
       "type": "uptime",
       "key": " ",
-      "keyColor": "{{primary}}"
+      "keyColor": "white"
     },
     {
       "type": "command",
+      "text": "birth_install=$(stat -c %W /); current=$(date +%s); time_progression=$((current - birth_install)); days_difference=$((time_progression / 86400)); echo $days_difference days",
       "key": "󱦟 ",
-      "keyColor": "{{primary}}",
-      "text": "birth_install=$(stat -c %W /); current=$(date +%s); time_progression=$((current - birth_install)); days=$((time_progression / 86400)); echo \"${days} days\""
-    },
-    {
-      "type": "command",
-      "key": "󰃶 ",
-      "keyColor": "{{primary}}",
-      "text": "uptime -p | sed 's/^up //'"
+      "keyColor": "white"
     },
     {
       "type": "cpu",
       "format": "{6}",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "{{key_tail}}"
     },
     {
       "type": "custom",
-      "key": "󱚀 ",
-      "keyColor": "{{primary}}",
-      "shell": "echo '󰣐󰣐󰣐'"
+      "shell": "echo '󰣐󰣐󰣐'",
+      "key": " ",
+      "keyColor": "{{key_tail}}"
     }
   ]
 }

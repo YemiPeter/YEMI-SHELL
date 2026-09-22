@@ -13,24 +13,35 @@
       "top": 3,
       "left": 2,
       "right": 2
+    },
+    "color": {
+      "1": "#76c6bc",
+      "2": "#3c5d59",
+      "3": "#c2d6d4",
+      "4": "#e8e6e3",
+      "5": "#2f261a",
+      "6": "#372c1d",
+      "7": "#3c3120",
+      "8": "#e8e6e3",
+      "9": "#c0bbb5"
     }
   },
   "display": {
     "separator": " ",
     "color": {
-      "separator": "blue"
+      "separator": "#76c6bc"
     }
   },
   "modules": [
     {
       "type": "os",
       "key": " ",
-      "keyColor": "cyan"
+      "keyColor": "#76c6bc"
     },
     {
       "type": "kernel",
       "key": " ",
-      "keyColor": "cyan"
+      "keyColor": "#76c6bc"
     },
     {
       "type": "packages",
@@ -94,22 +105,25 @@
     {
       "type": "uptime",
       "key": " ",
-      "keyColor": "cyan"
+      "keyColor": "white"
     },
     {
       "type": "command",
+      "text": "birth_install=$(stat -c %W /); current=$(date +%s); time_progression=$((current - birth_install)); days_difference=$((time_progression / 86400)); echo $days_difference days",
       "key": "󱦟 ",
-      "keyColor": "cyan",
-      "text": "birth_install=$(stat -c %W /); current=$(date +%s); time_progression=$((current - birth_install)); days_difference=$((time_progression / 86400)); echo $days_difference days"
+      "keyColor": "white"
     },
-    "break",
     {
-      "key": " palette",
-      "type": "colors",
-      "symbol": "circle",
-      "keyColor": "cyan"
+      "type": "cpu",
+      "format": "{6}",
+      "key": " ",
+      "keyColor": "#de9d5e"
     },
-    "break",
-    "break"
+    {
+      "type": "custom",
+      "shell": "echo '󰣐󰣐󰣐'",
+      "key": " ",
+      "keyColor": "#de9d5e"
+    }
   ]
 }

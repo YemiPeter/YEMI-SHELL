@@ -22,6 +22,9 @@ PLACEHOLDERS = {
     "tertiary_container": "surfaceHigh",
     "bright": "content",
     "cream": "contentMuted",
+    # trailing key group (header/footer accents)
+    "key_head": "accent",        # first keys  - teal
+    "key_tail": "attention",     # last keys   - warm amber
 }
 
 USAGE_USAGE = [k for k in PLACEHOLDERS.values()]
