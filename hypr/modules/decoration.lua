@@ -1,14 +1,14 @@
 # Shell by Yemi — Live decoration settings (edited via pill Look surface)
 
 general {
-    gaps_in = 8
+    gaps_in = 10
     gaps_out = 11
     layout = dwindle
     border_size = 0
 }
 
 decoration {
-    rounding = 14
+    rounding = 13
     active_opacity = 1.00
     inactive_opacity = 1.00
     dim_inactive = true
@@ -25,7 +25,7 @@ decoration {
     blur {
         enabled = true
         size = 4
-        passes = 3
+        passes = 4
         ignore_opacity = true
         new_optimizations = true
         special = true

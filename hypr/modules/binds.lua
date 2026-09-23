@@ -1,129 +1,159 @@
-# Shell by Yemi — keybinds, edited via pill Keybinds surface
-#
-# ─────────────────────────────────────────────────────────────────────────────
-# SECTION 1 — APPS, WORKSPACES & ACTIONS
-# ─────────────────────────────────────────────────────────────────────────────
+-- ═════════════════════════════════════════════════════════════════════════════
+-- Keybinds + mouse binds  (edited via the pill's Keybinds surface)
+-- ═════════════════════════════════════════════════════════════════════════════
+-- Converted from hyprlang `bind = MODS, KEY, DISPATCHER, ARGS`.
+-- In Lua:  hl.bind("<mods> + <key>", <dispatcher>, <flags?>)
+--
+-- Dispatchers come from the hl.dsp.* table. `exec` becomes hl.dsp.exec_cmd(),
+-- window/workspace actions become hl.dsp.window.* / hl.dsp.focus({ workspace })
+-- and so on. Flags (locked/repeating/mouse) are the trailing table.
 
-# Launcher
-bind = $mod, space, exec, qs ipc call pill launcher eDP-1              # Luncher 
+local mod  = "SUPER"
+local modS = "SUPER + SHIFT"
+local modC = "SUPER + CTRL"
+local alt  = "ALT"
+local altS = "ALT + SHIFT"
 
-# Terminals
-bind = $mod, Return, exec, kitty                                       # Terminal
-bind = $mod, T, exec, ghostty                                          # Terminal
-bind = $mod SHIFT, RETURN, exec, [float; size 700 400] kitty           # Floating Terminal
+-- Program shorthands, so the binds read like the old config.
+local terminal       = "kitty"
+local terminalAlt    = "ghostty"
+local fileManagerCmd = "~/.config/hypr/scripts/file-manager.sh"
 
-# File manager
-bind = $mod, E, exec, ~/.config/hypr/scripts/file-manager.sh           # File Manager (dolphin > thunar >  nautilus)
+-- ═════════════════════════════════════════════════════════════════════════════
+-- SECTION 1 — APPS, WORKSPACES & ACTIONS
+-- ═════════════════════════════════════════════════════════════════════════════
 
-# Close window
-bind = $mod, Q, killactive                                             # Close window
+-- Launcher
+hl.bind(mod .. " + space", hl.dsp.exec_cmd("qs ipc call pill launcher eDP-1"))
 
-# Wallpaper
-bind = $mod, W, exec, qs ipc call wallpaper toggle eDP-1               # Wallpaper settings
+-- Terminals
+hl.bind(mod .. " + Return", hl.dsp.exec_cmd(terminal))
+hl.bind(mod .. " + T",      hl.dsp.exec_cmd(terminalAlt))
+-- Floating terminal: hyprlang's `[float; size 700 400]` exec rule maps to
+-- window-rule-ish flags on the spawned window, expressed here as a shell run.
+hl.bind(modS .. " + Return",
+        hl.dsp.exec_cmd("hyprctl dispatch exec '[float; size 700 400] " .. terminal .. "'"))
 
-# Lock screen
-bind = $mod, X, exec, ~/.config/hypr/scripts/lock.sh                   # Lock screen
+-- File manager (dolphin > thunar > nautilus)
+hl.bind(mod .. " + E", hl.dsp.exec_cmd(fileManagerCmd))
 
-# Music
-bind = $mod, M, exec, qs ipc call music toggle                         # Music player
+-- Close window
+hl.bind(mod .. " + Q", hl.dsp.window.close())
 
-# Clipboard
-bind = $mod, C, exec, qs ipc call pill clipboard eDP-1                 # Clipboard history
+-- Wallpaper settings
+hl.bind(mod .. " + W", hl.dsp.exec_cmd("qs ipc call wallpaper toggle eDP-1"))
 
-# Region screenshot (was togglespecialworkspace)
-bind = $mod, S, exec, bash -c 'mkdir -p $HOME/Pictures/Screenshots && grim -g "$(slurp)" $HOME/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png && notify-send "Screenshot Saved" "Area captured" -i camera-photo'
+-- Lock screen
+hl.bind(mod .. " + X", hl.dsp.exec_cmd("~/.config/hypr/scripts/lock.sh"))
 
-# Full screenshot
-bind = $mod SHIFT, S, exec, bash -c 'mkdir -p $HOME/Pictures/Screenshots && grim $HOME/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png && notify-send "Screenshot Saved" "Full screen captured" -i camera-photo'
+-- Music player
+hl.bind(mod .. " + M", hl.dsp.exec_cmd("qs ipc call music toggle"))
 
-# Region screenshot (alternate key)
-bind = $mod CTRL, S, exec, bash -c 'mkdir -p $HOME/Pictures/Screenshots && grim -g "$(slurp)" $HOME/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png && notify-send "Screenshot Saved" "Area captured" -i camera-photo'
+-- Clipboard history
+hl.bind(mod .. " + C", hl.dsp.exec_cmd("qs ipc call pill clipboard eDP-1"))
 
-# Screen recording
-bind = $mod, R, exec, gpu-screen-recorder -w screen -f 30 -a default_output -o ~/screen-recordings/$(date +%Y-%m-%d_%H-%M-%S).mp4 & notify-send "Recording Started"
-bind = $mod SHIFT, R, exec, killall -SIGINT gpu-screen-recorder && notify-send "Recording Stopped"
+-- Screenshots. These are shell pipelines/command substitution, so they run via
+-- bash -c rather than hl.exec_cmd's argv form.
+local screenshotArea =
+    "bash -c 'mkdir -p $HOME/Pictures/Screenshots && " ..
+    "grim -g \"$(slurp)\" $HOME/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png && " ..
+    "notify-send \"Screenshot Saved\" \"Area captured\" -i camera-photo'"
+local screenshotFull =
+    "bash -c 'mkdir -p $HOME/Pictures/Screenshots && " ..
+    "grim $HOME/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png && " ..
+    "notify-send \"Screenshot Saved\" \"Full screen captured\" -i camera-photo'"
 
-# Workspace navigation
-bind = $mod, 1, workspace, 1                                     # Workspace 1
-bind = $mod, 2, workspace, 2                                     # Workspace 2
-bind = $mod, 3, workspace, 3                                     # Workspace 3
-bind = $mod, 4, workspace, 4                                     # Workspace 4
-bind = $mod, 5, workspace, 5                                     # Workspace 5
-bind = $mod, 6, workspace, 6                                     # Workspace 6
-bind = $mod, 7, workspace, 7                                     # Workspace 7
-bind = $mod, 8, workspace, 8                                     # Workspace 8
-bind = $mod, 9, workspace, 9                                     # Workspace 9
-bind = $mod, mouse_down, workspace, e+1                          # Next workspace
-bind = $mod, mouse_up, workspace, e-1                            # Previous workspace
+hl.bind(mod .. " + S",  hl.dsp.exec_cmd(screenshotArea))
+hl.bind(modS .. " + S", hl.dsp.exec_cmd(screenshotFull))
+hl.bind(modC .. " + S", hl.dsp.exec_cmd(screenshotArea))
 
-# Move to workspace
-bind = $mod SHIFT, 1, movetoworkspace, 1                         # Move to workspace 1
-bind = $mod SHIFT, 2, movetoworkspace, 2                         # Move to workspace 2
-bind = $mod SHIFT, 3, movetoworkspace, 3                         # Move to workspace 3
-bind = $mod SHIFT, 4, movetoworkspace, 4                         # Move to workspace 4
-bind = $mod SHIFT, 5, movetoworkspace, 5                         # Move to workspace 5
-bind = $mod SHIFT, 6, movetoworkspace, 6                         # Move to workspace 6
-bind = $mod SHIFT, 7, movetoworkspace, 7                         # Move to workspace 7
-bind = $mod SHIFT, 8, movetoworkspace, 8                         # Move to workspace 8
-bind = $mod SHIFT, 9, movetoworkspace, 9                         # Move to workspace 9
+-- Screen recording. NOTE the original hyprlang lines were `exec, CMD & CMD2`
+-- with no shell wrapper, so `&`/`&&` went through Hyprland's own exec parsing
+-- (it splits on pipes/&&/& but not on $(), so the $(date …) stayed literal).
+-- Wrapped in bash -c here so $() expands and the background/&& operators are
+-- unambiguous — strictly an improvement over the old behaviour.
+hl.bind(mod .. " + R", hl.dsp.exec_cmd(
+    "bash -c 'gpu-screen-recorder -w screen -f 30 -a default_output " ..
+    "-o ~/screen-recordings/$(date +%Y-%m-%d_%H-%M-%S).mp4 & notify-send \"Recording Started\"'"))
+hl.bind(modS .. " + R", hl.dsp.exec_cmd(
+    "bash -c 'killall -SIGINT gpu-screen-recorder && notify-send \"Recording Stopped\"'"))
 
-# ⚠️ ORPHANED — special workspace concept removed (togglespecialworkspace deleted).
-#     No way to return from special workspace. Awaiting rebind/delete decision.
-bind = $mod SHIFT, S, movetoworkspace, special                   # Move to special workspace (DEAD)
 
-# Layout
-bind = $mod, P, pseudo                                           # Pseudo
-bind = $mod, J, layoutmsg, togglesplit                           # Toggle split
+-- ── Workspace navigation + move ──────────────────────────────────────────────
+-- Generated in a loop instead of 18 hand-written lines.
+for i = 1, 9 do
+    hl.bind(mod .. " + " .. i,  hl.dsp.focus({ workspace = i }))
+    hl.bind(modS .. " + " .. i, hl.dsp.window.move({ workspace = i }))
+end
+hl.bind(mod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
+hl.bind(mod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
 
-# Skwd wall toggle
-bind = $mod SHIFT, W, exec, skwd-wall-v2                     # Skwd wall v2
+-- ⚠️ ORPHANED — the special-workspace concept was removed (togglespecialworkspace
+--    was deleted), so this move has no way back. Kept inert pending a decision.
+-- hl.bind(modS .. " + S", hl.dsp.window.move({ workspace = "special" }))
 
-# Define
-bind = , Menu, exec, ~/.config/scripts/define.sh
+-- Layout. `hl.dsp.layout(...)` covers layout dispatchers such as layoutmsg;
+-- the stub's HL.LayoutNamespace only lists register(), which is for custom
+-- layout providers, so dsp.layout is the right table here.
+hl.bind(mod .. " + P", hl.dsp.window.pseudo())
+hl.bind(mod .. " + J", hl.dsp.layout("togglesplit"))
 
-# Debug
-bind = SUPER, F12, exec, hyprctl activeworkspace -j >> /tmp/fs-debug.log 2>&1
+-- Skwd wallpaper picker (v2)
+hl.bind(modS .. " + W", hl.dsp.exec_cmd("skwd-wall-v2"))
 
-# ─────────────────────────────────────────────────────────────────────────────
-# SECTION 2 — NAVIGATION, WINDOW MANAGEMENT & HARDWARE
-# ─────────────────────────────────────────────────────────────────────────────
+-- Define helper + debug
+-- NOTE: hyprlang's `bind = , Menu, exec, …` (empty mods) becomes just the bare
+-- key name in Lua — there is no leading comma. Verified against the reference
+-- config, which binds bare keys as hl.bind("Print", …) / hl.bind("XF86…", …).
+hl.bind("Menu", hl.dsp.exec_cmd("~/.config/scripts/define.sh"))
+hl.bind("SUPER + F12", hl.dsp.exec_cmd(
+    "bash -c 'hyprctl activeworkspace -j >> /tmp/fs-debug.log 2>&1'"))
 
-# Fullscreen
-bind = $mod, F, fullscreen                                       # Fullscreen
+-- ═════════════════════════════════════════════════════════════════════════════
+-- SECTION 2 — NAVIGATION, WINDOW MANAGEMENT & HARDWARE
+-- ═════════════════════════════════════════════════════════════════════════════
 
-# Toggle floating
-bind = $mod SHIFT, space, togglefloating                         # Toggle floating state
+-- Fullscreen
+hl.bind(mod .. " + F", hl.dsp.window.fullscreen())
 
-# Focus movement (arrows)
-bind = $mod, Left, movefocus, l                                  # Move focus left
-bind = $mod, Down, movefocus, d                                  # Move focus down
-bind = $mod, Up, movefocus, u                                    # Move focus up
-bind = $mod, Right, movefocus, r                                 # Move focus right
+-- Toggle floating
+hl.bind(modS .. " + space", hl.dsp.window.float({ action = "toggle" }))
 
-# Move window (arrows)
-bind = $mod SHIFT, Left, movewindow, l                           # Move window left
-bind = $mod SHIFT, Down, movewindow, d                           # Move window down
-bind = $mod SHIFT, Up, movewindow, u                             # Move window up
-bind = $mod SHIFT, Right, movewindow, r                          # Move window right
+-- Focus movement
+hl.bind(mod .. " + left",  hl.dsp.focus({ direction = "left" }))
+hl.bind(mod .. " + down",  hl.dsp.focus({ direction = "down" }))
+hl.bind(mod .. " + up",    hl.dsp.focus({ direction = "up" }))
+hl.bind(mod .. " + right", hl.dsp.focus({ direction = "right" }))
 
-# Resize window
-binde = $mod CTRL, Left, resizeactive, -20 0                     # Resize window left
-binde = $mod CTRL, Right, resizeactive, 20 0                     # Resize window right
-binde = $mod CTRL, Up, resizeactive, 0 -20                       # Resize window up
-binde = $mod CTRL, Down, resizeactive, 0 20                      # Resize window down
+-- Move window
+hl.bind(modS .. " + left",  hl.dsp.window.move({ direction = "left" }))
+hl.bind(modS .. " + down",  hl.dsp.window.move({ direction = "down" }))
+hl.bind(modS .. " + up",    hl.dsp.window.move({ direction = "up" }))
+hl.bind(modS .. " + right", hl.dsp.window.move({ direction = "right" }))
 
-# Cycle windows
-bind = $mod, Tab, cyclenext, next                                # Cycle windows forward
-bind = $mod SHIFT, Tab, cyclenext, prev                          # Cycle windows backward
+-- Resize window (held keys => repeating)
+hl.bind(modC .. " + left",  hl.dsp.window.resize({ x = -20, y = 0 }),  { repeating = true })
+hl.bind(modC .. " + right", hl.dsp.window.resize({ x = 20,  y = 0 }),  { repeating = true })
+hl.bind(modC .. " + up",    hl.dsp.window.resize({ x = 0,   y = -20 }), { repeating = true })
+hl.bind(modC .. " + down",  hl.dsp.window.resize({ x = 0,   y = 20 }),  { repeating = true })
 
-# Alt+Tab — YemiShell Overview (altSwitcher). See modules/altswitcher/AltSwitcher.qml
-bind = ALT, Tab, exec, qs ipc call altSwitcher next              # Open / cycle YemiShell Overview (Alt+Tab)
-bind = ALT SHIFT, Tab, exec, qs ipc call altSwitcher previous    # Prev in YemiShell Overview
-# Releasing Alt commits and closes the Overview — only when the Panels →
-# "Advance on tap" flag is on (gated inside the switcher, no-op otherwise).
-bindr = ALT, Alt_L, exec, qs ipc call altSwitcher releaseCommit
+-- Cycle windows
+hl.bind(mod .. " + Tab",  hl.dsp.window.cycle_next())
+hl.bind(modS .. " + Tab", hl.dsp.window.cycle_next({ prev = true }))
 
-# Mouse binds
-bindm = $mod, mouse:272, movewindow
-bindm = $mod, mouse:273, resizewindow
+-- Alt+Tab — YemiShell Overview (altSwitcher). See modules/altswitcher/AltSwitcher.qml
+hl.bind(alt .. " + Tab",  hl.dsp.exec_cmd("qs ipc call altSwitcher next"))
+hl.bind(altS .. " + Tab", hl.dsp.exec_cmd("qs ipc call altSwitcher previous"))
+-- Release-triggered (hyprlang `bindr`): commits and closes the Overview when the
+-- Panels → "Advance on tap" flag is on (gated inside the switcher).
+hl.bind(alt .. " + Alt_L", hl.dsp.exec_cmd("qs ipc call altSwitcher releaseCommit"),
+        { release = true })
+
+-- Mouse binds — exactly as in Hyprland's shipped example config
+-- (/usr/share/hypr/hyprland.lua:290-291): drag/resize dispatchers with the
+-- { mouse = true } flag; the stub's BindOptions table is incomplete here but
+-- the example is authoritative.
+hl.bind(mod .. " + mouse:272", hl.dsp.window.drag(),   { mouse = true })
+hl.bind(mod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
+
 

@@ -1,17 +1,25 @@
-input {
-    kb_layout = us
-    follow_mouse = 1
-    sensitivity = 0
-    accel_profile = "adaptive"
-    repeat_rate = 40
-    repeat_delay = 400
-    numlock_by_default = false
+-- ═════════════════════════════════════════════════════════════════════════════
+-- Input + cursor
+-- ═════════════════════════════════════════════════════════════════════════════
+-- Converted from the hyprlang `input { }` / `cursor { }` blocks.
 
-    touchpad {
-        natural_scroll = false
-    }
-}
+hl.config({
+    input = {
+        kb_layout          = "us",
+        follow_mouse       = 1,
+        sensitivity        = 0,
+        accel_profile      = "adaptive",
+        repeat_rate        = 40,
+        repeat_delay       = 400,
+        numlock_by_default = false,
 
-cursor {
-    no_hardware_cursors = true
-}
+        touchpad = {
+            natural_scroll = false,
+        },
+    },
+
+    cursor = {
+        no_hardware_cursors = true,
+    },
+})
+
