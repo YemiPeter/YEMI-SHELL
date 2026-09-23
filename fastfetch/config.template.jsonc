@@ -41,60 +41,60 @@
       "type": "packages",
       "format": "{} (pacman)",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "{{primary}}"
     },
     {
       "type": "shell",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "{{primary}}"
     },
     {
       "type": "terminal",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "{{primary}}"
     },
     {
       "type": "wm",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "{{primary}}"
     },
     {
       "type": "display",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "{{primary}}"
     },
     {
       "type": "cpu",
       "format": "{1}",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "{{primary}}"
     },
     {
       "type": "gpu",
       "format": "{2}",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "{{primary}}"
     },
     {
       "type": "gpu",
       "format": "{3}",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "{{primary}}"
     },
     {
       "type": "memory",
       "key": "󰍛 ",
-      "keyColor": "{{bright}}"
+      "keyColor": "{{primary}}"
     },
     {
       "type": "swap",
       "key": "󰾴 ",
-      "keyColor": "{{bright}}"
+      "keyColor": "{{primary}}"
     },
     {
       "type": "disk",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "{{primary}}"
     },
     {
       "type": "uptime",
@@ -106,18 +106,6 @@
       "key": "󱦟 ",
       "keyColor": "{{primary}}",
       "text": "birth_install=$(stat -c %W /); current=$(date +%s); time_progression=$((current - birth_install)); days=$((time_progression / 86400)); echo \"${days} days\""
-    },
-    {
-      "type": "command",
-      "key": "󰃶 ",
-      "keyColor": "{{primary}}",
-      "text": "uptime -p | sed 's/^up //'"
-    },
-    {
-      "type": "cpu",
-      "format": "{6}",
-      "key": " ",
-      "keyColor": "{{bright}}"
     },
     {
       "type": "custom",
