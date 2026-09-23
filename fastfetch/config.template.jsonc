@@ -41,60 +41,60 @@
       "type": "packages",
       "format": "{} (pacman)",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "{{primary}}"
     },
     {
       "type": "shell",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "{{primary}}"
     },
     {
       "type": "terminal",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "{{primary}}"
     },
     {
       "type": "wm",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "{{primary}}"
     },
     {
       "type": "display",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "{{primary}}"
     },
     {
       "type": "cpu",
       "format": "{1}",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "{{primary}}"
     },
     {
       "type": "gpu",
       "format": "{2}",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "{{primary}}"
     },
     {
       "type": "gpu",
       "format": "{3}",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "{{primary}}"
     },
     {
       "type": "memory",
       "key": "󰍛 ",
-      "keyColor": "{{bright}}"
+      "keyColor": "{{primary}}"
     },
     {
       "type": "swap",
       "key": "󰾴 ",
-      "keyColor": "{{bright}}"
+      "keyColor": "{{primary}}"
     },
     {
       "type": "disk",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "{{primary}}"
     },
     {
       "type": "uptime",
@@ -117,7 +117,7 @@
       "type": "cpu",
       "format": "{6}",
       "key": " ",
-      "keyColor": "{{bright}}"
+      "keyColor": "{{primary}}"
     },
     {
       "type": "custom",

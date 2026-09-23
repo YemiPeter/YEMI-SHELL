@@ -5,31 +5,21 @@
 #   compositor : "hyprland" | "niri"  (passed in from QML, never re-detected here)
 #   action     : "init"  -> restore last wallpaper (or pick one)
 #                "set"   -> set the wallpaper given by [path]
-#                "restore" -> paint [path] (or last from state) WITHOUT touching the
-#                            state file or re-running after-wall.sh color pipeline.
-#                            Used by Niri "hide main wallpaper" → restore: syncSkwd
-#                            fires on every startup with backdropHideWallpaper=false
-#                            and passes the LIVE state-file pick — re-applies via
-#                            skwd without clobbering the real state file.
 #                (any)   -> pick a random wallpaper from the bag
 #
-# What init/set/(random) always do:
+# What it always does:
 #   * writes the state file ~/.local/state/quickshell-wallpaper
 #   * runs the single color writer after-wall.sh (bash)
-# What "restore" does (subset):
-#   * re-applies the pick via skwd-helm (no transition on restore)
-#   * NO state-file write, NO after-wall.sh, NO hyprctl reload
-#     (the state file already names the current on-screen pick; restore is
-#      purely "sync skwd onto the same pick the QML backdrop is showing")
-# On every compositor:
-#   * skwd-helm (skwd-wall v2) is the ONLY paint engine. There is no awww
-#     fallback anymore — awww was retired (it double-painted a stale layer
-#     behind skwd and desynced from the state file). If the helm apply fails
-#     the failure is surfaced (notify-send + exit 1) instead of silently
-#     leaving the previous wallpaper up.
-#   * Transitions are skwd's own (configured per-wallpaper in its picker's
-#     sceneProperties / v2 settings). The old flags.json transition* keys fed
-#     the awww path only and are now dead.
+# On Hyprland only:
+#   * ensures the awww daemon and paints via `awww img`
+#   * reloads hyprland (so any hyprland-side color consumers refresh)
+# On Niri:
+#   * the QML Backdrop layer renders the image from the state file, so no
+#     external daemon is invoked — the dispatcher just records the choice.
+#
+# Transition duration: the Settings UI labels the value in MILLISECONDS
+# (200-3000, default 800). awww documents --transition-duration as SECONDS,
+# so we divide by 1000 here and nowhere else. The flags schema stays "ms".
 
 set -euo pipefail
 
@@ -49,7 +39,7 @@ SCRIPTS_DIR="$HOME/.config/quickshell/scripts"
 # the dispatcher is self-contained and the only thing that paints.
 # ---------------------------------------------------------------------------
 list_pics() {
-    find "$WPDIR" -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' -o -iname '*.gif' -o -iname '*.mp4' -o -iname '*.webm' -o -iname '*.mkv' -o -iname '*.mov' \)
+    find "$WPDIR" -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \)
 }
 
 refill_bag() {
@@ -86,36 +76,19 @@ pop_bag() {
     ) 9>"$BAG.lock"
 }
 
-wait_helm() {
-    # skwd-walld starts via systemd with --wait-for-session; helm IPC (wall.sock)
-    # may not exist yet when init runs at login. Poll briefly, then give up with
-    # a loud failure (the caller decides whether that is fatal).
-    local i
-    for i in $(seq 1 40); do
-        skwd-helm current >/dev/null 2>&1 && return 0
-        sleep 0.25
+ensure_daemon() {
+    # awww is compositor-agnostic: skwd's picker paints through it on Niri
+    # too, so the dispatcher must be able to spawn it everywhere.
+    awww query >/dev/null 2>&1 && return 0
+    local attempt i
+    for attempt in 1 2 3 4 5; do
+        awww-daemon >/dev/null 2>&1 &
+        for i in $(seq 1 15); do
+            awww query >/dev/null 2>&1 && return 0
+            sleep 0.2
+        done
     done
     return 1
-}
-
-fail_loud() {
-    echo "[set-wallpaper] ERROR: $1" >&2
-    command -v notify-send >/dev/null 2>&1 && \
-        notify-send -u critical -a set-wallpaper "Wallpaper error" "$1" >/dev/null 2>&1 || true
-}
-
-# ---------------------------------------------------------------------------
-# Animated picks (GIF/video). skwd paints these NATIVELY (skwd-wall-vk /
-# skwd-paper-v2, "video" type — verified live, shader crossfade included).
-# The old mpvpaper pipeline (list_outputs/stop_mpvpaper/start_mpvpaper/
-# first_frame) was deleted after native playback was confirmed: no external
-# video engine, no first-frame cache, one renderer for everything.
-# ---------------------------------------------------------------------------
-is_animated() {
-    case "${1,,}" in
-        *.mp4|*.webm|*.mkv|*.avi|*.mov|*.gif) return 0 ;;
-        *) return 1 ;;
-    esac
 }
 
 # ---------------------------------------------------------------------------
@@ -133,19 +106,6 @@ case "$CMD" in
         pic="${1:-}"
         [ -f "$pic" ] || { echo "[set-wallpaper] no such wallpaper: $pic" >&2; exit 1; }
         ;;
-    restore)
-        # "restore" = re-apply via skwd without touching state file or color
-        # pipeline. Path arg is the live state-file pick from Walls.restoreProc;
-        # if absent (state file empty on first run) fall back to STATE (same
-        # as init).
-        if [ $# -ge 1 ] && [ -n "${1:-}" ] && [ -f "${1:-}" ]; then
-            pic="$1"
-        elif [ -r "$STATE" ] && pic=$(cat "$STATE") && [ -f "$pic" ]; then
-            :
-        else
-            pic=$(pop_bag) || true
-        fi
-        ;;
     *)
         pic=$(pop_bag) || true
         ;;
@@ -154,75 +114,51 @@ esac
 [ -n "$pic" ] || exit 0
 
 # ---------------------------------------------------------------------------
-# skwd readiness (boot race): skwd-walld runs via systemd --wait-for-session,
-# so at login the helm IPC socket may lag the shell's first init paint. Wait
-# briefly; init failing to reach skwd is a loud, visible error, not a silent
-# stale desktop.
+# Transition flags (seconds conversion done here)
 # ---------------------------------------------------------------------------
-if ! wait_helm; then
-    fail_loud "skwd-walld unreachable (skwd-helm current timed out); wallpaper not painted"
-    exit 1
-fi
+T_ENABLE="$(jq -r '.transitionEnable // true' "$FLAGS_FILE" 2>/dev/null || echo true)"
+T_TYPE="$(jq -r '.transitionType // "fade"' "$FLAGS_FILE" 2>/dev/null || echo fade)"
+T_DIR="$(jq -r '.transitionDirection // "right"' "$FLAGS_FILE" 2>/dev/null || echo right)"
+T_DUR="$(jq -r '.transitionDuration // 800' "$FLAGS_FILE" 2>/dev/null || echo 800)"
+T_FPS="$(jq -r '.transitionFps // 60' "$FLAGS_FILE" 2>/dev/null || echo 60)"
+T_STEP="$(jq -r '.transitionStep // 90' "$FLAGS_FILE" 2>/dev/null || echo 90)"
 
-# ---------------------------------------------------------------------------
-# Animated-wallpaper engine flags (mpvpaper). See is_animated() above.
-# NOTE: the old transitionEnable/transitionType/... flags.json keys were only
-# ever consumed by the retired awww paint path. skwd owns transitions now
-# (per-wallpaper via its own settings), so those keys are dead and are not
-# read here anymore.
-# ---------------------------------------------------------------------------
-V_ENGINE="$(jq -r '.wallpaperVideoEngine // true' "$FLAGS_FILE" 2>/dev/null || echo true)"
+AWWW_ARGS=()
+if [ "$T_ENABLE" = "true" ]; then
+    AWWW_ARGS+=(--transition-type "$T_TYPE" --transition-fps "$T_FPS" --transition-step "$T_STEP")
+    if [ "$T_TYPE" != "simple" ] && [ "$T_TYPE" != "none" ]; then
+        # ms -> seconds for awww (UI keeps labeling "ms")
+        T_DUR_SECONDS="$(awk "BEGIN { printf \"%.3f\", $T_DUR / 1000 }")"
+        AWWW_ARGS+=(--transition-duration "$T_DUR_SECONDS")
+    fi
+    if [ "$T_TYPE" = "wipe" ] || [ "$T_TYPE" = "wave" ]; then
+        case "$T_DIR" in
+            left)   AWWW_ARGS+=(--transition-angle 180) ;;
+            top)    AWWW_ARGS+=(--transition-angle 270) ;;
+            bottom) AWWW_ARGS+=(--transition-angle 90) ;;
+            *)      AWWW_ARGS+=(--transition-angle 0) ;;
+        esac
+    fi
+fi
 
 # ---------------------------------------------------------------------------
 # Record the choice (QML Backdrop reads this on every compositor)
-# SKIPPED for "restore": the state file already names the real on-screen pick.
-# Restore re-applies via skwd from the live state-file pick, which must NOT
-# be rewritten (it already names the on-screen pick; restore's job is purely
-# to sync skwd to it, never to touch the state file).
 # ---------------------------------------------------------------------------
-if [ "$CMD" != "restore" ]; then
-    mkdir -p "$(dirname "$STATE")"
-    printf '%s\n' "$pic" > "$STATE"
-fi
+mkdir -p "$(dirname "$STATE")"
+printf '%s\n' "$pic" > "$STATE"
 
 # ---------------------------------------------------------------------------
-# Paint — every compositor. Engine selection: skwd-helm (v2) is the ONLY
-# engine. awww was retired (it painted a stale layer behind skwd's and
-# desynced from the state file); the flags.json transition* keys fed only
-# that dead awww path. Transitions are skwd's own, configured per-wallpaper
-# in its picker (sceneProperties) / v2 settings.
-#
-# Animated picks (GIF/video) are painted NATIVELY by skwd (skwd-wall-vk /
-# skwd-paper-v2 render them as "video" type — verified live: `skwd-helm apply
-# dancing-cat.gif` launched skwd-wall-vk with a --transition-from shader
-# crossfade). No mpvpaper, no first-frame extraction: PAINT_PIC is always the
-# pick itself, so the color pipeline sees the real media file (after-wall.sh
-# extracts its own frame / falls back internally if image-only). "restore"
-# is a pure re-apply of the pick already on screen.
-#
-# The wallpaperVideoEngine flag is kept as a master kill-switch for animated
-# picks: if the user turns it OFF, animated files are refused with a loud
-# error instead of being painted (skwd would play them anyway otherwise).
+# Paint — every compositor. The Pill picker must repaint the same awww layer
+# skwd's picker paints through, otherwise the desktop wallpaper goes stale on
+# Niri while the QML backdrop changes. hyprctl reload stays Hyprland-only.
 # ---------------------------------------------------------------------------
-PAINT_PIC="$pic"
-if [ "$CMD" != "restore" ] && [ "$V_ENGINE" != "true" ] && is_animated "$pic"; then
-    fail_loud "animated wallpaper picked but wallpaperVideoEngine is off: $pic"
-    exit 1
-fi
-if ! skwd-helm apply "$pic"; then
-    fail_loud "skwd-helm apply failed: $pic"
-    exit 1
-fi
-if [ "$COMPOSITOR" = "hyprland" ] && [ "$CMD" != "restore" ]; then
+ensure_daemon || true
+awww img "$pic" "${AWWW_ARGS[@]}" || true
+if [ "$COMPOSITOR" = "hyprland" ]; then
     hyprctl reload >/dev/null 2>&1 || true
 fi
 
 # ---------------------------------------------------------------------------
-# Single color writer (init/set/random only). Restore never runs the color
-# pipeline on purpose: the on-screen wallpaper hasn't changed (we're just
-# re-syncing skwd to the pick already on screen), so the palette stays
-# correct and we avoid re-triggering wallust / reload storms.
+# Single color writer (always)
 # ---------------------------------------------------------------------------
-if [ "$CMD" != "restore" ]; then
-    bash "$SCRIPTS_DIR/after-wall.sh" "dynamic" "$PAINT_PIC" >/dev/null 2>&1 || true
-fi
+bash "$SCRIPTS_DIR/after-wall.sh" "dynamic" "$pic" >/dev/null 2>&1 || true
