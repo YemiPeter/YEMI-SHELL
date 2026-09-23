@@ -96,9 +96,11 @@ SettingsSurface {
         root.accelProfile = ap.length > 0 ? ap : "flat";
 
         var env = root.envText;
-        var cs = parseInt(SetInput.getField(env, "XCURSOR_SIZE"), 10);
+        // hl.env takes positional args, so these must be read with getEnv, not
+        // getField (which looks for `KEY = value` and would always return "").
+        var cs = parseInt(SetInput.getEnv(env, "XCURSOR_SIZE"), 10);
         root.cursorSize = isNaN(cs) ? 24 : cs;
-        var ct = SetInput.getField(env, "XCURSOR_THEME");
+        var ct = SetInput.getEnv(env, "XCURSOR_THEME");
         root.cursorTheme = ct.length > 0 ? ct : "Bibata-Modern-Ice";
     }
 
