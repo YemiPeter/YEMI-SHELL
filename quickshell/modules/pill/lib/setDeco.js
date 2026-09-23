@@ -31,15 +31,20 @@ function setField(text, name, valueLiteral) {
 }
 
 /**
- * Locates a `blockName = { ... }` (or bare `blockName { ... }` — decoration.lua
- * uses the bare hyprlang form for nested blocks like `blur` and `shadow`) and
- * returns its substring, balanced to the matching close brace so a nested table
- * (decoration holds shadow and blur) does not end the scan early. Returns
- * `{ start, end, body }` where `start`/`end` bracket the inner body between the
- * braces, or null when the block is absent.
+ * Locates a `blockName = { ... }` table inside the Lua config and returns its
+ * substring, balanced to the matching close brace so a nested table (the
+ * decoration table holds shadow and blur) does not end the scan early.
+ * Returns `{ start, end, body }` where `start`/`end` bracket the inner body
+ * between the braces, or null when the block is absent.
+ *
+ * Lua form only: `blur = {`. The old hyprlang bare form (`blur {`) is no longer
+ * matched — decoration.lua was converted to Lua in the 0.57 migration, and the
+ * bare form is not valid Lua, so matching it would only ever find a stale file.
+ * The `= ` is required (not `(?:=\s*)?`) so a bare word followed by a brace in
+ * a comment or string cannot be mistaken for a block head.
  */
 function getBlock(text, blockName) {
-    var head = new RegExp(blockName + "\\s*(?:=\\s*)?\\{");
+    var head = new RegExp("(?:^|[,\\s])" + escapeRe(blockName) + "\\s*=\\s*\\{", "m");
     var m = head.exec(text);
     if (!m)
         return null;

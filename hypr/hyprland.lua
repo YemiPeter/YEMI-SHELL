@@ -38,3 +38,8 @@ require("modules.monitors")
 require("modules.autostart")
 require("modules.rules")
 require("modules.binds")
+
+-- Loaded LAST so the Look surface's live values win over general.lua's defaults
+-- for the fields the two share (general.lua sets the animation/misc/cursor
+-- blocks; this one owns general.gaps_* + the whole decoration block).
+require("modules.decoration")
