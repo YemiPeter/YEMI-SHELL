@@ -17,16 +17,16 @@
 
 hl.config({
     general = {
-        gaps_in = 16,
-        gaps_out = 11,
+        gaps_in = 7,
+        gaps_out = 8,
         layout = "dwindle",
         border_size = 0,
     },
 
     decoration = {
-        rounding = 9,
-        active_opacity = 0.80,
-        inactive_opacity = 1.00,
+        rounding = 22,
+        active_opacity = 1.00,
+        inactive_opacity = 0.90,
         dim_inactive = true,
         dim_strength = 0.04,
 
@@ -39,9 +39,9 @@ hl.config({
         },
 
         blur = {
-            enabled = false,
-            size = 4,
-            passes = 4,
+            enabled = true,
+            size = 5,
+            passes = 3,
             ignore_opacity = true,
             new_optimizations = true,
             special = true,
