@@ -222,6 +222,33 @@ Singleton {
         syncSkwd(QsSingletons.Flags.backdropHideWallpaper, true);
     }
 
+    // ── Hyprland startup self-heal ───────────────────────────────────────────
+    // The login paint is done by autostart.lua's detached `set-wallpaper.sh
+    // hyprland init`, which now waits out skwd-walld's slow session detection
+    // (~56s at boot) before applying. syncSkwd() below is a Niri-only path, so
+    // on Hyprland nothing here previously noticed if that init had failed —
+    // the session simply kept a bare desktop until the user re-picked.
+    //
+    // One best-effort "restore" once skwd's helm IPC answers, which is idempotent
+    // with the init (both re-apply the same state-file pick; skwd treats a
+    // repeat apply of the current wallpaper as a no-op). Cheap insurance, and
+    // it converges the desktop on the last pick if init lost the race for any
+    // reason. Runs once per shell start, not on a timer.
+    Process {
+        id: hyprStartupRestore
+        running: Compositor.isHyprland
+        command: ["bash", "-c",
+                  "S=\"${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/skwd-wall-v2/wall.sock\"; " +
+                  "for i in $(seq 1 180); do [ -S \"$S\" ] && break; sleep 0.5; done; " +
+                  "P=$(cat \"$1\" 2>/dev/null); " +
+                  "if [ -n \"$P\" ] && [ -f \"$P\" ]; then " +
+                  "  exec bash \"$2\" hyprland restore \"$P\"; " +
+                  "else " +
+                  "  exec bash \"$2\" hyprland init; " +
+                  "fi",
+                  "_", root.stateFile, root.setScript]
+    }
+
     // ── "Hide wallpaper" ↔ skwd lifecycle ────────────────────────────────────
     // Niri: when the setting is ON, skwd's paint is frozen (skwd-helm pause)
     // so the QML Backdrop becomes the only renderer; when turned OFF (or at

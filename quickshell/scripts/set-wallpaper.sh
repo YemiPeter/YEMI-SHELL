@@ -88,12 +88,31 @@ pop_bag() {
 
 wait_helm() {
     # skwd-walld starts via systemd with --wait-for-session; helm IPC (wall.sock)
-    # may not exist yet when init runs at login. Poll briefly, then give up with
-    # a loud failure (the caller decides whether that is fatal).
-    local i
-    for i in $(seq 1 40); do
-        skwd-helm current >/dev/null 2>&1 && return 0
-        sleep 0.25
+    # may not exist yet when init runs at login. THE WAIT MUST OUTLAST THAT.
+    #
+    # Measured on this machine: skwd-walld's session detector took 56s to see
+    # the Wayland session at boot ("Wayland session ready after 56080 ms" in
+    # the journal), because the daemon is started before Hyprland has exported
+    # WAYLAND_DISPLAY into the systemd user session. The old 40x0.25s = 10s
+    # budget expired ~46s too early, init failed loudly and NOTHING painted the
+    # wallpaper — it only appeared once the user re-picked one, by which time
+    # skwd was long since up. That was the "wallpaper doesn't start on startup"
+    # bug.
+    #
+    # Wait for the helm IPC socket, not the skwd-walld *process*: the process
+    # exists within a second (start-shell.sh's pgrep check passes immediately)
+    # while the socket skwd-helm talks to only appears after session detection.
+    #
+    # Budget: ~90s, polled at 0.5s, which clears the observed 56s worst case
+    # with margin while staying well inside the user's patience at login. Long
+    # enough to be correct, and a cold-but-healthy boot still starts painting
+    # the moment the socket lands rather than waiting out the full budget.
+    local i sock="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/skwd-wall-v2/wall.sock"
+    for i in $(seq 1 180); do
+        if [ -S "$sock" ] && skwd-helm current >/dev/null 2>&1; then
+            return 0
+        fi
+        sleep 0.5
     done
     return 1
 }

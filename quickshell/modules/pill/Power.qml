@@ -56,7 +56,7 @@ PillSurface {
         // launched outside the systemd user env never has it, so fall back to
         // $HOME/.config exactly like Walls.qml does.
         { key: "lock", glyph: "lock", label: "Lock", confirm: false, dispatch: "", argv: [(Quickshell.env("RICE_HOME") || (Quickshell.env("HOME") + "/.config")) + "/hypr/scripts/lock.sh"] },
-        { key: "logout",   glyph: "logout",   label: "Logout",   confirm: true,  dispatch: "exit", argv: [] },
+        { key: "logout",   glyph: "logout",   label: "Logout",   confirm: true,  dispatch: "", argv: ["bash", (Quickshell.env("RICE_HOME") || (Quickshell.env("HOME") + "/.config")) + "/quickshell/scripts/logout.sh", Compositor.runningCompositor] },
         { key: "suspend",  glyph: "suspend",  label: "Sleep",    confirm: false, dispatch: "",             argv: ["systemctl", "suspend"] },
         { key: "reboot", glyph: "reboot", label: "Restart", confirm: true, dispatch: "", argv: ["systemctl", "reboot"] },
         { key: "hibernate", glyph: "snowflake", label: "Hibernate", confirm: true, dispatch: "", argv: ["systemctl", "hibernate"] },

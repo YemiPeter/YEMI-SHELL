@@ -1,2 +1,14 @@
-// One-time diagnostic spawn for wallpaper boot debug
-spawn-at-startup "bash" "-c" "$HOME/.config/quickshell/scripts/boot-wallpaper-debug.sh"
+// YemiShell has NO login-time wallpaper spawn here.
+//
+// This file is dead config: Hyprland does not source ~/.config/quickshell/
+// config.d/ (it uses ~/.config/hypr/modules/autostart.lua) and Niri uses its
+// own ~/.config/niri/config.d/50-startup.kdl. It previously spawned
+// boot-wallpaper-debug.sh, which shelled out to the retired `awww` binary and
+// therefore only ever wrote empty diagnostic output. Removed along with the
+// awww stack rather than left to mislead the next reader.
+//
+// Where wallpaper startup actually lives:
+//   Hyprland : ~/.config/hypr/modules/autostart.lua
+//              -> setsid set-wallpaper.sh hyprland init (waits for skwd helm)
+//   Niri     : Walls.qml Component.onCompleted -> syncSkwd()
+
