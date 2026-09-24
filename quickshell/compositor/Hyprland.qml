@@ -22,9 +22,41 @@ Item {
     readonly property int activeWsId: enabled ? (focusedWorkspace?.id ?? 1) : 1
     
     function dispatch(request: string): void {
-        if (enabled) {
-            Hyprland.dispatch(request);
+        if (!enabled) return;
+
+        if (Hyprland.usingLua) {
+            request = translateDispatch(request);
         }
+
+        Hyprland.dispatch(request);
+    }
+
+    function translateDispatch(request: string): string {
+        if (request.startsWith("workspace ")) {
+            return 'hl.dsp.focus({workspace = "' + request.slice(9) + '"})';
+        }
+
+        if (request.startsWith("focuswindow ")) {
+            // request is "focuswindow address:0x..." — hl.dsp.focus
+            // expects just the address "0x...", not "address:0x..."
+            let addr = request.slice(12); // "address:0x..." or "0x..."
+            if (addr.startsWith("address:"))
+                addr = addr.slice(7);
+            return 'hl.dsp.focus({window = "' + addr + '"})';
+        }
+
+        if (request.startsWith("movetoworkspace ")) {
+            var parts = request.slice(16).split(",");
+            var ws = parts[0];
+            var win = parts.length > 1 ? parts[1] : "";
+            return 'hl.dsp.window.move({workspace = "' + ws + '", window = "' + win + '"})';
+        }
+
+        if (request === "quit") {
+            return "hl.dsp.exit()";
+        }
+
+        return request;
     }
     
     function monitorFor(screen: var): var {
