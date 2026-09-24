@@ -24,6 +24,11 @@ import "../pill/lib/setDeco.js" as SetDeco
  * config.d/70-binds.kdl, Hyprland ALT/ALT SHIFT+Tab in hypr modules/binds.lua.
  * Tapping Tab cycles without a focus fight between the overlay and the
  * compositor. Mod+Tab is left to niri's own toggle-overview.
+ *
+ * Navigation follows focus recency (most recently used first, like iNiR's
+ * "Most recently used first" default), so a run's first tap lands on the window
+ * you came from; each run walks a frozen snapshot so the list cannot reshuffle
+ * under the selection while you cycle.
  */
 Scope {
     id: root
@@ -56,6 +61,32 @@ Scope {
     property int currentIndex: 0
     readonly property real s: QsSingletons.Flags.uiScale
 
+    // Shared pointer baseline for the hover-select handlers (see the delegates).
+    // lastPointer stores the last hover sample; pointerPrimed is false until the
+    // first sample of each open has been consumed as that run's baseline. A layer
+    // surface mapped under a parked cursor receives a synthesised enter/hover at
+    // the pointer position — consuming it as the baseline means it can never
+    // select a tile by itself; only a sample at a *different* position (a real
+    // pointer move) drives the selection.
+    property point lastPointer: Qt.point(0, 0)
+    property bool pointerPrimed: false
+
+    // ── Run snapshot ───────────────────────────────────────────────────────────
+    // A "run" is one Alt+Tab session: it starts when the overlay opens (or when
+    // a no-UI walk begins) and ends on close/commit or the no-UI reset timer.
+    // Navigation always walks a FROZEN copy of the window list taken at run
+    // start. The live list reorders on every focus change (a focus event moves
+    // the focused window in the raw toplevel order, and the MRU sort reorders
+    // by design), so navigating live indices lands on shifted entries — the
+    // "switcher keeps going back to the same window" symptom. Re-snapshotting
+    // per tap has the same flaw (fresh list = fresh index meaning); a frozen
+    // run is what keeps the highlight and the commit on the window you chose.
+    property var runItems: []
+    readonly property bool runActive: root.runItems.length > 0
+    // The list every navigation path reads: the frozen run while one is active,
+    // the live (MRU-ordered) list otherwise.
+    readonly property var items: root.runActive ? root.runItems : root.windows
+
     // ── General-blur connection (Hyprland) ─────────────────────────────────────
     // The Look surface's blur toggle (decoration.lua blur.enabled) gates ALL
     // compositor blur, including this layer's layerrule frost. When it is off
@@ -83,7 +114,13 @@ Scope {
     // this costs nothing and covers a watch that misses an edit.
     // Reread the general-blur state when the overlay opens; the async read lands
     // in the reactive binding (see the general-blur connection block above).
-    onOpenChanged: if (root.open) decoFile.reload()
+    onOpenChanged: {
+        if (root.open)
+            decoFile.reload()
+        // Each open re-primes the pointer baseline: the first hover sample of a
+        // run only records where the parked cursor is, it never selects.
+        root.pointerPrimed = false
+    }
     readonly property real cardOpacity: !isHyprland || generalBlurOn
         ? QsSingletons.Flags.altSwitcherBackgroundOpacity : 1.0
 
@@ -158,7 +195,6 @@ Scope {
 
     property bool quickSwitchDone: false
     property int noUiIndex: 0
-    property var noUiSnapshot: []
 
     Timer {
         id: quickSwitchResetTimer
@@ -166,7 +202,7 @@ Scope {
         repeat: false
         onTriggered: {
             root.quickSwitchDone = false
-            root.noUiSnapshot = []
+            root.endRun()
             root.noUiIndex = 0
         }
     }
@@ -175,7 +211,7 @@ Scope {
     onNoVisualUiChanged: {
         quickSwitchResetTimer.stop()
         root.quickSwitchDone = false
-        root.noUiSnapshot = []
+        root.endRun()
         root.noUiIndex = 0
         // Leaving the mode while the overlay happens to be up must not strand it.
         root.close()
@@ -183,18 +219,21 @@ Scope {
 
     // direction: +1 = forward (next), -1 = backward (previous). Mirrors iNiR's
     // next()/previous() no-UI branch: the first tap of a run lands on index 1
-    // (or last, going backward) because index 0 is the window you are already on.
+    // (or last, going backward) because index 0 is the window you are already
+    // on — true here because `windows` is ordered by focus recency (MRU), so
+    // the second entry is the window you came from. The run walks the frozen
+    // snapshot taken by startRun() (see the run-snapshot block): re-snapshotting
+    // per tap re-indexes the list under the walker and sends it back to windows
+    // it already visited. quickSwitchResetTimer ends the run when the taps
+    // stop, so the next tap re-snapshots the fresh recency order.
     function cycleNoUi(direction: int): void {
         advanceHideTimer.stop()
         root.open = false
-        // Always refresh the snapshot from the live `windows` binding on every
-        // tap, not just the first one. `windows` is a reactive property that
-        // reorders immediately when focusWindow() fires compositor focus events
-        // (especially on the event-driven Hyprland backend). Reusing a frozen
-        // snapshot across taps causes the modular index arithmetic to land on
-        // wrong windows, producing the "goes back to one window" symptom.
-        root.noUiSnapshot = root.windows.slice()
-        const total = root.noUiSnapshot.length
+        // Continue the run's snapshot, or take a fresh one when this tap starts
+        // a new run (reset timer fired, or the mode was just switched on).
+        let total = root.quickSwitchDone ? root.runItems.length : 0
+        if (total === 0)
+            total = root.startRun()
         if (total === 0)
             return
         if (!root.quickSwitchDone) {
@@ -207,11 +246,20 @@ Scope {
                 ? (root.noUiIndex + 1) % total
                 : (root.noUiIndex - 1 + total) % total
         }
-        root.focusWindow(root.noUiSnapshot[root.noUiIndex])
+        root.focusWindow(root.runItems[root.noUiIndex])
         quickSwitchResetTimer.restart()
     }
 
-    // Live, sorted window list (by workspace idx, then app name).
+    // Live window list, ordered by focus recency — most recently used first.
+    //
+    // MRU-first is what makes the switcher's semantics work: index 0 is the
+    // window you are on, so the first tap of a run targets the window you came
+    // from (the classic Alt+Tab target) instead of a fixed slot in a static
+    // list. iNiR ships the same default ("Most recently used first"). The order
+    // comes from mruKeys (fed by compositor focus events); windows the events
+    // have not seen yet fall back to the raw toplevel order — Hyprland keeps
+    // the focused window last there, so later in raw ≈ more recently used —
+    // and finally to the old (workspace idx, app name) grouping.
     //
     // Niri toplevels expose { id, app_id, title, workspace_id }; Hyprland
     // toplevels expose { address, title, workspace: { id }, lastIpcObject
@@ -219,16 +267,30 @@ Scope {
     // one plain-JS row so sorting, the delegate and focusWindow never care
     // which compositor is running.
     readonly property var windows: (function () {
-        const mapped = (compositor.toplevels || [])
+        const raw = compositor.toplevels || []
+        const mapped = raw
             .map(function (w) { return root.normalizeWindow(w) })
             .filter(function (w) { return w !== null })
+        // Fallback recency ranks (see the comment above): rank grows as the
+        // window sits earlier in the raw list, so the last raw entry wins.
+        const rawRank = {}
+        for (let i = 0; i < mapped.length; i++)
+            rawRank[mapped[i].key] = raw.length - i
         mapped.sort(function (a, b) {
+            const ia = root.mruKeys.indexOf(a.key)
+            const ib = root.mruKeys.indexOf(b.key)
+            // Event-known windows keep their exact recency order; unknown ones
+            // queue behind them, ranked by the raw-order fallback.
+            const ka = ia >= 0 ? ia : 10000 + (rawRank[a.key] ?? 0)
+            const kb = ib >= 0 ? ib : 10000 + (rawRank[b.key] ?? 0)
+            if (ka !== kb)
+                return ka - kb
             const wa = compositor.workspaces.find(function (w) { return w.id === a.wsId })
             const wb = compositor.workspaces.find(function (w) { return w.id === b.wsId })
-            const ia = wa ? (wa.idx ?? wa.id ?? 0) : 0
-            const ib = wb ? (wb.idx ?? wb.id ?? 0) : 0
-            if (ia !== ib)
-                return ia - ib
+            const ga = wa ? (wa.idx ?? wa.id ?? 0) : 0
+            const gb = wb ? (wb.idx ?? wb.id ?? 0) : 0
+            if (ga !== gb)
+                return ga - gb
             return String(a.app).localeCompare(String(b.app))
         })
         return mapped
@@ -239,6 +301,10 @@ Scope {
             return null
         const ipc = w.lastIpcObject || {}
         return {
+            // Stable identity for recency tracking: Hyprland addresses ("0x…"),
+            // niri numeric ids — normalised (see focusKey) so both sources
+            // always produce the same string for the same window.
+            key: root.focusKey(w),
             // niri uses a numeric id; Hyprland uses the address string ("0x…").
             id: w.id ?? w.address ?? "",
             address: w.address ?? null,
@@ -248,7 +314,64 @@ Scope {
         }
     }
 
-    readonly property int count: root.windows.length
+    // ── Focus recency (MRU) tracking ───────────────────────────────────────────
+    // Window keys in focus order, most recent first. noteFocus() is driven by
+    // the compositor's active-toplevel changes (see the Connections below).
+    property var mruKeys: []
+
+    function noteFocus(w: var): void {
+        if (!w)
+            return
+        const k = focusKey(w)
+        if (!k)
+            return
+        if (QsSingletons.Flags.debug)
+            console.log("[AltSwitcher][mru] focus " + k + " (list: " + root.mruKeys.length + ")")
+        // Remove-then-unshift so refocusing a window that already sits deeper in
+        // the list still moves it to the front.
+        const next = []
+        for (let i = 0; i < root.mruKeys.length; i++) {
+            if (root.mruKeys[i] !== k)
+                next.push(root.mruKeys[i])
+        }
+        next.unshift(k)
+        root.mruKeys = next
+    }
+
+    // Drop keys of windows that no longer exist so the list does not grow for
+    // the whole session and stale entries cannot outrank live windows.
+    function pruneMru(): void {
+        if (root.mruKeys.length === 0)
+            return
+        const alive = {}
+        for (let i = 0; i < root.windows.length; i++)
+            alive[root.windows[i].key] = true
+        const next = root.mruKeys.filter(function (k) { return alive[k] })
+        if (next.length !== root.mruKeys.length)
+            root.mruKeys = next
+    }
+
+    // Shared key normaliser. Hyprland addresses reach QML with or without the
+    // "0x" prefix depending on the path (toplevels have needed both forms in
+    // this shell's history — see focusWindow), so strip it and lowercase, or a
+    // recency entry recorded from one source would never match a window row
+    // built from another.
+    function focusKey(w: var): string {
+        return String(w.address ?? w.id ?? "").toLowerCase().replace(/^0x/, "")
+    }
+
+    Connections {
+        target: root.compositor
+        function onActiveToplevelChanged() {
+            if (QsSingletons.Flags.debug)
+                console.log("[AltSwitcher][mru] active toplevel changed")
+            root.noteFocus(root.compositor.activeToplevel)
+        }
+    }
+
+    // Length of the list navigation reads (the frozen run while one is active,
+    // the live MRU list otherwise — see the run-snapshot block).
+    readonly property int count: root.items.length
 
     // High-load safety valve (ported from iNiR, L101). With a very crowded
     // window list the backdrop blur and the open/close fade cost more than they
@@ -262,6 +385,7 @@ Scope {
     onWindowsChanged: {
         if (root.currentIndex >= root.count)
             root.currentIndex = Math.max(0, root.count - 1)
+        root.pruneMru()
     }
 
     // ── Public API (driven by the altSwitcher IPC handler in shell.qml) ─────────
@@ -281,13 +405,38 @@ Scope {
         // refuse on an unknown compositor so IPC stays a no-op there.
         if (!compositor.runningCompositor)
             return
+        // Freeze the run's window order (see the run-snapshot block) before the
+        // first advance: every navigation and the final commit read this list
+        // instead of the live one, so focus events during the cycle cannot
+        // reindex the walk.
+        root.startRun()
         root.currentIndex = 0
         root.open = true
         cardHolder.forceActiveFocus()
     }
+
+    /** Snapshot the live MRU-ordered list for a run; returns its length. */
+    function startRun(): int {
+        root.runItems = root.windows.slice()
+        if (QsSingletons.Flags.debug)
+            console.log("[AltSwitcher][run] snapshot: " + root.runItems.map(function (w) { return w.key }).join(","))
+        return root.runItems.length
+    }
+
+    /** Drop the run snapshot so the next run starts from the live order. */
+    function endRun(): void {
+        if (root.runItems.length > 0)
+            root.runItems = []
+    }
+
     function close(): void {
         advanceHideTimer.stop()
         root.open = false
+        // The run ends with the overlay: the next open re-snapshots the fresh
+        // recency order. That is what makes a normal press/look/press rhythm
+        // toggle between the two most recent windows instead of walking a
+        // stale list.
+        root.endRun()
     }
     function next(): void {
         // No-Visual-UI (cycle only): never draw the overlay — walk the frozen
@@ -299,10 +448,15 @@ Scope {
         if (!root.open) {
             root.openSwitcher()
             // Advance-on-tap: the FIRST tap already switches (classic Alt+Tab
-            // feel) — open, advance past the resting index, focus, arm hide.
+            // feel). Index 1 of the freshly snapshotted MRU list is the window
+            // you came from — focusing it is exactly the classic target, and a
+            // later press (fresh run) toggles back instead of re-picking a
+            // fixed slot in a static list.
             if (root.advanceOnTap && root.count > 0) {
                 root.currentIndex = (root.currentIndex + 1) % root.count
-                root.focusWindow(root.windows[root.currentIndex])
+                if (QsSingletons.Flags.debug)
+                    console.log("[AltSwitcher][run] first tap -> idx " + root.currentIndex + " " + root.items[root.currentIndex].key)
+                root.focusWindow(root.items[root.currentIndex])
                 advanceHideTimer.restart()
             }
             return
@@ -313,7 +467,9 @@ Scope {
             // the highlight. root.advanceOnTap also covers cycle-only mode,
             // which has no UI left to confirm a selection with.
             if (root.advanceOnTap) {
-                root.focusWindow(root.windows[root.currentIndex])
+                if (QsSingletons.Flags.debug)
+                    console.log("[AltSwitcher][run] tap -> idx " + root.currentIndex + " " + root.items[root.currentIndex].key)
+                root.focusWindow(root.items[root.currentIndex])
                 // Auto-hide: closes shortly after the last tap, which is what
                 // makes releasing Alt feel like it closes itself.
                 advanceHideTimer.restart()
@@ -329,10 +485,11 @@ Scope {
         if (!root.open) {
             root.openSwitcher()
             // Advance-on-tap: first tap walks BACKWARD from the end of the
-            // list (count - 1), mirroring next()'s first-tap advance.
+            // list (count - 1), mirroring next()'s first-tap advance. In MRU
+            // order the last entry is the least recently used window.
             if (root.advanceOnTap && root.count > 0) {
                 root.currentIndex = root.count - 1
-                root.focusWindow(root.windows[root.currentIndex])
+                root.focusWindow(root.items[root.currentIndex])
                 advanceHideTimer.restart()
             }
             return
@@ -341,7 +498,7 @@ Scope {
             root.currentIndex = (root.currentIndex - 1 + root.count) % root.count
             // Mirrors next(): each tap commits immediately when enabled.
             if (root.advanceOnTap) {
-                root.focusWindow(root.windows[root.currentIndex])
+                root.focusWindow(root.items[root.currentIndex])
                 advanceHideTimer.restart()
             }
         }
@@ -370,7 +527,7 @@ Scope {
     function selectAndFocus(index: int): void {
         if (index < 0 || index >= root.count)
             return
-        const w = root.windows[index]
+        const w = root.items[index]
         root.currentIndex = index
         focusWindow(w)
         root.close()
@@ -431,7 +588,7 @@ Scope {
             return
         advanceHideTimer.stop()
         if (root.count > 0 && root.currentIndex >= 0 && root.currentIndex < root.count)
-            root.focusWindow(root.windows[root.currentIndex])
+            root.focusWindow(root.items[root.currentIndex])
         root.close()
     }
 
@@ -611,7 +768,7 @@ Scope {
                             spacing: root.tileGap * root.s
 
                             Repeater {
-                                model: root.windows
+                                model: root.items
                                 delegate: Rectangle {
                                     id: tile
                                     required property var modelData
@@ -675,10 +832,33 @@ Scope {
                                         }
                                     }
 
+                                    // Hover-select — but only after real pointer
+                                    // movement. The first hover sample of a run
+                                    // only primes the shared baseline (a layer
+                                    // surface mapped under a parked cursor gets
+                                    // a synthesised enter; it must not steal the
+                                    // keyboard selection), and only a sample at
+                                    // a new position sets the index. Same pattern
+                                    // as Clipboard.qml's row hover.
+                                    HoverHandler {
+                                        onPointChanged: {
+                                            if (!hovered)
+                                                return
+                                            var sp = point.scenePosition
+                                            if (!root.pointerPrimed) {
+                                                root.lastPointer = Qt.point(sp.x, sp.y)
+                                                root.pointerPrimed = true
+                                                return
+                                            }
+                                            if (sp.x !== root.lastPointer.x || sp.y !== root.lastPointer.y) {
+                                                root.lastPointer = Qt.point(sp.x, sp.y)
+                                                root.currentIndex = index
+                                            }
+                                        }
+                                    }
+
                                     MouseArea {
                                         anchors.fill: parent
-                                        hoverEnabled: true
-                                        onEntered: root.currentIndex = index
                                         onClicked: root.selectAndFocus(index)
                                     }
                                 }
@@ -703,7 +883,7 @@ Scope {
                             spacing: 6 * root.s
 
                             Repeater {
-                                model: root.windows
+                                model: root.items
                                 delegate: Rectangle {
                                     id: listRow
                                     required property var modelData
@@ -775,11 +955,30 @@ Scope {
                                         }
                                     }
 
-                                    MouseArea {
+                                    // Hover-select gated on real pointer movement
+                                    // (see the grid tile's handler above): a
+                                    // parked cursor can never yank the selection
+                                    // off the keyboard walk.
+                                    HoverHandler {
                                         id: rowHover
+                                        onPointChanged: {
+                                            if (!hovered)
+                                                return
+                                            var sp = point.scenePosition
+                                            if (!root.pointerPrimed) {
+                                                root.lastPointer = Qt.point(sp.x, sp.y)
+                                                root.pointerPrimed = true
+                                                return
+                                            }
+                                            if (sp.x !== root.lastPointer.x || sp.y !== root.lastPointer.y) {
+                                                root.lastPointer = Qt.point(sp.x, sp.y)
+                                                root.currentIndex = listRow.index
+                                            }
+                                        }
+                                    }
+
+                                    MouseArea {
                                         anchors.fill: parent
-                                        hoverEnabled: true
-                                        onEntered: root.currentIndex = listRow.index
                                         onClicked: root.selectAndFocus(listRow.index)
                                     }
                                 }
@@ -805,7 +1004,7 @@ Scope {
                             spacing: 10 * root.s
 
                             Repeater {
-                                model: root.windows
+                                model: root.items
                                 delegate: Rectangle {
                                     id: chip
                                     required property var modelData
@@ -837,10 +1036,27 @@ Scope {
                                         }
                                     }
 
+                                    // Hover-select gated on real pointer movement
+                                    // (see the grid tile's handler above).
+                                    HoverHandler {
+                                        onPointChanged: {
+                                            if (!hovered)
+                                                return
+                                            var sp = point.scenePosition
+                                            if (!root.pointerPrimed) {
+                                                root.lastPointer = Qt.point(sp.x, sp.y)
+                                                root.pointerPrimed = true
+                                                return
+                                            }
+                                            if (sp.x !== root.lastPointer.x || sp.y !== root.lastPointer.y) {
+                                                root.lastPointer = Qt.point(sp.x, sp.y)
+                                                root.currentIndex = chip.index
+                                            }
+                                        }
+                                    }
+
                                     MouseArea {
                                         anchors.fill: parent
-                                        hoverEnabled: true
-                                        onEntered: root.currentIndex = chip.index
                                         onClicked: root.selectAndFocus(chip.index)
                                     }
                                 }
