@@ -37,11 +37,7 @@ Item {
         }
 
         if (request.startsWith("focuswindow ")) {
-            // request is "focuswindow address:0x..." — hl.dsp.focus
-            // expects just the address "0x...", not "address:0x..."
             let addr = request.slice(12); // "address:0x..." or "0x..."
-            if (addr.startsWith("address:"))
-                addr = addr.slice(7);
             return 'hl.dsp.focus({window = "' + addr + '"})';
         }
 
