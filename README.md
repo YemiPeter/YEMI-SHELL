@@ -23,20 +23,20 @@
 
 <table>
   <tr>
-    <td align="center"><img src="screenshots/pill-idle.png" alt="Idle Pill" width="400"/><br/><em>Idle Pill — breathing animation</em></td>
-    <td align="center"><img src="screenshots/launcher.png" alt="Launcher" width="400"/><br/><em>Application Launcher with fuzzy search</em></td>
+    <td align="center"><img src="screenshots/pill-idle.png" alt="Home" width="400"/><br/><em>Home Screen</em></td>
+    <td align="center"><img src="screenshots/launcher.png" alt="Launcher" width="400"/><br/><em>Launcher with fuzzy search</em></td>
   </tr>
   <tr>
     <td align="center"><img src="screenshots/mixer.png" alt="Audio Mixer" width="400"/><br/><em>Audio Mixer — PipeWire faders</em></td>
     <td align="center"><img src="screenshots/calendar.png" alt="Calendar" width="400"/><br/><em>Calendar Picker</em></td>
   </tr>
   <tr>
-    <td align="center"><img src="screenshots/wallpaper-picker.png" alt="Wallpaper Picker" width="400"/><br/><em>Wallpaper Gallery with GIF support</em></td>
-    <td align="center"><img src="screenshots/power-menu.png" alt="Power Menu" width="400"/><br/><em>Power Menu — lock, reboot, shutdown</em></td>
+    <td align="center"><img src="screenshots/wallpaper-picker.png" alt="Wallpaper Picker" width="400"/><br/><em>Wallpaper Picker Skwd-Walls</em></td>
+    <td align="center"><img src="screenshots/power-menu.png" alt="Settings Index" width="400"/><br/><em>Settings Index</em></td>
   </tr>
   <tr>
-    <td align="center"><img src="screenshots/notifications.png" alt="Notifications" width="400"/><br/><em>Notification Center</em></td>
-    <td align="center"><img src="screenshots/desktop-overview.png" alt="Desktop Overview" width="400"/><br/><em>Desktop Overview</em></td>
+    <td align="center"><img src="screenshots/notifications.png" alt="Dashboard" width="400"/><br/><em>Dashboard</em></td>
+    <td align="center"><img src="screenshots/desktop-overview.png" alt="Desktop Overview — FastFetch And AppDock" width="400"/><br/><em>Desktop Overview — FastFetch And AppDock</em></td>
   </tr>
 </table>
 
