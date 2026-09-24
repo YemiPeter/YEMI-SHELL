@@ -187,10 +187,13 @@ Scope {
     function cycleNoUi(direction: int): void {
         advanceHideTimer.stop()
         root.open = false
-        if (!root.quickSwitchDone || root.noUiSnapshot.length === 0) {
-            root.noUiSnapshot = root.windows.slice()
-            root.noUiIndex = 0
-        }
+        // Always refresh the snapshot from the live `windows` binding on every
+        // tap, not just the first one. `windows` is a reactive property that
+        // reorders immediately when focusWindow() fires compositor focus events
+        // (especially on the event-driven Hyprland backend). Reusing a frozen
+        // snapshot across taps causes the modular index arithmetic to land on
+        // wrong windows, producing the "goes back to one window" symptom.
+        root.noUiSnapshot = root.windows.slice()
         const total = root.noUiSnapshot.length
         if (total === 0)
             return
