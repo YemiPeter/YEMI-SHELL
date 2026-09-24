@@ -36,7 +36,7 @@
   </tr>
   <tr>
     <td align="center"><img src="screenshots/notifications.png" alt="Dashboard" width="400"/><br/><em>Dashboard</em></td>
-    <td align="center"><img src="screenshots/desktop-overview.png" alt="Desktop Overview — FastFetch And AppDock" width="400"/><br/><em>Desktop Overview — FastFetch And AppDock</em></td>
+    <td align="center"><img src="screenshots/desktop-overview.png" alt="Desktop Overview — FastFetch" width="400"/><br/><em>Desktop Overview — FastFetch</em></td>
   </tr>
 </table>
 

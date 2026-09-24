@@ -36,60 +36,60 @@
       "type": "packages",
       "format": "{} (pacman)",
       "key": " ",
-      "keyColor": "white"
+      "keyColor": "cyan"
     },
     {
       "type": "shell",
       "key": " ",
-      "keyColor": "white"
+      "keyColor": "cyan"
     },
     {
       "type": "terminal",
       "key": " ",
-      "keyColor": "white"
+      "keyColor": "cyan"
     },
     {
       "type": "wm",
       "key": " ",
-      "keyColor": "white"
+      "keyColor": "cyan"
     },
     {
       "type": "display",
       "key": " ",
-      "keyColor": "white"
+      "keyColor": "cyan"
     },
     {
       "type": "cpu",
       "format": "{1}",
       "key": " ",
-      "keyColor": "white"
+      "keyColor": "cyan"
     },
     {
       "type": "gpu",
       "format": "{2}",
       "key": " ",
-      "keyColor": "white"
+      "keyColor": "cyan"
     },
     {
       "type": "gpu",
       "format": "{3}",
       "key": " ",
-      "keyColor": "white"
+      "keyColor": "cyan"
     },
     {
       "type": "memory",
       "key": "󰍛 ",
-      "keyColor": "white"
+      "keyColor": "cyan"
     },
     {
       "type": "swap",
       "key": "󰾴 ",
-      "keyColor": "white"
+      "keyColor": "cyan"
     },
     {
       "type": "disk",
       "key": " ",
-      "keyColor": "white"
+      "keyColor": "cyan"
     },
     {
       "type": "uptime",

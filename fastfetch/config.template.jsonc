@@ -114,15 +114,9 @@
       "text": "uptime -p | sed 's/^up //'"
     },
     {
-      "type": "cpu",
-      "format": "{6}",
-      "key": " ",
-      "keyColor": "{{bright}}"
-    },
-    {
       "type": "custom",
       "key": "󱚀 ",
-      "keyColor": "{{primary}}",
+      "keyColor": "{{cream}}",
       "shell": "echo '󰣐󰣐󰣐'"
     }
   ]
