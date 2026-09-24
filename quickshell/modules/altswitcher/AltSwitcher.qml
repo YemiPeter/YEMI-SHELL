@@ -26,9 +26,12 @@ import "../pill/lib/setDeco.js" as SetDeco
  * compositor. Mod+Tab is left to niri's own toggle-overview.
  *
  * Navigation follows focus recency (most recently used first, like iNiR's
- * "Most recently used first" default), so a run's first tap lands on the window
- * you came from; each run walks a frozen snapshot so the list cannot reshuffle
- * under the selection while you cycle.
+ * "Most recently used first" default), so a fresh press lands on the window you
+ * came from. Consecutive presses then walk the frozen snapshot one window at a
+ * time (Alt+Tab forward, Alt+Shift+Tab backward) for walkHoldMs after the last
+ * press, so cycling is a clean cycle at any pace — no reshuffling, no bouncing
+ * between two windows. The walk ends when it goes idle, when focus moves to a
+ * window the walk did not target, or on explicit dismissal.
  */
 Scope {
     id: root
@@ -71,21 +74,36 @@ Scope {
     property point lastPointer: Qt.point(0, 0)
     property bool pointerPrimed: false
 
-    // ── Run snapshot ───────────────────────────────────────────────────────────
-    // A "run" is one Alt+Tab session: it starts when the overlay opens (or when
-    // a no-UI walk begins) and ends on close/commit or the no-UI reset timer.
-    // Navigation always walks a FROZEN copy of the window list taken at run
-    // start. The live list reorders on every focus change (a focus event moves
-    // the focused window in the raw toplevel order, and the MRU sort reorders
-    // by design), so navigating live indices lands on shifted entries — the
-    // "switcher keeps going back to the same window" symptom. Re-snapshotting
-    // per tap has the same flaw (fresh list = fresh index meaning); a frozen
-    // run is what keeps the highlight and the commit on the window you chose.
+    // ── Run snapshot (the walk) ────────────────────────────────────────────────
+    // A "run" is one Alt+Tab walk: it starts on a fresh press, keeps its cursor
+    // across consecutive presses, and ends when it goes idle (walkHoldMs), when
+    // focus moves to a window the walk did not target, or on explicit dismissal
+    // (Esc, click-away, toggle-off). Navigation always walks a FROZEN copy of
+    // the window list taken at run start. The live list reorders on every focus
+    // change (a focus event moves the focused window in the raw toplevel order,
+    // and the MRU sort reorders by design), so navigating live indices lands on
+    // shifted entries — the "switcher keeps going back to the same window" /
+    // "windows just switch like a mix" symptoms. Re-snapshotting per tap has the
+    // same flaw (fresh list = fresh index meaning); the frozen run is what keeps
+    // the walk a stable cycle and the commit on the window you chose.
     property var runItems: []
     readonly property bool runActive: root.runItems.length > 0
     // The list every navigation path reads: the frozen run while one is active,
     // the live (MRU-ordered) list otherwise.
     readonly property var items: root.runActive ? root.runItems : root.windows
+
+    // Keys this switcher focused itself (walker-initiated focus changes), with
+    // an entry consumed by each matching focus event. Lets noteFocus() tell our
+    // own steps — whose events can arrive late during fast tapping — apart from
+    // the user focusing something else; the latter ends the walk, so the next
+    // press is again a fresh MRU pick rather than a stale cycle.
+    property var selfFocusKeys: []
+
+    // How long after the last press the walk keeps its cursor. Every press
+    // inside the window continues the cycle at whatever pace; only an idle gap
+    // longer than this starts a fresh run (previous window). Raise to walk more
+    // deliberately, lower for a stricter "release = session over" feel.
+    readonly property int walkHoldMs: 6000
 
     // ── General-blur connection (Hyprland) ─────────────────────────────────────
     // The Look surface's blur toggle (decoration.lua blur.enabled) gates ALL
@@ -162,9 +180,10 @@ Scope {
     readonly property real compactStripW: root.count * 56 * root.s + Math.max(root.count - 1, 0) * 10 * root.s
 
     // Advance-on-tap auto-hide (iNiR's mechanism — they have no release binds
-    // either; the switcher closes `interval` ms after the LAST tap, which
+    // either; the switcher hides `interval` ms after the LAST tap, which
     // naturally coincides with releasing Alt). Restarted by next()/previous()
-    // when the flag is on; stopped by close()/commitAndClose().
+    // when the flag is on; stopped by close(). Only the VISUAL hides here — the
+    // walk itself survives so the next press continues the cycle (walkHoldMs).
     readonly property int advanceHideMs: 600
     Timer {
         id: advanceHideTimer
@@ -172,15 +191,29 @@ Scope {
         repeat: false
         onTriggered: {
             if (root.open && root.advanceOnTap)
-                root.close()
+                root.hideOverlay()
+        }
+    }
+
+    // Ends the walk when it goes idle (see walkHoldMs). Restarted on every
+    // next()/previous() step; stopped by endRun().
+    Timer {
+        id: runHoldTimer
+        interval: root.walkHoldMs
+        repeat: false
+        onTriggered: {
+            if (QsSingletons.Flags.debug) console.log("[AltSwitcher] walk hold expired -> endRun")
+            root.quickSwitchDone = false
+            root.noUiIndex = 0
+            root.endRun()
         }
     }
 
     // ── No-Visual-UI cycling (iNiR's "cycle windows only") ─────────────────────
     // When on, the overlay never opens: each tap walks a FROZEN snapshot of the
-    // window list and focuses straight into it. quickSwitchResetTimer (iNiR's
-    // 800 ms) ends the run when the taps stop, so the next tap starts over from
-    // the top of the list instead of continuing the old walk.
+    // window list and focuses straight into it. The walk shares runHoldTimer
+    // with the visual mode: taps at any pace keep cycling, and only an idle gap
+    // longer than walkHoldMs starts over from the top of a fresh list.
     readonly property bool noVisualUi: QsSingletons.Flags.altSwitcherNoVisualUi
     // This mode has no UI left to commit a selection with, so every tap must
     // commit — it forces advance-on-tap on regardless of the user's toggle.
@@ -196,58 +229,44 @@ Scope {
     property bool quickSwitchDone: false
     property int noUiIndex: 0
 
-    Timer {
-        id: quickSwitchResetTimer
-        interval: 800
-        repeat: false
-        onTriggered: {
-            root.quickSwitchDone = false
-            root.endRun()
-            root.noUiIndex = 0
-        }
-    }
-
     // Toggling the mode mid-run invalidates the walk so the next tap is fresh.
     onNoVisualUiChanged: {
-        quickSwitchResetTimer.stop()
         root.quickSwitchDone = false
-        root.endRun()
         root.noUiIndex = 0
+        root.endRun()
         // Leaving the mode while the overlay happens to be up must not strand it.
         root.close()
     }
 
     // direction: +1 = forward (next), -1 = backward (previous). Mirrors iNiR's
-    // next()/previous() no-UI branch: the first tap of a run lands on index 1
-    // (or last, going backward) because index 0 is the window you are already
-    // on — true here because `windows` is ordered by focus recency (MRU), so
-    // the second entry is the window you came from. The run walks the frozen
-    // snapshot taken by startRun() (see the run-snapshot block): re-snapshotting
-    // per tap re-indexes the list under the walker and sends it back to windows
-    // it already visited. quickSwitchResetTimer ends the run when the taps
-    // stop, so the next tap re-snapshots the fresh recency order.
-    function cycleNoUi(direction: int): void {
+    // next()/previous() no-UI branch: the first tap of a fresh walk lands on
+    // index 1 (or last, going backward) because index 0 is the window you are
+    // already on — true here because `windows` is ordered by focus recency
+    // (MRU), so the second entry is the window you came from. The walk keeps
+    // its cursor for walkHoldMs, so taps at any pace cycle cleanly instead of
+    // restarting on the previous window. Walking live indices would re-index
+    // the list under the walker and send it back to windows it already visited.
+    function cycleNoUi(direction) {
         advanceHideTimer.stop()
         root.open = false
-        // Continue the run's snapshot, or take a fresh one when this tap starts
-        // a new run (reset timer fired, or the mode was just switched on).
-        let total = root.quickSwitchDone ? root.runItems.length : 0
-        if (total === 0)
-            total = root.startRun()
-        if (total === 0)
-            return
-        if (!root.quickSwitchDone) {
+        if (!root.quickSwitchDone || root.runItems.length === 0) {
+            // Fresh walk: snapshot the live order, then start one past the
+            // current window (forward) or at the least recently used end
+            // (backward).
+            const total = root.startRun()
+            if (total === 0)
+                return
             root.quickSwitchDone = true
             root.noUiIndex = direction > 0
                 ? (total > 1 ? 1 : 0)
                 : (total > 1 ? total - 1 : 0)
         } else {
             root.noUiIndex = direction > 0
-                ? (root.noUiIndex + 1) % total
-                : (root.noUiIndex - 1 + total) % total
+                ? (root.noUiIndex + 1) % root.runItems.length
+                : (root.noUiIndex - 1 + root.runItems.length) % root.runItems.length
         }
         root.focusWindow(root.runItems[root.noUiIndex])
-        quickSwitchResetTimer.restart()
+        runHoldTimer.restart()
     }
 
     // Live window list, ordered by focus recency — most recently used first.
@@ -296,7 +315,7 @@ Scope {
         return mapped
     })()
 
-    function normalizeWindow(w: var): var {
+    function normalizeWindow(w) {
         if (!w)
             return null
         const ipc = w.lastIpcObject || {}
@@ -319,12 +338,29 @@ Scope {
     // the compositor's active-toplevel changes (see the Connections below).
     property var mruKeys: []
 
-    function noteFocus(w: var): void {
+    function noteFocus(w) {
         if (!w)
             return
         const k = focusKey(w)
         if (!k)
             return
+        // While a walk is live, a focus change the walk did not cause (the user
+        // clicked or focused something else, possibly via another shortcut)
+        // means the cycle is broken: end the run so the next press is a fresh
+        // MRU pick instead of resuming a stale walk. Our own steps match either
+        // the current cursor or the self-focus queue (their events can arrive
+        // late during fast tapping).
+        if (root.runActive) {
+            if (k === root.walkTargetKey()) {
+                if (QsSingletons.Flags.debug) console.log("[AltSwitcher] event matches walk target " + k)
+            } else if (root.selfFocusKeys.indexOf(k) >= 0) {
+                root.selfFocusKeys = root.selfFocusKeys.filter(function (x) { return x !== k })
+                if (QsSingletons.Flags.debug) console.log("[AltSwitcher] event consumed self-focus " + k + " (left " + root.selfFocusKeys.length + ")")
+            } else {
+                if (QsSingletons.Flags.debug) console.log("[AltSwitcher] EXTERNAL focus " + k + " (target " + root.walkTargetKey() + ") -> endRun")
+                root.endRun()
+            }
+        }
         if (QsSingletons.Flags.debug)
             console.log("[AltSwitcher][mru] focus " + k + " (list: " + root.mruKeys.length + ")")
         // Remove-then-unshift so refocusing a window that already sits deeper in
@@ -338,9 +374,19 @@ Scope {
         root.mruKeys = next
     }
 
+    // Key of the window the active walk currently points at (visual cursor or
+    // no-UI cursor). Empty when no walk is live.
+    function walkTargetKey() {
+        if (!root.runActive)
+            return ""
+        const idx = root.noVisualUi ? root.noUiIndex : root.currentIndex
+        const w = root.runItems[idx]
+        return w ? w.key : ""
+    }
+
     // Drop keys of windows that no longer exist so the list does not grow for
     // the whole session and stale entries cannot outrank live windows.
-    function pruneMru(): void {
+    function pruneMru() {
         if (root.mruKeys.length === 0)
             return
         const alive = {}
@@ -356,7 +402,7 @@ Scope {
     // this shell's history — see focusWindow), so strip it and lowercase, or a
     // recency entry recorded from one source would never match a window row
     // built from another.
-    function focusKey(w: var): string {
+    function focusKey(w) {
         return String(w.address ?? w.id ?? "").toLowerCase().replace(/^0x/, "")
     }
 
@@ -389,7 +435,7 @@ Scope {
     }
 
     // ── Public API (driven by the altSwitcher IPC handler in shell.qml) ─────────
-    function toggle(): void {
+    function toggle() {
         if (!QsSingletons.Flags.altSwitcherEnabled)
             return
         if (root.open)
@@ -397,134 +443,148 @@ Scope {
         else
             root.openSwitcher()
     }
-    function open(): void { root.openSwitcher() }
-    function openSwitcher(): void {
+    function open() { root.openSwitcher() }
+    function openSwitcher() {
         if (!QsSingletons.Flags.altSwitcherEnabled)
             return
         // Instantiation itself is gated in shell.qml (niri + Hyprland); only
         // refuse on an unknown compositor so IPC stays a no-op there.
         if (!compositor.runningCompositor)
             return
-        // Freeze the run's window order (see the run-snapshot block) before the
-        // first advance: every navigation and the final commit read this list
-        // instead of the live one, so focus events during the cycle cannot
-        // reindex the walk.
-        root.startRun()
-        root.currentIndex = 0
+        // A fresh run freezes the window order (see the run-snapshot block)
+        // before the first advance: every navigation and the final commit read
+        // this list instead of the live one, so focus events during the cycle
+        // cannot reindex the walk. A run that is still inside its walkHoldMs
+        // window keeps its snapshot and cursor — reopening the overlay is just
+        // the visual coming back, not a new cycle.
+        if (!root.runActive) {
+            if (QsSingletons.Flags.debug) console.log("[AltSwitcher] openSwitcher: fresh walk")
+            root.startRun()
+            root.currentIndex = 0
+        } else {
+            if (QsSingletons.Flags.debug) console.log("[AltSwitcher] openSwitcher: continuing walk (cursor " + root.currentIndex + ")")
+        }
         root.open = true
         cardHolder.forceActiveFocus()
     }
 
-    /** Snapshot the live MRU-ordered list for a run; returns its length. */
-    function startRun(): int {
+    /** Snapshot the live MRU-ordered list for a walk; returns its length. */
+    function startRun() {
         root.runItems = root.windows.slice()
-        if (QsSingletons.Flags.debug)
-            console.log("[AltSwitcher][run] snapshot: " + root.runItems.map(function (w) { return w.key }).join(","))
+        root.selfFocusKeys = []
+        if (QsSingletons.Flags.debug) console.log("[AltSwitcher] startRun snapshot: " + root.runItems.map(function (w) { return w.key }).join(","))
         return root.runItems.length
     }
 
-    /** Drop the run snapshot so the next run starts from the live order. */
-    function endRun(): void {
+    /** Drop the walk snapshot so the next press starts from the live order. */
+    function endRun() {
+        if (root.runItems.length > 0)
+            if (QsSingletons.Flags.debug) console.log("[AltSwitcher] endRun — walk dropped (" + root.runItems.length + " items)")
+        runHoldTimer.stop()
         if (root.runItems.length > 0)
             root.runItems = []
+        if (root.selfFocusKeys.length > 0)
+            root.selfFocusKeys = []
     }
 
-    function close(): void {
+    /** Hide the overlay without touching the walk (auto-hide / Alt release). */
+    function hideOverlay() {
+        if (QsSingletons.Flags.debug) console.log("[AltSwitcher] hideOverlay")
         advanceHideTimer.stop()
         root.open = false
-        // The run ends with the overlay: the next open re-snapshots the fresh
-        // recency order. That is what makes a normal press/look/press rhythm
-        // toggle between the two most recent windows instead of walking a
-        // stale list.
+    }
+
+    /** Explicit dismissal (Esc, click-away, toggle-off, commit): overlay and
+     *  walk both end — the next press starts a fresh MRU run. */
+    function close() {
+        root.hideOverlay()
         root.endRun()
     }
-    function next(): void {
+    function next() {
         // No-Visual-UI (cycle only): never draw the overlay — walk the frozen
         // snapshot and focus straight into it (iNiR's next() no-UI branch).
         if (root.noVisualUi) {
             root.cycleNoUi(1)
             return
         }
-        if (!root.open) {
+        const fresh = !root.open
+        if (QsSingletons.Flags.debug) console.log("[AltSwitcher] next: fresh=" + fresh + " runActive=" + root.runActive + " cursor=" + root.currentIndex + " count=" + root.count)
+        if (fresh)
             root.openSwitcher()
-            // Advance-on-tap: the FIRST tap already switches (classic Alt+Tab
-            // feel). Index 1 of the freshly snapshotted MRU list is the window
-            // you came from — focusing it is exactly the classic target, and a
-            // later press (fresh run) toggles back instead of re-picking a
-            // fixed slot in a static list.
-            if (root.advanceOnTap && root.count > 0) {
-                root.currentIndex = (root.currentIndex + 1) % root.count
-                if (QsSingletons.Flags.debug)
-                    console.log("[AltSwitcher][run] first tap -> idx " + root.currentIndex + " " + root.items[root.currentIndex].key)
-                root.focusWindow(root.items[root.currentIndex])
-                advanceHideTimer.restart()
-            }
+        if (root.count === 0)
             return
-        }
-        if (root.count > 0) {
-            root.currentIndex = (root.currentIndex + 1) % root.count
+        // Classic mode (advance off) only opens on the first press — the
+        // highlight rests on the current window until the next press.
+        if (fresh && !root.advanceOnTap)
+            return
+        root.currentIndex = (root.currentIndex + 1) % root.count
+        if (root.advanceOnTap) {
             // Advance-on-tap: every tap commits immediately — focus moves with
-            // the highlight. root.advanceOnTap also covers cycle-only mode,
-            // which has no UI left to confirm a selection with.
-            if (root.advanceOnTap) {
-                if (QsSingletons.Flags.debug)
-                    console.log("[AltSwitcher][run] tap -> idx " + root.currentIndex + " " + root.items[root.currentIndex].key)
-                root.focusWindow(root.items[root.currentIndex])
-                // Auto-hide: closes shortly after the last tap, which is what
-                // makes releasing Alt feel like it closes itself.
-                advanceHideTimer.restart()
+            // the highlight — and the walk keeps its cursor for walkHoldMs, so
+            // taps at any pace step through the frozen list instead of
+            // restarting on the previous window each time. A fresh walk starts
+            // at index 0 (the window you are on), making the first step land on
+            // the one you came from; a continuing walk steps from where it left
+            // off (the overlay may have auto-hidden in between).
+            if (QsSingletons.Flags.debug) {
+                if (QsSingletons.Flags.debug) console.log("[AltSwitcher] step -> idx " + root.currentIndex + " " + root.items[root.currentIndex].key)
             }
+            root.focusWindow(root.items[root.currentIndex])
+            // Auto-hide: hides shortly after the last tap, which is what makes
+            // releasing Alt feel like it closes itself. The walk survives the
+            // hide (walkHoldMs) so the next press continues the cycle.
+            advanceHideTimer.restart()
+            runHoldTimer.restart()
         }
     }
-    function previous(): void {
+    function previous() {
         // Mirror of next(): cycle-only mode never draws the overlay.
         if (root.noVisualUi) {
             root.cycleNoUi(-1)
             return
         }
-        if (!root.open) {
+        const fresh = !root.open
+        if (fresh)
             root.openSwitcher()
-            // Advance-on-tap: first tap walks BACKWARD from the end of the
-            // list (count - 1), mirroring next()'s first-tap advance. In MRU
-            // order the last entry is the least recently used window.
-            if (root.advanceOnTap && root.count > 0) {
-                root.currentIndex = root.count - 1
-                root.focusWindow(root.items[root.currentIndex])
-                advanceHideTimer.restart()
-            }
+        if (root.count === 0)
             return
-        }
-        if (root.count > 0) {
-            root.currentIndex = (root.currentIndex - 1 + root.count) % root.count
-            // Mirrors next(): each tap commits immediately when enabled.
-            if (root.advanceOnTap) {
-                root.focusWindow(root.items[root.currentIndex])
-                advanceHideTimer.restart()
+        if (fresh && !root.advanceOnTap)
+            return
+        // Same walk as next(), one step backward. On a fresh walk the cursor is
+        // index 0, so the wrap lands on the last entry — in MRU order the least
+        // recently used window (iNiR's backward first tap).
+        root.currentIndex = (root.currentIndex - 1 + root.count) % root.count
+        if (root.advanceOnTap) {
+            if (QsSingletons.Flags.debug) {
+                if (QsSingletons.Flags.debug) console.log("[AltSwitcher] step <- idx " + root.currentIndex + " " + root.items[root.currentIndex].key)
             }
+            root.focusWindow(root.items[root.currentIndex])
+            advanceHideTimer.restart()
+            runHoldTimer.restart()
         }
     }
 
     // ── Keyboard grid navigation (arrows + Enter/Esc) ──────────────────────────
     readonly property int _cols: Math.max(1, Math.floor((flow.width + root.tileGap * root.s) / (root.tileWidth * root.s + root.tileGap * root.s)))
 
-    function moveLeft(): void {
+    function moveLeft() {
         if (root.count === 0) return
         root.currentIndex = Math.max(0, root.currentIndex - 1)
     }
-    function moveRight(): void {
+    function moveRight() {
         if (root.count === 0) return
         root.currentIndex = Math.min(root.count - 1, root.currentIndex + 1)
     }
-    function moveUp(): void {
+    function moveUp() {
         if (root.count === 0) return
         root.currentIndex = Math.max(0, root.currentIndex - root._cols)
     }
-    function moveDown(): void {
+    function moveDown() {
         if (root.count === 0) return
         root.currentIndex = Math.min(root.count - 1, root.currentIndex + root._cols)
     }
 
-    function selectAndFocus(index: int): void {
+    function selectAndFocus(index) {
         if (index < 0 || index >= root.count)
             return
         const w = root.items[index]
@@ -539,7 +599,7 @@ Scope {
      * a desktop-entry id first (the class often differs from the icon-theme
      * name), then fall back to a direct icon-theme lookup.
      */
-    function iconForApp(appId: string): string {
+    function iconForApp(appId) {
         if (!appId)
             return Quickshell.iconPath("application-x-executable", "application-x-executable")
         const cls = String(appId).toLowerCase()
@@ -551,7 +611,7 @@ Scope {
         }
         return Quickshell.iconPath(appId, "application-x-executable")
     }
-    function appLabel(appId: string): string {
+    function appLabel(appId) {
         if (!appId)
             return "Window"
         let s = String(appId).replace(/[._-]+/g, " ")
@@ -562,7 +622,7 @@ Scope {
         return parts.join(" ")
     }
 
-    function wsLabel(wsId: var): string {
+    function wsLabel(wsId) {
         const ws = compositor.workspaces.find(function (w) { return w.id === wsId })
         if (!ws)
             return ""
@@ -577,24 +637,30 @@ Scope {
                 console.log("[AltSwitcher] focus-window exited", code)
         }
     }
-    // Alt-release commit: when advance-on-tap is enabled, releasing Alt
-    // dismisses the switcher by itself (each tap already focused its window,
-    // so re-focusing the current one on release is an idempotent safety net).
-    // With the feature off this is a no-op — the classic Esc / click-away
-    // dismissal stays untouched.
-    function commitAndClose(): void {
-        // Cycle-only mode never opens, so there is nothing to commit/close.
+    // Alt-release: when advance-on-tap is enabled, releasing Alt takes the
+    // overlay down by itself (each tap already focused its window, so
+    // re-focusing the current one is an idempotent safety net). The WALK is
+    // deliberately left alive: releasing Alt between taps is part of a normal
+    // walk, and the walk only ends after walkHoldMs of inactivity (or on an
+    // explicit dismissal, where close() is called instead).
+    function commitAndClose() {
+        // Cycle-only mode never opens, so there is nothing to commit/hide.
         if (!root.open || !root.advanceOnTap)
             return
-        advanceHideTimer.stop()
         if (root.count > 0 && root.currentIndex >= 0 && root.currentIndex < root.count)
             root.focusWindow(root.items[root.currentIndex])
-        root.close()
+        root.hideOverlay()
     }
 
-    function focusWindow(w: var): void {
+    function focusWindow(w) {
         if (!w)
             return
+        // Record the key so the focus-event handler can recognise this step as
+        // walker-initiated even if the event arrives after the cursor has
+        // already moved on (fast tapping). See noteFocus().
+        const k = root.focusKey(w)
+        if (k && root.selfFocusKeys.indexOf(k) < 0)
+            root.selfFocusKeys = root.selfFocusKeys.concat([k])
         // Hyprland focuses by address through the unified dispatch path
         // (same convention as bar AppIcons). Niri uses its IPC action.
         if (root.isHyprland) {

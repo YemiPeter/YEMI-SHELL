@@ -148,6 +148,7 @@ SettingsSurface {
         SettingsRow {
             id: backgroundRow
             surface: root
+            visible: Compositor.isNiri
             captionOnFocus: true
             icon: "app-window"
             name: "Background"
