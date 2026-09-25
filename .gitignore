@@ -26,6 +26,11 @@
 !LICENSE
 !install.sh
 
+# README hero video: keep the rest of the local screenshot folder untracked.
+!screenshots/
+screenshots/*
+!screenshots/2026-09-16 14-38-59.mp4
+
 # ── Recurse into whitelisted dirs (git requires this) ────────────────────────
 !docs/**
 !quickshell/**

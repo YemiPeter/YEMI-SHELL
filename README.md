@@ -1,297 +1,273 @@
-# Yemi Shell
+# YEMI-Shell
+
+<div align="center">
+  <img src="https://img.shields.io/badge/framework-Quickshell-6C5CE7?style=for-the-badge" alt="Quickshell" />
+  <img src="https://img.shields.io/badge/compositor-Hyprland-00E676?style=for-the-badge" alt="Hyprland" />
+  <img src="https://img.shields.io/badge/compositor-Niri-00B0FF?style=for-the-badge" alt="Niri" />
+  <img src="https://img.shields.io/badge/language-QML-41CD52?style=for-the-badge" alt="QML" />
+  <img src="https://img.shields.io/badge/license-GPL--3.0-blue?style=for-the-badge" alt="GPL-3.0" />
+</div>
 
 <p align="center">
-  <video src="screenshots/hero.mp4" autoplay loop muted playsinline></video>
-</p>
-
-<p align="center"><em>Yemi Shell</em> — from Latin: <strong>conscientious action</strong> for the Linux desktop.</p>
-
-<p align="center">
-  A custom Hyprland/QuickShell (QML) desktop environment featuring a morphing pill-based UI. Built on the <a href="https://github.com/tripathiji1312/quickshell">Quickshell</a> framework, it transforms the traditional top bar into an interactive animated pill that breathes with your wallpaper's colors. Every surface, from the launcher to the power menu, emerges dynamically from a single animated element, ready to be summoned with a keystroke.
+  <strong>A complete desktop shell for Hyprland and Niri, built on Quickshell.</strong>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/framework-Quickshell-6C5CE7?style=flat-square" alt="Framework"/>
-  <img src="https://img.shields.io/badge/compositor-Hyprland-00E676?style=flat-square" alt="Hyprland"/>
-  <img src="https://img.shields.io/badge/compositor-Niri-00B0FF?style=flat-square" alt="Niri"/>
-  <img src="https://img.shields.io/badge/license-MIT-FF6B6B?style=flat-square" alt="License"/>
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#screenshots">Screenshots</a> •
+  <a href="#features">Features</a> •
+  <a href="#installation">Installation</a> •
+  <a href="#requirements">Requirements</a> •
+  <a href="#configuration">Configuration</a> •
+  <a href="#architecture">Architecture</a>
+</p>
+
+<p align="center">
+  <video width="100%" controls autoplay loop muted playsinline>
+    <source src="https://github.com/YemiPeter/YEMI-SHELL/raw/refs/heads/main/screenshots/2026-09-16%2014-38-59.mp4" type="video/mp4">
+    <a href="https://github.com/YemiPeter/YEMI-SHELL/blob/main/screenshots/2026-09-16%2014-38-59.mp4">Watch the YEMI-Shell demo</a>
+  </video>
 </p>
 
 ---
 
-## 📸 Screenshots
+## Overview
 
-<table>
-  <tr>
-    <td align="center"><img src="screenshots/pill-idle.png" alt="Home" width="400"/><br/><em>Home Screen</em></td>
-    <td align="center"><img src="screenshots/launcher.png" alt="Launcher" width="400"/><br/><em>Launcher with fuzzy search</em></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="screenshots/mixer.png" alt="Audio Mixer" width="400"/><br/><em>Audio Mixer — PipeWire faders</em></td>
-    <td align="center"><img src="screenshots/calendar.png" alt="Calendar" width="400"/><br/><em>Calendar Picker</em></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="screenshots/wallpaper-picker.png" alt="Wallpaper Picker" width="400"/><br/><em>Wallpaper Picker Skwd-Walls</em></td>
-    <td align="center"><img src="screenshots/power-menu.png" alt="Settings Index" width="400"/><br/><em>Settings Index</em></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="screenshots/notifications.png" alt="Dashboard" width="400"/><br/><em>Dashboard</em></td>
-    <td align="center"><img src="screenshots/desktop-overview.png" alt="Desktop Overview — FastFetch" width="400"/><br/><em>Desktop Overview — FastFetch</em></td>
-  </tr>
-</table>
+YEMI-Shell is a layered desktop shell experience built around Quickshell, tuned for smooth interaction, rich system integration, and a polished Material-inspired visual language.
+
+It blends a morphing pill UI, dynamic wallpaper theming, compositor-aware behavior, and a modular QML architecture that is easy to extend.
+
+- Per-monitor pill surfaces for launchers, media controls, weather, calendar, settings, and quick actions
+- Wallpaper pipeline powered by `skwd` with live dynamic color generation
+- Hyprland and Niri support with a shared backend abstraction
+- Modular services for audio, network, brightness, power, updates, and media controls
 
 ---
 
-## ✨ Features
-
-### Morphing Pill UI
-
-A single `Pill.qml` component transforms fluidly between **20+ surfaces** using state-driven animations. The pill grows in-place without overshoot, governed by `Motion.morph` easing curves. Key surfaces include:
-
-| Surface | Dimensions | Purpose |
-|:-------:|:----------:|:--------|
-| `rest` | 160×38px | Default breathing pill (idle animation) |
-| `launcher` | 360×332px | App launcher with fuzzy search |
-| `mixer` | 93×max(4,faders)×38px | Audio faders for all sinks/sources |
-| `calendar` | 58×70px | Monthly calendar picker |
-| `power` | 330×150px | Session operations (lock/reboot/power) |
-| `wallpaper` | 720×172px | Wallpaper gallery with GIF support |
-
-### Dual Compositor Support
-
-Native abstraction layer supports both:
-
-| Compositor | Detection | Status |
-|:----------:|:----------:|:-------|
-| **Hyprland** | `XDG_CURRENT_DESKTOP=Hyprland` | Primary |
-| **Niri** | `XDG_CURRENT_DESKTOP=Niri` | Secondary (polling) |
-
-### Dynamic Theming Pipeline
-
-```
-┌─────────────┐     ┌────────────┐     ┌──────────────┐
-│  Wallpaper  │────▶│wallcolors.py│────▶│ colors.json  │
-└─────────────┘     └────────────┘     └──────┬───────┘
-                                               │
-┌───────────────┐                     ┌────────┴────────┐
-│  Matugen      │◀────────────────────│  terminal.json  │
-└───────────────┘                     └─────────────────┘
-```
-
-**Color extraction** uses ImageMagick histogram analysis with:
-- 30° hue family binning to find "area-dominant chromatic hue"
-- Mean lightness to determine light/dark theme
-- 6-step surface lightness ramp (surface → surface_highest)
-
-### Two-Window Architecture
-
-The `PillOverlay` uses a specialized layer-shell split:
-
-```
-┌────────────────────────────────────────────────────┐
-│ shell.qml                                          │
-│  ├── BarWrapper (WlrLayer.Bottom)                   │
-│  └── PillOverlay (per screen)                       │
-│       ├── reserve (WlrLayer.Top)                    │
-│       │   └── Excluded zone (38px resting height)   │
-│       └── overlay (WlrLayer.Overlay)                │
-│           └── Pill QML + Surfaces                   │
-└────────────────────────────────────────────────────┘
-```
-
 ---
 
-## 🏗️ Architecture
+## Quick Start
 
-### Core Components
+> This configuration expects to live at `~/.config/quickshell` (or under the directory named by `RICE_HOME`).
 
-| Component | File | Purpose |
-|:---------:|:-----|:--------|
-| `ShellRoot` | `shell.qml` | Root entry point, IPC handlers, service initialization |
-| `PillOverlay` | `modules/pill/PillOverlay.qml` | Per-screen overlay container with reserve/overlay windows |
-| `Pill` | `modules/pill/Pill.qml` | Main morphing body with state management |
-| `PillState` | `singletons/PillState.qml` | Global surface state (per-monitor) |
-| `Flags` | `singletons/Flags.qml` | Session preferences (DND, paletteMode, etc.) |
-| `Theme` | `singletons/Theme.qml` | Static color palette tokens |
-| `Dyn` | `singletons/Dyn.qml` | Dynamic colors from wallpaper |
-| `Compositor` | `compositor/Compositor.qml` | Hyprland/Niri abstraction layer |
-
-### Service Architecture
-
-| Service | File | Protocol |
-|:-------:|:-----|:----------|
-| Notifs | `services/Notifs.qml` | D-Bus Notifications |
-| Audio | `services/Audio.qml` | PipeWire MPRIS |
-| Network | `services/Network.qml` | NetworkManager |
-| Bluetooth | `services/Bluetooth.qml` | BlueZ |
-| Matugen | `services/Matugen.qml` | External process |
-| IdleInhibitor | `services/IdleInhibitor.qml` | systemd/logind |
-
-### Data Flow
-
-```
-Wallpaper → wallcolors.py → colors.json → Dyn singleton
-                                               │
-                                     ┌───────┴────────┐
-                                     │                │
-                           Pill surfaces      Theme singleton
-                                     │                │
-                                     └───────┬────────┘
-                                             ▼
-                                      Color tokens
-```
-
----
-
-## 🔧 Installation
-
-### Dependencies
+From the configuration directory, the direct launch is:
 
 ```bash
-# Core
-quickshell hyprland hyprsunset python
-
-# Wallpaper pipeline
-imagemagick matugen python-pywal
-
-# System services
-brightnessctl playerctl network-manager-applet
-pipewire pipewire-pulse wireplumber
-networkmanager bluez bluez-utils upower
-wl-clipboard slurp wf-recorder libnotify
-
-# Fonts
-ttf-jetbrains-mono-nerd ttf-material-icons inter-font
+quickshell -p "$HOME/.config/quickshell/shell.qml"
 ```
 
-### Install Script
+For a session-safe startup, run the guarded launcher with Bash rather than relying on the shell's default syntax:
 
 ```bash
-# Arch-based systems (recommended)
-./install.sh
+bash "$HOME/.config/quickshell/scripts/start-shell.sh"
+```
 
-# Dry run to preview changes
+This waits for the Wayland socket and the `skwd-walld` wallpaper backend before launching Quickshell, and exits cleanly if an instance is already running. To reload while developing, run:
+
+```bash
+bash "$HOME/.config/quickshell/reload-shell.sh"
+```
+
+### Verify the stack is live
+
+```bash
+systemctl --user status skwd-walld.service
+skwd-helm current
+pgrep -af "quickshell -p .*shell.qml"
+```
+
+If the wallpaper backend is active, `skwd-helm current` should print the current wallpaper path and the quickshell process should be running.
+
+---
+
+---
+
+## Screenshots
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center"><img src="screenshots/pill-idle.png" alt="Home screen" width="400" /></td>
+      <td align="center"><img src="screenshots/launcher.png" alt="Launcher with fuzzy search" width="400" /></td>
+    </tr>
+    <tr>
+      <td align="center"><img src="screenshots/mixer.png" alt="Audio mixer with PipeWire faders" width="400" /></td>
+      <td align="center"><img src="screenshots/calendar.png" alt="Calendar and weather" width="400" /></td>
+    </tr>
+    <tr>
+      <td align="center"><img src="screenshots/wallpaper-picker.png" alt="Wallpaper picker" width="400" /></td>
+      <td align="center"><img src="screenshots/power-menu.png" alt="Settings index" width="400" /></td>
+    </tr>
+    <tr>
+      <td align="center"><img src="screenshots/notifications.png" alt="Notification dashboard" width="400" /></td>
+      <td align="center"><img src="screenshots/desktop-overview.png" alt="Desktop overview" width="400" /></td>
+    </tr>
+  </table>
+</div>
+
+---
+
+## Features
+
+- A per-monitor morphing pill with launcher, calendar and weather, clipboard history, media controls, PipeWire mixer, Wi-Fi and Bluetooth controls, battery details, system monitor, recorder, wallpaper picker, power menu, and settings surfaces.
+- A side bar with workspaces, active-app icons, network, Bluetooth, volume, brightness, battery, tray, and pop-up controls.
+- A compositor abstraction for Hyprland and Niri. Hyprland uses Quickshell's native integration; Niri state is refreshed through its JSON IPC interface.
+- A wallpaper pipeline powered by `skwd-wall`: static images, GIFs, and video files can be selected from the shell.
+- Dynamic Material-style color schemes generated from the current wallpaper, with a warm fallback palette when no generated scheme is available.
+- Media integration through MPRIS, PipeWire-aware audio controls, Cava visualizers, screenshot/recording helpers, idle controls, update checks, and an Alt+Tab overview.
+
+## Requirements
+
+The shell is designed for a Wayland session running either Hyprland or Niri. Install Quickshell with the services used by this configuration enabled, then add the tools for the features you want.
+
+| Area | Required tools or services |
+|:--|:--|
+| Shell | `quickshell`, `qs`, and a compositor such as `hyprland` or `niri` |
+| Wallpaper backend | `skwd-walld`, `skwd-helm`, and `skwd-wall` |
+| Audio | PipeWire and WirePlumber (`wpctl`) |
+| Network and Bluetooth | NetworkManager (`nmcli`) and BlueZ (`bluetoothctl`) |
+| Power and brightness | UPower and `brightnessctl` |
+| Theme and media pipeline | `jq`, Python 3, ImageMagick (`magick`), and the wallpapers directory in `~/Pictures/Wallpapers` |
+| Screenshots and recording | `grim`, `slurp`, `wl-clipboard`, and `wf-recorder` |
+| Optional extras | `cliphist`, `cava`, `hyprsunset`, `notify-send`, and a Nerd Font / Material Symbols font |
+
+`scripts/set-wallpaper.sh` looks for wallpapers in `~/Pictures/Wallpapers` by default. The current selection is stored in `~/.local/state/quickshell-wallpaper`; generated palettes are written to `~/.cache/yemi-shell/`.
+
+## Installation
+
+The project now includes a simple front-door installer flow that mirrors the style of a polished shell project:
+
+```bash
+git clone https://github.com/YemiPeter/YEMI-SHELL.git
+cd YEMI-SHELL
+./setup install
+```
+
+The installer handles dependencies, system configuration, and theming setup. After installation, start the shell with:
+
+```bash
+./setup run
+```
+
+You can also inspect the exact actions before running them:
+
+```bash
+./setup install --dry-run
+```
+
+For a minimal setup without enabling system services:
+
+```bash
+./setup install --no-services
+```
+
+### Direct script access
+
+```bash
 ./install.sh --dry-run
+./install.sh
+./install.sh --no-services
 ```
 
-The installer:
-1. Checks for required packages (pacman + AUR)
-2. Sets `RICE_HOME` in `environment.d` and Hyprland env
-3. Copies config to `~/.config/quickshell/`
-4. Enables systemd services (NetworkManager, Bluetooth, etc.)
-5. Initializes state files
-6. Runs `wal -i` on first wallpaper
+The installer does not edit compositor startup files; add `~/.config/quickshell/scripts/start-shell.sh` to either Hyprland or Niri after installation.
 
 ---
 
-## ⚙️ Configuration
+## Requirements
 
-### Flag Definitions
-
-| Property | Type | Default | Purpose |
-|:---------|:-----|:--------|:--------|
-| `paletteMode` | `string` | `"dynamic"` | Color mode (`"static"` or `"dynamic"`) |
-| `uiScale` | `real` | `1.0` | Global scaling factor |
-| `pillOpacity` | `real` | `0.55` | Resting pill transparency |
-| `pillBlur` | `bool` | `false` | Enable background blur |
-| `uiFont` | `string` | `""` | Custom font override |
-| `time12h` | `bool` | `false` | 12-hour clock mode |
-| `reduceMotion` | `bool` | `false` | Disable animations |
-
-### Theme Modes
-
-**Static Mode** — Fixed palette, no wallpaper dependency:
-```qml
-Flags.paletteMode = "static"
-```
-
-**Dynamic Mode** — Live wallpaper theming:
-```qml
-Flags.paletteMode = "dynamic"  // Changes on wallpaper update
-```
-
-### Compositor Detection
-
-Located in [`compositor/Niri.qml:78-85`](compositor/Niri.qml):
-
-```javascript
-function detectCompositor(): string {
-    const xdg = Quickshell.env("XDG_CURRENT_DESKTOP");
-    if (xdg?.includes("Hyprland")) return "hyprland";
-    if (xdg?.includes("Niri")) return "niri";
-    return "hyprland";
-}
-```
-
-### Debug Mode
-
-Enable verbose logging:
+The shell is designed for a Wayland session running either Hyprland or Niri. Install Quickshell with the services used by this configuration enabled, then add the tools for the features you want.
 
 ```bash
-export QS_DEBUG=1
+git clone https://github.com/YemiPeter/YEMI-SHELL.git
+cd YEMI-SHELL
+
+# Inspect every package, file, and service action first.
+./install.sh --dry-run
+
+# Install dependencies and enable services.
+./install.sh
 ```
 
-Or set in `flags.json`:
-```json
-{ "debug": true }
+Use `./install.sh --no-services` to install and copy the configuration without enabling system or user services. The installer does not edit compositor startup files; add `~/.config/quickshell/scripts/start-shell.sh` to either Hyprland or Niri after installation.
+
+## Configuration
+
+Persistent preferences live in `~/.local/state/quickshell/flags.json` and are managed by [`singletons/Flags.qml`](quickshell/singletons/Flags.qml). The file is created with defaults on first run and watched for changes, so it is safe to edit while the shell is running.
+
+Useful settings include:
+
+| Setting | Default | What it controls |
+|:--|:--|:--|
+| `paletteMode` | `"dynamic"` | Wallpaper-derived or static palette mode |
+| `systemMood` | `"dark"` | Active generated scheme: `"dark"` or `"light"` |
+| `uiScale` | `1.0` | Interface scaling |
+| `reduceMotion` | `false` | Reduced animations |
+| `time12h` / `clockSeconds` | `false` / `false` | Clock display |
+| `pillOpacity` | `0.55` | Resting pill opacity |
+| `weatherCity` | `""` | Optional weather-location override |
+| `wallpapersDirectory` | `""` | Optional wallpaper-directory override |
+| `altSwitcherLayout` | `"grid"` | Alt+Tab layout: `grid`, `list`, or `compact` |
+
+Set `QS_DEBUG=1` before launching Quickshell to enable debug logging from the configuration.
+
+## Wallpaper and Colors
+
+`scripts/set-wallpaper.sh` is the single wallpaper setter. It records the selected path, applies it through `skwd-helm`, and invokes `scripts/after-wall.sh`.
+
+`after-wall.sh` runs `scripts/dominance-engine.py` and writes a versioned dark-and-light color contract to `~/.cache/yemi-shell/colors.json`. [`singletons/Dyn.qml`](quickshell/singletons/Dyn.qml) watches that file and exposes the active scheme to the UI. The same pipeline also produces terminal colors and Hyprland border colors.
+
+The legacy `wallcolors.py` pipeline remains available only when `YEMI_LEGACY_COLORS=1` is set.
+
+## IPC
+
+The root [`shell.qml`](quickshell/shell.qml) registers Quickshell IPC targets for the pill, wallpaper, media, audio, brightness, MPRIS, colors, settings, and Alt+Tab switcher. Examples:
+
+```bash
+# Toggle a pill surface on the focused monitor
+qs ipc call pill launcher
+qs ipc call pill clipboard
+
+# Drive common controls
+qs ipc call audio volumeUp
+qs ipc call brightness increment
+qs ipc call mpris playPause
+
+# Choose another wallpaper or reload its palette
+qs ipc call wallpaper random
+qs ipc call colors reload
 ```
 
----
+Run `qs ipc call pill <surface> <monitor>` when a compositor keybind should target a specific output.
 
-## ⚠️ Known Limitations
+## Architecture
 
-### Niri Support (Secondary)
+```text
+shell.qml
+├── modules/bar/BarWrapper.qml       side bar and status controls
+├── modules/pill/PillOverlay.qml     one overlay per screen
+│   └── modules/pill/Pill.qml        morphing pill and surfaces
+├── modules/background/Backdrop.qml  per-screen background layer
+├── modules/music/MusicPanel.qml     detached music panel
+├── modules/altswitcher/             Alt+Tab overview
+├── services/                        audio, network, power, recording, updates …
+├── singletons/                      preferences, palette, metrics, pill state
+└── compositor/                      Hyprland and Niri backends
+```
 
-| Limitation | Impact |
-|:-----------|:-------|
-| Polling-based updates | 500ms delay for state changes |
-| Approximate fullscreen | Compares `tile_size` to monitor dimensions |
-| Partial keybind editing | Format differs (KDL vs Lua) |
-| Workspace key mapping | Niri workspaces keyed by `id`, mapped via `output` |
+`compositor/Compositor.qml` chooses a backend from `XDG_CURRENT_DESKTOP` or `DESKTOP_SESSION`. The Niri backend polls `niri msg --json` every 500 ms for outputs, workspaces, and windows; Hyprland uses its native Quickshell integration.
 
-### Other Caveats
+## Project Layout
 
-- **Magick Required**: `wallcolors.py` needs ImageMagick (`magick` command)
-- **Material Icons**: Pills use Material Icons; custom glyphs may fail
-- **GIF Thumbnails**: First frame only; animations not rendered in UI
-- **No Color Management**: Colors extracted once per wallpaper change
+| Path | Purpose |
+|:--|:--|
+| `shell.qml` | Entry point and IPC handlers |
+| `modules/` | Pill, bar, background, music, OSD, and window-switcher UI |
+| `services/` | Integrations with system services and command-line tools |
+| `singletons/` | Shared session state, theme, dynamic colors, and metrics |
+| `compositor/` | Normalized Hyprland and Niri API |
+| `scripts/` | Startup, wallpaper, color, terminal-theme, and maintenance scripts |
+| `config.d/` | Niri startup configuration |
 
----
+## License
 
-## 🛠️ Fixes & Future Work
-
-### Niri Support Enhancements
-
-Niri support is currently functional but is undergoing active improvements to reach full parity with Hyprland:
-
-| Area | Status | Planned |
-|:-----------|:-------|:--------|
-| IPC events | Polling (500ms) | Native event streaming |
-| Fullscreen detection | Approximate | Pixel-perfect measurement |
-| Keybind editing | Partial (KDL format) | Full GUI editor support |
-| Workspace mapping | `id` → `output` translation | Direct workspace binding |
-
-**Timeline:** Niri backend will reach full feature parity in the upcoming release.
-
----
-
-## 🔗 Related Projects
-
-This project builds on work from:
-
-- **[Ricelin](https://github.com/Gakuseei/Ricelin)** — Original morphing pill UI
-- **[iNiR](https://github.com/YemiPeter/iNiR)** — Yemi's Niri rice
-- **[qylock](https://github.com/Darkkal44/qylock)** — Lock screen implementation
-- **[skwd-wall](https://github.com/liixini/skwd-wall)** — Wallpaper changer
-- **[quickshell](https://github.com/YemiPeter/quickshell)** — Extended QML framework
-- **[tripathiji/quickshell](https://github.com/tripathiji1312/quickshell)** — Original quickshell
-
----
-
-## 📜 License
-
-This project is licensed under the MIT License. See `LICENSE` for details.
-
----
-
-<p align="center"><em>Built with ❤️ by Yemi for the Linux desktop community.</em></p>
+This project is licensed under the GNU General Public License v3.0 (GPL-3.0). See [`LICENSE`](LICENSE).

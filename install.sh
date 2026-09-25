@@ -12,7 +12,7 @@ warn() { printf "    ${DIM}[${RESET}${YELLOW}WARN${RESET}${DIM}]${RESET} %s\n" "
 err()  { printf "    ${DIM}[${RESET}${RED}ERR${RESET}${DIM}]${RESET} %s\n" "$*" >&2; }
 
 # ── progress bar ──────────────────────────────────────────────────────────────
-TOTAL_STEPS=12
+TOTAL_STEPS=11
 CURRENT_STEP=0
 
 draw_progress() {
@@ -80,18 +80,22 @@ print_banner() {
     printf "${BOLD}${MAGENTA}%s${RESET}\n" "███████║██║  ██║███████╗███████╗███████╗"
     printf "${BOLD}${MAGENTA}%s${RESET}\n" "╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝"
     echo
-    printf "${DIM}  by YemiPeter • github.com/YemiPeter${RESET}\n"
+    printf "${DIM}  YEMI-Shell • by YemiPeter • github.com/YemiPeter${RESET}\n"
     printf "${DIM}  ─────────────────────────────────────${RESET}\n"
     echo
 }
 
 # ── arguments ─────────────────────────────────────────────────────────────────
 DRY_RUN=false
+SKIP_SERVICES=false
 for arg in "$@"; do
     case "$arg" in
         --dry-run) DRY_RUN=true ;;
+        --no-services) SKIP_SERVICES=true ;;
         -h|--help)
-            echo "Usage: ./install.sh [--dry-run]"
+            echo "Usage: ./install.sh [--dry-run] [--no-services]"
+            echo "  --dry-run      Show changes without installing or writing files"
+            echo "  --no-services  Do not enable system or user services"
             exit 0
             ;;
         *)
@@ -113,59 +117,44 @@ run() {
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 TARGET_DIR="$HOME/.config/quickshell"
 WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
-FASTFETCH_DIR="$HOME/Pictures/fastfetch"
-DEFAULT_WALLPAPER=""
 
-# ── sample assets bundled with this repo ──────────────────────────────────────
-# 5 wallpapers — drop them in ~/Pictures/Wallpapers so skwd-wall has a starting
-# point and colors generate on first run. Add your own wallpapers there.
-SAMPLE_WALLPAPERS=(
-    "assets/wallpapers/pacman-ghosts.webp"
-    "assets/wallpapers/Girl-Face-Resting-On-Hands.webp"
-    "assets/wallpapers/Girl-Waves.webp"
-    "assets/wallpapers/Snoopy.webp"
-    "assets/wallpapers/wallhaven-e8xlgw.webp"
-)
-
-# 5 fastfetch images — shown randomly in the terminal on shell start.
-# Add your own images (PNG/JPG/WebP) to ~/Pictures/fastfetch/
-SAMPLE_FASTFETCH=(
-    "assets/fastfetch/archlinux.png"
-    "assets/fastfetch/nyarch.png"
-    "assets/fastfetch/itachipro.png"
-    "assets/fastfetch/pochita.png"
-    "assets/fastfetch/obito.png"
-)
+# Support both the repository root (which contains quickshell/) and an
+# installer copied directly into the quickshell configuration directory.
+if [[ -f "$SCRIPT_DIR/shell.qml" ]]; then
+    SOURCE_DIR="$SCRIPT_DIR"
+elif [[ -f "$SCRIPT_DIR/quickshell/shell.qml" ]]; then
+    SOURCE_DIR="$SCRIPT_DIR/quickshell"
+else
+    err "Could not find quickshell/shell.qml next to this installer"
+    exit 1
+fi
 
 # ── packages found from the QuickShell config ───────────────────────────────
 PACMAN_PACKAGES=(
-    awww
     bash
     base-devel
-    blueman
     bluez
     bluez-utils
     brightnessctl
+    cava
+    cliphist
     coreutils
     findutils
     gawk
     git
+    grim
     grep
     hyprland
     hyprsunset
     imagemagick
     jq
     libnotify
-    libvips
-    network-manager-applet
     networkmanager
+    niri
     pipewire
     pipewire-pulse
-    playerctl
     power-profiles-daemon
     procps-ng
-    python-pywal
-    quickshell
     qt6-5compat
     qt6-declarative
     rsync
@@ -184,6 +173,8 @@ PACMAN_PACKAGES=(
 )
 
 AUR_PACKAGES=(
+    quickshell-git
+    skwd-deck-bin
     ttf-material-design-icons-extended
 )
 
@@ -360,19 +351,25 @@ ensure_rice_home() {
     local hypr_env="$HOME/.config/hypr/modules/env.lua"
 
     # --- environment.d (systemd user session) ---
-    run mkdir -p "$env_d_dir"
     if grep -q "^RICE_HOME=" "$env_d_file" 2>/dev/null; then
         ok "environment.d/rice.conf already set"
+    elif "$DRY_RUN"; then
+        warn "Would add RICE_HOME to environment.d/rice.conf"
     else
-        echo "RICE_HOME=$rice_path" >> "$env_d_file"
+        mkdir -p "$env_d_dir"
+        printf 'RICE_HOME=%s\n' "$rice_path" >> "$env_d_file"
         ok "Added RICE_HOME to environment.d/rice.conf"
     fi
 
-    # --- Hyprland env directive ---
-    if grep -q "^env = RICE_HOME," "$hypr_env" 2>/dev/null; then
+    # --- Hyprland env directive (only when the user's config already has it) ---
+    if [[ ! -f "$hypr_env" ]]; then
+        warn "Hyprland env.lua not found; relying on environment.d instead"
+    elif grep -q "^env = RICE_HOME," "$hypr_env"; then
         ok "env.lua already has RICE_HOME"
+    elif "$DRY_RUN"; then
+        warn "Would add RICE_HOME to hypr/modules/env.lua"
     else
-        echo "env = RICE_HOME,$rice_path" >> "$hypr_env"
+        printf 'env = RICE_HOME,%s\n' "$rice_path" >> "$hypr_env"
         ok "Added RICE_HOME to hypr/modules/env.lua"
     fi
 }
@@ -383,15 +380,14 @@ copy_config() {
 
     run mkdir -p "$HOME/.config"
 
-    if [[ "$SCRIPT_DIR" == "$TARGET_DIR" ]]; then
+    if [[ "$SOURCE_DIR" == "$TARGET_DIR" ]]; then
         ok "Already running from $TARGET_DIR"
         return
     fi
 
-    warn "Copying config from $SCRIPT_DIR to $TARGET_DIR"
+    warn "Copying YEMI-Shell from $SOURCE_DIR to $TARGET_DIR"
     run mkdir -p "$TARGET_DIR"
-    run rsync -a --exclude '.git' --exclude 'install.sh' "$SCRIPT_DIR"/ "$TARGET_DIR"/
-    run install -m 755 "$SCRIPT_DIR/install.sh" "$TARGET_DIR/install.sh"
+    run rsync -a --exclude '.git' --exclude '.agents' --exclude '.codex' --exclude '.kilo' "$SOURCE_DIR"/ "$TARGET_DIR"/
     ok "Config copied"
 }
 
@@ -399,13 +395,26 @@ copy_config() {
 enable_services() {
     step "Enabling services"
 
+    if "$SKIP_SERVICES"; then
+        warn "Service setup skipped by --no-services"
+        return
+    fi
+
     run sudo systemctl enable --now NetworkManager.service
     run sudo systemctl enable --now bluetooth.service
     run sudo systemctl enable --now power-profiles-daemon.service
     run systemctl --user enable --now pipewire.socket
     run systemctl --user enable --now pipewire-pulse.socket
     run systemctl --user enable --now wireplumber.service
-    run systemctl --user enable --now playerctld.service
+    # The wallpaper daemon waits for a Wayland session before rendering, so
+    # enable it now but leave its first start to the next graphical session.
+    run systemctl --user enable skwd-walld.service
+
+    local user_unit_dir="$HOME/.config/systemd/user"
+    run mkdir -p "$user_unit_dir"
+    run install -m 644 "$SOURCE_DIR/quickshell-reset-app-usage.service" "$user_unit_dir/quickshell-reset-app-usage.service"
+    run systemctl --user daemon-reload
+    run systemctl --user enable quickshell-reset-app-usage.service
 
     ok "Service step done"
 }
@@ -415,10 +424,6 @@ prepare_runtime_dirs() {
 
     run mkdir -p "$WALLPAPER_DIR" "$TARGET_DIR/state" "$HOME/Pictures/Screenshots"
 
-    if [[ ! -f "$TARGET_DIR/state/colormode" ]]; then
-        run sh -c "printf '%s\n' dark > '$TARGET_DIR/state/colormode'"
-    fi
-
     if [[ ! -f "$TARGET_DIR/app_usage.json" ]]; then
         run sh -c "printf '%s\n' '{}' > '$TARGET_DIR/app_usage.json'"
     fi
@@ -426,43 +431,17 @@ prepare_runtime_dirs() {
     ok "Runtime directories ready"
 }
 
-# ── pywal ─────────────────────────────────────────────────────────────────────
-find_default_wallpaper() {
-    local candidate
-
-    candidate="$(find "$WALLPAPER_DIR" -maxdepth 1 -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) 2>/dev/null | sort | head -n 1 || true)"
-    if [[ -n "$candidate" ]]; then
-        DEFAULT_WALLPAPER="$candidate"
-        return
-    fi
-
-    candidate="$(find "$SCRIPT_DIR" -maxdepth 2 -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) 2>/dev/null | sort | head -n 1 || true)"
-    DEFAULT_WALLPAPER="$candidate"
-}
-
-init_pywal() {
-    step "Initializing Pywal"
-
-    find_default_wallpaper
-    if [[ -z "$DEFAULT_WALLPAPER" ]]; then
-        warn "No wallpaper image found in $WALLPAPER_DIR or this repo; skipping wal -i"
-        return
-    fi
-
-    warn "Using wallpaper: $DEFAULT_WALLPAPER"
-    run wal -i "$DEFAULT_WALLPAPER" --backend wal
-    ok "Pywal colors initialized"
-}
-
 # ── summary ───────────────────────────────────────────────────────────────────
 finish() {
     step "Done"
-    ok "QuickShell rice install complete"
+    ok "YEMI-Shell install complete"
     echo
-    echo "  ${BOLD}Next steps:${RESET}"
+    printf "  ${BOLD}Next steps:${RESET}\n"
     echo "    1. Put wallpapers in ~/Pictures/Wallpapers"
-    echo "    2. Hyprland config already has: exec-once = quickshell -p \$RICE_HOME/quickshell/shell.qml"
-    echo "    3. Log out and back in to load RICE_HOME, then run: quickshell"
+    echo "    2. Start it now: ~/.config/quickshell/scripts/start-shell.sh"
+    echo "    3. Add the same command to your compositor's startup configuration"
+    echo "       Hyprland: exec-once = ~/.config/quickshell/scripts/start-shell.sh"
+    echo "       Niri:     spawn-at-startup \"bash\" \"-lc\" \"~/.config/quickshell/scripts/start-shell.sh\""
     echo
 }
 
@@ -485,5 +464,4 @@ ensure_rice_home
 copy_config
 enable_services
 prepare_runtime_dirs
-init_pywal
 finish

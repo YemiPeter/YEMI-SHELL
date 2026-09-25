@@ -356,6 +356,13 @@ Scope {
             } else if (root.selfFocusKeys.indexOf(k) >= 0) {
                 root.selfFocusKeys = root.selfFocusKeys.filter(function (x) { return x !== k })
                 if (QsSingletons.Flags.debug) console.log("[AltSwitcher] event consumed self-focus " + k + " (left " + root.selfFocusKeys.length + ")")
+            } else if (root.runItems.some(function (w) { return w.key === k })) {
+                // Late-arriving focus event from an earlier walk step (e.g.
+                // Hyprland fires an intermediate "old window loses focus" event
+                // before the new one gains it). The window IS part of our frozen
+                // snapshot, so this is NOT an external focus — leave the walk
+                // intact and treat the event purely as an MRU update.
+                if (QsSingletons.Flags.debug) console.log("[AltSwitcher] event matches run member " + k + " (delayed from earlier step)")
             } else {
                 if (QsSingletons.Flags.debug) console.log("[AltSwitcher] EXTERNAL focus " + k + " (target " + root.walkTargetKey() + ") -> endRun")
                 root.endRun()
@@ -472,14 +479,14 @@ Scope {
     function startRun() {
         root.runItems = root.windows.slice()
         root.selfFocusKeys = []
-        if (QsSingletons.Flags.debug) console.log("[AltSwitcher] startRun snapshot: " + root.runItems.map(function (w) { return w.key }).join(","))
+        if (QsSingletons.Flags.debug) console.log("[AltSwitcher] startRun snapshot (" + root.runItems.length + " items): " + root.runItems.map(function (w) { return w.key }).join(","))
         return root.runItems.length
     }
 
     /** Drop the walk snapshot so the next press starts from the live order. */
     function endRun() {
         if (root.runItems.length > 0)
-            if (QsSingletons.Flags.debug) console.log("[AltSwitcher] endRun — walk dropped (" + root.runItems.length + " items)")
+            if (QsSingletons.Flags.debug) console.log("[AltSwitcher] endRun — walk dropped (" + root.runItems.length + " items, cursor idx " + root.currentIndex + ")")
         runHoldTimer.stop()
         if (root.runItems.length > 0)
             root.runItems = []
@@ -511,6 +518,14 @@ Scope {
         if (QsSingletons.Flags.debug) console.log("[AltSwitcher] next: fresh=" + fresh + " runActive=" + root.runActive + " cursor=" + root.currentIndex + " count=" + root.count)
         if (fresh)
             root.openSwitcher()
+        // Safety: if the walk was prematurely ended (e.g. by a false external-focus
+        // detection in noteFocus) but the overlay is still open, restart the run so
+        // we never advance through the live (reordering) list with a stale index.
+        if (!root.runActive && root.open) {
+            if (QsSingletons.Flags.debug) console.log("[AltSwitcher] next: walk inactive while open -> restart run")
+            root.startRun()
+            root.currentIndex = 0
+        }
         if (root.count === 0)
             return
         // Classic mode (advance off) only opens on the first press — the
@@ -546,6 +561,12 @@ Scope {
         const fresh = !root.open
         if (fresh)
             root.openSwitcher()
+        // Safety: restart the walk if it was prematurely ended while overlay is open.
+        if (!root.runActive && root.open) {
+            if (QsSingletons.Flags.debug) console.log("[AltSwitcher] previous: walk inactive while open -> restart run")
+            root.startRun()
+            root.currentIndex = 0
+        }
         if (root.count === 0)
             return
         if (fresh && !root.advanceOnTap)
@@ -645,10 +666,16 @@ Scope {
     // explicit dismissal, where close() is called instead).
     function commitAndClose() {
         // Cycle-only mode never opens, so there is nothing to commit/hide.
-        if (!root.open || !root.advanceOnTap)
+        if (!root.open || !root.advanceOnTap) {
+            if (QsSingletons.Flags.debug) console.log("[AltSwitcher] commitAndClose: skip (open=" + root.open + " advanceOnTap=" + root.advanceOnTap + ")")
             return
-        if (root.count > 0 && root.currentIndex >= 0 && root.currentIndex < root.count)
+        }
+        if (root.count > 0 && root.currentIndex >= 0 && root.currentIndex < root.count) {
+            if (QsSingletons.Flags.debug) console.log("[AltSwitcher] commitAndClose: focus idx " + root.currentIndex + " " + root.items[root.currentIndex].key)
             root.focusWindow(root.items[root.currentIndex])
+        } else {
+            if (QsSingletons.Flags.debug) console.log("[AltSwitcher] commitAndClose: no valid target (count=" + root.count + " idx=" + root.currentIndex + ")")
+        }
         root.hideOverlay()
     }
 
@@ -659,8 +686,10 @@ Scope {
         // walker-initiated even if the event arrives after the cursor has
         // already moved on (fast tapping). See noteFocus().
         const k = root.focusKey(w)
-        if (k && root.selfFocusKeys.indexOf(k) < 0)
+        if (k && root.selfFocusKeys.indexOf(k) < 0) {
             root.selfFocusKeys = root.selfFocusKeys.concat([k])
+            if (QsSingletons.Flags.debug) console.log("[AltSwitcher] focusWindow: push " + k + " (queue size " + root.selfFocusKeys.length + ")")
+        }
         // Hyprland focuses by address through the unified dispatch path
         // (same convention as bar AppIcons). Niri uses its IPC action.
         if (root.isHyprland) {
@@ -670,8 +699,10 @@ Scope {
             let addr = String(w.address ?? "")
             if (addr.length > 0 && addr.indexOf("0x") !== 0)
                 addr = "0x" + addr
-            if (addr.length > 0)
+            if (addr.length > 0) {
+                if (QsSingletons.Flags.debug) console.log("[AltSwitcher] dispatch: focuswindow address:" + addr)
                 compositor.dispatch("focuswindow address:" + addr)
+            }
             return
         }
         focusProc.command = ["niri", "msg", "action", "focus-window", "--id", String(w.id)]

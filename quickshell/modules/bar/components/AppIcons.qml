@@ -31,16 +31,34 @@ Item {
 
     property var _entryCache: ({})
 
-    // One entry per running appId: { appId, icon, toplevels, focused }.
+    // One entry per running appId: { appId, icon, toplevels, focused, ws, pos }.
     // Same derivation approach as the pill Workspaces: direct property reads
     // so the binding re-evaluates on every open/close/focus change.
+    //
+    // Row order mirrors the workspace dots to the left: an app whose (earliest)
+    // window sits on an earlier workspace comes earlier in the strip. Apps that
+    // share a workspace keep their opening order (toplevels arrive oldest-first,
+    // new windows append), so the row is stable — it only moves when a window
+    // actually changes workspace, or an app opens/closes.
     readonly property var appItems: {
         void compositor.toplevels;
         void compositor.activeToplevel;
+        void compositor.workspaces;   // moving a window re-sorts the strip
 
         var tls = compositor.toplevels || [];
         var active = compositor.activeToplevel;
         var isNiri = compositor.isNiri;
+
+        // Workspace position rank: the per-output idx when the backend exposes
+        // one (niri), else the global id (Hyprland). Keyed by the workspace id
+        // the toplevels carry, so the lookup below is shape-agnostic.
+        var wsRank = {};
+        var wss = compositor.workspaces || [];
+        for (var k = 0; k < wss.length; k++) {
+            var ws = wss[k];
+            if (!ws || ws.id === undefined || ws.id === null) continue;
+            wsRank[ws.id] = (ws.idx !== undefined && ws.idx !== null) ? ws.idx : ws.id;
+        }
 
         var map = {};
         var order = [];
@@ -54,20 +72,36 @@ Item {
                     appId: appId,
                     icon: iconFor(appId),
                     toplevels: [],
-                    focused: false
+                    focused: false,
+                    // Sort keys: earliest workspace the app occupies, and the
+                    // raw position of its first window (open-order tiebreak).
+                    ws: 1e9,
+                    pos: i
                 };
                 order.push(appId);
             }
-            map[appId].toplevels.push(tl);
-            if (!map[appId].focused && isFocusedTl(tl, active, isNiri))
-                map[appId].focused = true;
+            var entry = map[appId];
+            entry.toplevels.push(tl);
+            var rank = wsRank[wsIdFor(tl)];
+            if (rank !== undefined && rank < entry.ws)
+                entry.ws = rank;
+            if (!entry.focused && isFocusedTl(tl, active, isNiri))
+                entry.focused = true;
         }
 
         var out = [];
         for (var j = 0; j < order.length; j++)
             out.push(map[order[j]]);
-        console.log("[AppIcons] tls=" + tls.length + " apps=" + out.length
-                    + " sample=" + (tls.length ? JSON.stringify(appIdFor(tls[0])) : "none"));
+        // Workspace order first; a shared workspace keeps opening order so two
+        // apps on the same workspace never swap places on a focus change.
+        out.sort(function (a, b) {
+            if (a.ws !== b.ws) return a.ws - b.ws;
+            if (a.pos !== b.pos) return a.pos - b.pos;
+            return String(a.appId).localeCompare(String(b.appId));
+        });
+        if (QsSingletons.Flags.debug)
+            console.log("[AppIcons] tls=" + tls.length + " apps=" + out.length
+                        + " order=" + out.map(function (e) { return e.appId }).join(","));
         return out;
     }
 
